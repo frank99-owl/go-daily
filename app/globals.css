@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Go-themed palette (distinct from personal-site's warm orange) */
+  --color-board: #e8c594;       /* board wood fill */
+  --color-board-2: #d4a76a;     /* board grid lines */
+  --color-stone-b: #1a1a1a;     /* black stones */
+  --color-stone-w: #fafafa;     /* white stones */
+  --color-ink: #1a1a1a;         /* primary text */
+  --color-ink-2: #4a4a4a;       /* secondary text */
+  --color-paper: #faf9f4;       /* page bg */
+  --color-accent: #0d9488;      /* accent (teal) */
+  --color-success: #16a34a;     /* correct */
+  --color-warn: #ef4444;        /* wrong */
+  --color-line: #e4e2d6;        /* divider */
+
+  /* Inter for Latin; system CJK fonts handle 中 / 日 / 韩 via the OS */
+  --font-sans:
+    var(--font-inter),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "PingFang SC",
+    "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    "Apple SD Gothic Neo",
+    "Noto Sans CJK SC",
+    "Microsoft YaHei",
+    "Malgun Gothic",
+    sans-serif;
+  --font-display:
+    var(--font-playfair),
+    "PingFang SC",
+    "Hiragino Mincho ProN",
+    "Apple SD Gothic Neo",
+    serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }

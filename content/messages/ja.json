@@ -1,0 +1,46 @@
+{
+  "brand": "go-daily",
+  "nav": {
+    "today": "今日",
+    "stats": "戦績"
+  },
+  "home": {
+    "todaysProblem": "今日の一題",
+    "toPlayBlack": "黒先",
+    "toPlayWhite": "白先",
+    "difficulty": "難易度",
+    "submit": "着手確定",
+    "reset": "やり直す",
+    "hint": "空いている交点をタップして打ってください"
+  },
+  "result": {
+    "correct": "正解！",
+    "wrong": "惜しい",
+    "viewAnswer": "正解を見る",
+    "backToToday": "今日に戻る",
+    "coachTitle": "AI コーチ",
+    "coachEmpty": "気になることを何でもどうぞ——「なぜここが急所？」「白がハネたらどうなる？」",
+    "coachPlaceholder": "コーチに質問…",
+    "send": "送信",
+    "thinking": "思考中…"
+  },
+  "stats": {
+    "title": "戦績",
+    "streak": "連勝",
+    "days": "日",
+    "total": "解いた問題数",
+    "accuracy": "正解率",
+    "empty": "まだ記録がありません。最初の一題から始めましょう"
+  },
+  "share": {
+    "title": "今日の結果をシェア",
+    "download": "画像を保存",
+    "share": "シェア"
+  },
+  "tags": {
+    "life-death": "死活",
+    "tesuji": "手筋",
+    "endgame": "ヨセ",
+    "opening": "布石"
+  }
+}

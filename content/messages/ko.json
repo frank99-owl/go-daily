@@ -1,0 +1,46 @@
+{
+  "brand": "go-daily",
+  "nav": {
+    "today": "오늘",
+    "stats": "기록"
+  },
+  "home": {
+    "todaysProblem": "오늘의 문제",
+    "toPlayBlack": "흑선",
+    "toPlayWhite": "백선",
+    "difficulty": "난이도",
+    "submit": "착수 확인",
+    "reset": "다시 선택",
+    "hint": "빈 교차점을 눌러 돌을 놓으세요"
+  },
+  "result": {
+    "correct": "정답!",
+    "wrong": "다시 생각해 보세요",
+    "viewAnswer": "정답 보기",
+    "backToToday": "오늘로 돌아가기",
+    "coachTitle": "AI 코치",
+    "coachEmpty": "무엇이든 물어보세요 — 예: \"왜 이곳이 급소인가요?\" / \"백이 젖히면 어떻게 되나요?\"",
+    "coachPlaceholder": "코치에게 물어보기…",
+    "send": "보내기",
+    "thinking": "생각 중…"
+  },
+  "stats": {
+    "title": "나의 기록",
+    "streak": "연승",
+    "days": "일",
+    "total": "푼 문제 수",
+    "accuracy": "정답률",
+    "empty": "기록이 아직 없습니다. 첫 문제를 풀어보세요"
+  },
+  "share": {
+    "title": "오늘의 결과 공유",
+    "download": "이미지 저장",
+    "share": "공유"
+  },
+  "tags": {
+    "life-death": "사활",
+    "tesuji": "맥",
+    "endgame": "끝내기",
+    "opening": "포석"
+  }
+}

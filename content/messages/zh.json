@@ -1,0 +1,46 @@
+{
+  "brand": "go-daily",
+  "nav": {
+    "today": "今日",
+    "stats": "战绩"
+  },
+  "home": {
+    "todaysProblem": "今日一题",
+    "toPlayBlack": "黑先",
+    "toPlayWhite": "白先",
+    "difficulty": "难度",
+    "submit": "确认落子",
+    "reset": "重新选择",
+    "hint": "点击空交叉点落子"
+  },
+  "result": {
+    "correct": "答对了！",
+    "wrong": "再想想",
+    "viewAnswer": "查看正解",
+    "backToToday": "返回今日",
+    "coachTitle": "AI 陪练",
+    "coachEmpty": "想到什么随时问——比如「为什么这一手是急所？」「如果白去扑会怎么样？」",
+    "coachPlaceholder": "向 AI 提问…",
+    "send": "发送",
+    "thinking": "AI 思考中…"
+  },
+  "stats": {
+    "title": "我的战绩",
+    "streak": "连胜",
+    "days": "天",
+    "total": "已解题数",
+    "accuracy": "正确率",
+    "empty": "还没有记录，去解第一道题吧"
+  },
+  "share": {
+    "title": "分享今日战绩",
+    "download": "下载图片",
+    "share": "分享"
+  },
+  "tags": {
+    "life-death": "死活",
+    "tesuji": "手筋",
+    "endgame": "官子",
+    "opening": "布局"
+  }
+}

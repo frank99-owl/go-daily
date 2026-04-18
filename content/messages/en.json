@@ -1,0 +1,46 @@
+{
+  "brand": "go-daily",
+  "nav": {
+    "today": "Today",
+    "stats": "Stats"
+  },
+  "home": {
+    "todaysProblem": "Today's Problem",
+    "toPlayBlack": "Black to play",
+    "toPlayWhite": "White to play",
+    "difficulty": "Difficulty",
+    "submit": "Confirm move",
+    "reset": "Reset",
+    "hint": "Tap an empty intersection to place a stone"
+  },
+  "result": {
+    "correct": "Correct!",
+    "wrong": "Not quite",
+    "viewAnswer": "View solution",
+    "backToToday": "Back to today",
+    "coachTitle": "AI Coach",
+    "coachEmpty": "Ask anything — e.g. \"Why is this the vital point?\" or \"What happens if White hanes?\"",
+    "coachPlaceholder": "Ask the coach…",
+    "send": "Send",
+    "thinking": "Thinking…"
+  },
+  "stats": {
+    "title": "My Stats",
+    "streak": "Streak",
+    "days": "days",
+    "total": "Puzzles solved",
+    "accuracy": "Accuracy",
+    "empty": "No records yet. Solve your first puzzle!"
+  },
+  "share": {
+    "title": "Share today's result",
+    "download": "Download image",
+    "share": "Share"
+  },
+  "tags": {
+    "life-death": "Life & Death",
+    "tesuji": "Tesuji",
+    "endgame": "Endgame",
+    "opening": "Opening"
+  }
+}
