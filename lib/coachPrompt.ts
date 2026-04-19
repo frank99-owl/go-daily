@@ -1,13 +1,11 @@
 import type { Locale, Puzzle, Stone } from "@/types";
-import { localized } from "./localized";
+import { localized } from "./i18n";
 
 const coordLabel = (c: { x: number; y: number }) => `(${c.x},${c.y})`;
 
 function describePosition(puzzle: Puzzle): string {
   const describe = (arr: Stone[]) =>
-    arr.length
-      ? arr.map((s) => coordLabel(s)).join(", ")
-      : "(none)";
+    arr.length ? arr.map((s) => coordLabel(s)).join(", ") : "(none)";
   const blacks = puzzle.stones.filter((s) => s.color === "black");
   const whites = puzzle.stones.filter((s) => s.color === "white");
   const solution = puzzle.correct.map((c) => coordLabel(c)).join(", ");
@@ -51,10 +49,7 @@ export function buildSystemPrompt(
       "",
       "--- SOLUTION SEQUENCE (ground truth) ---",
       puzzle.solutionSequence
-        .map(
-          (s, i) =>
-            `Step ${i + 1}: ${s.color} ${coordLabel(s)}`,
-        )
+        .map((s, i) => `Step ${i + 1}: ${s.color} ${coordLabel(s)}`)
         .join("\n"),
     );
   }
@@ -105,4 +100,3 @@ export function buildSystemPrompt(
 
   return `${common}\n\n--- STYLE ---\n${byLocale[locale]}`;
 }
-

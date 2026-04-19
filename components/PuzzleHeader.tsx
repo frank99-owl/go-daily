@@ -1,31 +1,24 @@
 "use client";
 
 import { useLocale } from "@/lib/i18n";
-import { localized } from "@/lib/localized";
+import { localized } from "@/lib/i18n";
+import { BOARD_SIZE_LABELS } from "@/types";
 import type { Puzzle } from "@/types";
 
 export function PuzzleHeader({ puzzle }: { puzzle: Puzzle }) {
   const { t, locale } = useLocale();
-  const toPlayLabel =
-    puzzle.toPlay === "black" ? t.home.toPlayBlack : t.home.toPlayWhite;
+  const toPlayLabel = puzzle.toPlay === "black" ? t.home.toPlayBlack : t.home.toPlayWhite;
   // Curated puzzles are date-anchored (daily rotation); library imports have
   // a placeholder date we hide in favor of the source label.
-  const primaryMeta =
-    puzzle.isCurated === false ? (puzzle.source ?? "Library") : puzzle.date;
+  const primaryMeta = puzzle.isCurated === false ? (puzzle.source ?? "Library") : puzzle.date;
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-3 text-xs text-ink-2">
+      <div className="flex items-center gap-3 text-sm text-ink-2">
         <span>{primaryMeta}</span>
         <span className="h-1 w-1 rounded-full bg-[color:var(--color-line)]" />
         <span>{t.tags[puzzle.tag]}</span>
         <span className="h-1 w-1 rounded-full bg-[color:var(--color-line)]" />
-        <span>
-          {
-            t.puzzles.boardSize[
-              String(puzzle.boardSize) as "9" | "13" | "19"
-            ]
-          }
-        </span>
+        <span>{BOARD_SIZE_LABELS[puzzle.boardSize]}</span>
         <span className="h-1 w-1 rounded-full bg-[color:var(--color-line)]" />
         <span>
           {t.home.difficulty} {"★".repeat(puzzle.difficulty)}

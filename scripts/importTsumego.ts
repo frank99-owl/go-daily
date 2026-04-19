@@ -18,10 +18,9 @@
 import fs from "fs";
 import path from "path";
 
-const OUTPUT = path.join(process.cwd(), "lib/importedPuzzles.ts");
+const OUTPUT = path.join(process.cwd(), "content/data/importedPuzzles.ts");
 
-const COLLECTION =
-  "Cho Chikun Encyclopedia Life And Death - Elementary";
+const COLLECTION = "Cho Chikun Encyclopedia Life And Death - Elementary";
 const CATEGORY = "1a. Tsumego Beginner";
 const SOURCE_LABEL = "Cho Chikun · Life & Death · Elementary";
 const HOW_MANY = 100;
@@ -137,13 +136,9 @@ function convert(raw: SourceProblem, index: number): ImportedPuzzle | null {
   if (!sol) return null; // skip problems without a marked solution
   const solColor = sol[0] === "B" ? "black" : "white";
   const solCoord = sgfToCoord(sol[1]);
-  const boardSize: 9 | 13 | 19 =
-    raw.SZ === "9" ? 9 : raw.SZ === "13" ? 13 : 19;
+  const boardSize: 9 | 13 | 19 = raw.SZ === "9" ? 9 : raw.SZ === "13" ? 13 : 19;
 
-  const stones = [
-    ...parseStones(raw.AB, "black"),
-    ...parseStones(raw.AW, "white"),
-  ];
+  const stones = [...parseStones(raw.AB, "black"), ...parseStones(raw.AW, "white")];
 
   return {
     id: `cho-e-${String(index + 1).padStart(3, "0")}`,

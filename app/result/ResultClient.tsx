@@ -11,7 +11,7 @@ import { ShareCard } from "@/components/ShareCard";
 import { useLocale } from "@/lib/i18n";
 import { PUZZLES } from "@/content/puzzles";
 import { getAttemptFor, getAttemptsFor } from "@/lib/storage";
-import { localized } from "@/lib/localized";
+import { localized } from "@/lib/i18n";
 import type { AttemptRecord, Puzzle, Stone } from "@/types";
 
 export function ResultClient() {
@@ -51,9 +51,9 @@ export function ResultClient() {
 
   if (!puzzle) {
     return (
-      <p className="text-ink-2">
+      <p className="text-white/50">
         Puzzle not found.{" "}
-        <Link href="/" className="underline">
+        <Link href="/" className="underline text-[#00f2ff]">
           {t.result.backToToday}
         </Link>
       </p>
@@ -71,9 +71,7 @@ export function ResultClient() {
 
   // Build extra stones for the board (solution sequence up to current step).
   const extraStones: Stone[] =
-    showAnswer && hasSolution
-      ? (puzzle.solutionSequence ?? []).slice(0, solutionStep)
-      : [];
+    showAnswer && hasSolution ? (puzzle.solutionSequence ?? []).slice(0, solutionStep) : [];
 
   const handlePlay = () => {
     setShowAnswer(true);
@@ -101,19 +99,12 @@ export function ResultClient() {
             : "bg-[color:var(--color-warn)]/10 border-[color:var(--color-warn)]/30 text-[color:var(--color-warn)]")
         }
       >
-        <div className="text-sm font-medium">
-          {correct ? t.result.correct : t.result.wrong}
-        </div>
-        <div className="text-xs text-ink-2 mt-1">{localized(puzzle.prompt, locale)}</div>
+        <div className="text-sm font-medium">{correct ? t.result.correct : t.result.wrong}</div>
+        <div className="text-sm mt-1 opacity-70">{localized(puzzle.prompt, locale)}</div>
         {totalAttempts > 0 && (
-          <div className="text-xs text-ink-2 mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span>
-              {t.result.attemptCount.replace(
-                "{{count}}",
-                String(totalAttempts),
-              )}
-            </span>
-            <span className="text-[color:var(--color-line)]">·</span>
+          <div className="text-sm mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 opacity-70">
+            <span>{t.result.attemptCount.replace("{{count}}", String(totalAttempts))}</span>
+            <span className="opacity-30">·</span>
             <span>
               {t.result.historyTally
                 .replace("{{correct}}", String(correctCount))
@@ -133,6 +124,7 @@ export function ResultClient() {
           extraStones={extraStones}
           disabled
           cropToStones={puzzle.boardSize === 19}
+          boardStyle="dark"
         />
       </div>
 
@@ -144,7 +136,7 @@ export function ResultClient() {
             setSolutionStep(0);
             setIsPlaying(false);
           }}
-          className="px-4 py-2 rounded-full border border-[color:var(--color-line)] text-sm text-ink-2 hover:text-ink"
+          className="px-4 py-2 rounded-full border border-white/10 text-sm text-white/60 hover:text-white transition-colors"
         >
           {showAnswer ? t.result.hideAnswer : t.result.viewAnswer}
         </button>
@@ -155,7 +147,7 @@ export function ResultClient() {
               <button
                 type="button"
                 onClick={handlePlay}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[color:var(--color-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#00f2ff] text-black text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 <Play className="h-3.5 w-3.5" />
                 {t.result.playSolution}
@@ -163,25 +155,23 @@ export function ResultClient() {
             )}
 
             {(solutionStep > 0 || isPlaying) && (
-              <div className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-line)] bg-white/60 px-1 py-1">
+              <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-1 py-1">
                 <button
                   type="button"
                   onClick={() => handleStep(-1)}
                   disabled={solutionStep <= 0}
-                  className="p-1.5 rounded-full hover:bg-[color:var(--color-paper)] disabled:opacity-30 transition-colors"
+                  className="p-1.5 rounded-full hover:bg-white/10 disabled:opacity-30 transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-xs text-ink-2 px-1 min-w-[3ch] text-center">
+                <span className="text-sm text-white/50 px-1 min-w-[3ch] text-center">
                   {solutionStep} / {puzzle.solutionSequence?.length}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleStep(1)}
-                  disabled={
-                    solutionStep >= (puzzle.solutionSequence?.length ?? 0)
-                  }
-                  className="p-1.5 rounded-full hover:bg-[color:var(--color-paper)] disabled:opacity-30 transition-colors"
+                  disabled={solutionStep >= (puzzle.solutionSequence?.length ?? 0)}
+                  className="p-1.5 rounded-full hover:bg-white/10 disabled:opacity-30 transition-colors"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -192,7 +182,7 @@ export function ResultClient() {
 
         <Link
           href="/"
-          className="px-5 py-2 rounded-full bg-ink text-paper text-sm font-medium hover:bg-[color:var(--color-accent)] transition-colors"
+          className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[#00f2ff] hover:text-black transition-colors"
         >
           {t.result.backToToday}
         </Link>
@@ -205,7 +195,7 @@ export function ResultClient() {
       {/* Solution notes are only shown for curated puzzles — library imports
           have a generic placeholder note which is not worth the visual space. */}
       {showAnswer && puzzle.isCurated !== false && (
-        <section className="rounded-xl border border-[color:var(--color-line)] bg-white/60 p-5 text-sm leading-relaxed text-ink-2">
+        <section className="rounded-xl border border-white/10 bg-white/5 p-5 text-sm leading-relaxed text-white/60">
           {localized(puzzle.solutionNote, locale)}
         </section>
       )}
@@ -214,11 +204,7 @@ export function ResultClient() {
           hand-authored 4-language solution notes, so grounding would be weak
           and hallucination risk high. */}
       {attempt?.userMove && puzzle.isCurated !== false && (
-        <CoachDialogue
-          puzzleId={puzzle.id}
-          userMove={attempt.userMove}
-          isCorrect={correct}
-        />
+        <CoachDialogue puzzleId={puzzle.id} userMove={attempt.userMove} isCorrect={correct} />
       )}
     </div>
   );

@@ -10,8 +10,8 @@
 // and automatically flow back into the daily rotation + coach.
 
 import type { Puzzle } from "@/types";
-import { IMPORTED_PUZZLES } from "@/lib/importedPuzzles";
-import { LIBRARY_PUZZLES } from "@/lib/puzzleLibrary";
+import { IMPORTED_PUZZLES } from "@/content/data/importedPuzzles";
+import { LIBRARY_PUZZLES } from "@/content/data/puzzleLibrary";
 
 export const PUZZLES: Puzzle[] = [...IMPORTED_PUZZLES, ...LIBRARY_PUZZLES];
 

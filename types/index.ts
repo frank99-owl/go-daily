@@ -56,3 +56,9 @@ export interface CoachMessage {
   content: string;
   ts: number;
 }
+
+export const BOARD_SIZE_LABELS: Record<9 | 13 | 19, string> = {
+  9: "9×9",
+  13: "13×13",
+  19: "19×19",
+};

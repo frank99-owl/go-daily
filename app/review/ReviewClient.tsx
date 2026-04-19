@@ -7,15 +7,10 @@ import { PUZZLES } from "@/content/puzzles";
 import { PuzzleStatusBadge } from "@/components/PuzzleStatusBadge";
 import { loadAttempts } from "@/lib/storage";
 import { getStatusFor, lastAttemptMsMap } from "@/lib/puzzleStatus";
-import { localized } from "@/lib/localized";
+import { localized } from "@/lib/i18n";
+import { BOARD_SIZE_LABELS } from "@/types";
 import type { AttemptRecord, Puzzle } from "@/types";
 
-/**
- * Mistake review — the LeetCode "wrong-questions notebook". Shows every puzzle
- * the user has attempted but not yet solved, sorted by most recent attempt so
- * unfinished fights float to the top. Empty state is intentionally encouraging
- * (no mistakes == streak-worthy) rather than apologetic.
- */
 export function ReviewClient() {
   const { t, locale } = useLocale();
   const [attempts, setAttempts] = useState<AttemptRecord[] | null>(null);
@@ -25,18 +20,10 @@ export function ReviewClient() {
     setAttempts(loadAttempts());
   }, []);
 
-  // Memoized so downstream useMemos get a stable reference between renders.
-  const attemptsList: AttemptRecord[] = useMemo(
-    () => attempts ?? [],
-    [attempts],
-  );
+  const attemptsList: AttemptRecord[] = useMemo(() => attempts ?? [], [attempts]);
 
-  const lastAttemptByPuzzle = useMemo(
-    () => lastAttemptMsMap(attemptsList),
-    [attemptsList],
-  );
+  const lastAttemptByPuzzle = useMemo(() => lastAttemptMsMap(attemptsList), [attemptsList]);
 
-  // Count attempts per puzzle — used for the "N attempts" subtitle.
   const attemptCountByPuzzle = useMemo(() => {
     const m = new Map<string, number>();
     for (const a of attemptsList) {
@@ -46,10 +33,7 @@ export function ReviewClient() {
   }, [attemptsList]);
 
   const wrongPuzzles = useMemo(() => {
-    return PUZZLES.filter(
-      (p) => getStatusFor(p.id, attemptsList) === "attempted",
-    ).sort((a, b) => {
-      // Most-recently-attempted first.
+    return PUZZLES.filter((p) => getStatusFor(p.id, attemptsList) === "attempted").sort((a, b) => {
       const aMs = lastAttemptByPuzzle.get(a.id) ?? 0;
       const bMs = lastAttemptByPuzzle.get(b.id) ?? 0;
       return bMs - aMs;
@@ -59,15 +43,15 @@ export function ReviewClient() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl text-ink">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl text-white">
           {t.review.title}
         </h1>
-        <p className="text-sm text-ink-2">{t.review.subtitle}</p>
+        <p className="text-sm text-white/50">{t.review.subtitle}</p>
       </div>
 
       {attempts !== null && wrongPuzzles.length === 0 ? (
-        <div className="rounded-xl border border-[color:var(--color-line)] bg-white/60 p-8 text-center">
-          <p className="text-sm text-ink-2">{t.review.empty}</p>
+        <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center">
+          <p className="text-sm text-white/50">{t.review.empty}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -80,11 +64,7 @@ export function ReviewClient() {
               locale={locale}
               lastAttemptedLabel={t.review.lastAttempted}
               attemptCountLabel={t.review.attemptCount}
-              boardSizeLabel={
-                t.puzzles.boardSize[
-                  String(puzzle.boardSize) as "9" | "13" | "19"
-                ]
-              }
+              boardSizeLabel={BOARD_SIZE_LABELS[puzzle.boardSize]}
               tagLabel={t.tags[puzzle.tag]}
               statusTitle={t.puzzles.statusAttempted}
             />
@@ -118,13 +98,7 @@ function ReviewCard({
 }) {
   const lastDateText = lastMs
     ? new Date(lastMs).toLocaleDateString(
-        locale === "zh"
-          ? "zh-CN"
-          : locale === "ja"
-            ? "ja-JP"
-            : locale === "ko"
-              ? "ko-KR"
-              : "en-US",
+        locale === "zh" ? "zh-CN" : locale === "ja" ? "ja-JP" : locale === "ko" ? "ko-KR" : "en-US",
         { month: "short", day: "numeric" },
       )
     : "";
@@ -132,34 +106,30 @@ function ReviewCard({
   return (
     <Link
       href={`/puzzles/${encodeURIComponent(puzzle.id)}`}
-      className="group relative rounded-xl border border-[color:var(--color-line)] bg-white/60 p-4 hover:border-[color:var(--color-accent)]/50 hover:bg-white/80 transition-all"
+      className="group relative rounded-xl border border-white/10 bg-white/5 p-4 hover:border-[#00f2ff]/30 hover:bg-white/10 transition-all"
     >
       <div className="absolute top-3 right-3">
         <PuzzleStatusBadge status="attempted" size="sm" title={statusTitle} />
       </div>
 
       <div className="flex items-center justify-between mb-2 pr-6">
-        <span className="text-xs text-ink-2 truncate max-w-[70%]">
+        <span className="text-sm text-white/50 truncate max-w-[70%]">
           {lastAttemptedLabel.replace("{{date}}", lastDateText)}
         </span>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-[color:var(--color-paper)] border border-[color:var(--color-line)] text-ink-2">
+        <span className="text-sm px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/50">
           {boardSizeLabel}
         </span>
       </div>
 
-      <h3 className="text-sm font-medium text-ink mb-2 line-clamp-2">
+      <h3 className="text-sm font-medium text-white mb-2 line-clamp-2">
         {localized(puzzle.prompt, locale)}
       </h3>
 
-      <div className="flex items-center gap-2 text-xs text-ink-2">
-        <span className="px-2 py-0.5 rounded-full bg-[color:var(--color-paper)]">
-          {tagLabel}
-        </span>
+      <div className="flex items-center gap-2 text-sm text-white/50">
+        <span className="px-2 py-0.5 rounded-full bg-white/5">{tagLabel}</span>
         <span>{"★".repeat(puzzle.difficulty)}</span>
-        <span className="text-[color:var(--color-line)]">
-          {"★".repeat(5 - puzzle.difficulty)}
-        </span>
-        <span className="ml-auto text-ink-2">
+        <span className="text-white/10">{"★".repeat(5 - puzzle.difficulty)}</span>
+        <span className="ml-auto text-white/50">
           {attemptCountLabel.replace("{{count}}", String(attemptCount))}
         </span>
       </div>
