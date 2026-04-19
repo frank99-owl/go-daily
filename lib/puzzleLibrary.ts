@@ -1,5 +1,4 @@
 // Auto-generated — do not edit by hand.
-// Run `npm run import:library` to regenerate from source.
 
 import type { Puzzle } from "@/types";
 

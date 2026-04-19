@@ -64,7 +64,7 @@ npm run dev
 | `npm run start` | 启动生产服务器（需先 `build`） |
 | `npm run lint` | 运行 ESLint |
 | `npm run validate:puzzles` | 验证所有题目数据的完整性 |
-| `npm run import:puzzles` | 从 SGF 文件批量导入题目（见 [puzzle-authoring.md](./docs/puzzle-authoring.md)） |
+| `npm run import:puzzles` | 从 GitHub SGF 仓库导入经典死活题 |
 
 ---
 

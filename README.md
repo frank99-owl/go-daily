@@ -17,6 +17,7 @@ The whole thing is zero-backend: no accounts, no database, your streak lives in 
 - **Canvas Go board** — responsive 9×9 / 13×13 / 19×19 rendering, hover ghost stone, HiDPI crisp
 - **4-language AI coach** — 中文 / English / 日本語 / 한국어, switches the whole UI + coach reply language in one click
 - **Socratic, on-demand coach** — the coach only speaks when you ask; it's grounded on a ground-truth solution note so it doesn't hallucinate
+- **Library + review** — 1210 puzzles across 5 difficulty levels with a browseable library and dedicated review mode for mistakes
 - **Streak + history** — consecutive-day correct streak, accuracy %, per-puzzle record
 - **Share card** — 1080×1080 PNG of today's board + result, one-tap download or Web Share
 
@@ -96,7 +97,7 @@ This repo is wired for Vercel. Import the GitHub repo, set `DEEPSEEK_API_KEY` in
 - **LLM is a coach, not a judge.** DeepSeek reads the provided solution note and paraphrases it in the student's language — it can hallucinate variations the note doesn't cover. For v2, integrating KataGo would give objective ground truth.
 - **No capture / ko logic.** The board doesn't simulate captures; puzzles are chosen so the solution is a single vital point rather than a capture sequence.
 - **One timezone, one puzzle.** The daily switch is local-midnight, so crossing timezones may show you the same puzzle or skip ahead a day.
-- **Seed library is small.** v1 ships with a starter puzzle library; expansion (and an eventual browseable full library) is planned for v2.
+- **Library of 1210 puzzles.** A browseable puzzle library with difficulty filtering and review mode.
 
 ---
 
