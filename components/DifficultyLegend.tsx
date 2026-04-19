@@ -14,20 +14,18 @@ export function DifficultyLegend() {
   ];
 
   return (
-    <div className="rounded-xl border border-[color:var(--color-line)] bg-white/60 p-4">
-      <h3 className="text-sm font-medium text-ink mb-3">
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <h3 className="text-sm font-medium text-white mb-3">
         {t.puzzles?.filterDifficulty ?? "Difficulty"}
       </h3>
       <div className="flex flex-col gap-2">
         {levels.map((lv) => (
-          <div key={lv.stars} className="flex items-center gap-3 text-xs">
-            <span className="text-ink">
+          <div key={lv.stars} className="flex items-center gap-3 text-sm">
+            <span className="text-white/80">
               {"★".repeat(lv.stars)}
-              <span className="text-[color:var(--color-line)]">
-                {"★".repeat(5 - lv.stars)}
-              </span>
+              <span className="text-white/20">{"★".repeat(5 - lv.stars)}</span>
             </span>
-            <span className="text-ink-2">{lv.range}</span>
+            <span className="text-white/50">{lv.range}</span>
           </div>
         ))}
       </div>

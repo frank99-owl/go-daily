@@ -23,16 +23,16 @@ The whole thing is zero-backend: no accounts, no database, your streak lives in 
 
 ## Tech
 
-| | |
-|---|---|
-| Framework | Next.js 16 (App Router, Turbopack) + React 19 |
-| Language | TypeScript strict |
-| Styling | Tailwind CSS v4 (`@theme`) |
-| Motion | Framer Motion 12 |
-| Icons | lucide-react |
-| LLM | DeepSeek `deepseek-chat` via the OpenAI-compatible SDK |
-| Board | Canvas 2D, ~200 lines, no Go library |
-| Storage | `localStorage` (attempts) + `sessionStorage` (coach history) |
+|           |                                                              |
+| --------- | ------------------------------------------------------------ |
+| Framework | Next.js 16 (App Router, Turbopack) + React 19                |
+| Language  | TypeScript strict                                            |
+| Styling   | Tailwind CSS v4 (`@theme`)                                   |
+| Motion    | Framer Motion 12                                             |
+| Icons     | lucide-react                                                 |
+| LLM       | DeepSeek `deepseek-chat` via the OpenAI-compatible SDK       |
+| Board     | Canvas 2D, ~200 lines, no Go library                         |
+| Storage   | `localStorage` (attempts) + `sessionStorage` (coach history) |
 
 ## Project layout
 
@@ -72,9 +72,9 @@ Open `http://localhost:3000`.
 
 ## Environment variables
 
-| Name | Required | Where |
-|---|---|---|
-| `DEEPSEEK_API_KEY` | yes | `.env.local` locally · Vercel → Project → Environment Variables in production |
+| Name               | Required | Where                                                                         |
+| ------------------ | -------- | ----------------------------------------------------------------------------- |
+| `DEEPSEEK_API_KEY` | yes      | `.env.local` locally · Vercel → Project → Environment Variables in production |
 
 `.env*` is gitignored by default; `.env.example` is the only env file that gets committed.
 

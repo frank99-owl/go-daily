@@ -4,8 +4,7 @@ import { useRef, useState } from "react";
 import { Download, Share2 } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { starPoints } from "@/lib/board";
-import { localized } from "@/lib/localized";
-import type { Puzzle, Stone } from "@/types";
+import type { Locale, Puzzle, Stone } from "@/types";
 
 type Props = {
   puzzle: Puzzle;
@@ -13,8 +12,72 @@ type Props = {
   elapsedSeconds?: number;
 };
 
-// Paints a 1080x1080 social card to an off-screen canvas and exposes
-// download + Web Share.
+const CROP_PAD = 2;
+
+type Window = { xMin: number; xMax: number; yMin: number; yMax: number };
+
+function fullWindow(size: number): Window {
+  return { xMin: 0, xMax: size - 1, yMin: 0, yMax: size - 1 };
+}
+
+/** Compute bounding box of stones + padding, forced square (matches GoBoard). */
+function computeCrop(size: number, stones: Stone[]): Window {
+  if (stones.length === 0) return fullWindow(size);
+
+  let xMin = size - 1,
+    xMax = 0,
+    yMin = size - 1,
+    yMax = 0;
+  for (const s of stones) {
+    if (s.x < xMin) xMin = s.x;
+    if (s.x > xMax) xMax = s.x;
+    if (s.y < yMin) yMin = s.y;
+    if (s.y > yMax) yMax = s.y;
+  }
+
+  xMin = Math.max(0, xMin - CROP_PAD);
+  yMin = Math.max(0, yMin - CROP_PAD);
+  xMax = Math.min(size - 1, xMax + CROP_PAD);
+  yMax = Math.min(size - 1, yMax + CROP_PAD);
+
+  const w = xMax - xMin + 1;
+  const h = yMax - yMin + 1;
+  const dim = Math.max(w, h);
+
+  if (w < dim) {
+    const extra = dim - w;
+    if (xMin === 0) xMax = Math.min(size - 1, xMax + extra);
+    else xMin = Math.max(0, xMin - extra);
+    if (xMax - xMin + 1 < dim) xMax = Math.min(size - 1, xMin + dim - 1);
+  }
+  if (h < dim) {
+    const extra = dim - h;
+    if (yMin === 0) yMax = Math.min(size - 1, yMax + extra);
+    else yMin = Math.max(0, yMin - extra);
+    if (yMax - yMin + 1 < dim) yMax = Math.min(size - 1, yMin + dim - 1);
+  }
+
+  return { xMin, xMax, yMin, yMax };
+}
+
+/** Verdict font matches the Hero title font per locale. */
+function getVerdictFont(locale: Locale): string {
+  switch (locale) {
+    case "zh":
+      return '"Ma Shan Zheng", cursive';
+    case "ja":
+      return '"Klee One", cursive';
+    case "ko":
+      return '"Gowun Batang", serif';
+    case "en":
+      return '"Playfair Display", serif';
+  }
+}
+
+/** Brand font — always English Playfair Display, regardless of locale. */
+const BRAND_FONT = '"Playfair Display", Georgia, serif';
+
+// Paints a 1080x1080 card where the frame IS the Go board.
 export function ShareCard({ puzzle, correct, elapsedSeconds }: Props) {
   const { t, locale } = useLocale();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -29,105 +92,132 @@ export function ShareCard({ puzzle, correct, elapsedSeconds }: Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return canvas;
 
-    // Background.
-    ctx.fillStyle = "#faf9f4";
+    // ── Pure black background ──
+    ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, size, size);
 
-    // Brand strip.
-    ctx.fillStyle = "#1a1a1a";
-    ctx.font = "600 36px ui-sans-serif, system-ui, sans-serif";
-    ctx.fillText("go-daily", 72, 110);
+    // ── Render window (crop 19x19 just like the web board) ──
+    const shouldCrop = puzzle.boardSize === 19;
+    const win = shouldCrop
+      ? computeCrop(puzzle.boardSize, puzzle.stones)
+      : fullWindow(puzzle.boardSize);
 
-    ctx.fillStyle = "#4a4a4a";
-    ctx.font = "400 28px ui-sans-serif, system-ui, sans-serif";
-    ctx.fillText(puzzle.date, 72, 156);
+    const cellsAcross = win.xMax - win.xMin + 1;
 
-    // Board.
-    const boardPx = 760;
+    // ── Board geometry ──
+    // Full boards take up most of the frame; cropped boards mirror the web maxPx.
+    const boardPx = shouldCrop ? 650 : 900;
     const boardX = (size - boardPx) / 2;
-    const boardY = 220;
-
-    ctx.fillStyle = "#e8c594";
-    ctx.fillRect(boardX, boardY, boardPx, boardPx);
+    const boardY = 140;
 
     const pad = boardPx * 0.06;
     const usable = boardPx - pad * 2;
-    const step = usable / (puzzle.boardSize - 1);
-    const p = (i: number) => pad + i * step;
+    const step = usable / Math.max(1, cellsAcross - 1);
+    const px_ = (i: number) => pad + (i - win.xMin) * step;
+    const py_ = (j: number) => pad + (j - win.yMin) * step;
 
-    ctx.strokeStyle = "#6b4a1e";
-    ctx.lineWidth = 2;
+    // Board background
+    ctx.fillStyle = "#1f1611";
+    ctx.fillRect(boardX, boardY, boardPx, boardPx);
+
+    // Grid lines
+    ctx.strokeStyle = "rgba(0, 242, 255, 0.35)";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    for (let i = 0; i < puzzle.boardSize; i++) {
-      ctx.moveTo(boardX + p(0), boardY + p(i));
-      ctx.lineTo(boardX + p(puzzle.boardSize - 1), boardY + p(i));
-      ctx.moveTo(boardX + p(i), boardY + p(0));
-      ctx.lineTo(boardX + p(i), boardY + p(puzzle.boardSize - 1));
+    for (let i = win.xMin; i <= win.xMax; i++) {
+      ctx.moveTo(boardX + px_(i), boardY + py_(win.yMin));
+      ctx.lineTo(boardX + px_(i), boardY + py_(win.yMax));
+    }
+    for (let j = win.yMin; j <= win.yMax; j++) {
+      ctx.moveTo(boardX + px_(win.xMin), boardY + py_(j));
+      ctx.lineTo(boardX + px_(win.xMax), boardY + py_(j));
     }
     ctx.stroke();
 
-    ctx.fillStyle = "#3a2a10";
-    const starR = Math.max(4, step * 0.09);
-    for (const s of starPoints(puzzle.boardSize)) {
+    // Star points (only those inside the window)
+    ctx.fillStyle = "rgba(0, 242, 255, 0.6)";
+    const starR = Math.max(3, step * 0.08);
+    for (const s of starPoints(puzzle.boardSize as 9 | 13 | 19)) {
+      if (s.x < win.xMin || s.x > win.xMax || s.y < win.yMin || s.y > win.yMax) continue;
       ctx.beginPath();
-      ctx.arc(boardX + p(s.x), boardY + p(s.y), starR, 0, Math.PI * 2);
+      ctx.arc(boardX + px_(s.x), boardY + py_(s.y), starR, 0, Math.PI * 2);
       ctx.fill();
     }
 
+    // ── Stones with 3D sphere look ──
     const stoneR = step * 0.46;
-    const drawStone = (
-      cx: number,
-      cy: number,
-      color: "black" | "white",
-    ) => {
-      const grad = ctx.createRadialGradient(
-        cx - stoneR * 0.3,
-        cy - stoneR * 0.3,
-        stoneR * 0.1,
-        cx,
-        cy,
-        stoneR,
-      );
+    const drawStone = (cx: number, cy: number, color: "black" | "white") => {
+      const r = stoneR;
+
+      // Main spherical gradient
+      const grad = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, r * 0.05, cx, cy, r);
       if (color === "black") {
-        grad.addColorStop(0, "#555");
-        grad.addColorStop(1, "#0a0a0a");
+        grad.addColorStop(0, "#bbb");
+        grad.addColorStop(0.08, "#555");
+        grad.addColorStop(0.3, "#1a1a1a");
+        grad.addColorStop(1, "#050505");
       } else {
         grad.addColorStop(0, "#ffffff");
-        grad.addColorStop(1, "#d7d4ca");
+        grad.addColorStop(0.15, "#eeeeee");
+        grad.addColorStop(0.5, "#cccccc");
+        grad.addColorStop(1, "#888888");
       }
       ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(cx, cy, stoneR, 0, Math.PI * 2);
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
-      if (color === "white") {
-        ctx.strokeStyle = "#8a8375";
-        ctx.lineWidth = 1;
-        ctx.stroke();
+
+      // Specular highlight dot
+      const hlR = r * 0.22;
+      const hlX = cx - r * 0.32;
+      const hlY = cy - r * 0.32;
+      const hlGrad = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlR);
+      if (color === "black") {
+        hlGrad.addColorStop(0, "rgba(255,255,255,0.5)");
+        hlGrad.addColorStop(1, "rgba(255,255,255,0)");
+      } else {
+        hlGrad.addColorStop(0, "rgba(255,255,255,0.7)");
+        hlGrad.addColorStop(1, "rgba(255,255,255,0)");
       }
+      ctx.fillStyle = hlGrad;
+      ctx.beginPath();
+      ctx.arc(hlX, hlY, hlR, 0, Math.PI * 2);
+      ctx.fill();
     };
 
-    const stonesAll: Stone[] = [...puzzle.stones];
-    for (const s of stonesAll)
-      drawStone(boardX + p(s.x), boardY + p(s.y), s.color);
-
-    // Verdict row.
-    const verdictY = boardY + boardPx + 70;
-    ctx.fillStyle = correct ? "#16a34a" : "#ef4444";
-    ctx.font = "700 56px ui-sans-serif, system-ui, sans-serif";
-    ctx.fillText(correct ? t.result.correct : t.result.wrong, 72, verdictY);
-
-    // Prompt line.
-    ctx.fillStyle = "#1a1a1a";
-    ctx.font = "400 30px ui-sans-serif, system-ui, sans-serif";
-    const prompt = localized(puzzle.prompt, locale);
-    ctx.fillText(prompt, 72, verdictY + 56);
-
-    // Optional time.
-    if (typeof elapsedSeconds === "number") {
-      ctx.fillStyle = "#4a4a4a";
-      ctx.font = "400 24px ui-sans-serif, system-ui, sans-serif";
-      ctx.fillText(`${elapsedSeconds}s`, 72, verdictY + 94);
+    for (const s of puzzle.stones) {
+      if (s.x < win.xMin || s.x > win.xMax || s.y < win.yMin || s.y > win.yMax) continue;
+      drawStone(boardX + px_(s.x), boardY + py_(s.y), s.color);
     }
+
+    // ── Top-left brand (always Playfair Display) ──
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `400 28px ${BRAND_FONT}`;
+    ctx.fillText("GO-DAILY", 50, 70);
+
+    // ── Top-right verdict (matches Hero title font per locale, white) ──
+    const verdict = correct ? t.result.correct : t.result.wrong;
+    const verdictFont = getVerdictFont(locale);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `700 48px ${verdictFont}`;
+    const vw = ctx.measureText(verdict).width;
+    const rightX = size - vw - 50;
+    ctx.fillText(verdict, rightX, 70);
+
+    // ── Time below verdict, right-aligned ──
+    if (typeof elapsedSeconds === "number") {
+      const timeText = `${elapsedSeconds}s`;
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.font = `400 22px ${BRAND_FONT}`;
+      const tw = ctx.measureText(timeText).width;
+      ctx.fillText(timeText, size - tw - 50, 105);
+    }
+
+    // ── Bottom-left date ──
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.font = "400 20px ui-sans-serif, system-ui, sans-serif";
+    ctx.fillText(puzzle.date, 50, size - 40);
 
     return canvas;
   }
@@ -145,9 +235,7 @@ export function ShareCard({ puzzle, correct, elapsedSeconds }: Props) {
     setSharing(true);
     try {
       const canvas = drawCard();
-      const blob: Blob | null = await new Promise((resolve) =>
-        canvas.toBlob(resolve, "image/png"),
-      );
+      const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
       if (!blob) return;
       const file = new File([blob], `go-daily-${puzzle.date}.png`, {
         type: "image/png",

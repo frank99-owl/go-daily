@@ -21,6 +21,12 @@ type Props = {
    * padding). Useful for 19×19 problems whose content lives in one corner.
    */
   cropToStones?: boolean;
+  /** Board visual style. "classic" keeps the original light wood; "dark" uses the new dark theme. */
+  boardStyle?: "classic" | "dark";
+  /** Coordinate key "x,y" → move number to draw on the stone. */
+  moveNumbers?: Map<string, number>;
+  /** Highlight circle color. Defaults to CSS accent var. */
+  highlightColor?: string;
 };
 
 /** Auto-crop padding (in board cells) around detected stones. */
@@ -40,11 +46,7 @@ function computeCrop(
   highlight: Coord[] | undefined,
   userMove: Coord | null | undefined,
 ): Window {
-  const coords: Coord[] = [
-    ...stones,
-    ...(extraStones ?? []),
-    ...(highlight ?? []),
-  ];
+  const coords: Coord[] = [...stones, ...(extraStones ?? []), ...(highlight ?? [])];
   if (userMove) coords.push(userMove);
 
   if (coords.length === 0) return fullWindow(size);
@@ -79,8 +81,7 @@ function computeCrop(
       xMin = Math.max(0, xMin - extra);
     }
     // Clamp again if we hit an edge without reaching dim.
-    if (xMax - xMin + 1 < dim)
-      xMax = Math.min(size - 1, xMin + dim - 1);
+    if (xMax - xMin + 1 < dim) xMax = Math.min(size - 1, xMin + dim - 1);
   }
   if (h < dim) {
     const extra = dim - h;
@@ -89,11 +90,14 @@ function computeCrop(
     } else {
       yMin = Math.max(0, yMin - extra);
     }
-    if (yMax - yMin + 1 < dim)
-      yMax = Math.min(size - 1, yMin + dim - 1);
+    if (yMax - yMin + 1 < dim) yMax = Math.min(size - 1, yMin + dim - 1);
   }
 
   return { xMin, xMax, yMin, yMax };
+}
+
+function keyOf(c: Coord): string {
+  return `${c.x},${c.y}`;
 }
 
 // Canvas-drawn Go board. HiDPI aware. Coordinates are 0-indexed from top-left,
@@ -109,11 +113,17 @@ export function GoBoard({
   onPlay,
   maxPx = 520,
   cropToStones = false,
+  boardStyle = "classic",
+  moveNumbers,
+  highlightColor,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [cssSize, setCssSize] = useState(maxPx);
   const [hover, setHover] = useState<Coord | null>(null);
+
+  const isDark = boardStyle === "dark";
+  const accent = highlightColor ?? "var(--color-accent)";
 
   // Responsive: shrink to container width (minus small padding) but cap at maxPx.
   useEffect(() => {
@@ -135,15 +145,12 @@ export function GoBoard({
   // the user moves the pointer.
   const win: Window = useMemo(
     () =>
-      cropToStones
-        ? computeCrop(size, stones, extraStones, highlight, userMove)
-        : fullWindow(size),
+      cropToStones ? computeCrop(size, stones, extraStones, highlight, userMove) : fullWindow(size),
     [cropToStones, size, stones, extraStones, highlight, userMove],
   );
 
   const inWindow = useCallback(
-    (c: Coord) =>
-      c.x >= win.xMin && c.x <= win.xMax && c.y >= win.yMin && c.y <= win.yMax,
+    (c: Coord) => c.x >= win.xMin && c.x <= win.xMax && c.y >= win.yMin && c.y <= win.yMax,
     [win],
   );
 
@@ -163,7 +170,7 @@ export function GoBoard({
     ctx.scale(dpr, dpr);
 
     // Board background.
-    ctx.fillStyle = "#e8c594";
+    ctx.fillStyle = isDark ? "#1f1611" : "#e8c594";
     ctx.fillRect(0, 0, px, px);
 
     // Grid geometry: padding so edge intersections aren't right on the rim.
@@ -175,7 +182,7 @@ export function GoBoard({
     const py_ = (j: number) => pad + (j - win.yMin) * step;
 
     // Grid lines — only the portion within the visible window.
-    ctx.strokeStyle = "#6b4a1e";
+    ctx.strokeStyle = isDark ? "rgba(0, 242, 255, 0.28)" : "#6b4a1e";
     ctx.lineWidth = Math.max(1, px / 520);
     ctx.beginPath();
     for (let i = win.xMin; i <= win.xMax; i++) {
@@ -191,7 +198,7 @@ export function GoBoard({
     ctx.stroke();
 
     // Star points (only those inside the window).
-    ctx.fillStyle = "#3a2a10";
+    ctx.fillStyle = isDark ? "rgba(0, 242, 255, 0.5)" : "#3a2a10";
     const starR = Math.max(2.5, step * 0.09);
     for (const s of starPoints(size)) {
       if (!inWindow(s)) continue;
@@ -218,11 +225,11 @@ export function GoBoard({
         stoneR,
       );
       if (color === "black") {
-        grad.addColorStop(0, "#555");
+        grad.addColorStop(0, isDark ? "#333" : "#555");
         grad.addColorStop(1, "#0a0a0a");
       } else {
         grad.addColorStop(0, "#ffffff");
-        grad.addColorStop(1, "#d7d4ca");
+        grad.addColorStop(1, isDark ? "#c8c4ba" : "#d7d4ca");
       }
       ctx.fillStyle = grad;
       ctx.beginPath();
@@ -231,7 +238,7 @@ export function GoBoard({
 
       // thin outline on white stones for contrast against board
       if (color === "white") {
-        ctx.strokeStyle = "#8a8375";
+        ctx.strokeStyle = isDark ? "#6b665d" : "#8a8375";
         ctx.lineWidth = Math.max(0.5, px / 1040);
         ctx.stroke();
       }
@@ -244,12 +251,29 @@ export function GoBoard({
     }
     if (userMove && inWindow(userMove)) drawStone(userMove, toPlay);
 
+    // Move numbers (drawn on top of stones).
+    if (moveNumbers?.size) {
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (const s of allStones) {
+        const k = keyOf(s);
+        const num = moveNumbers.get(k);
+        if (num === undefined) continue;
+        if (!inWindow(s)) continue;
+        const cx = px_(s.x);
+        const cy = py_(s.y);
+        ctx.fillStyle = s.color === "black" ? "#fff" : "#0a0a0a";
+        ctx.font = `bold ${Math.max(8, Math.floor(stoneR * 0.6))}px Inter, sans-serif`;
+        ctx.fillText(String(num), cx, cy);
+      }
+    }
+
     // Mark the last extra stone (solution sequence tip).
     if (extraStones?.length) {
       const last = extraStones[extraStones.length - 1];
       if (inWindow(last)) {
         ctx.save();
-        ctx.strokeStyle = "#0d9488";
+        ctx.strokeStyle = accent === "var(--color-accent)" ? "#00f2ff" : accent;
         ctx.lineWidth = Math.max(2, px / 260);
         ctx.beginPath();
         ctx.arc(px_(last.x), py_(last.y), stoneR * 0.9, 0, Math.PI * 2);
@@ -261,7 +285,7 @@ export function GoBoard({
     // Highlight markers (e.g. solution circles).
     if (highlight?.length) {
       ctx.save();
-      ctx.strokeStyle = "#0d9488";
+      ctx.strokeStyle = accent === "var(--color-accent)" ? "#00f2ff" : accent;
       ctx.lineWidth = Math.max(2, px / 260);
       for (const h of highlight) {
         if (!inWindow(h)) continue;
@@ -289,13 +313,12 @@ export function GoBoard({
     // so a 19×19 corner problem isn't mistaken for a 9×9 full board.
     if (cropToStones) {
       const fadeW = Math.min(pad * 1.6, step * 1.8);
-      const BOARD_BG_RGB = "232, 197, 148"; // matches #e8c594
+      const BOARD_BG_RGB = isDark ? "31, 22, 17" : "232, 197, 148";
       const drawFade = (dir: "right" | "left" | "bottom" | "top") => {
         let grad: CanvasGradient;
         if (dir === "right") grad = ctx.createLinearGradient(px - fadeW, 0, px, 0);
         else if (dir === "left") grad = ctx.createLinearGradient(fadeW, 0, 0, 0);
-        else if (dir === "bottom")
-          grad = ctx.createLinearGradient(0, px - fadeW, 0, px);
+        else if (dir === "bottom") grad = ctx.createLinearGradient(0, px - fadeW, 0, px);
         else grad = ctx.createLinearGradient(0, fadeW, 0, 0);
         grad.addColorStop(0, `rgba(${BOARD_BG_RGB}, 0)`);
         grad.addColorStop(1, `rgba(${BOARD_BG_RGB}, 1)`);
@@ -323,6 +346,9 @@ export function GoBoard({
     win,
     inWindow,
     cropToStones,
+    isDark,
+    accent,
+    moveNumbers,
   ]);
 
   useEffect(() => {
@@ -371,11 +397,7 @@ export function GoBoard({
   };
 
   return (
-    <div
-      ref={wrapRef}
-      className="w-full flex justify-center"
-      style={{ maxWidth: maxPx }}
-    >
+    <div ref={wrapRef} className="w-full flex justify-center" style={{ maxWidth: maxPx }}>
       <canvas
         ref={canvasRef}
         onPointerMove={handleMove}
@@ -383,7 +405,7 @@ export function GoBoard({
         onPointerDown={handleClick}
         className={
           "rounded-md shadow-sm touch-none select-none " +
-          (disabled ? "cursor-default" : "cursor-pointer")
+          (disabled ? "cursor-none" : "cursor-none")
         }
         aria-label="Go board"
         role="img"

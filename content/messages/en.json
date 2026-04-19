@@ -1,11 +1,13 @@
 {
   "brand": "go-daily",
   "nav": {
-    "today": "Today",
+    "today": "Today's Puzzle",
     "stats": "Stats",
-    "puzzles": "Library",
+    "home": "Home",
+    "puzzles": "Puzzles",
     "review": "Review",
-    "random": "Random"
+    "developer": "Developer",
+    "random": "Random Puzzle"
   },
   "home": {
     "todaysProblem": "Today's Problem",
@@ -94,5 +96,22 @@
     "empty": "No mistakes to review — keep it up!",
     "lastAttempted": "Last tried {{date}}",
     "attemptCount": "{{count}} attempts"
+  },
+  "hero": {
+    "titleLine1": "The Intelligence",
+    "titleLine2": "of the Grid",
+    "subtitle": "Experience the silent battle of the ancient game. Hone your skill with every stone, and feel the wisdom of millennia unfold.",
+    "getStarted": "Get Started",
+    "watchMatch": "Watch Match"
+  },
+  "boardShowcase": {
+    "meta": "2016.03.13 · DEEPMIND CHALLENGE · GAME 4",
+    "title": "Move 78",
+    "subtitle": "The Divine Move",
+    "description": "In the fourth game of the historic match, Lee Sedol played the legendary \"wedge\" at L11 — a move so unexpected that it forced AlphaGo into a series of errors, leading to humanity's only victory in the series.",
+    "phaseIdle": "Ready",
+    "phaseShowGod": "Divine Move",
+    "phasePlaying": "Replay",
+    "phaseEnded": "Final Position"
   }
 }

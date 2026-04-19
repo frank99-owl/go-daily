@@ -31,9 +31,7 @@ export function saveAttempt(record: AttemptRecord): void {
 export function getAttemptFor(puzzleId: string): AttemptRecord | null {
   const list = loadAttempts().filter((a) => a.puzzleId === puzzleId);
   if (list.length === 0) return null;
-  return list.reduce((latest, a) =>
-    a.solvedAtMs > latest.solvedAtMs ? a : latest,
-  );
+  return list.reduce((latest, a) => (a.solvedAtMs > latest.solvedAtMs ? a : latest));
 }
 
 /** Full attempt history for a puzzle, newest first. */
@@ -46,9 +44,7 @@ export function getAttemptsFor(puzzleId: string): AttemptRecord[] {
 // Current streak: consecutive days up to today (inclusive) with at least one
 // correct attempt. Breaks on any gap.
 export function computeStreak(attempts: AttemptRecord[]): number {
-  const correctByDate = new Set(
-    attempts.filter((a) => a.correct).map((a) => a.date),
-  );
+  const correctByDate = new Set(attempts.filter((a) => a.correct).map((a) => a.date));
   let streak = 0;
   const cursor = new Date();
   // Allow today to be empty without breaking the streak — only count if yesterday and earlier line up.

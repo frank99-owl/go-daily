@@ -1,11 +1,13 @@
 {
   "brand": "go-daily",
   "nav": {
-    "today": "今日",
+    "today": "今日の問題",
     "stats": "戦績",
+    "home": "ホーム",
     "puzzles": "問題集",
     "review": "復習",
-    "random": "ランダム"
+    "developer": "開発者",
+    "random": "ランダム問題"
   },
   "home": {
     "todaysProblem": "今日の一題",
@@ -17,7 +19,7 @@
     "hint": "空いている交点をタップして打ってください"
   },
   "result": {
-    "correct": "正解！",
+    "correct": "当たり！",
     "wrong": "惜しい",
     "viewAnswer": "正解を見る",
     "hideAnswer": "正解を隠す",
@@ -94,5 +96,22 @@
     "empty": "復習する問題はありません。この調子！",
     "lastAttempted": "最終挑戦 {{date}}",
     "attemptCount": "{{count}} 回挑戦"
+  },
+  "hero": {
+    "titleLine1": "碁の叡智",
+    "titleLine2": "縦横の間",
+    "subtitle": "古代のゲームの静かな戦いを体験しよう。石を打つたびに技を磨き、千年の叡智の重みを感じよう。",
+    "getStarted": "はじめる",
+    "watchMatch": "観戦する"
+  },
+  "boardShowcase": {
+    "meta": "2016.03.13 · DEEPMIND CHALLENGE · 第4局",
+    "title": "第78手",
+    "subtitle": "神の一手",
+    "description": "歴史的な対局の第4局で、李世ドルはL11に伝説の「ワタリ」を打った——この予想外の一手はAlphaGoを連続的なミスに追い込み、人類にシリーズ唯一の勝利をもたらした。",
+    "phaseIdle": "準備中",
+    "phaseShowGod": "神の一手",
+    "phasePlaying": "再生中",
+    "phaseEnded": "終局"
   }
 }

@@ -7,10 +7,7 @@ import type { AttemptRecord, PuzzleStatus } from "@/types";
  */
 
 /** Derive the three-state status for a single puzzle. */
-export function getStatusFor(
-  puzzleId: string,
-  attempts: AttemptRecord[],
-): PuzzleStatus {
+export function getStatusFor(puzzleId: string, attempts: AttemptRecord[]): PuzzleStatus {
   let hasAny = false;
   for (const a of attempts) {
     if (a.puzzleId !== puzzleId) continue;
@@ -60,9 +57,7 @@ export function computeStatusTallies(
 }
 
 /** Latest attempt ms per puzzle (for "recent" sorting). Missing keys stay undefined. */
-export function lastAttemptMsMap(
-  attempts: AttemptRecord[],
-): Map<string, number> {
+export function lastAttemptMsMap(attempts: AttemptRecord[]): Map<string, number> {
   const m = new Map<string, number>();
   for (const a of attempts) {
     const prev = m.get(a.puzzleId) ?? 0;

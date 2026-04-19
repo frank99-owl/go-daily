@@ -13,9 +13,6 @@ export function Nav() {
   const { t } = useLocale();
   const router = useRouter();
 
-  // Random picks any puzzle across the library. The pool here is "all" on
-  // purpose — dropping to unattempted-only would surprise users once they've
-  // worked through most of the library. Honest random, no preference.
   const handleRandom = () => {
     const attempts = loadAttempts();
     const pick = pickRandomPuzzle(PUZZLES, attempts, "all");
@@ -23,40 +20,50 @@ export function Nav() {
     router.push(`/puzzles/${encodeURIComponent(pick.id)}`);
   };
 
+  const linkBase = "whitespace-nowrap hover:text-[#00f2ff] transition-colors duration-500";
+
   return (
-    <header className="w-full border-b border-[color:var(--color-line)] bg-paper/80 backdrop-blur sticky top-0 z-20">
-      <div className="mx-auto max-w-4xl flex items-center justify-between px-4 sm:px-6 h-14">
+    <header className="fixed top-0 w-full z-50 bg-black/10 backdrop-blur-xl border-b border-white/5">
+      <div className="mx-auto max-w-7xl flex items-center justify-between px-6 sm:px-8 lg:px-12 h-16">
         <Link
           href="/"
-          className="font-[family-name:var(--font-display)] text-lg tracking-tight text-ink"
+          className="font-[family-name:var(--font-headline)] text-xl tracking-[0.2em] text-white"
         >
-          {t.brand}
+          GO-DAILY
         </Link>
-        <nav className="flex items-center gap-4 sm:gap-6 text-sm text-ink-2">
-          <Link href="/" className="hover:text-ink transition-colors">
-            {t.nav.today}
-          </Link>
-          <Link href="/puzzles" className="hover:text-ink transition-colors">
-            {t.nav.puzzles}
-          </Link>
-          <Link href="/review" className="hover:text-ink transition-colors">
-            {t.nav.review}
-          </Link>
-          <Link href="/stats" className="hover:text-ink transition-colors">
-            {t.nav.stats}
-          </Link>
-          <button
-            type="button"
-            onClick={handleRandom}
-            title={t.nav.random}
-            aria-label={t.nav.random}
-            className="inline-flex items-center gap-1 hover:text-ink transition-colors"
-          >
-            <Shuffle className="h-4 w-4" />
-            <span className="hidden sm:inline">{t.nav.random}</span>
-          </button>
+        <div className="flex items-center gap-4">
+          <nav className="hidden md:flex items-center justify-between w-[720px] lg:w-[860px] text-xs uppercase tracking-[0.3em] font-light text-white/60">
+            <Link href="/" className={linkBase}>
+              {t.nav.home}
+            </Link>
+            <Link href="/today" className={linkBase}>
+              {t.nav.today}
+            </Link>
+            <button
+              type="button"
+              onClick={handleRandom}
+              title={t.nav.random}
+              aria-label={t.nav.random}
+              className={`${linkBase} inline-flex items-center gap-1`}
+            >
+              <Shuffle className="h-4 w-4" />
+              <span className="hidden sm:inline">{t.nav.random}</span>
+            </button>
+            <Link href="/puzzles" className={linkBase}>
+              {t.nav.puzzles}
+            </Link>
+            <Link href="/review" className={linkBase}>
+              {t.nav.review}
+            </Link>
+            <Link href="/stats" className={linkBase}>
+              {t.nav.stats}
+            </Link>
+            <Link href="/developer" className={linkBase}>
+              {t.nav.developer}
+            </Link>
+          </nav>
           <LanguageToggle />
-        </nav>
+        </div>
       </div>
     </header>
   );

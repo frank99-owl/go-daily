@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 import { Heatmap } from "@/components/Heatmap";
-import {
-  computeAccuracy,
-  computeStreak,
-  loadAttempts,
-} from "@/lib/storage";
+import { computeAccuracy, computeStreak, loadAttempts } from "@/lib/storage";
 import type { AttemptRecord } from "@/types";
 
 export function StatsClient() {
@@ -25,12 +21,10 @@ export function StatsClient() {
   if (attempts.length === 0) {
     return (
       <div className="flex flex-col gap-6">
-        <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl text-white">
           {t.stats.title}
         </h1>
-        <p className="text-ink-2 text-sm">{t.stats.empty}</p>
-        {/* Render the (empty) heatmap anyway — it gives new users a preview
-            of what filling in the grid will look like, LeetCode-style. */}
+        <p className="text-white/50 text-sm">{t.stats.empty}</p>
         <Heatmap attempts={attempts} />
       </div>
     );
@@ -42,7 +36,7 @@ export function StatsClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl">
+      <h1 className="font-[family-name:var(--font-headline)] text-2xl sm:text-3xl text-white">
         {t.stats.title}
       </h1>
       <div className="grid grid-cols-3 gap-3">
@@ -59,15 +53,13 @@ export function StatsClient() {
           .sort((a, b) => b.solvedAtMs - a.solvedAtMs)
           .map((a) => (
             <li
-              key={a.puzzleId}
-              className="flex items-center justify-between rounded-lg border border-[color:var(--color-line)] bg-white/60 px-4 py-3 text-sm"
+              key={`${a.puzzleId}-${a.solvedAtMs}`}
+              className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm"
             >
-              <span className="text-ink">{a.date}</span>
+              <span className="text-white/80">{a.date}</span>
               <span
                 className={
-                  a.correct
-                    ? "text-[color:var(--color-success)]"
-                    : "text-[color:var(--color-warn)]"
+                  a.correct ? "text-[color:var(--color-success)]" : "text-[color:var(--color-warn)]"
                 }
               >
                 {a.correct ? "✓" : "✗"}
@@ -81,11 +73,9 @@ export function StatsClient() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[color:var(--color-line)] bg-white/60 px-4 py-4">
-      <div className="text-xs text-ink-2">{label}</div>
-      <div className="font-[family-name:var(--font-display)] text-xl text-ink mt-1">
-        {value}
-      </div>
+    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-4">
+      <div className="text-sm text-white/50">{label}</div>
+      <div className="font-[family-name:var(--font-headline)] text-xl text-white mt-1">{value}</div>
     </div>
   );
 }

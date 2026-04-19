@@ -1,11 +1,13 @@
 {
   "brand": "go-daily",
   "nav": {
-    "today": "今日",
+    "today": "今日题目",
     "stats": "战绩",
+    "home": "首页",
     "puzzles": "题库",
     "review": "错题本",
-    "random": "随机"
+    "developer": "开发者",
+    "random": "随机题目"
   },
   "home": {
     "todaysProblem": "今日一题",
@@ -17,7 +19,7 @@
     "hint": "点击空交叉点落子"
   },
   "result": {
-    "correct": "答对了！",
+    "correct": "正确！",
     "wrong": "再想想",
     "viewAnswer": "查看正解",
     "hideAnswer": "隐藏正解",
@@ -94,5 +96,22 @@
     "empty": "还没有错题，继续保持！",
     "lastAttempted": "最近尝试 {{date}}",
     "attemptCount": "{{count}} 次尝试"
+  },
+  "hero": {
+    "titleLine1": "围棋智慧",
+    "titleLine2": "纵横之间",
+    "subtitle": "体验这场古老游戏的静默博弈。在落子之间精进技艺，感受千年智慧的沉淀。",
+    "getStarted": "开始挑战",
+    "watchMatch": "观看对局"
+  },
+  "boardShowcase": {
+    "meta": "2016.03.13 · 深度学习挑战赛 · 第四局",
+    "title": "第78手",
+    "subtitle": "神之一手",
+    "description": "在这场历史性的对局中，李世石在第四局下出了传奇的\"挖\"（L11）—— 这一手如此出人意料，迫使AlphaGo出现连串失误，最终为人类赢得了系列赛中唯一的胜利。",
+    "phaseIdle": "准备中",
+    "phaseShowGod": "神之一手",
+    "phasePlaying": "回放中",
+    "phaseEnded": "终局"
   }
 }

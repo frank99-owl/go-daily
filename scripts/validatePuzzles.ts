@@ -40,8 +40,7 @@ function coordKey(c: Coord): string {
 }
 
 function validatePuzzle(p: Puzzle, issues: Issue[]): void {
-  const push = (rule: string, detail: string) =>
-    issues.push({ puzzleId: p.id, rule, detail });
+  const push = (rule: string, detail: string) => issues.push({ puzzleId: p.id, rule, detail });
 
   // 1. Board size
   if (!ALLOWED_BOARD_SIZES.has(p.boardSize)) {
@@ -50,11 +49,7 @@ function validatePuzzle(p: Puzzle, issues: Issue[]): void {
   }
 
   // 2. Difficulty
-  if (
-    !Number.isInteger(p.difficulty) ||
-    p.difficulty < 1 ||
-    p.difficulty > 5
-  ) {
+  if (!Number.isInteger(p.difficulty) || p.difficulty < 1 || p.difficulty > 5) {
     push("difficulty", `got ${p.difficulty}, expected integer 1..5`);
   }
 
@@ -95,10 +90,7 @@ function validatePuzzle(p: Puzzle, issues: Issue[]): void {
       }
       const key = coordKey(s);
       if (occupied.has(key)) {
-        push(
-          "stones",
-          `stones[${i}] = (${s.x},${s.y}) overlaps an earlier stone`,
-        );
+        push("stones", `stones[${i}] = (${s.x},${s.y}) overlaps an earlier stone`);
       } else {
         occupied.set(key, s);
       }
@@ -115,10 +107,7 @@ function validatePuzzle(p: Puzzle, issues: Issue[]): void {
         );
       }
       if (s.color !== "black" && s.color !== "white") {
-        push(
-          "solutionSequence",
-          `solutionSequence[${i}] has invalid color "${s.color}"`,
-        );
+        push("solutionSequence", `solutionSequence[${i}] has invalid color "${s.color}"`);
       }
     });
   }
@@ -127,25 +116,16 @@ function validatePuzzle(p: Puzzle, issues: Issue[]): void {
   if (p.wrongBranches) {
     p.wrongBranches.forEach((wb, i) => {
       if (!inBounds(wb.userWrongMove, p.boardSize)) {
-        push(
-          "wrongBranches",
-          `wrongBranches[${i}].userWrongMove out of bounds`,
-        );
+        push("wrongBranches", `wrongBranches[${i}].userWrongMove out of bounds`);
       }
       wb.refutation?.forEach((s, j) => {
         if (!inBounds(s, p.boardSize)) {
-          push(
-            "wrongBranches",
-            `wrongBranches[${i}].refutation[${j}] out of bounds`,
-          );
+          push("wrongBranches", `wrongBranches[${i}].refutation[${j}] out of bounds`);
         }
       });
       for (const lc of LOCALES) {
         if (!wb.note?.[lc]?.trim()) {
-          push(
-            "wrongBranches",
-            `wrongBranches[${i}].note.${lc} is empty`,
-          );
+          push("wrongBranches", `wrongBranches[${i}].note.${lc} is empty`);
         }
       }
     });
@@ -168,10 +148,7 @@ function validatePuzzle(p: Puzzle, issues: Issue[]): void {
   if (p.isCurated !== false) {
     for (const lc of LOCALES) {
       if (!p.solutionNote?.[lc]?.trim()) {
-        push(
-          "solutionNote",
-          `solutionNote.${lc} is empty (required when isCurated !== false)`,
-        );
+        push("solutionNote", `solutionNote.${lc} is empty (required when isCurated !== false)`);
       }
     }
   }
@@ -216,9 +193,7 @@ function main(): void {
     process.exit(0);
   }
 
-  console.error(
-    `\x1b[31m✗\x1b[0m ${issues.length} issue(s) across ${PUZZLES.length} puzzles:\n`,
-  );
+  console.error(`\x1b[31m✗\x1b[0m ${issues.length} issue(s) across ${PUZZLES.length} puzzles:\n`);
   // Group by puzzleId for readability.
   const byPuzzle = new Map<string, Issue[]>();
   for (const iss of issues) {
@@ -232,9 +207,7 @@ function main(): void {
       console.error(`    · [${iss.rule}] ${iss.detail}`);
     }
   }
-  console.error(
-    `\n${curated} curated · ${library} library · ${issues.length} issue(s)`,
-  );
+  console.error(`\n${curated} curated · ${library} library · ${issues.length} issue(s)`);
   process.exit(1);
 }
 

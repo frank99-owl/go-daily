@@ -38,6 +38,7 @@ export function TodayClient({ puzzle }: { puzzle: Puzzle }) {
           userMove={pending}
           onPlay={(c) => setPending(c)}
           cropToStones={puzzle.boardSize === 19}
+          boardStyle="dark"
         />
       </div>
       <div className="flex items-center justify-center gap-3">
@@ -45,7 +46,7 @@ export function TodayClient({ puzzle }: { puzzle: Puzzle }) {
           type="button"
           onClick={() => setPending(null)}
           disabled={!pending}
-          className="px-4 py-2 rounded-full border border-[color:var(--color-line)] text-sm text-ink-2 hover:text-ink disabled:opacity-40"
+          className="px-4 py-2 rounded-full border border-white/10 text-sm text-white/60 hover:text-white disabled:opacity-40 transition-colors"
         >
           {t.home.reset}
         </button>
@@ -53,7 +54,7 @@ export function TodayClient({ puzzle }: { puzzle: Puzzle }) {
           type="button"
           onClick={submit}
           disabled={!pending}
-          className="px-5 py-2 rounded-full bg-ink text-paper text-sm font-medium disabled:opacity-40 hover:bg-[color:var(--color-accent)] transition-colors"
+          className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium disabled:opacity-40 hover:bg-[#00f2ff] hover:text-black transition-colors"
         >
           {t.home.submit}
         </button>

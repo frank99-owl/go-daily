@@ -36,11 +36,11 @@ function bucketFor(count: number): 0 | 1 | 2 | 3 | 4 {
 }
 
 const BUCKET_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "bg-[color:var(--color-paper)] border border-[color:var(--color-line)]",
-  1: "bg-[color:var(--color-accent)]/20",
-  2: "bg-[color:var(--color-accent)]/40",
-  3: "bg-[color:var(--color-accent)]/65",
-  4: "bg-[color:var(--color-accent)]",
+  0: "bg-white/5 border border-white/10",
+  1: "bg-[#00f2ff]/20",
+  2: "bg-[#00f2ff]/40",
+  3: "bg-[#00f2ff]/65",
+  4: "bg-[#00f2ff]",
 };
 
 export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
@@ -57,11 +57,7 @@ export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
     return m;
   }, [attempts]);
 
-  const {
-    weeks,
-    weekdayNames,
-    monthMarkers,
-  } = useMemo(() => {
+  const { weeks, weekdayNames, monthMarkers } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const endDow = today.getDay(); // 0=Sun..6=Sat
@@ -142,30 +138,22 @@ export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
         : t.stats.heatmapManyAttempts.replace("{{count}}", String(day.count));
     const correctSuffix =
       day.correct > 0
-        ? t.stats.heatmapCorrectSuffix.replace(
-            "{{correct}}",
-            String(day.correct),
-          )
+        ? t.stats.heatmapCorrectSuffix.replace("{{correct}}", String(day.correct))
         : "";
     return `${dateText} · ${base}${correctSuffix}`;
   };
 
-  // Grid layout: one "auto" column for weekday labels + WEEKS equal-width
+  // Grid layout: one "auto" column for weekday label + WEEKS equal-width
   // columns for the weeks. The cells themselves are `aspect-square`, so the
   // entire heatmap grows/shrinks to fill its container width — just like
   // LeetCode's. Rows are shaped implicitly by the cells.
   const gridTemplateColumns = `auto repeat(${WEEKS}, minmax(0, 1fr))`;
 
   return (
-    <section className="rounded-xl border border-[color:var(--color-line)] bg-white/60 p-4 sm:p-5">
-      <h2 className="text-sm font-medium text-ink mb-3">
-        {t.stats.heatmapTitle}
-      </h2>
+    <section className="rounded-xl border border-white/10 bg-white/5 p-4 sm:p-5">
+      <h2 className="text-sm font-medium text-white mb-3">{t.stats.heatmapTitle}</h2>
 
-      <div
-        className="grid gap-[3px] w-full"
-        style={{ gridTemplateColumns }}
-      >
+      <div className="grid gap-[3px] w-full" style={{ gridTemplateColumns }}>
         {/* Row 1: top-left gutter + month labels. Each label is placed at the
             exact grid column matching its starting week. We let it overflow
             its single-column track horizontally (min-width:0 on the track via
@@ -175,7 +163,7 @@ export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
           <div
             key={`m-${m.week}`}
             style={{ gridRow: 1, gridColumn: m.week + 2 }}
-            className="text-[10px] leading-none text-ink-2 whitespace-nowrap"
+            className="text-xs leading-none text-white/40 whitespace-nowrap"
           >
             {m.label}
           </div>
@@ -188,7 +176,7 @@ export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
             <div
               key={`w-${dow}`}
               style={{ gridRow: dow + 2, gridColumn: 1 }}
-              className="text-[10px] leading-none text-ink-2 pr-2 self-center"
+              className="text-xs leading-none text-white/40 pr-2 self-center"
             >
               {show ? name : ""}
             </div>
@@ -203,14 +191,7 @@ export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
             };
             if (day.inFuture) {
               // Reserve the slot so column alignment stays intact, but render nothing.
-              return (
-                <div
-                  key={day.key}
-                  style={common}
-                  className="aspect-square"
-                  aria-hidden
-                />
-              );
+              return <div key={day.key} style={common} className="aspect-square" aria-hidden />;
             }
             const b = bucketFor(day.count);
             return (
@@ -226,13 +207,10 @@ export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
       </div>
 
       {/* Legend — anchored to the right like GitHub's. */}
-      <div className="flex items-center justify-end gap-1.5 text-[10px] text-ink-2 mt-3">
+      <div className="flex items-center justify-end gap-1.5 text-xs text-white/40 mt-3">
         <span>{t.stats.heatmapLegendLess}</span>
         {([0, 1, 2, 3, 4] as const).map((b) => (
-          <div
-            key={b}
-            className={`h-3 w-3 rounded-[2px] ${BUCKET_CLASS[b]}`}
-          />
+          <div key={b} className={`h-3 w-3 rounded-[2px] ${BUCKET_CLASS[b]}`} />
         ))}
         <span>{t.stats.heatmapLegendMore}</span>
       </div>

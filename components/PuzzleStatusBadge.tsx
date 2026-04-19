@@ -18,8 +18,7 @@ export function PuzzleStatusBadge({
   size?: "sm" | "md";
   title?: string;
 }) {
-  const dim =
-    size === "sm" ? "h-3.5 w-3.5" : "h-5 w-5";
+  const dim = size === "sm" ? "h-3.5 w-3.5" : "h-5 w-5";
   const iconDim = size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3";
 
   if (status === "solved") {

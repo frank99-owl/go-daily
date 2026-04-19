@@ -26,9 +26,7 @@ export function getPuzzleForDate(date: string): Puzzle {
   if (PUZZLES.length === 0) {
     throw new Error("No puzzles available — did importTsumego.ts run?");
   }
-  const diffDays = Math.floor(
-    (parseYmdUTC(date) - parseYmdUTC(ROTATION_ANCHOR)) / DAY_MS,
-  );
+  const diffDays = Math.floor((parseYmdUTC(date) - parseYmdUTC(ROTATION_ANCHOR)) / DAY_MS);
   const idx = ((diffDays % PUZZLES.length) + PUZZLES.length) % PUZZLES.length;
   return PUZZLES[idx];
 }

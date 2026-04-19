@@ -1,40 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=LXGW+WenKai&family=Noto+Serif+SC:wght@400;600&family=Inter:wght@300;400;500&family=Klee+One:wght@400;600&family=Shippori+Mincho:wght@400;600&family=Noto+Sans+JP:wght@300;400;500&family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap");
+
 @import "tailwindcss";
 
 @theme {
-  /* Go-themed palette (distinct from personal-site's warm orange) */
-  --color-board: #e8c594;       /* board wood fill */
-  --color-board-2: #d4a76a;     /* board grid lines */
-  --color-stone-b: #1a1a1a;     /* black stones */
-  --color-stone-w: #fafafa;     /* white stones */
-  --color-ink: #1a1a1a;         /* primary text */
-  --color-ink-2: #4a4a4a;       /* secondary text */
-  --color-paper: #faf9f4;       /* page bg */
-  --color-accent: #0d9488;      /* accent (teal) */
-  --color-success: #16a34a;     /* correct */
-  --color-warn: #ef4444;        /* wrong */
-  --color-line: #e4e2d6;        /* divider */
+  /* Dark go-themed palette */
+  --color-board: #1f1611; /* dark wood fill */
+  --color-board-2: rgba(0, 242, 255, 0.28); /* grid lines (neon cyan) */
+  --color-stone-b: #0a0a0a; /* black stones */
+  --color-stone-w: #eeeae0; /* warm white stones */
+  --color-ink: #edeae2; /* primary text */
+  --color-ink-2: rgba(237, 234, 226, 0.55); /* secondary text */
+  --color-paper: #0a0a0a; /* page bg */
+  --color-accent: #00f2ff; /* accent (neon cyan) */
+  --color-success: #22c55e; /* correct (brighter green) */
+  --color-warn: #ff3366; /* wrong (neon red) */
+  --color-line: rgba(255, 255, 255, 0.08); /* divider */
+  --color-linen: #e3dccb; /* warm light text */
+  --color-earth: #4a3728; /* warm brown */
 
-  /* Inter for Latin; system CJK fonts handle 中 / 日 / 韩 via the OS */
-  --font-sans:
-    var(--font-inter),
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "PingFang SC",
-    "Hiragino Sans",
-    "Hiragino Kaku Gothic ProN",
-    "Yu Gothic",
-    "Apple SD Gothic Neo",
-    "Noto Sans CJK SC",
-    "Microsoft YaHei",
-    "Malgun Gothic",
-    sans-serif;
-  --font-display:
-    var(--font-playfair),
-    "PingFang SC",
-    "Hiragino Mincho ProN",
-    "Apple SD Gothic Neo",
-    serif;
+  /* Default (en) font stacks */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-headline), "Playfair Display", serif;
+}
+
+/* Locale-specific font overrides — higher specificity than @theme defaults */
+html[data-locale="zh"] {
+  --font-sans: "LXGW WenKai", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-display: "Noto Serif SC", "Songti SC", serif;
+}
+
+html[data-locale="ja"] {
+  --font-sans: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+}
+
+html[data-locale="ko"] {
+  --font-sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-display: "Gowun Batang", "Apple SD Gothic Neo", serif;
 }
 
 html,
@@ -43,4 +45,8 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
 }
