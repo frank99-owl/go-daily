@@ -21,7 +21,7 @@
 
 | Phase       | Puzzle Count   | Primary Bottleneck                                      | Recommended Action                                     |
 | ----------- | -------------- | ------------------------------------------------------- | ------------------------------------------------------ |
-| **Current** | ~100           | None                                                    | Keep as-is                                             |
+| **Current** | ~1 210         | None                                                    | Keep as-is                                             |
 | **Phase A** | 100 → 1 000    | First-load JS bundle (full import)                      | Split files + lazy load                                |
 | **Phase B** | 1 000 → 10 000 | `generateStaticParams` timeout; localStorage near limit | Database + API; IndexedDB                              |
 | **Phase C** | 10 000+        | Client-side search/filter cannot handle it              | Server-side search (full-text index); CDN board images |
@@ -103,7 +103,7 @@ const puzzle = PUZZLES[dayIndex % PUZZLES.length];
 ```
 
 - Deterministic: given a date, every client computes the same puzzle with no network call.
-- 100 puzzles cycle every ~3.3 months.
+- 1 210 puzzles cycle every ~3.3 years.
 
 ### 3.2 Scaling to 1 000+ Puzzles
 

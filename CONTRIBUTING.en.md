@@ -77,20 +77,24 @@ npm run dev
 go-daily/
 ├── app/                  # Next.js App Router pages and API
 │   ├── api/coach/        # AI Coach Route Handler
+│   ├── developer/        # Developer page
 │   ├── puzzles/          # Puzzle library and [id] dynamic route
 │   ├── result/           # Result page
 │   ├── review/           # Review page
-│   └── stats/            # Stats page
+│   ├── stats/            # Stats page
+│   └── today/            # Daily puzzle page
 ├── components/           # Shared UI components
 ├── content/
 │   ├── messages/         # 4-locale translation JSON files
 │   ├── puzzles.ts        # Puzzle aggregator
-│   └── data/             # Large data files (auto-generated)
+│   ├── data/             # Large data files (auto-generated)
+│   └── games/            # Historical game record SGF data
 ├── docs/                 # Project documentation (bilingual CN/EN)
-├── lib/                  # Utilities (i18n, storage, coach, localized, etc.)
+├── lib/                  # Utilities (i18n, storage, coach, goRules, sgf, etc.)
 ├── scripts/              # Build scripts (validation, import)
 ├── types/                # Global TypeScript type definitions
-└── public/               # Static assets
+├── public/               # Static assets
+└── middleware.ts         # i18n cookie → header forwarding
 ```
 
 For a full architecture walkthrough, see [docs/architecture.en.md](./docs/architecture.en.md).

@@ -220,9 +220,11 @@ On network or API error, the chat panel shows an error message (not a loading in
 try {
   // DeepSeek API call
 } catch (err) {
-  const msg = err instanceof Error ? err.message : "Unknown error from the model.";
-  // Never leak a stack trace; keep the message short
-  return NextResponse.json({ error: `Coach is unavailable right now. ${msg}` }, { status: 502 });
+  console.error("[coach] upstream error:", err);
+  return NextResponse.json(
+    { error: "Coach is temporarily unavailable. Please try again later." },
+    { status: 502 }
+  );
 }
 ```
 

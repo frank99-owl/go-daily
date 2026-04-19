@@ -77,20 +77,24 @@ npm run dev
 go-daily/
 ├── app/                  # Next.js App Router 页面和 API
 │   ├── api/coach/        # AI 教练 Route Handler
+│   ├── developer/        # 开发者页
 │   ├── puzzles/          # 题库页和 [id] 动态路由
 │   ├── result/           # 结果页
 │   ├── review/           # 复习页
-│   └── stats/            # 统计页
+│   ├── stats/            # 统计页
+│   └── today/            # 每日一题页
 ├── components/           # 共享 UI 组件
 ├── content/
 │   ├── messages/         # 四语言翻译 JSON
 │   ├── puzzles.ts        # 题目聚合器
-│   └── data/             # 大数据文件（auto-generated）
+│   ├── data/             # 大数据文件（auto-generated）
+│   └── games/            # 历史棋谱 SGF 数据
 ├── docs/                 # 项目文档（中英双语）
-├── lib/                  # 工具函数（i18n、storage、coach、localized 等）
+├── lib/                  # 工具函数（i18n、storage、coach、goRules、sgf 等）
 ├── scripts/              # 构建脚本（验证、导入）
 ├── types/                # 全局 TypeScript 类型定义
-└── public/               # 静态资产
+├── public/               # 静态资产
+└── middleware.ts         # i18n cookie → header 转发
 ```
 
 完整架构说明见 [docs/architecture.md](./docs/architecture.md)。

@@ -220,9 +220,11 @@ interface CoachMessage {
 try {
   // DeepSeek API 调用
 } catch (err) {
-  const msg = err instanceof Error ? err.message : "Unknown error from the model.";
-  // 不暴露 stack trace，消息保持简短
-  return NextResponse.json({ error: `Coach is unavailable right now. ${msg}` }, { status: 502 });
+  console.error("[coach] upstream error:", err);
+  return NextResponse.json(
+    { error: "Coach is temporarily unavailable. Please try again later." },
+    { status: 502 }
+  );
 }
 ```
 

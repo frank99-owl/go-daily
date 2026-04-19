@@ -19,27 +19,30 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  app/         路由 · 页面组件（Server / Client 分明）          │
-│  components/  UI 复用单元（GoBoard · ShareCard · Nav …）      │
-│  lib/         纯逻辑层（board · judge · storage · i18n …）    │
-│  content/     数据（puzzles.ts · messages/*.json）            │
-│  types/       类型定义（Puzzle · AttemptRecord · …）          │
-│  scripts/     构建 / 作者工具（importTsumego · validatePuzzles）│
+│  middleware.ts  请求拦截（i18n cookie → header 转发）         │
+│  app/           路由 · 页面组件（Server / Client 分明）        │
+│  components/    UI 复用单元（GoBoard · ShareCard · Nav …）    │
+│  lib/           纯逻辑层（board · judge · storage · i18n …）  │
+│  content/       数据（puzzles.ts · messages/*.json · games/） │
+│  types/         类型定义（Puzzle · AttemptRecord · …）        │
+│  scripts/       构建 / 作者工具（importTsumego · validatePuzzles）│
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**依赖方向**：`app` → `components` → `lib` → `types`/`content`。反向依赖是禁区。
+**依赖方向**：`middleware` → `app` → `components` → `lib` → `types`/`content`。反向依赖是禁区。
 
 ## 路由表
 
 | 路由            | Server 组件                 | Client 组件                        | 作用                                                                        |
 | --------------- | --------------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
-| `/`             | `app/page.tsx`              | `app/TodayClient.tsx`              | 每日一题：拿 `getPuzzleForDate(todayLocalKey())`，交给 `TodayClient` 做交互 |
+| `/`             | `app/page.tsx`              | `HeroSection` + `BoardShowcase`    | Landing page：视差滚动 + AlphaGo 第 4 局演示                                |
+| `/today`        | `app/today/page.tsx`        | `app/TodayClient.tsx`              | 每日一题：拿 `getPuzzleForDate(todayLocalKey())`，交给 `TodayClient` 做交互 |
 | `/puzzles`      | `app/puzzles/page.tsx`      | `app/puzzles/PuzzleListClient.tsx` | 全量题库：筛选 / 排序 / 搜索                                                |
 | `/puzzles/[id]` | `app/puzzles/[id]/page.tsx` | 复用 `TodayClient`                 | 按 ID 打开一题；`generateStaticParams()` 覆盖全量 `PUZZLES`                 |
 | `/result`       | `app/result/page.tsx`       | `app/result/ResultClient.tsx`      | 判题后的回显：对/错横幅、解答播放、AI 陪练、分享卡                          |
 | `/review`       | `app/review/page.tsx`       | `app/review/ReviewClient.tsx`      | 错题本：`attempted` 状态按最近尝试时间倒序                                  |
 | `/stats`        | `app/stats/page.tsx`        | `app/stats/StatsClient.tsx`        | 战绩：连胜 · 正确率 · 总量 · 热力图                                         |
+| `/developer`    | `app/developer/page.tsx`    | —                                  | 开发者页                                                                    |
 | `/api/coach`    | `app/api/coach/route.ts`    | —                                  | LLM 代理（POST JSON）                                                       |
 
 **Server vs Client 分界约定**：`page.tsx` 尽量只做「取 puzzle · 构造 props · 传给 Client 组件」，重活都在 `*Client.tsx` 里。因为需要读 `localStorage`，所有带历史/偏好的交互都必然是 client 组件。
@@ -47,6 +50,8 @@
 ## 核心数据流
 
 ### 做一道题（落子 → 判题 → 结果页）
+
+入口可以是 `/today`（每日一题）或直接通过 `/puzzles/[id]` 打开特定题目：
 
 ```
  用户点击棋盘 (GoBoard onPlay)
@@ -101,6 +106,7 @@ AttemptRecord[] （时序 append-only）
 | -------------------- | ---------------------------------- | ------------------------------------------------------------------- |
 | 全量题库             | `content/puzzles.ts`               | 导出 `PUZZLES` · `getPuzzleById()` · `getCuratedPuzzles()`          |
 | 导入题集（自动生成） | `content/data/importedPuzzles.ts`  | `scripts/importTsumego.ts` 产出，不要手改                           |
+| 历史棋谱数据         | `content/games/leeAlphagoG4.ts`    | 李世石 vs AlphaGo 第 4 局 SGF + 元数据（「神之一手」）              |
 | 类型                 | `types/index.ts`                   | `Puzzle` / `AttemptRecord` / `PuzzleStatus` / `Locale` 等           |
 | localStorage 读写    | `lib/storage.ts`                   | `loadAttempts` / `saveAttempt` / `getAttemptFor` / `getAttemptsFor` |
 | 状态派生             | `lib/puzzleStatus.ts`              | 纯函数，消费 attempts 数组                                          |
@@ -108,10 +114,18 @@ AttemptRecord[] （时序 append-only）
 | 每日轮换             | `lib/puzzleOfTheDay.ts`            | `getPuzzleForDate` + `todayLocalKey`                                |
 | 随机抽题             | `lib/random.ts`                    | `pickRandomPuzzle(pool: "all"│"unattempted"│"wrong")`               |
 | 棋盘几何             | `lib/board.ts`                     | `isInBounds` / `isOccupied` / `starPoints`                          |
+| 围棋规则引擎         | `lib/goRules.ts`                   | `playMove`：落子、提子（单子/群提）、自禁检查                      |
+| SGF 解析器           | `lib/sgf.ts`                       | `parseSgfMoves`：SGF 字符串 → 坐标序列                               |
+| 棋谱快照构建         | `lib/gameSnapshots.ts`             | `buildSnapshots`：从 SGF 落子序列生成每手盘面快照                    |
 | 多语言文本           | `lib/i18n.tsx`                     | `localized(text, locale)` 自带 en→zh→ja→ko fallback                 |
 | i18n context         | `lib/i18n.tsx`                     | `LocaleProvider` + `useLocale()` · 存 `go-daily.locale`             |
+| i18n middleware      | `middleware.ts`                    | cookie `go-daily.locale` → `x-locale` header，消除 SSR 语言闪烁     |
 | Coach prompt 工厂    | `lib/coachPrompt.ts`               | 生成 4 语言 system prompt · 注入棋盘 + solution note                |
-| 棋盘渲染             | `components/GoBoard.tsx`           | Canvas 2D · HiDPI · 自动裁剪至子块集中区（19 路用）                 |
+| 棋盘渲染             | `components/GoBoard.tsx`           | Canvas 2D · HiDPI · 自动裁剪 · 支持 dark/classic 双主题            |
+| Landing Hero         | `components/HeroSection.tsx`       | 视差滚动 · 多语言字体适配 · 背景图                                  |
+| 棋盘展示区           | `components/BoardShowcase.tsx`     | 滚动驱动动画 · AlphaGo 第 4 局「神之一手」演示                      |
+| 演示棋盘             | `components/DemoGameBoard.tsx`     | 历史棋谱逐手回放 · 阶段切换（idle/showGod/playing/ended）           |
+| 自定义光标           | `components/GlobalCursor.tsx`      | 全局自定义鼠标光标（霓虹青光晕）                                    |
 | 陪练 UI              | `components/CoachDialogue.tsx`     | 聊天 · 写 `sessionStorage`（key=puzzleId+locale）                   |
 | 分享卡               | `components/ShareCard.tsx`         | 1080×1080 PNG 生成 + Web Share                                      |
 | 状态角标             | `components/PuzzleStatusBadge.tsx` | 三态小圆：solved / attempted / unattempted                          |
@@ -120,20 +134,29 @@ AttemptRecord[] （时序 append-only）
 
 Tailwind v4，`@theme` 在 `app/globals.css` 集中声明。组件里用 `bg-[color:var(--color-accent)]` 或 `bg-[color:var(--color-accent)]/10` 访问。
 
-色盘（Go 主题暖色）：
+色盘（深色围棋主题）：
 
-| token                           | 值                    | 用途              |
-| ------------------------------- | --------------------- | ----------------- |
-| `--color-board`                 | `#e8c594`             | 棋盘木色填充      |
-| `--color-board-2`               | `#d4a76a`             | 棋盘格线          |
-| `--color-accent`                | `#0d9488`             | 主 accent（teal） |
-| `--color-success`               | `#16a34a`             | 对 ✓              |
-| `--color-warn`                  | `#ef4444`             | 错 ✗              |
-| `--color-ink` / `--color-ink-2` | `#1a1a1a` / `#4a4a4a` | 文字（主 / 次）   |
-| `--color-paper`                 | `#faf9f4`             | 页面底色          |
-| `--color-line`                  | `#e4e2d6`             | 分割线            |
+| token               | 值                              | 用途               |
+| ------------------- | ------------------------------- | ------------------ |
+| `--color-board`     | `#1f1611`                       | 棋盘深色木纹填充   |
+| `--color-board-2`   | `rgba(0, 242, 255, 0.28)`       | 棋盘格线（霓虹青） |
+| `--color-stone-b`   | `#0a0a0a`                       | 黑子               |
+| `--color-stone-w`   | `#eeeae0`                       | 白子（暖白）       |
+| `--color-accent`    | `#00f2ff`                       | 主 accent（霓虹青）|
+| `--color-success`   | `#22c55e`                       | 对 ✓               |
+| `--color-warn`      | `#ff3366`                       | 错 ✗（霓虹红）     |
+| `--color-ink`       | `#edeae2`                       | 主文字             |
+| `--color-ink-2`     | `rgba(237, 234, 226, 0.55)`     | 次文字             |
+| `--color-paper`     | `#0a0a0a`                       | 页面底色（深黑）   |
+| `--color-line`      | `rgba(255, 255, 255, 0.08)`     | 分割线             |
+| `--color-linen`     | `#e3dccb`                       | 暖色浅色文字       |
+| `--color-earth`     | `#4a3728`                       | 暖棕色             |
 
-字体：Inter（拉丁）+ Playfair Display（标题衬线）+ 系统 CJK fallback 链。
+GoBoard 支持 `boardStyle` prop（`"dark"` / `"classic"`）：
+- `dark`：深色木纹棋盘 + 霓虹青格线（Landing page、首页默认）
+- `classic`：传统木色棋盘（题库页等保留原风格）
+
+字体：Inter（拉丁）+ Playfair Display（标题衬线）+ Zhi Mang Xing（中文书法）+ Klee One（日文）+ Gowun Batang（韩文）+ 系统 CJK fallback 链。
 
 ## 构建与脚本
 

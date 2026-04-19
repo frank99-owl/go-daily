@@ -112,7 +112,7 @@ export const PUZZLES: Puzzle[] = [...CURATED_PUZZLES, ...IMPORTED_PUZZLES];
 
 ```bash
 npm run validate:puzzles
-# ✓ Validated 101 puzzles (1 curated, 100 library)
+# ✓ Validated 1210 puzzles (0 curated, 1210 library)
 ```
 
 5. **本地试玩**：
