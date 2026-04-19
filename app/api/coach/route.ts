@@ -76,11 +76,7 @@ export async function POST(request: Request) {
   if (!isLocale(locale)) {
     return badRequest("Invalid locale.");
   }
-  if (
-    !userMove ||
-    typeof userMove.x !== "number" ||
-    typeof userMove.y !== "number"
-  ) {
+  if (!userMove || typeof userMove.x !== "number" || typeof userMove.y !== "number") {
     return badRequest("Invalid userMove.");
   }
   if (typeof isCorrect !== "boolean") {
@@ -97,8 +93,7 @@ export async function POST(request: Request) {
   if (!apiKey) {
     return NextResponse.json(
       {
-        error:
-          "The AI coach is not configured on the server (missing DEEPSEEK_API_KEY).",
+        error: "The AI coach is not configured on the server (missing DEEPSEEK_API_KEY).",
       },
       { status: 500 },
     );
@@ -109,9 +104,7 @@ export async function POST(request: Request) {
     .slice(-MAX_HISTORY)
     .filter(
       (m): m is CoachMessage =>
-        !!m &&
-        (m.role === "user" || m.role === "assistant") &&
-        typeof m.content === "string",
+        !!m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string",
     )
     .map((m) => ({ role: m.role, content: m.content.slice(0, 2000), ts: 0 }));
 
@@ -138,21 +131,15 @@ export async function POST(request: Request) {
       temperature: 0.6,
       max_tokens: 400,
     });
-    const reply =
-      completion.choices[0]?.message?.content?.trim() ?? "";
+    const reply = completion.choices[0]?.message?.content?.trim() ?? "";
     if (!reply) {
-      return NextResponse.json(
-        { error: "Empty reply from the model." },
-        { status: 502 },
-      );
+      return NextResponse.json({ error: "Empty reply from the model." }, { status: 502 });
     }
     return NextResponse.json({ reply });
   } catch (err) {
-    const msg =
-      err instanceof Error ? err.message : "Unknown error from the model.";
-    // Don't leak stack; keep the message short.
+    console.error("[coach] upstream error:", err);
     return NextResponse.json(
-      { error: `Coach is unavailable right now. ${msg}` },
+      { error: "Coach is temporarily unavailable. Please try again later." },
       { status: 502 },
     );
   }

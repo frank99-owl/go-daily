@@ -10,8 +10,7 @@ type Props = {
   isCorrect: boolean;
 };
 
-const historyKey = (puzzleId: string, locale: Locale) =>
-  `go-daily.coach.${puzzleId}.${locale}`;
+const historyKey = (puzzleId: string, locale: Locale) => `go-daily.coach.${puzzleId}.${locale}`;
 
 export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   const { t, locale } = useLocale();
@@ -42,10 +41,11 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   // Persist on change.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.sessionStorage.setItem(
-      historyKey(puzzleId, locale),
-      JSON.stringify(messages),
-    );
+    try {
+      window.sessionStorage.setItem(historyKey(puzzleId, locale), JSON.stringify(messages));
+    } catch (e) {
+      console.warn("[coach] failed to persist history:", e);
+    }
   }, [messages, puzzleId, locale]);
 
   // Auto-scroll to the newest message.
@@ -90,10 +90,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   const send = async () => {
     const text = input.trim();
     if (!text || pending) return;
-    const next: CoachMessage[] = [
-      ...messages,
-      { role: "user", content: text, ts: Date.now() },
-    ];
+    const next: CoachMessage[] = [...messages, { role: "user", content: text, ts: Date.now() }];
     setMessages(next);
     setInput("");
     await requestReply(next);
@@ -106,16 +103,13 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
         <h2 className="text-sm font-medium text-ink">{t.result.coachTitle}</h2>
       </header>
 
-      <div
-        ref={scrollRef}
-        className="max-h-[420px] overflow-y-auto px-4 py-4 flex flex-col gap-3"
-      >
+      <div ref={scrollRef} className="max-h-[420px] overflow-y-auto px-4 py-4 flex flex-col gap-3">
         {messages.length === 0 && !pending && !error && (
-          <p className="text-xs text-ink-2">{t.result.coachEmpty}</p>
+          <p className="text-sm text-ink-2">{t.result.coachEmpty}</p>
         )}
-        {messages.map((m, i) => (
+        {messages.map((m) => (
           <div
-            key={i}
+            key={m.ts}
             className={
               "text-sm leading-relaxed whitespace-pre-wrap " +
               (m.role === "assistant"
@@ -126,12 +120,8 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
             {m.content}
           </div>
         ))}
-        {pending && (
-          <div className="text-xs text-ink-2">{t.result.thinking}</div>
-        )}
-        {error && (
-          <div className="text-xs text-[color:var(--color-warn)]">{error}</div>
-        )}
+        {pending && <div className="text-sm text-ink-2">{t.result.thinking}</div>}
+        {error && <div className="text-sm text-[color:var(--color-warn)]">{error}</div>}
       </div>
 
       <div className="border-t border-[color:var(--color-line)] p-3 flex items-center gap-2">
