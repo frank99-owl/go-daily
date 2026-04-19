@@ -2,7 +2,10 @@
   "brand": "go-daily",
   "nav": {
     "today": "今日",
-    "stats": "戦績"
+    "stats": "戦績",
+    "puzzles": "問題集",
+    "review": "復習",
+    "random": "ランダム"
   },
   "home": {
     "todaysProblem": "今日の一題",
@@ -17,12 +20,16 @@
     "correct": "正解！",
     "wrong": "惜しい",
     "viewAnswer": "正解を見る",
+    "hideAnswer": "正解を隠す",
+    "playSolution": "正解を再生",
     "backToToday": "今日に戻る",
     "coachTitle": "AI コーチ",
     "coachEmpty": "気になることを何でもどうぞ——「なぜここが急所？」「白がハネたらどうなる？」",
     "coachPlaceholder": "コーチに質問…",
     "send": "送信",
-    "thinking": "思考中…"
+    "thinking": "思考中…",
+    "attemptCount": "{{count}} 回目",
+    "historyTally": "通算 {{correct}} 正解 · {{wrong}} 不正解"
   },
   "stats": {
     "title": "戦績",
@@ -30,7 +37,14 @@
     "days": "日",
     "total": "解いた問題数",
     "accuracy": "正解率",
-    "empty": "まだ記録がありません。最初の一題から始めましょう"
+    "empty": "まだ記録がありません。最初の一題から始めましょう",
+    "heatmapTitle": "学習ヒートマップ",
+    "heatmapLegendLess": "少",
+    "heatmapLegendMore": "多",
+    "heatmapNoActivity": "記録なし",
+    "heatmapOneAttempt": "1 回",
+    "heatmapManyAttempts": "{{count}} 回",
+    "heatmapCorrectSuffix": "（うち正解 {{correct}}）"
   },
   "share": {
     "title": "今日の結果をシェア",
@@ -42,5 +56,43 @@
     "tesuji": "手筋",
     "endgame": "ヨセ",
     "opening": "布石"
+  },
+  "puzzles": {
+    "title": "問題集",
+    "all": "すべて",
+    "filterBoardSize": "盤面",
+    "filterTag": "分類",
+    "filterDifficulty": "難易度",
+    "searchPlaceholder": "問題を検索…",
+    "empty": "該当する問題が見つかりません",
+    "total": "{{count}} 問",
+    "solve": "解く",
+    "daily": "今日の問題",
+    "boardSize": {
+      "all": "すべて",
+      "9": "9路",
+      "13": "13路",
+      "19": "19路"
+    },
+    "statusSolved": "正解済",
+    "statusAttempted": "挑戦中",
+    "statusUnattempted": "未挑戦",
+    "filterStatus": "状態",
+    "onlyWrong": "誤答のみ",
+    "onlyTodo": "未挑戦のみ",
+    "sortLabel": "並び替え",
+    "sortDefault": "標準",
+    "sortDifficultyAsc": "難易度 ↑",
+    "sortDifficultyDesc": "難易度 ↓",
+    "sortRecent": "最近挑戦",
+    "tally": "正解 {{solved}} · 挑戦中 {{attempted}} · 未挑戦 {{unattempted}}",
+    "curated": "精選"
+  },
+  "review": {
+    "title": "復習ノート",
+    "subtitle": "まだ正解していない問題を振り返ろう",
+    "empty": "復習する問題はありません。この調子！",
+    "lastAttempted": "最終挑戦 {{date}}",
+    "attemptCount": "{{count}} 回挑戦"
   }
 }

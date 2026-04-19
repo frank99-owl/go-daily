@@ -2,7 +2,10 @@
   "brand": "go-daily",
   "nav": {
     "today": "오늘",
-    "stats": "기록"
+    "stats": "기록",
+    "puzzles": "문제집",
+    "review": "오답노트",
+    "random": "랜덤"
   },
   "home": {
     "todaysProblem": "오늘의 문제",
@@ -17,12 +20,16 @@
     "correct": "정답!",
     "wrong": "다시 생각해 보세요",
     "viewAnswer": "정답 보기",
+    "hideAnswer": "정답 숨기기",
+    "playSolution": "정답 재생",
     "backToToday": "오늘로 돌아가기",
     "coachTitle": "AI 코치",
     "coachEmpty": "무엇이든 물어보세요 — 예: \"왜 이곳이 급소인가요?\" / \"백이 젖히면 어떻게 되나요?\"",
     "coachPlaceholder": "코치에게 물어보기…",
     "send": "보내기",
-    "thinking": "생각 중…"
+    "thinking": "생각 중…",
+    "attemptCount": "{{count}}번째 시도",
+    "historyTally": "누적 정답 {{correct}} · 오답 {{wrong}}"
   },
   "stats": {
     "title": "나의 기록",
@@ -30,7 +37,14 @@
     "days": "일",
     "total": "푼 문제 수",
     "accuracy": "정답률",
-    "empty": "기록이 아직 없습니다. 첫 문제를 풀어보세요"
+    "empty": "기록이 아직 없습니다. 첫 문제를 풀어보세요",
+    "heatmapTitle": "학습 히트맵",
+    "heatmapLegendLess": "적음",
+    "heatmapLegendMore": "많음",
+    "heatmapNoActivity": "기록 없음",
+    "heatmapOneAttempt": "1회 시도",
+    "heatmapManyAttempts": "{{count}}회 시도",
+    "heatmapCorrectSuffix": " (정답 {{correct}})"
   },
   "share": {
     "title": "오늘의 결과 공유",
@@ -42,5 +56,43 @@
     "tesuji": "맥",
     "endgame": "끝내기",
     "opening": "포석"
+  },
+  "puzzles": {
+    "title": "문제집",
+    "all": "전체",
+    "filterBoardSize": "바둑판",
+    "filterTag": "분류",
+    "filterDifficulty": "난이도",
+    "searchPlaceholder": "문제 검색…",
+    "empty": "해당하는 문제가 없습니다",
+    "total": "총 {{count}} 문제",
+    "solve": "풀기",
+    "daily": "오늘의 문제",
+    "boardSize": {
+      "all": "전체",
+      "9": "9로",
+      "13": "13로",
+      "19": "19로"
+    },
+    "statusSolved": "해결",
+    "statusAttempted": "시도중",
+    "statusUnattempted": "미시도",
+    "filterStatus": "상태",
+    "onlyWrong": "오답만",
+    "onlyTodo": "미시도만",
+    "sortLabel": "정렬",
+    "sortDefault": "기본",
+    "sortDifficultyAsc": "난이도 ↑",
+    "sortDifficultyDesc": "난이도 ↓",
+    "sortRecent": "최근 시도",
+    "tally": "해결 {{solved}} · 시도 {{attempted}} · 미시도 {{unattempted}}",
+    "curated": "엄선"
+  },
+  "review": {
+    "title": "오답노트",
+    "subtitle": "아직 풀지 못한 문제를 되짚어 봅시다",
+    "empty": "오답이 없습니다. 이대로 계속!",
+    "lastAttempted": "최근 시도 {{date}}",
+    "attemptCount": "{{count}}회 시도"
   }
 }

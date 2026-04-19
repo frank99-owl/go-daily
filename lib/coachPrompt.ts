@@ -1,4 +1,5 @@
 import type { Locale, Puzzle, Stone } from "@/types";
+import { localized } from "./localized";
 
 const coordLabel = (c: { x: number; y: number }) => `(${c.x},${c.y})`;
 
@@ -30,7 +31,7 @@ export function buildSystemPrompt(
   userMove: { x: number; y: number },
   isCorrect: boolean,
 ): string {
-  const common = [
+  const parts = [
     "You are a friendly, encouraging Go (weiqi / baduk) coach.",
     "Use a Socratic tone: if the student is right, affirm and deepen; if wrong, diagnose the misread and guide them back with a hint — do NOT immediately give the answer unless asked.",
     "Keep replies short: 2–4 short paragraphs, no lists unless helpful.",
@@ -43,10 +44,41 @@ export function buildSystemPrompt(
     "",
     "--- STUDENT'S MOVE ---",
     `Move: ${coordLabel(userMove)} — ${isCorrect ? "CORRECT" : "INCORRECT"}.`,
+  ];
+
+  if (puzzle.solutionSequence?.length) {
+    parts.push(
+      "",
+      "--- SOLUTION SEQUENCE (ground truth) ---",
+      puzzle.solutionSequence
+        .map(
+          (s, i) =>
+            `Step ${i + 1}: ${s.color} ${coordLabel(s)}`,
+        )
+        .join("\n"),
+    );
+  }
+
+  if (puzzle.wrongBranches?.length) {
+    parts.push(
+      "",
+      "--- COMMON WRONG BRANCHES ---",
+      puzzle.wrongBranches
+        .map(
+          (wb) =>
+            `If student plays ${coordLabel(wb.userWrongMove)}: ${wb.refutation.map((s) => `${s.color} ${coordLabel(s)}`).join(", ")}`,
+        )
+        .join("\n"),
+    );
+  }
+
+  parts.push(
     "",
     "--- SOLUTION NOTE (ground truth, in the student's language) ---",
-    puzzle.solutionNote[locale],
-  ].join("\n");
+    localized(puzzle.solutionNote, locale),
+  );
+
+  const common = parts.join("\n");
 
   const byLocale: Record<Locale, string> = {
     zh: [

@@ -15,17 +15,32 @@ export function loadAttempts(): AttemptRecord[] {
   }
 }
 
+/**
+ * Append an attempt record. We intentionally keep every attempt (including
+ * repeats for the same puzzleId) so we can show per-puzzle history,
+ * AC rate, and an honest per-day heatmap count.
+ */
 export function saveAttempt(record: AttemptRecord): void {
   if (typeof window === "undefined") return;
   const all = loadAttempts();
-  // One record per puzzleId — the latest attempt wins.
-  const next = all.filter((a) => a.puzzleId !== record.puzzleId);
-  next.push(record);
-  window.localStorage.setItem(KEY, JSON.stringify(next));
+  all.push(record);
+  window.localStorage.setItem(KEY, JSON.stringify(all));
 }
 
+/** Latest attempt for a puzzle (most recent `solvedAtMs`), or null if none. */
 export function getAttemptFor(puzzleId: string): AttemptRecord | null {
-  return loadAttempts().find((a) => a.puzzleId === puzzleId) ?? null;
+  const list = loadAttempts().filter((a) => a.puzzleId === puzzleId);
+  if (list.length === 0) return null;
+  return list.reduce((latest, a) =>
+    a.solvedAtMs > latest.solvedAtMs ? a : latest,
+  );
+}
+
+/** Full attempt history for a puzzle, newest first. */
+export function getAttemptsFor(puzzleId: string): AttemptRecord[] {
+  return loadAttempts()
+    .filter((a) => a.puzzleId === puzzleId)
+    .sort((a, b) => b.solvedAtMs - a.solvedAtMs);
 }
 
 // Current streak: consecutive days up to today (inclusive) with at least one

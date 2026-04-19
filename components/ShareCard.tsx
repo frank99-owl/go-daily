@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Download, Share2 } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { starPoints } from "@/lib/board";
+import { localized } from "@/lib/localized";
 import type { Puzzle, Stone } from "@/types";
 
 type Props = {
@@ -118,7 +119,7 @@ export function ShareCard({ puzzle, correct, elapsedSeconds }: Props) {
     // Prompt line.
     ctx.fillStyle = "#1a1a1a";
     ctx.font = "400 30px ui-sans-serif, system-ui, sans-serif";
-    const prompt = puzzle.prompt[locale];
+    const prompt = localized(puzzle.prompt, locale);
     ctx.fillText(prompt, 72, verdictY + 56);
 
     // Optional time.

@@ -8,13 +8,26 @@ export type Color = "black" | "white";
 export type Stone = Coord & { color: Color };
 export type PuzzleTag = "life-death" | "tesuji" | "endgame" | "opening";
 
+/** A wrong-move branch with refutation sequence. */
+export interface WrongBranch {
+  userWrongMove: Coord; // the incorrect move
+  refutation: Stone[]; // opponent's reply sequence
+  note: LocalizedText;
+}
+
 export interface Puzzle {
-  id: string; // e.g. "2026-04-18"
+  id: string; // e.g. "2026-04-18" (daily) or "ld1-0" (seed-shift)
   date: string; // YYYY-MM-DD, local
   boardSize: 9 | 13 | 19;
   stones: Stone[]; // pre-placed position
   toPlay: Color;
-  correct: Coord[]; // accepted solution points
+  correct: Coord[]; // accepted FIRST solution points (for judging)
+  /** Full correct variation sequence (multi-step). Shown on result page. */
+  solutionSequence?: Stone[];
+  /** Common wrong branches with refutation. */
+  wrongBranches?: WrongBranch[];
+  /** Whether this puzzle has full solution data (shown in library). */
+  isCurated?: boolean;
   tag: PuzzleTag;
   difficulty: 1 | 2 | 3 | 4 | 5; // 1 easiest
   prompt: LocalizedText; // e.g. "黑先活"
@@ -29,6 +42,14 @@ export interface AttemptRecord {
   correct: boolean;
   solvedAtMs: number; // epoch ms when solved
 }
+
+/**
+ * Per-puzzle completion state derived from attempt history.
+ *   solved      → at least one attempt was correct
+ *   attempted   → has attempts, none correct
+ *   unattempted → no attempts recorded
+ */
+export type PuzzleStatus = "solved" | "attempted" | "unattempted";
 
 export interface CoachMessage {
   role: "user" | "assistant";

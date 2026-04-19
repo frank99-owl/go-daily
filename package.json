@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run validate:puzzles",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import:puzzles": "tsx scripts/importTsumego.ts",
+    "validate:puzzles": "tsx scripts/validatePuzzles.ts"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
@@ -24,6 +27,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

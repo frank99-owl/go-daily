@@ -37,6 +37,7 @@ export function TodayClient({ puzzle }: { puzzle: Puzzle }) {
           toPlay={puzzle.toPlay}
           userMove={pending}
           onPlay={(c) => setPending(c)}
+          cropToStones={puzzle.boardSize === 19}
         />
       </div>
       <div className="flex items-center justify-center gap-3">

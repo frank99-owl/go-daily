@@ -2,7 +2,10 @@
   "brand": "go-daily",
   "nav": {
     "today": "Today",
-    "stats": "Stats"
+    "stats": "Stats",
+    "puzzles": "Library",
+    "review": "Review",
+    "random": "Random"
   },
   "home": {
     "todaysProblem": "Today's Problem",
@@ -17,12 +20,16 @@
     "correct": "Correct!",
     "wrong": "Not quite",
     "viewAnswer": "View solution",
+    "hideAnswer": "Hide solution",
+    "playSolution": "Play solution",
     "backToToday": "Back to today",
     "coachTitle": "AI Coach",
     "coachEmpty": "Ask anything — e.g. \"Why is this the vital point?\" or \"What happens if White hanes?\"",
     "coachPlaceholder": "Ask the coach…",
     "send": "Send",
-    "thinking": "Thinking…"
+    "thinking": "Thinking…",
+    "attemptCount": "Attempt #{{count}}",
+    "historyTally": "{{correct}} correct · {{wrong}} wrong overall"
   },
   "stats": {
     "title": "My Stats",
@@ -30,7 +37,14 @@
     "days": "days",
     "total": "Puzzles solved",
     "accuracy": "Accuracy",
-    "empty": "No records yet. Solve your first puzzle!"
+    "empty": "No records yet. Solve your first puzzle!",
+    "heatmapTitle": "Activity",
+    "heatmapLegendLess": "Less",
+    "heatmapLegendMore": "More",
+    "heatmapNoActivity": "No activity",
+    "heatmapOneAttempt": "1 attempt",
+    "heatmapManyAttempts": "{{count}} attempts",
+    "heatmapCorrectSuffix": " ({{correct}} correct)"
   },
   "share": {
     "title": "Share today's result",
@@ -42,5 +56,43 @@
     "tesuji": "Tesuji",
     "endgame": "Endgame",
     "opening": "Opening"
+  },
+  "puzzles": {
+    "title": "Library",
+    "all": "All",
+    "filterBoardSize": "Board",
+    "filterTag": "Tag",
+    "filterDifficulty": "Difficulty",
+    "searchPlaceholder": "Search puzzles…",
+    "empty": "No puzzles found",
+    "total": "{{count}} puzzles",
+    "solve": "Solve",
+    "daily": "Daily",
+    "boardSize": {
+      "all": "All",
+      "9": "9×9",
+      "13": "13×13",
+      "19": "19×19"
+    },
+    "statusSolved": "Solved",
+    "statusAttempted": "Attempted",
+    "statusUnattempted": "Todo",
+    "filterStatus": "Status",
+    "onlyWrong": "Only mistakes",
+    "onlyTodo": "Only unattempted",
+    "sortLabel": "Sort",
+    "sortDefault": "Default",
+    "sortDifficultyAsc": "Difficulty ↑",
+    "sortDifficultyDesc": "Difficulty ↓",
+    "sortRecent": "Recent",
+    "tally": "{{solved}} solved · {{attempted}} attempted · {{unattempted}} todo",
+    "curated": "Curated"
+  },
+  "review": {
+    "title": "Review",
+    "subtitle": "Puzzles you haven't cracked yet",
+    "empty": "No mistakes to review — keep it up!",
+    "lastAttempted": "Last tried {{date}}",
+    "attemptCount": "{{count}} attempts"
   }
 }

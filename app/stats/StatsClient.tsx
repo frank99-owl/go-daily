@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n";
+import { Heatmap } from "@/components/Heatmap";
 import {
   computeAccuracy,
   computeStreak,
@@ -28,6 +29,9 @@ export function StatsClient() {
           {t.stats.title}
         </h1>
         <p className="text-ink-2 text-sm">{t.stats.empty}</p>
+        {/* Render the (empty) heatmap anyway — it gives new users a preview
+            of what filling in the grid will look like, LeetCode-style. */}
+        <Heatmap attempts={attempts} />
       </div>
     );
   }
@@ -46,7 +50,10 @@ export function StatsClient() {
         <Stat label={t.stats.total} value={String(total)} />
         <Stat label={t.stats.accuracy} value={`${accuracy}%`} />
       </div>
-      <ul className="flex flex-col gap-2 mt-4">
+
+      <Heatmap attempts={attempts} />
+
+      <ul className="flex flex-col gap-2 mt-2">
         {attempts
           .slice()
           .sort((a, b) => b.solvedAtMs - a.solvedAtMs)

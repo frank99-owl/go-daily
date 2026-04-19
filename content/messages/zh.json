@@ -2,7 +2,10 @@
   "brand": "go-daily",
   "nav": {
     "today": "今日",
-    "stats": "战绩"
+    "stats": "战绩",
+    "puzzles": "题库",
+    "review": "错题本",
+    "random": "随机"
   },
   "home": {
     "todaysProblem": "今日一题",
@@ -17,12 +20,16 @@
     "correct": "答对了！",
     "wrong": "再想想",
     "viewAnswer": "查看正解",
+    "hideAnswer": "隐藏正解",
+    "playSolution": "播放正解",
     "backToToday": "返回今日",
     "coachTitle": "AI 陪练",
     "coachEmpty": "想到什么随时问——比如「为什么这一手是急所？」「如果白去扑会怎么样？」",
     "coachPlaceholder": "向 AI 提问…",
     "send": "发送",
-    "thinking": "AI 思考中…"
+    "thinking": "AI 思考中…",
+    "attemptCount": "第 {{count}} 次尝试",
+    "historyTally": "累计 {{correct}} 对 · {{wrong}} 错"
   },
   "stats": {
     "title": "我的战绩",
@@ -30,7 +37,14 @@
     "days": "天",
     "total": "已解题数",
     "accuracy": "正确率",
-    "empty": "还没有记录，去解第一道题吧"
+    "empty": "还没有记录，去解第一道题吧",
+    "heatmapTitle": "做题热力图",
+    "heatmapLegendLess": "少",
+    "heatmapLegendMore": "多",
+    "heatmapNoActivity": "未做题",
+    "heatmapOneAttempt": "1 次尝试",
+    "heatmapManyAttempts": "{{count}} 次尝试",
+    "heatmapCorrectSuffix": "（{{correct}} 正确）"
   },
   "share": {
     "title": "分享今日战绩",
@@ -42,5 +56,43 @@
     "tesuji": "手筋",
     "endgame": "官子",
     "opening": "布局"
+  },
+  "puzzles": {
+    "title": "题库",
+    "all": "全部",
+    "filterBoardSize": "棋盘",
+    "filterTag": "分类",
+    "filterDifficulty": "难度",
+    "searchPlaceholder": "搜索题目…",
+    "empty": "没有找到符合条件的题目",
+    "total": "共 {{count}} 道题",
+    "solve": "做题",
+    "daily": "每日一题",
+    "boardSize": {
+      "all": "全部",
+      "9": "9路",
+      "13": "13路",
+      "19": "19路"
+    },
+    "statusSolved": "已解决",
+    "statusAttempted": "尝试过",
+    "statusUnattempted": "未尝试",
+    "filterStatus": "状态",
+    "onlyWrong": "只看错题",
+    "onlyTodo": "只看未尝试",
+    "sortLabel": "排序",
+    "sortDefault": "默认",
+    "sortDifficultyAsc": "难度 ↑",
+    "sortDifficultyDesc": "难度 ↓",
+    "sortRecent": "最近尝试",
+    "tally": "已解决 {{solved}} · 尝试过 {{attempted}} · 未开始 {{unattempted}}",
+    "curated": "精选"
+  },
+  "review": {
+    "title": "错题本",
+    "subtitle": "回头看看那些还没拿下的题",
+    "empty": "还没有错题，继续保持！",
+    "lastAttempted": "最近尝试 {{date}}",
+    "attemptCount": "{{count}} 次尝试"
   }
 }
