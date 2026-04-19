@@ -10,17 +10,17 @@ Frank 在做大重构（深色化 + AlphaGo 演示棋盘，见另一份 `go-dail
 
 ## 总体评分
 
-| 维度 | 现状 | 评价 |
-|---|---|---|
-| 目录分层 | 7/10 | 清晰，但数据放在 `lib/` 是概念错误 |
-| 组件粒度 | 7.5/10 | 命名一致，`*Client.tsx` 扁平布局可以更好 |
-| 类型安全 | 8.5/10 | strict 开，无 any 滥用，个别冗余强转 |
-| React 实践 | 9/10 | useEffect 依赖正确、SSR 守护到位、一处 `key={i}` |
-| 国际化 | 9.5/10 | 四语言完全对应，fallback 合理 |
-| 持久化 | 9/10 | 唯一问题：sessionStorage 写入未 catch 配额异常 |
-| API 安全 | 7/10 | 有限流、有体积上限，但错误消息会泄露上游细节 🔴 |
-| 性能/Bundle | 6.5/10 | 1210 页 SSG → `.next/server` 100 MB |
-| 工程化成熟度 | 4/10 | 零测试、零 CI、无 Prettier |
+| 维度         | 现状   | 评价                                             |
+| ------------ | ------ | ------------------------------------------------ |
+| 目录分层     | 7/10   | 清晰，但数据放在 `lib/` 是概念错误               |
+| 组件粒度     | 7.5/10 | 命名一致，`*Client.tsx` 扁平布局可以更好         |
+| 类型安全     | 8.5/10 | strict 开，无 any 滥用，个别冗余强转             |
+| React 实践   | 9/10   | useEffect 依赖正确、SSR 守护到位、一处 `key={i}` |
+| 国际化       | 9.5/10 | 四语言完全对应，fallback 合理                    |
+| 持久化       | 9/10   | 唯一问题：sessionStorage 写入未 catch 配额异常   |
+| API 安全     | 7/10   | 有限流、有体积上限，但错误消息会泄露上游细节 🔴  |
+| 性能/Bundle  | 6.5/10 | 1210 页 SSG → `.next/server` 100 MB              |
+| 工程化成熟度 | 4/10   | 零测试、零 CI、无 Prettier                       |
 
 **结论**：数据层健壮、代码干净、i18n 到位；主要缺口是**工程化基建**（CI / 测试 / 格式化）和**一处安全问题**。
 
@@ -62,13 +62,13 @@ git mv lib/importedPuzzles.ts content/data/importedPuzzles.ts
 
 **做法**：保留现有位置，但**重命名去掉 `Client` 后缀**，因为 Next.js App Router 里 Client 组件本来就是 `"use client"` 声明出来的，不需要命名兜底：
 
-| 旧 | 新 |
-|---|---|
-| `app/today/TodayClient.tsx` | `app/today/TodayView.tsx` |
+| 旧                                 | 新                           |
+| ---------------------------------- | ---------------------------- |
+| `app/today/TodayClient.tsx`        | `app/today/TodayView.tsx`    |
 | `app/puzzles/PuzzleListClient.tsx` | `app/puzzles/PuzzleList.tsx` |
-| `app/review/ReviewClient.tsx` | `app/review/ReviewList.tsx` |
-| `app/stats/StatsClient.tsx` | `app/stats/StatsView.tsx` |
-| `app/result/ResultClient.tsx` | `app/result/ResultView.tsx` |
+| `app/review/ReviewClient.tsx`      | `app/review/ReviewList.tsx`  |
+| `app/stats/StatsClient.tsx`        | `app/stats/StatsView.tsx`    |
+| `app/result/ResultClient.tsx`      | `app/result/ResultView.tsx`  |
 
 用 `View` 或功能语义（`List`）做后缀，比 `Client` 更有表达力。同步改 `app/*/page.tsx` 里的 import。
 
@@ -93,10 +93,7 @@ git mv lib/importedPuzzles.ts content/data/importedPuzzles.ts
 **现状**：`app/api/coach/route.ts` 第 150-157 行：
 
 ```ts
-return NextResponse.json(
-  { error: `Coach is unavailable right now. ${msg}` },
-  { status: 502 }
-);
+return NextResponse.json({ error: `Coach is unavailable right now. ${msg}` }, { status: 502 });
 ```
 
 如果 DeepSeek 返回 `401 Invalid API key` 或 `429 Quota exceeded`，`msg` 原样返给客户端，暴露你的 key 状态、额度情况、甚至可能有内部 URL。
@@ -155,7 +152,7 @@ useEffect(() => {
 **做法**：直接用联合类型索引：
 
 ```tsx
-t.puzzles.boardSize[puzzle.boardSize]
+t.puzzles.boardSize[puzzle.boardSize];
 ```
 
 前提是 `t.puzzles.boardSize` 的键是 `9 | 13 | 19`（数字）而不是字符串。若 JSON 里是字符串键，把 `puzzle.boardSize` toString 后索引也行，但去掉 `as` 强转。
@@ -285,6 +282,7 @@ README 或 CONTRIBUTING.md 里加一句"本地跑 Coach 需要 DeepSeek key"。
 **现状**：`app/puzzles/[id]/page.tsx` 的 `generateStaticParams()` 为 1210 道题各生成一个静态 HTML + RSC payload，构建产物 `.next/server` 100 MB，build 时间 40s。
 
 **考量**：
+
 - 个人项目 / Vercel Hobby：**可以不动**，100 MB 在限额内，题目点开是即时的。
 - 如果未来题库翻到 5000+ 或部署要上 CDN 带宽敏感的地方：改用 **ISR** 或 **动态路由 + KV 缓存**。
 
@@ -316,17 +314,17 @@ README 或 CONTRIBUTING.md 里加一句"本地跑 Coach 需要 DeepSeek key"。
 
 建议按这个顺序一步步做，每步一个 commit，每步之后都跑 `npm run lint && npm run build`：
 
-1. **P0-1** 数据文件搬家 →  commit `refactor: move puzzle data out of lib/`
-2. **P1-1** API 错误消息脱敏 →  commit `fix: sanitize coach API error responses`
-3. **P1-2** sessionStorage 配额保护 →  commit `fix: catch sessionStorage quota errors in CoachDialogue`
-4. **P1-3** 消息 key 改稳定 id →  commit `fix: use stable keys in CoachDialogue message list`
-5. **P1-4** 类型强转清理 →  commit `refactor: remove redundant type assertion in ReviewClient`
-6. **P0-2** `*Client.tsx` 重命名（可选） →  commit `refactor: rename *Client.tsx to semantic names`
-7. **P0-3** `localized.ts` 并入 `i18n.tsx` →  commit `refactor: consolidate i18n utilities`
-8. **P2-1** Prettier 接入 →  两个 commit：`chore: add prettier config` + `chore: apply prettier formatting`
-9. **P2-4** `.env.example` 补完 →  commit `chore: expand .env.example`
-10. **P2-3** Vitest + 核心单测 →  commit `test: add vitest with core util tests`
-11. **P2-2** GitHub Actions CI →  commit `ci: add lint/test/build workflow`
+1. **P0-1** 数据文件搬家 → commit `refactor: move puzzle data out of lib/`
+2. **P1-1** API 错误消息脱敏 → commit `fix: sanitize coach API error responses`
+3. **P1-2** sessionStorage 配额保护 → commit `fix: catch sessionStorage quota errors in CoachDialogue`
+4. **P1-3** 消息 key 改稳定 id → commit `fix: use stable keys in CoachDialogue message list`
+5. **P1-4** 类型强转清理 → commit `refactor: remove redundant type assertion in ReviewClient`
+6. **P0-2** `*Client.tsx` 重命名（可选） → commit `refactor: rename *Client.tsx to semantic names`
+7. **P0-3** `localized.ts` 并入 `i18n.tsx` → commit `refactor: consolidate i18n utilities`
+8. **P2-1** Prettier 接入 → 两个 commit：`chore: add prettier config` + `chore: apply prettier formatting`
+9. **P2-4** `.env.example` 补完 → commit `chore: expand .env.example`
+10. **P2-3** Vitest + 核心单测 → commit `test: add vitest with core util tests`
+11. **P2-2** GitHub Actions CI → commit `ci: add lint/test/build workflow`
 
 P3 暂不做。
 

@@ -28,18 +28,18 @@ Frank 用 Stitch / 手写 HTML 做了一版主页视觉方案（桌面文件 `Th
 
 把现有浅色 token 整套换成下表。保留变量名即可最小侵入：
 
-| Token | 旧值（浅色） | 新值（深色） |
-|---|---|---|
-| `--color-paper` | `#faf9f4` | `#0A0A0A` |
-| `--color-ink` | `#1a1a1a` | `#EDEAE2` |
-| `--color-line` | `#e4e2d6` | `rgba(255,255,255,0.08)` |
-| `--color-accent` | `#0d9488`（teal） | `#00F2FF`（neon-cyan） |
-| `--color-board` | `#e8c594` | `#1F1611`（深木纹） |
-| `--color-board-line` | 原木纹暗棕 | `rgba(0,242,255,0.28)` |
-| `--color-stone-b` | 黑 | 黑 `#0A0A0A` |
-| `--color-stone-w` | 白 | 偏暖白 `#EEEAE0` |
-| 新增 `--color-linen` | – | `#E3DCCB` |
-| 新增 `--color-earth` | – | `#4A3728` |
+| Token                | 旧值（浅色）      | 新值（深色）             |
+| -------------------- | ----------------- | ------------------------ |
+| `--color-paper`      | `#faf9f4`         | `#0A0A0A`                |
+| `--color-ink`        | `#1a1a1a`         | `#EDEAE2`                |
+| `--color-line`       | `#e4e2d6`         | `rgba(255,255,255,0.08)` |
+| `--color-accent`     | `#0d9488`（teal） | `#00F2FF`（neon-cyan）   |
+| `--color-board`      | `#e8c594`         | `#1F1611`（深木纹）      |
+| `--color-board-line` | 原木纹暗棕        | `rgba(0,242,255,0.28)`   |
+| `--color-stone-b`    | 黑                | 黑 `#0A0A0A`             |
+| `--color-stone-w`    | 白                | 偏暖白 `#EEEAE0`         |
+| 新增 `--color-linen` | –                 | `#E3DCCB`                |
+| 新增 `--color-earth` | –                 | `#4A3728`                |
 
 ### 1.2 字体
 
@@ -129,14 +129,14 @@ buildSnapshots(moves: Move[]): Snapshot[]    // 长度 = moves.length + 1，第 
 ### 3.4 新建 `content/games/leeAlphagoG4.ts`
 
 ```ts
-export const LEE_ALPHAGO_G4_SGF = `(;FF[4]GM[1]SZ[19]...`;  // 原文贴进来
+export const LEE_ALPHAGO_G4_SGF = `(;FF[4]GM[1]SZ[19]...`; // 原文贴进来
 export const LEE_ALPHAGO_G4_META = {
   date: "2016-03-13",
   venue: "Four Seasons Hotel, Seoul",
   black: "AlphaGo",
   white: "Lee Sedol (9p)",
   result: "W+R",
-  godMoveNumber: 78,           // "神之一手"
+  godMoveNumber: 78, // "神之一手"
   totalMoves: 176,
 };
 ```
@@ -221,15 +221,15 @@ IntersectionObserver（threshold 0.4）挂在 section 上，切 `active`。
 
 所有页面继承 `@theme` 的新 token 后大部分卡片自动深色化，但**逐一人工过一遍**：
 
-| 文件 | 检查点 |
-|---|---|
-| `app/today/page.tsx` + `TodayClient` | 大棋盘外壳配色，按钮从 teal 变 cyan |
-| `app/puzzles/PuzzleListClient.tsx` | 卡片背景 `bg-white` → `bg-white/5`，边框 `border-line`，hover `bg-white/10` |
-| `app/review/ReviewClient.tsx` | 同上 |
-| `app/stats/StatsClient.tsx` | 统计卡 + 热力图颜色梯度改 cyan 系 |
-| `app/puzzles/[id]/*` | 详情页棋盘用 `boardStyle="dark"` |
-| `app/result/ResultClient.tsx` | 成功/失败颜色：success 保绿但调亮、失败用 `#FF3366`；framer-motion 参数不动 |
-| `content/messages/*.json` | 不改，现有文案继续用 |
+| 文件                                 | 检查点                                                                      |
+| ------------------------------------ | --------------------------------------------------------------------------- |
+| `app/today/page.tsx` + `TodayClient` | 大棋盘外壳配色，按钮从 teal 变 cyan                                         |
+| `app/puzzles/PuzzleListClient.tsx`   | 卡片背景 `bg-white` → `bg-white/5`，边框 `border-line`，hover `bg-white/10` |
+| `app/review/ReviewClient.tsx`        | 同上                                                                        |
+| `app/stats/StatsClient.tsx`          | 统计卡 + 热力图颜色梯度改 cyan 系                                           |
+| `app/puzzles/[id]/*`                 | 详情页棋盘用 `boardStyle="dark"`                                            |
+| `app/result/ResultClient.tsx`        | 成功/失败颜色：success 保绿但调亮、失败用 `#FF3366`；framer-motion 参数不动 |
+| `content/messages/*.json`            | 不改，现有文案继续用                                                        |
 
 GoBoard 调用全部显式加 `boardStyle="dark"`。
 
@@ -247,29 +247,29 @@ GoBoard 调用全部显式加 `boardStyle="dark"`。
 
 ### 新建
 
-| 文件 | 职责 |
-|---|---|
-| `lib/sgf.ts` | SGF move 序列解析 |
-| `lib/goRules.ts` | 提子引擎 |
-| `lib/gameSnapshots.ts` | 快照数组构建 |
-| `content/games/leeAlphagoG4.ts` | SGF 字符串 + 对局元数据 |
-| `components/HeroSection.tsx` | 主页第一屏 |
-| `components/BoardShowcase.tsx` | 主页第二屏容器 |
-| `components/DemoGameBoard.tsx` | 棋盘播放控制 |
-| `components/HomeNav.tsx` | 主页专用导航 |
-| `components/GlobalCursor.tsx` | 自定义光标 + 光晕 |
-| `app/today/page.tsx` | 把原 `<TodayClient />` 挪到这里 |
+| 文件                            | 职责                            |
+| ------------------------------- | ------------------------------- |
+| `lib/sgf.ts`                    | SGF move 序列解析               |
+| `lib/goRules.ts`                | 提子引擎                        |
+| `lib/gameSnapshots.ts`          | 快照数组构建                    |
+| `content/games/leeAlphagoG4.ts` | SGF 字符串 + 对局元数据         |
+| `components/HeroSection.tsx`    | 主页第一屏                      |
+| `components/BoardShowcase.tsx`  | 主页第二屏容器                  |
+| `components/DemoGameBoard.tsx`  | 棋盘播放控制                    |
+| `components/HomeNav.tsx`        | 主页专用导航                    |
+| `components/GlobalCursor.tsx`   | 自定义光标 + 光晕               |
+| `app/today/page.tsx`            | 把原 `<TodayClient />` 挪到这里 |
 
 ### 修改
 
-| 文件 | 修改 |
-|---|---|
-| `app/globals.css` | `@theme` token 换深色 |
-| `app/layout.tsx` | 字体换 Lora、挂 `<GlobalCursor />` |
-| `app/page.tsx` | 换成 `<HeroSection /> + <BoardShowcase />` 两屏 |
-| `components/Nav.tsx` | 玻璃拟态、配色、排版 |
-| `components/GoBoard.tsx` | 加 `boardStyle` / `moveNumbers` / `highlightColor` props |
-| 各 `*Client.tsx`（puzzles / review / stats / result） | 卡片 / 按钮配色 |
+| 文件                                                  | 修改                                                     |
+| ----------------------------------------------------- | -------------------------------------------------------- |
+| `app/globals.css`                                     | `@theme` token 换深色                                    |
+| `app/layout.tsx`                                      | 字体换 Lora、挂 `<GlobalCursor />`                       |
+| `app/page.tsx`                                        | 换成 `<HeroSection /> + <BoardShowcase />` 两屏          |
+| `components/Nav.tsx`                                  | 玻璃拟态、配色、排版                                     |
+| `components/GoBoard.tsx`                              | 加 `boardStyle` / `moveNumbers` / `highlightColor` props |
+| 各 `*Client.tsx`（puzzles / review / stats / result） | 卡片 / 按钮配色                                          |
 
 ### 不动
 
@@ -307,14 +307,14 @@ npm run dev                    # 本地 :3000
 
 ## Part 10：已决策点速查
 
-| 问题 | 决定 |
-|---|---|
-| 其他页面是否深色化 | ✅ 全部深色化 |
-| 176 手播完怎么办 | ✅ 停在终局（白中盘胜） |
-| 移动端响应式 | ❌ 不做（只桌面） |
-| 自定义光标 | ✅ 全局启用 |
-| 字体 | Lora（标题）+ Inter（正文） |
-| 神之一手高亮 | 青色脉冲 overlay，不混 Canvas |
-| 每手间隔 | 700ms |
-| 第 78 手 hold 时长 | 3000ms |
-| 提子逻辑 | 一次性构建 177 个快照，运行时 O(1) 切换 |
+| 问题               | 决定                                    |
+| ------------------ | --------------------------------------- |
+| 其他页面是否深色化 | ✅ 全部深色化                           |
+| 176 手播完怎么办   | ✅ 停在终局（白中盘胜）                 |
+| 移动端响应式       | ❌ 不做（只桌面）                       |
+| 自定义光标         | ✅ 全局启用                             |
+| 字体               | Lora（标题）+ Inter（正文）             |
+| 神之一手高亮       | 青色脉冲 overlay，不混 Canvas           |
+| 每手间隔           | 700ms                                   |
+| 第 78 手 hold 时长 | 3000ms                                  |
+| 提子逻辑           | 一次性构建 177 个快照，运行时 O(1) 切换 |
