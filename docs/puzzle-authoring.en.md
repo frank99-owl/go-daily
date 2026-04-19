@@ -3,6 +3,7 @@
 > 中文版：[puzzle-authoring.md](./puzzle-authoring.md)
 
 Three things you'll get out of this doc:
+
 1. What a puzzle needs from zero to shipped
 2. Three authoring paths — hand-written curated · bulk SGF import · future sources
 3. How to validate locally so nothing dirty ships
@@ -11,27 +12,27 @@ Three things you'll get out of this doc:
 
 Minimum fields (every puzzle):
 
-| Field | Type | Meaning |
-|---|---|---|
-| `id` | string | Globally unique. Curated: `YYYY-MM-DD` or `ld-001`; imports get a prefixed format like `cho-e-001` |
-| `boardSize` | `9 \| 13 \| 19` | Board size |
-| `stones` | `Stone[]` | Starting position. 0-indexed coords, `(0,0)` is top-left |
-| `toPlay` | `"black" \| "white"` | Whose move |
-| `correct` | `Coord[]` | Accepted **first-move** solutions (supports multiple) |
-| `tag` | `PuzzleTag` | `life-death` / `tesuji` / `endgame` / `opening` |
-| `difficulty` | `1..5` | 1 = easiest |
-| `prompt` | `LocalizedText` | Four-language prompt (zh/en/ja/ko) |
-| `solutionNote` | `LocalizedText` | Four-language explanation — **ground truth for the AI coach** |
+| Field          | Type                 | Meaning                                                                                            |
+| -------------- | -------------------- | -------------------------------------------------------------------------------------------------- |
+| `id`           | string               | Globally unique. Curated: `YYYY-MM-DD` or `ld-001`; imports get a prefixed format like `cho-e-001` |
+| `boardSize`    | `9 \| 13 \| 19`      | Board size                                                                                         |
+| `stones`       | `Stone[]`            | Starting position. 0-indexed coords, `(0,0)` is top-left                                           |
+| `toPlay`       | `"black" \| "white"` | Whose move                                                                                         |
+| `correct`      | `Coord[]`            | Accepted **first-move** solutions (supports multiple)                                              |
+| `tag`          | `PuzzleTag`          | `life-death` / `tesuji` / `endgame` / `opening`                                                    |
+| `difficulty`   | `1..5`               | 1 = easiest                                                                                        |
+| `prompt`       | `LocalizedText`      | Four-language prompt (zh/en/ja/ko)                                                                 |
+| `solutionNote` | `LocalizedText`      | Four-language explanation — **ground truth for the AI coach**                                      |
 
 Optional but recommended (especially for curated):
 
-| Field | Notes |
-|---|---|
-| `solutionSequence` | Full variation — powers the "Play solution" button on the result page |
-| `wrongBranches` | Common wrong moves + refutations — feeds the coach richer grounding |
-| `isCurated` | `true` (default when omitted) = full coach treatment; `false` = library-only, coach off |
-| `source` | Attribution label, e.g. `"Cho Chikun · Life & Death · Elementary"` |
-| `date` | `YYYY-MM-DD`; imports use the placeholder `"2026-04-18"` |
+| Field              | Notes                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| `solutionSequence` | Full variation — powers the "Play solution" button on the result page                   |
+| `wrongBranches`    | Common wrong moves + refutations — feeds the coach richer grounding                     |
+| `isCurated`        | `true` (default when omitted) = full coach treatment; `false` = library-only, coach off |
+| `source`           | Attribution label, e.g. `"Cho Chikun · Life & Death · Elementary"`                      |
+| `date`             | `YYYY-MM-DD`; imports use the placeholder `"2026-04-18"`                                |
 
 Full schema: [`data-schema.en.md`](./data-schema.en.md).
 
@@ -48,7 +49,7 @@ A curated puzzle = full 4-language explanation, AI coach enabled, eligible for t
 ```ts
 // content/puzzles.ts
 import type { Puzzle } from "@/types";
-import { IMPORTED_PUZZLES } from "@/lib/importedPuzzles";
+import { IMPORTED_PUZZLES } from "@/content/data/importedPuzzles";
 
 const CURATED_PUZZLES: Puzzle[] = [
   {
@@ -132,7 +133,7 @@ npm run dev
 
 ## Path B: Bulk SGF import
 
-That's how the current `lib/importedPuzzles.ts` (100 Cho Chikun beginner life-and-death problems) was populated.
+That's how the current `content/data/importedPuzzles.ts` (100 Cho Chikun beginner life-and-death problems) was populated.
 
 ### Command
 
@@ -144,7 +145,7 @@ Under the hood, `scripts/importTsumego.ts`:
 
 1. Pulls from GitHub `sanderland/tsumego` (MIT), collection `Cho Chikun Encyclopedia Life And Death - Elementary`
 2. Takes the first 100, converts SGF coords to `(x, y)`
-3. Writes `lib/importedPuzzles.ts` (with an auto-generated banner — don't edit by hand)
+3. Writes `content/data/importedPuzzles.ts` (with an auto-generated banner — don't edit by hand)
 
 ### Design conventions
 
@@ -170,14 +171,14 @@ Other collections are browsable at [sanderland/tsumego](https://github.com/sande
 If you plug in a new source later (OGS games, Frank's own SGF folder, some API) — follow the importTsumego shape:
 
 1. New `scripts/importX.ts`, reads source, maps to `Puzzle[]`
-2. Writes to its own file `lib/importedX.ts` (auto-generated banner + do-not-edit convention)
+2. Writes to its own file `content/data/importedX.ts` (auto-generated banner + do-not-edit convention)
 3. Merge in `content/puzzles.ts`:
 
 ```ts
 export const PUZZLES: Puzzle[] = [
   ...CURATED_PUZZLES,
   ...IMPORTED_PUZZLES,
-  ...IMPORTED_X_PUZZLES,  // new source
+  ...IMPORTED_X_PUZZLES, // new source
 ];
 ```
 
@@ -185,28 +186,30 @@ export const PUZZLES: Puzzle[] = [
 5. **Do**: give IDs a distinct prefix to avoid collisions (`cho-e-001` vs `ogs-2024-001`) — the validator will catch them, but readable IDs matter.
 
 **Do not**:
-- Append other sources directly into `lib/importedPuzzles.ts` — that file is auto-generated and will be clobbered next import run.
+
+- Append other sources directly into `content/data/importedPuzzles.ts` — that file is auto-generated and will be clobbered next import run.
 - Skip the validator on commit. You might get away with it solo, but CI/deployment will blow up.
 
 ## Validator rules
 
 `scripts/validatePuzzles.ts` hunts for these hard errors:
 
-| Rule | What it catches |
-|---|---|
-| `id` | Duplicate or empty |
-| `boardSize` | Not 9 / 13 / 19 |
-| `difficulty` | Not integer 1..5 |
-| `tag` | Outside the allowed enum |
-| `toPlay` | Not black / white |
-| `correct` | Empty array or out-of-bounds coord |
-| `stones` | Out-of-bounds / overlapping / invalid color |
-| `solutionSequence` | Out-of-bounds / invalid color (if present) |
-| `wrongBranches` | Refutation out-of-bounds / missing note locale |
-| `prompt` | Any of the four locales empty |
-| `solutionNote` | Any of the four locales empty (only when `isCurated !== false`) |
+| Rule               | What it catches                                                 |
+| ------------------ | --------------------------------------------------------------- |
+| `id`               | Duplicate or empty                                              |
+| `boardSize`        | Not 9 / 13 / 19                                                 |
+| `difficulty`       | Not integer 1..5                                                |
+| `tag`              | Outside the allowed enum                                        |
+| `toPlay`           | Not black / white                                               |
+| `correct`          | Empty array or out-of-bounds coord                              |
+| `stones`           | Out-of-bounds / overlapping / invalid color                     |
+| `solutionSequence` | Out-of-bounds / invalid color (if present)                      |
+| `wrongBranches`    | Refutation out-of-bounds / missing note locale                  |
+| `prompt`           | Any of the four locales empty                                   |
+| `solutionNote`     | Any of the four locales empty (only when `isCurated !== false`) |
 
 **Not checked** (left to human review):
+
 - Difficulty calibration accuracy
 - Tag correctness
 - Whether the solution actually works out — that takes Go skill, not mechanical checks
@@ -214,13 +217,13 @@ export const PUZZLES: Puzzle[] = [
 
 ## Common troubleshooting
 
-| Symptom | Likely cause |
-|---|---|
-| `npm run build` fails with `✗ 1 issue(s)` | Run `npm run validate:puzzles` to see the detailed report |
-| New curated puzzle doesn't show in `/puzzles` | Check it's actually merged into the exported `PUZZLES` array; restart dev server |
-| Coach mentions things not in the solution | `solutionNote` is too thin; the coach can only ground on it plus `solutionSequence` + `wrongBranches` |
+| Symptom                                           | Likely cause                                                                                                                          |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build` fails with `✗ 1 issue(s)`         | Run `npm run validate:puzzles` to see the detailed report                                                                             |
+| New curated puzzle doesn't show in `/puzzles`     | Check it's actually merged into the exported `PUZZLES` array; restart dev server                                                      |
+| Coach mentions things not in the solution         | `solutionNote` is too thin; the coach can only ground on it plus `solutionSequence` + `wrongBranches`                                 |
 | Switching to Japanese shows English solution text | `localized()` fallback kicked in — that means `solutionNote.ja` is empty. The validator should've blocked this; something bypassed it |
-| Result page has no "View solution" button | Current logic: `showAnswer` only renders when `correct` is non-empty. Make sure `correct[]` is populated |
+| Result page has no "View solution" button         | Current logic: `showAnswer` only renders when `correct` is non-empty. Make sure `correct[]` is populated                              |
 
 ## Further reading
 

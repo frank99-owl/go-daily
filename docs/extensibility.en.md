@@ -19,12 +19,12 @@
 
 ## 1. Scale-Phase Overview
 
-| Phase | Puzzle Count | Primary Bottleneck | Recommended Action |
-|---|---|---|---|
-| **Current** | ~100 | None | Keep as-is |
-| **Phase A** | 100 → 1 000 | First-load JS bundle (full import) | Split files + lazy load |
-| **Phase B** | 1 000 → 10 000 | `generateStaticParams` timeout; localStorage near limit | Database + API; IndexedDB |
-| **Phase C** | 10 000+ | Client-side search/filter cannot handle it | Server-side search (full-text index); CDN board images |
+| Phase       | Puzzle Count   | Primary Bottleneck                                      | Recommended Action                                     |
+| ----------- | -------------- | ------------------------------------------------------- | ------------------------------------------------------ |
+| **Current** | ~100           | None                                                    | Keep as-is                                             |
+| **Phase A** | 100 → 1 000    | First-load JS bundle (full import)                      | Split files + lazy load                                |
+| **Phase B** | 1 000 → 10 000 | `generateStaticParams` timeout; localStorage near limit | Database + API; IndexedDB                              |
+| **Phase C** | 10 000+        | Client-side search/filter cannot handle it              | Server-side search (full-text index); CDN board images |
 
 ---
 
@@ -74,6 +74,7 @@ Recommended approach:
    - Library page switches to client-side paginated fetch
 
 2. **Replace `generateStaticParams` with ISR**:
+
    ```ts
    // app/puzzles/[id]/page.tsx
    export const revalidate = 86400; // regenerate daily
@@ -109,12 +110,14 @@ const puzzle = PUZZLES[dayIndex % PUZZLES.length];
 No algorithm change needed — the longer `PUZZLES.length` automatically extends the cycle.
 
 Notes:
+
 - The **array order determines display order**. Shuffle puzzles before inserting in bulk (add a Fisher–Yates shuffle in `scripts/importTsumego.ts`).
 - For "no repeats within N days", the library must contain at least N puzzles.
 
 ### 3.3 Server-Side Scheduling (Phase B+)
 
 For an editorial "daily curated pick" workflow:
+
 1. Add a nullable `scheduledDate` column to the database.
 2. `GET /api/daily` queries for `scheduledDate = today`.
 3. An editorial backend pre-schedules the next 7 daily puzzles.
@@ -138,9 +141,7 @@ const MAX_RECORDS = 2000;
 export function saveAttempt(record: AttemptRecord): void {
   const all = loadAttempts();
   all.push(record);
-  const trimmed = all.length > MAX_RECORDS
-    ? all.slice(all.length - MAX_RECORDS)
-    : all;
+  const trimmed = all.length > MAX_RECORDS ? all.slice(all.length - MAX_RECORDS) : all;
   window.localStorage.setItem(KEY, JSON.stringify(trimmed));
 }
 ```
@@ -167,6 +168,7 @@ Keep the same function signatures as `lib/storage.ts` — components don't need 
 ### 4.4 Cloud Sync (Optional)
 
 To support cross-device sync (e.g. Clerk + Supabase):
+
 - On login: `POST /api/sync` uploads local records; backend merges by deduplication.
 - On app load: `GET /api/attempts` overwrites local with the merged set.
 
@@ -207,11 +209,11 @@ Once data moves to a database in Phase B, the validation script needs to connect
 
 ### 6.1 Current Limitations
 
-| Limitation | Description |
-|---|---|
-| Rate limiting | In-process `Map`; resets on restart; not shared across instances |
-| Model | `deepseek-chat`, hard-coded |
-| Multi-instance deployment | Each Vercel serverless instance has its own rate-limit counter |
+| Limitation                | Description                                                      |
+| ------------------------- | ---------------------------------------------------------------- |
+| Rate limiting             | In-process `Map`; resets on restart; not shared across instances |
+| Model                     | `deepseek-chat`, hard-coded                                      |
+| Multi-instance deployment | Each Vercel serverless instance has its own rate-limit counter   |
 
 ### 6.2 Phase A: Persistent Rate Limiting
 
@@ -253,7 +255,7 @@ See [i18n.en.md](./i18n.en.md) for the full guide. Key extensibility points:
 
 - **Add a new locale**: create `content/messages/<locale>.json`, register it in `DICTS` in `lib/i18n.tsx`, and add the value to `Locale` in `types/index.ts`.
 - **Add a new translation key**: add it to `en.json`. TypeScript's `type Messages = typeof en` immediately requires all other locale files to add the same key (compile-time error).
-- **`lib/localized.ts`**: the fallback chain is `en → zh → ja → ko`. Update `FALLBACK_ORDER` when adding a new locale.
+- **`lib/i18n.tsx`**: the fallback chain is `en → zh → ja → ko` (inside the `localized()` function). Update `FALLBACK_ORDER` when adding a new locale.
 
 ---
 
@@ -270,4 +272,4 @@ Complete these as your data and feature set grow:
 
 ---
 
-*Related docs: [architecture.en.md](./architecture.en.md) · [data-schema.en.md](./data-schema.en.md) · [puzzle-authoring.en.md](./puzzle-authoring.en.md)*
+_Related docs: [architecture.en.md](./architecture.en.md) · [data-schema.en.md](./data-schema.en.md) · [puzzle-authoring.en.md](./puzzle-authoring.en.md)_

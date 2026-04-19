@@ -13,7 +13,7 @@
 5. [添加题目](#5-添加题目)
 6. [添加翻译](#6-添加翻译)
 7. [提交 Pull Request](#7-提交-pull-request)
-8. [测试（TODO）](#8-测试todo)
+8. [测试](#8-测试)
 
 ---
 
@@ -21,10 +21,10 @@
 
 ### 前置要求
 
-| 工具 | 版本 |
-|---|---|
-| Node.js | ≥ 20 |
-| npm | ≥ 10（随 Node.js 一起安装） |
+| 工具    | 版本                        |
+| ------- | --------------------------- |
+| Node.js | ≥ 20                        |
+| npm     | ≥ 10（随 Node.js 一起安装） |
 
 ### 步骤
 
@@ -51,20 +51,23 @@ npm run dev
 
 - **Tailwind CSS IntelliSense** — `@theme` token 自动补全
 - **ESLint** — 保存时实时报错
-- **Prettier** — 格式化（项目使用 `eslint-config-next` 内置规则，无单独 `.prettierrc`）
+- **Prettier** — 格式化（配置在 `.prettierrc`）
 
 ---
 
 ## 2. npm 脚本速查
 
-| 命令 | 说明 |
-|---|---|
-| `npm run dev` | 启动开发服务器（Turbopack，端口 3000） |
-| `npm run build` | 生产构建（自动触发 `validate:puzzles`） |
-| `npm run start` | 启动生产服务器（需先 `build`） |
-| `npm run lint` | 运行 ESLint |
-| `npm run validate:puzzles` | 验证所有题目数据的完整性 |
-| `npm run import:puzzles` | 从 GitHub SGF 仓库导入经典死活题 |
+| 命令                       | 说明                                    |
+| -------------------------- | --------------------------------------- |
+| `npm run dev`              | 启动开发服务器（Turbopack，端口 3000）  |
+| `npm run build`            | 生产构建（自动触发 `validate:puzzles`） |
+| `npm run start`            | 启动生产服务器（需先 `build`）          |
+| `npm run lint`             | 运行 ESLint                             |
+| `npm run validate:puzzles` | 验证所有题目数据的完整性                |
+| `npm run format`           | Prettier 格式化全部文件                 |
+| `npm run format:check`     | Prettier 格式检查（CI 用）              |
+| `npm run test`             | Vitest 单元测试                         |
+| `npm run import:puzzles`   | 从 GitHub SGF 仓库导入经典死活题        |
 
 ---
 
@@ -81,7 +84,8 @@ go-daily/
 ├── components/           # 共享 UI 组件
 ├── content/
 │   ├── messages/         # 四语言翻译 JSON
-│   └── puzzles/          # 题目数据（TypeScript）
+│   ├── puzzles.ts        # 题目聚合器
+│   └── data/             # 大数据文件（auto-generated）
 ├── docs/                 # 项目文档（中英双语）
 ├── lib/                  # 工具函数（i18n、storage、coach、localized 等）
 ├── scripts/              # 构建脚本（验证、导入）
@@ -156,9 +160,11 @@ npm run import:puzzles
 1. 从 `main` 分支新建功能分支：`git checkout -b feat/my-feature`
 2. 本地完成开发，确保以下全部通过：
    ```bash
-   npm run lint          # 无 ESLint 报错
+   npm run format:check   # Prettier 格式检查通过
+   npm run lint           # 无 ESLint 报错
+   npm run test           # 单元测试全绿
    npm run validate:puzzles  # 题目数据验证通过
-   npm run build         # 生产构建成功
+   npm run build          # 生产构建成功
    ```
 3. 提交 PR，描述中说明：
    - 改了什么
@@ -167,22 +173,33 @@ npm run import:puzzles
 
 ---
 
-## 8. 测试（TODO）
+## 8. 测试
 
-> ⚠️ 当前项目**没有**自动化测试套件。这是已知的技术债务。
+项目使用 **Vitest** 进行单元测试，覆盖核心纯函数：
 
-优先补充的测试方向：
+```bash
+npm run test       # 运行全部测试
+npm run test:watch # 监听模式
+```
 
-| 层级 | 目标模块 | 推荐框架 |
-|---|---|---|
-| 单元测试 | `lib/puzzleStatus.ts`（纯函数） | Vitest |
-| 单元测试 | `lib/localized.ts`（回退逻辑） | Vitest |
-| 单元测试 | `scripts/validatePuzzles.ts`（验证规则） | Vitest |
-| 组件测试 | `GoBoard`（canvas 渲染） | Playwright / Storybook |
-| E2E 测试 | 首页落子 → 结果页流程 | Playwright |
+现有测试文件：
 
-贡献测试代码非常欢迎！
+| 文件                  | 覆盖内容                                    |
+| --------------------- | ------------------------------------------- |
+| `lib/board.test.ts`   | `coordEquals` / `isInBounds` / `starPoints` |
+| `lib/judge.test.ts`   | 正解/非正解/多正解判断                      |
+| `lib/goRules.test.ts` | 提子算法（单子提、群提、不自提）            |
+| `lib/sgf.test.ts`     | SGF 坐标解析、分支跳过                      |
+
+### 缺失的测试（欢迎贡献）
+
+| 层级     | 目标模块                                 | 推荐框架               |
+| -------- | ---------------------------------------- | ---------------------- |
+| 单元测试 | `lib/puzzleStatus.ts`（纯函数）          | Vitest                 |
+| 单元测试 | `scripts/validatePuzzles.ts`（验证规则） | Vitest                 |
+| 组件测试 | `GoBoard`（canvas 渲染）                 | Playwright / Storybook |
+| E2E 测试 | 首页落子 → 结果页流程                    | Playwright             |
 
 ---
 
-*相关文档：[docs/architecture.md](./docs/architecture.md) · [docs/puzzle-authoring.md](./docs/puzzle-authoring.md) · [docs/i18n.md](./docs/i18n.md)*
+_相关文档：[docs/architecture.md](./docs/architecture.md) · [docs/puzzle-authoring.md](./docs/puzzle-authoring.md) · [docs/i18n.md](./docs/i18n.md)_

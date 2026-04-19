@@ -13,7 +13,7 @@
 5. [Adding Puzzles](#5-adding-puzzles)
 6. [Adding Translations](#6-adding-translations)
 7. [Submitting a Pull Request](#7-submitting-a-pull-request)
-8. [Testing (TODO)](#8-testing-todo)
+8. [Testing](#8-testing)
 
 ---
 
@@ -21,10 +21,10 @@
 
 ### Prerequisites
 
-| Tool | Version |
-|---|---|
-| Node.js | ≥ 20 |
-| npm | ≥ 10 (bundled with Node.js) |
+| Tool    | Version                     |
+| ------- | --------------------------- |
+| Node.js | ≥ 20                        |
+| npm     | ≥ 10 (bundled with Node.js) |
 
 ### Steps
 
@@ -51,20 +51,23 @@ npm run dev
 
 - **Tailwind CSS IntelliSense** — autocomplete for `@theme` tokens
 - **ESLint** — real-time error highlighting on save
-- **Prettier** — formatting (uses `eslint-config-next` built-in rules; no separate `.prettierrc`)
+- **Prettier** — formatting (config in `.prettierrc`)
 
 ---
 
 ## 2. npm Scripts Reference
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start development server (Turbopack, port 3000) |
-| `npm run build` | Production build (automatically triggers `validate:puzzles`) |
-| `npm run start` | Start the production server (requires a prior `build`) |
-| `npm run lint` | Run ESLint |
-| `npm run validate:puzzles` | Validate integrity of all puzzle data |
-| `npm run import:puzzles` | Bulk-import puzzles from SGF files (see [puzzle-authoring.en.md](./docs/puzzle-authoring.en.md)) |
+| Command                    | Description                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `npm run dev`              | Start development server (Turbopack, port 3000)                                                  |
+| `npm run build`            | Production build (automatically triggers `validate:puzzles`)                                     |
+| `npm run start`            | Start the production server (requires a prior `build`)                                           |
+| `npm run lint`             | Run ESLint                                                                                       |
+| `npm run validate:puzzles` | Validate integrity of all puzzle data                                                            |
+| `npm run format`           | Prettier formatting on all files                                                                 |
+| `npm run format:check`     | Prettier format check (for CI)                                                                   |
+| `npm run test`             | Vitest unit tests                                                                                |
+| `npm run import:puzzles`   | Bulk-import puzzles from SGF files (see [puzzle-authoring.en.md](./docs/puzzle-authoring.en.md)) |
 
 ---
 
@@ -81,7 +84,8 @@ go-daily/
 ├── components/           # Shared UI components
 ├── content/
 │   ├── messages/         # 4-locale translation JSON files
-│   └── puzzles/          # Puzzle data (TypeScript)
+│   ├── puzzles.ts        # Puzzle aggregator
+│   └── data/             # Large data files (auto-generated)
 ├── docs/                 # Project documentation (bilingual CN/EN)
 ├── lib/                  # Utilities (i18n, storage, coach, localized, etc.)
 ├── scripts/              # Build scripts (validation, import)
@@ -156,7 +160,9 @@ See [docs/i18n.en.md](./docs/i18n.en.md) for details.
 1. Branch off `main`: `git checkout -b feat/my-feature`
 2. Make your changes locally and verify that all of the following pass:
    ```bash
+   npm run format:check       # Prettier formatting check passes
    npm run lint               # no ESLint errors
+   npm run test               # unit tests all green
    npm run validate:puzzles   # puzzle data validates
    npm run build              # production build succeeds
    ```
@@ -167,22 +173,33 @@ See [docs/i18n.en.md](./docs/i18n.en.md) for details.
 
 ---
 
-## 8. Testing (TODO)
+## 8. Testing
 
-> ⚠️ The project currently has **no automated test suite**. This is known technical debt.
+The project uses **Vitest** for unit tests, covering core pure functions:
 
-Highest-priority testing targets:
+```bash
+npm run test       # run all tests
+npm run test:watch # watch mode
+```
 
-| Layer | Module | Recommended Framework |
-|---|---|---|
-| Unit | `lib/puzzleStatus.ts` (pure functions) | Vitest |
-| Unit | `lib/localized.ts` (fallback logic) | Vitest |
-| Unit | `scripts/validatePuzzles.ts` (validation rules) | Vitest |
-| Component | `GoBoard` (canvas rendering) | Playwright / Storybook |
-| E2E | Home move submission → result page flow | Playwright |
+Current test files:
 
-Test contributions are very welcome!
+| File                  | Coverage                                       |
+| --------------------- | ---------------------------------------------- |
+| `lib/board.test.ts`   | `coordEquals` / `isInBounds` / `starPoints`    |
+| `lib/judge.test.ts`   | Correct / wrong / multi-correct verdicts       |
+| `lib/goRules.test.ts` | Capture logic (single, group, no self-capture) |
+| `lib/sgf.test.ts`     | SGF coord parsing, branch skipping             |
+
+### Missing tests (contributions welcome)
+
+| Layer     | Module                                          | Recommended Framework  |
+| --------- | ----------------------------------------------- | ---------------------- |
+| Unit      | `lib/puzzleStatus.ts` (pure functions)          | Vitest                 |
+| Unit      | `scripts/validatePuzzles.ts` (validation rules) | Vitest                 |
+| Component | `GoBoard` (canvas rendering)                    | Playwright / Storybook |
+| E2E       | Home move submission → result page flow         | Playwright             |
 
 ---
 
-*Related docs: [docs/architecture.en.md](./docs/architecture.en.md) · [docs/puzzle-authoring.en.md](./docs/puzzle-authoring.en.md) · [docs/i18n.en.md](./docs/i18n.en.md)*
+_Related docs: [docs/architecture.en.md](./docs/architecture.en.md) · [docs/puzzle-authoring.en.md](./docs/puzzle-authoring.en.md) · [docs/i18n.en.md](./docs/i18n.en.md)_

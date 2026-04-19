@@ -6,14 +6,14 @@
 
 ## 技术栈速览
 
-| 层 | 选型 | 说明 |
-|---|---|---|
-| 框架 | Next.js 16 (App Router, Turbopack) | 全部走 App Router；server component 为默认，`"use client"` 为显式 |
-| 语言 | TypeScript strict | `tsconfig.json` 打开 strict，`noImplicitAny` 等默认生效 |
-| UI | React 19 + Tailwind v4 + Framer Motion | Tailwind v4 新 `@theme` 语法在 `app/globals.css` |
-| 图标 | lucide-react | 已接入 Shuffle / ChevronLeft / ChevronRight / Play / Check 等 |
-| LLM | DeepSeek `deepseek-chat`（OpenAI 兼容 SDK） | 通过 `app/api/coach/route.ts` 代理 |
-| 状态 | `localStorage`（战绩）+ `sessionStorage`（陪练对话） | 零后端 · 不用账号系统 |
+| 层   | 选型                                                 | 说明                                                              |
+| ---- | ---------------------------------------------------- | ----------------------------------------------------------------- |
+| 框架 | Next.js 16 (App Router, Turbopack)                   | 全部走 App Router；server component 为默认，`"use client"` 为显式 |
+| 语言 | TypeScript strict                                    | `tsconfig.json` 打开 strict，`noImplicitAny` 等默认生效           |
+| UI   | React 19 + Tailwind v4 + Framer Motion               | Tailwind v4 新 `@theme` 语法在 `app/globals.css`                  |
+| 图标 | lucide-react                                         | 已接入 Shuffle / ChevronLeft / ChevronRight / Play / Check 等     |
+| LLM  | DeepSeek `deepseek-chat`（OpenAI 兼容 SDK）          | 通过 `app/api/coach/route.ts` 代理                                |
+| 状态 | `localStorage`（战绩）+ `sessionStorage`（陪练对话） | 零后端 · 不用账号系统                                             |
 
 ## 层次结构
 
@@ -32,15 +32,15 @@
 
 ## 路由表
 
-| 路由 | Server 组件 | Client 组件 | 作用 |
-|---|---|---|---|
-| `/` | `app/page.tsx` | `app/TodayClient.tsx` | 每日一题：拿 `getPuzzleForDate(todayLocalKey())`，交给 `TodayClient` 做交互 |
-| `/puzzles` | `app/puzzles/page.tsx` | `app/puzzles/PuzzleListClient.tsx` | 全量题库：筛选 / 排序 / 搜索 |
-| `/puzzles/[id]` | `app/puzzles/[id]/page.tsx` | 复用 `TodayClient` | 按 ID 打开一题；`generateStaticParams()` 覆盖全量 `PUZZLES` |
-| `/result` | `app/result/page.tsx` | `app/result/ResultClient.tsx` | 判题后的回显：对/错横幅、解答播放、AI 陪练、分享卡 |
-| `/review` | `app/review/page.tsx` | `app/review/ReviewClient.tsx` | 错题本：`attempted` 状态按最近尝试时间倒序 |
-| `/stats` | `app/stats/page.tsx` | `app/stats/StatsClient.tsx` | 战绩：连胜 · 正确率 · 总量 · 热力图 |
-| `/api/coach` | `app/api/coach/route.ts` | — | LLM 代理（POST JSON） |
+| 路由            | Server 组件                 | Client 组件                        | 作用                                                                        |
+| --------------- | --------------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
+| `/`             | `app/page.tsx`              | `app/TodayClient.tsx`              | 每日一题：拿 `getPuzzleForDate(todayLocalKey())`，交给 `TodayClient` 做交互 |
+| `/puzzles`      | `app/puzzles/page.tsx`      | `app/puzzles/PuzzleListClient.tsx` | 全量题库：筛选 / 排序 / 搜索                                                |
+| `/puzzles/[id]` | `app/puzzles/[id]/page.tsx` | 复用 `TodayClient`                 | 按 ID 打开一题；`generateStaticParams()` 覆盖全量 `PUZZLES`                 |
+| `/result`       | `app/result/page.tsx`       | `app/result/ResultClient.tsx`      | 判题后的回显：对/错横幅、解答播放、AI 陪练、分享卡                          |
+| `/review`       | `app/review/page.tsx`       | `app/review/ReviewClient.tsx`      | 错题本：`attempted` 状态按最近尝试时间倒序                                  |
+| `/stats`        | `app/stats/page.tsx`        | `app/stats/StatsClient.tsx`        | 战绩：连胜 · 正确率 · 总量 · 热力图                                         |
+| `/api/coach`    | `app/api/coach/route.ts`    | —                                  | LLM 代理（POST JSON）                                                       |
 
 **Server vs Client 分界约定**：`page.tsx` 尽量只做「取 puzzle · 构造 props · 传给 Client 组件」，重活都在 `*Client.tsx` 里。因为需要读 `localStorage`，所有带历史/偏好的交互都必然是 client 组件。
 
@@ -97,24 +97,24 @@ AttemptRecord[] （时序 append-only）
 
 ## 关键模块坐标
 
-| 模块 | 路径 | 一句话 |
-|---|---|---|
-| 全量题库 | `content/puzzles.ts` | 导出 `PUZZLES` · `getPuzzleById()` · `getCuratedPuzzles()` |
-| 导入题集（自动生成） | `lib/importedPuzzles.ts` | `scripts/importTsumego.ts` 产出，不要手改 |
-| 类型 | `types/index.ts` | `Puzzle` / `AttemptRecord` / `PuzzleStatus` / `Locale` 等 |
-| localStorage 读写 | `lib/storage.ts` | `loadAttempts` / `saveAttempt` / `getAttemptFor` / `getAttemptsFor` |
-| 状态派生 | `lib/puzzleStatus.ts` | 纯函数，消费 attempts 数组 |
-| 判题 | `lib/judge.ts` | 一行：查 `puzzle.correct[]` 是否命中 |
-| 每日轮换 | `lib/puzzleOfTheDay.ts` | `getPuzzleForDate` + `todayLocalKey` |
-| 随机抽题 | `lib/random.ts` | `pickRandomPuzzle(pool: "all"│"unattempted"│"wrong")` |
-| 棋盘几何 | `lib/board.ts` | `isInBounds` / `isOccupied` / `starPoints` |
-| 多语言文本 | `lib/localized.ts` | `localized(text, locale)` 自带 en→zh→ja→ko fallback |
-| i18n context | `lib/i18n.tsx` | `LocaleProvider` + `useLocale()` · 存 `go-daily.locale` |
-| Coach prompt 工厂 | `lib/coachPrompt.ts` | 生成 4 语言 system prompt · 注入棋盘 + solution note |
-| 棋盘渲染 | `components/GoBoard.tsx` | Canvas 2D · HiDPI · 自动裁剪至子块集中区（19 路用） |
-| 陪练 UI | `components/CoachDialogue.tsx` | 聊天 · 写 `sessionStorage`（key=puzzleId+locale） |
-| 分享卡 | `components/ShareCard.tsx` | 1080×1080 PNG 生成 + Web Share |
-| 状态角标 | `components/PuzzleStatusBadge.tsx` | 三态小圆：solved / attempted / unattempted |
+| 模块                 | 路径                               | 一句话                                                              |
+| -------------------- | ---------------------------------- | ------------------------------------------------------------------- |
+| 全量题库             | `content/puzzles.ts`               | 导出 `PUZZLES` · `getPuzzleById()` · `getCuratedPuzzles()`          |
+| 导入题集（自动生成） | `content/data/importedPuzzles.ts`  | `scripts/importTsumego.ts` 产出，不要手改                           |
+| 类型                 | `types/index.ts`                   | `Puzzle` / `AttemptRecord` / `PuzzleStatus` / `Locale` 等           |
+| localStorage 读写    | `lib/storage.ts`                   | `loadAttempts` / `saveAttempt` / `getAttemptFor` / `getAttemptsFor` |
+| 状态派生             | `lib/puzzleStatus.ts`              | 纯函数，消费 attempts 数组                                          |
+| 判题                 | `lib/judge.ts`                     | 一行：查 `puzzle.correct[]` 是否命中                                |
+| 每日轮换             | `lib/puzzleOfTheDay.ts`            | `getPuzzleForDate` + `todayLocalKey`                                |
+| 随机抽题             | `lib/random.ts`                    | `pickRandomPuzzle(pool: "all"│"unattempted"│"wrong")`               |
+| 棋盘几何             | `lib/board.ts`                     | `isInBounds` / `isOccupied` / `starPoints`                          |
+| 多语言文本           | `lib/i18n.tsx`                     | `localized(text, locale)` 自带 en→zh→ja→ko fallback                 |
+| i18n context         | `lib/i18n.tsx`                     | `LocaleProvider` + `useLocale()` · 存 `go-daily.locale`             |
+| Coach prompt 工厂    | `lib/coachPrompt.ts`               | 生成 4 语言 system prompt · 注入棋盘 + solution note                |
+| 棋盘渲染             | `components/GoBoard.tsx`           | Canvas 2D · HiDPI · 自动裁剪至子块集中区（19 路用）                 |
+| 陪练 UI              | `components/CoachDialogue.tsx`     | 聊天 · 写 `sessionStorage`（key=puzzleId+locale）                   |
+| 分享卡               | `components/ShareCard.tsx`         | 1080×1080 PNG 生成 + Web Share                                      |
+| 状态角标             | `components/PuzzleStatusBadge.tsx` | 三态小圆：solved / attempted / unattempted                          |
 
 ## 样式系统
 
@@ -122,28 +122,31 @@ Tailwind v4，`@theme` 在 `app/globals.css` 集中声明。组件里用 `bg-[co
 
 色盘（Go 主题暖色）：
 
-| token | 值 | 用途 |
-|---|---|---|
-| `--color-board` | `#e8c594` | 棋盘木色填充 |
-| `--color-board-2` | `#d4a76a` | 棋盘格线 |
-| `--color-accent` | `#0d9488` | 主 accent（teal） |
-| `--color-success` | `#16a34a` | 对 ✓ |
-| `--color-warn` | `#ef4444` | 错 ✗ |
-| `--color-ink` / `--color-ink-2` | `#1a1a1a` / `#4a4a4a` | 文字（主 / 次） |
-| `--color-paper` | `#faf9f4` | 页面底色 |
-| `--color-line` | `#e4e2d6` | 分割线 |
+| token                           | 值                    | 用途              |
+| ------------------------------- | --------------------- | ----------------- |
+| `--color-board`                 | `#e8c594`             | 棋盘木色填充      |
+| `--color-board-2`               | `#d4a76a`             | 棋盘格线          |
+| `--color-accent`                | `#0d9488`             | 主 accent（teal） |
+| `--color-success`               | `#16a34a`             | 对 ✓              |
+| `--color-warn`                  | `#ef4444`             | 错 ✗              |
+| `--color-ink` / `--color-ink-2` | `#1a1a1a` / `#4a4a4a` | 文字（主 / 次）   |
+| `--color-paper`                 | `#faf9f4`             | 页面底色          |
+| `--color-line`                  | `#e4e2d6`             | 分割线            |
 
 字体：Inter（拉丁）+ Playfair Display（标题衬线）+ 系统 CJK fallback 链。
 
 ## 构建与脚本
 
-| 命令 | 作用 |
-|---|---|
-| `npm run dev` | 启本地 dev server（Turbopack） |
-| `npm run build` | 生产构建。`prebuild` 钩子会先跑 `validate:puzzles` |
-| `npm run lint` | ESLint（flat config · Next.js + TypeScript 规则） |
-| `npm run import:puzzles` | 拉取 sanderland/tsumego 前 100 题，写入 `lib/importedPuzzles.ts` |
-| `npm run validate:puzzles` | 硬错校验：重复 ID / 越界 / 缺语言 / 非法枚举 |
+| 命令                       | 作用                                                                      |
+| -------------------------- | ------------------------------------------------------------------------- |
+| `npm run dev`              | 启本地 dev server（Turbopack）                                            |
+| `npm run build`            | 生产构建。`prebuild` 钩子会先跑 `validate:puzzles`                        |
+| `npm run lint`             | ESLint（flat config · Next.js + TypeScript 规则）                         |
+| `npm run import:puzzles`   | 拉取 sanderland/tsumego 前 100 题，写入 `content/data/importedPuzzles.ts` |
+| `npm run validate:puzzles` | 硬错校验：重复 ID / 越界 / 缺语言 / 非法枚举                              |
+| `npm run format`           | Prettier 格式化全部文件                                                   |
+| `npm run format:check`     | Prettier 格式检查（CI 用）                                                |
+| `npm run test`             | Vitest 单元测试（board / judge / goRules / sgf）                          |
 
 **关键设计**：`prebuild` → `validate:puzzles` 是一层「部署保险」。任何让站点 404 或 crash 的脏数据都会在 `npm run build` 里当场爆，不会上线。
 

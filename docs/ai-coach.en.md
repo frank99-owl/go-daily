@@ -24,6 +24,7 @@
 The AI Coach is a Go-tutoring chat feature powered by DeepSeek, displayed on the **result page** (`app/result/`). It helps users understand whether their move was correct and the underlying principles behind it.
 
 **Feature highlights**:
+
 - Replies in all 4 supported locales (matches the user's current UI language)
 - Already knows the user's move and whether it was correct — the user doesn't need to re-describe it
 - Ground-truth facts (correct answer, solution sequence, wrong branches) are injected into the system prompt to prevent hallucination
@@ -45,39 +46,41 @@ Content-Type: application/json
 
 ```ts
 type CoachRequest = {
-  puzzleId: string;           // must exist in PUZZLES array
+  puzzleId: string; // must exist in PUZZLES array
   locale: "zh" | "en" | "ja" | "ko";
-  userMove: { x: number; y: number };  // 0-indexed coordinate
+  userMove: { x: number; y: number }; // 0-indexed coordinate
   isCorrect: boolean;
-  history: CoachMessage[];    // at least 1 entry (the user's first question)
+  history: CoachMessage[]; // at least 1 entry (the user's first question)
 };
 ```
 
 ### Response Body (200 OK)
 
 ```ts
-{ reply: string }
+{
+  reply: string;
+}
 ```
 
 ### Error Responses
 
-| HTTP Status | Reason |
-|---|---|
-| 400 | Missing or malformed parameters |
-| 404 | `puzzleId` not found |
-| 413 | Request body exceeds 8 KB |
-| 429 | Rate limit triggered (10 requests/minute/IP) |
-| 500 | Server missing `DEEPSEEK_API_KEY` |
-| 502 | DeepSeek API call failed or returned an empty reply |
+| HTTP Status | Reason                                              |
+| ----------- | --------------------------------------------------- |
+| 400         | Missing or malformed parameters                     |
+| 404         | `puzzleId` not found                                |
+| 413         | Request body exceeds 8 KB                           |
+| 429         | Rate limit triggered (10 requests/minute/IP)        |
+| 500         | Server missing `DEEPSEEK_API_KEY`                   |
+| 502         | DeepSeek API call failed or returned an empty reply |
 
 ### Request Constraints
 
-| Constraint | Value |
-|---|---|
-| Max request body | 8 KB |
-| Max conversation history | 6 messages (server truncates) |
-| Max message length | 2 000 chars (server truncates) |
-| Rate limit | 10 req/min per IP |
+| Constraint               | Value                          |
+| ------------------------ | ------------------------------ |
+| Max request body         | 8 KB                           |
+| Max conversation history | 6 messages (server truncates)  |
+| Max message length       | 2 000 chars (server truncates) |
+| Rate limit               | 10 req/min per IP              |
 
 ---
 
@@ -144,12 +147,12 @@ const completion = await client.chat.completions.create({
 });
 ```
 
-| Parameter | Value | Notes |
-|---|---|---|
-| `model` | `deepseek-chat` | DeepSeek V3 (OpenAI-compatible API) |
-| `baseURL` | `https://api.deepseek.com` | DeepSeek's OpenAI-compatible endpoint |
-| `temperature` | `0.6` | Moderate — accurate Go explanations with natural tone variation |
-| `max_tokens` | `400` | Roughly 300 Chinese characters or 400 English words — keeps replies concise |
+| Parameter     | Value                      | Notes                                                                       |
+| ------------- | -------------------------- | --------------------------------------------------------------------------- |
+| `model`       | `deepseek-chat`            | DeepSeek V3 (OpenAI-compatible API)                                         |
+| `baseURL`     | `https://api.deepseek.com` | DeepSeek's OpenAI-compatible endpoint                                       |
+| `temperature` | `0.6`                      | Moderate — accurate Go explanations with natural tone variation             |
+| `max_tokens`  | `400`                      | Roughly 300 Chinese characters or 400 English words — keeps replies concise |
 
 The `openai` npm package is used (not the Anthropic SDK); only `baseURL` needs changing to reuse the OpenAI client protocol with DeepSeek.
 
@@ -160,8 +163,8 @@ The `openai` npm package is used (not the Anthropic SDK); only `baseURL` needs c
 Current implementation: an in-process `Map<string, number[]>` keyed by IP address.
 
 ```ts
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;  // 1-minute window
-const RATE_LIMIT_MAX = 10;               // 10 requests per window
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1-minute window
+const RATE_LIMIT_MAX = 10; // 10 requests per window
 ```
 
 **Limitation**: process-scoped — not shared across instances. In a Vercel Serverless deployment with multiple instances, each instance counts independently.
@@ -180,7 +183,7 @@ The client stores conversation history as `CoachMessage[]` in `sessionStorage` u
 interface CoachMessage {
   role: "user" | "assistant";
   content: string;
-  ts: number;   // display-only timestamp; server ignores it
+  ts: number; // display-only timestamp; server ignores it
 }
 ```
 
@@ -219,10 +222,7 @@ try {
 } catch (err) {
   const msg = err instanceof Error ? err.message : "Unknown error from the model.";
   // Never leak a stack trace; keep the message short
-  return NextResponse.json(
-    { error: `Coach is unavailable right now. ${msg}` },
-    { status: 502 }
-  );
+  return NextResponse.json({ error: `Coach is unavailable right now. ${msg}` }, { status: 502 });
 }
 ```
 
@@ -232,9 +232,9 @@ All errors return JSON `{ error: string }`; HTTP status reflects the error categ
 
 ## 9. Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `DEEPSEEK_API_KEY` | ✅ | DeepSeek API key; all coach requests return 500 without it |
+| Variable           | Required | Description                                                |
+| ------------------ | -------- | ---------------------------------------------------------- |
+| `DEEPSEEK_API_KEY` | ✅       | DeepSeek API key; all coach requests return 500 without it |
 
 **Local development**: create `.env.local` in the project root:
 
@@ -248,15 +248,15 @@ DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
 
 ## 10. Security Considerations
 
-| Risk | Mitigation |
-|---|---|
-| Large malicious request bodies | 8 KB hard cap (checked via `content-length` header) |
-| API abuse / flood | In-process rate limiting (recommend Redis in production) |
-| Content injection via message history | Each `content` is truncated to 2 000 chars; max 6 messages forwarded |
-| Forged `puzzleId` | Server looks up `puzzleId` in `PUZZLES`; unknown IDs return 404 |
-| System prompt leakage | Client only receives `reply`; system prompt is built server-side only and never sent in the response |
-| API key exposure | Stored in server-side environment variable; never sent to the browser |
+| Risk                                  | Mitigation                                                                                           |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Large malicious request bodies        | 8 KB hard cap (checked via `content-length` header)                                                  |
+| API abuse / flood                     | In-process rate limiting (recommend Redis in production)                                             |
+| Content injection via message history | Each `content` is truncated to 2 000 chars; max 6 messages forwarded                                 |
+| Forged `puzzleId`                     | Server looks up `puzzleId` in `PUZZLES`; unknown IDs return 404                                      |
+| System prompt leakage                 | Client only receives `reply`; system prompt is built server-side only and never sent in the response |
+| API key exposure                      | Stored in server-side environment variable; never sent to the browser                                |
 
 ---
 
-*Related docs: [architecture.en.md](./architecture.en.md) · [data-schema.en.md](./data-schema.en.md) · [extensibility.en.md](./extensibility.en.md)*
+_Related docs: [architecture.en.md](./architecture.en.md) · [data-schema.en.md](./data-schema.en.md) · [extensibility.en.md](./extensibility.en.md)_
