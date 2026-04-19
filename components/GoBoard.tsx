@@ -397,7 +397,7 @@ export function GoBoard({
   };
 
   return (
-    <div ref={wrapRef} className="w-full flex justify-center" style={{ maxWidth: maxPx }}>
+    <div ref={wrapRef} className="flex justify-center" style={{ width: maxPx, maxWidth: maxPx }}>
       <canvas
         ref={canvasRef}
         onPointerMove={handleMove}

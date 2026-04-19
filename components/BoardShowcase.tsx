@@ -51,7 +51,15 @@ export function BoardShowcase() {
       ref={sectionRef}
       className="sticky top-0 min-h-screen z-20 flex items-center bg-paper"
     >
-      <div className="grid grid-cols-[1fr_560px] gap-20 max-w-7xl mx-auto px-12 w-full">
+      <div
+        className="grid mx-auto w-full"
+        style={{
+          gridTemplateColumns: "1fr 560px",
+          gap: "80px",
+          maxWidth: "1280px",
+          padding: "0 48px",
+        }}
+      >
         {/* Left: copy */}
         <motion.div
           className="flex flex-col justify-center space-y-8"
