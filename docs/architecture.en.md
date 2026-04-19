@@ -106,7 +106,7 @@ Key contract: `lib/puzzleStatus.ts` **never imports `window`**. Every function i
 | --------------------------- | ---------------------------------- | ------------------------------------------------------------------- |
 | Full library                | `content/puzzles.ts`               | Exports `PUZZLES` · `getPuzzleById()` · `getCuratedPuzzles()`       |
 | Imported corpus (generated) | `content/data/importedPuzzles.ts`  | Produced by `scripts/importTsumego.ts` — do not hand-edit           |
-| Game record data            | `content/games/leeAlphagoG4.ts`    | Lee Sedol vs AlphaGo Game 4 SGF + metadata ("divine move")         |
+| Game record data            | `content/games/leeAlphagoG4.ts`    | Lee Sedol vs AlphaGo Game 4 SGF + metadata ("divine move")          |
 | Types                       | `types/index.ts`                   | `Puzzle` / `AttemptRecord` / `PuzzleStatus` / `Locale` etc.         |
 | localStorage I/O            | `lib/storage.ts`                   | `loadAttempts` / `saveAttempt` / `getAttemptFor` / `getAttemptsFor` |
 | Status derivation           | `lib/puzzleStatus.ts`              | Pure functions over attempts                                        |
@@ -136,23 +136,24 @@ Tailwind v4, with `@theme` declared centrally in `app/globals.css`. Components a
 
 Palette (dark Go theme):
 
-| Token               | Value                              | Purpose                        |
-| ------------------- | ---------------------------------- | ------------------------------ |
-| `--color-board`     | `#1f1611`                          | Board dark wood fill           |
-| `--color-board-2`   | `rgba(0, 242, 255, 0.28)`          | Board grid lines (neon cyan)   |
-| `--color-stone-b`   | `#0a0a0a`                          | Black stones                   |
-| `--color-stone-w`   | `#eeeae0`                          | White stones (warm white)      |
-| `--color-accent`    | `#00f2ff`                          | Primary accent (neon cyan)     |
-| `--color-success`   | `#22c55e`                          | Correct ✓                      |
-| `--color-warn`      | `#ff3366`                          | Wrong ✗ (neon red)             |
-| `--color-ink`       | `#edeae2`                          | Primary text                   |
-| `--color-ink-2`     | `rgba(237, 234, 226, 0.55)`        | Secondary text                 |
-| `--color-paper`     | `#0a0a0a`                          | Page background (near-black)   |
-| `--color-line`      | `rgba(255, 255, 255, 0.08)`        | Dividers                       |
-| `--color-linen`     | `#e3dccb`                          | Warm light text                |
-| `--color-earth`     | `#4a3728`                          | Warm brown                     |
+| Token             | Value                       | Purpose                      |
+| ----------------- | --------------------------- | ---------------------------- |
+| `--color-board`   | `#1f1611`                   | Board dark wood fill         |
+| `--color-board-2` | `rgba(0, 242, 255, 0.28)`   | Board grid lines (neon cyan) |
+| `--color-stone-b` | `#0a0a0a`                   | Black stones                 |
+| `--color-stone-w` | `#eeeae0`                   | White stones (warm white)    |
+| `--color-accent`  | `#00f2ff`                   | Primary accent (neon cyan)   |
+| `--color-success` | `#22c55e`                   | Correct ✓                    |
+| `--color-warn`    | `#ff3366`                   | Wrong ✗ (neon red)           |
+| `--color-ink`     | `#edeae2`                   | Primary text                 |
+| `--color-ink-2`   | `rgba(237, 234, 226, 0.55)` | Secondary text               |
+| `--color-paper`   | `#0a0a0a`                   | Page background (near-black) |
+| `--color-line`    | `rgba(255, 255, 255, 0.08)` | Dividers                     |
+| `--color-linen`   | `#e3dccb`                   | Warm light text              |
+| `--color-earth`   | `#4a3728`                   | Warm brown                   |
 
 GoBoard supports a `boardStyle` prop (`"dark"` / `"classic"`):
+
 - `dark`: dark wood board + neon cyan grid lines (Landing page, daily puzzle default)
 - `classic`: traditional wood-coloured board (library page retains original look)
 

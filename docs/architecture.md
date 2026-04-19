@@ -114,14 +114,14 @@ AttemptRecord[] （时序 append-only）
 | 每日轮换             | `lib/puzzleOfTheDay.ts`            | `getPuzzleForDate` + `todayLocalKey`                                |
 | 随机抽题             | `lib/random.ts`                    | `pickRandomPuzzle(pool: "all"│"unattempted"│"wrong")`               |
 | 棋盘几何             | `lib/board.ts`                     | `isInBounds` / `isOccupied` / `starPoints`                          |
-| 围棋规则引擎         | `lib/goRules.ts`                   | `playMove`：落子、提子（单子/群提）、自禁检查                      |
-| SGF 解析器           | `lib/sgf.ts`                       | `parseSgfMoves`：SGF 字符串 → 坐标序列                               |
-| 棋谱快照构建         | `lib/gameSnapshots.ts`             | `buildSnapshots`：从 SGF 落子序列生成每手盘面快照                    |
+| 围棋规则引擎         | `lib/goRules.ts`                   | `playMove`：落子、提子（单子/群提）、自禁检查                       |
+| SGF 解析器           | `lib/sgf.ts`                       | `parseSgfMoves`：SGF 字符串 → 坐标序列                              |
+| 棋谱快照构建         | `lib/gameSnapshots.ts`             | `buildSnapshots`：从 SGF 落子序列生成每手盘面快照                   |
 | 多语言文本           | `lib/i18n.tsx`                     | `localized(text, locale)` 自带 en→zh→ja→ko fallback                 |
 | i18n context         | `lib/i18n.tsx`                     | `LocaleProvider` + `useLocale()` · 存 `go-daily.locale`             |
 | i18n middleware      | `middleware.ts`                    | cookie `go-daily.locale` → `x-locale` header，消除 SSR 语言闪烁     |
 | Coach prompt 工厂    | `lib/coachPrompt.ts`               | 生成 4 语言 system prompt · 注入棋盘 + solution note                |
-| 棋盘渲染             | `components/GoBoard.tsx`           | Canvas 2D · HiDPI · 自动裁剪 · 支持 dark/classic 双主题            |
+| 棋盘渲染             | `components/GoBoard.tsx`           | Canvas 2D · HiDPI · 自动裁剪 · 支持 dark/classic 双主题             |
 | Landing Hero         | `components/HeroSection.tsx`       | 视差滚动 · 多语言字体适配 · 背景图                                  |
 | 棋盘展示区           | `components/BoardShowcase.tsx`     | 滚动驱动动画 · AlphaGo 第 4 局「神之一手」演示                      |
 | 演示棋盘             | `components/DemoGameBoard.tsx`     | 历史棋谱逐手回放 · 阶段切换（idle/showGod/playing/ended）           |
@@ -136,23 +136,24 @@ Tailwind v4，`@theme` 在 `app/globals.css` 集中声明。组件里用 `bg-[co
 
 色盘（深色围棋主题）：
 
-| token               | 值                              | 用途               |
-| ------------------- | ------------------------------- | ------------------ |
-| `--color-board`     | `#1f1611`                       | 棋盘深色木纹填充   |
-| `--color-board-2`   | `rgba(0, 242, 255, 0.28)`       | 棋盘格线（霓虹青） |
-| `--color-stone-b`   | `#0a0a0a`                       | 黑子               |
-| `--color-stone-w`   | `#eeeae0`                       | 白子（暖白）       |
-| `--color-accent`    | `#00f2ff`                       | 主 accent（霓虹青）|
-| `--color-success`   | `#22c55e`                       | 对 ✓               |
-| `--color-warn`      | `#ff3366`                       | 错 ✗（霓虹红）     |
-| `--color-ink`       | `#edeae2`                       | 主文字             |
-| `--color-ink-2`     | `rgba(237, 234, 226, 0.55)`     | 次文字             |
-| `--color-paper`     | `#0a0a0a`                       | 页面底色（深黑）   |
-| `--color-line`      | `rgba(255, 255, 255, 0.08)`     | 分割线             |
-| `--color-linen`     | `#e3dccb`                       | 暖色浅色文字       |
-| `--color-earth`     | `#4a3728`                       | 暖棕色             |
+| token             | 值                          | 用途                |
+| ----------------- | --------------------------- | ------------------- |
+| `--color-board`   | `#1f1611`                   | 棋盘深色木纹填充    |
+| `--color-board-2` | `rgba(0, 242, 255, 0.28)`   | 棋盘格线（霓虹青）  |
+| `--color-stone-b` | `#0a0a0a`                   | 黑子                |
+| `--color-stone-w` | `#eeeae0`                   | 白子（暖白）        |
+| `--color-accent`  | `#00f2ff`                   | 主 accent（霓虹青） |
+| `--color-success` | `#22c55e`                   | 对 ✓                |
+| `--color-warn`    | `#ff3366`                   | 错 ✗（霓虹红）      |
+| `--color-ink`     | `#edeae2`                   | 主文字              |
+| `--color-ink-2`   | `rgba(237, 234, 226, 0.55)` | 次文字              |
+| `--color-paper`   | `#0a0a0a`                   | 页面底色（深黑）    |
+| `--color-line`    | `rgba(255, 255, 255, 0.08)` | 分割线              |
+| `--color-linen`   | `#e3dccb`                   | 暖色浅色文字        |
+| `--color-earth`   | `#4a3728`                   | 暖棕色              |
 
 GoBoard 支持 `boardStyle` prop（`"dark"` / `"classic"`）：
+
 - `dark`：深色木纹棋盘 + 霓虹青格线（Landing page、首页默认）
 - `classic`：传统木色棋盘（题库页等保留原风格）
 

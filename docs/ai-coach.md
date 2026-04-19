@@ -223,7 +223,7 @@ try {
   console.error("[coach] upstream error:", err);
   return NextResponse.json(
     { error: "Coach is temporarily unavailable. Please try again later." },
-    { status: 502 }
+    { status: 502 },
   );
 }
 ```
