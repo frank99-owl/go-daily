@@ -11,8 +11,9 @@
 
 import type { Puzzle } from "@/types";
 import { IMPORTED_PUZZLES } from "@/lib/importedPuzzles";
+import { LIBRARY_PUZZLES } from "@/lib/puzzleLibrary";
 
-export const PUZZLES: Puzzle[] = [...IMPORTED_PUZZLES];
+export const PUZZLES: Puzzle[] = [...IMPORTED_PUZZLES, ...LIBRARY_PUZZLES];
 
 export function getPuzzleById(id: string): Puzzle | undefined {
   return PUZZLES.find((p) => p.id === id);
