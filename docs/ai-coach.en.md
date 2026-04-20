@@ -160,11 +160,9 @@ The `openai` npm package is used (not the Anthropic SDK); only `baseURL` needs c
 
 ## 5. Rate Limiting
 
-Current implementation: `MemoryRateLimiter`, backed by an in-process `Map<string, number[]>`. Parameters are adjustable via environment variables:
+Defaults to `MemoryRateLimiter` (in-process `Map<string, number[]>`). Parameters are adjustable via the `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` environment variables.
 
-**Limitation**: process-scoped — not shared across instances. In a Vercel Serverless deployment with multiple instances, each instance counts independently.
-
-**Production recommendation**: migrate to Redis (see [extensibility.en.md](./extensibility.en.md)).
+When `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are configured, the app automatically switches to `UpstashRateLimiter` for cross-instance persistent rate limiting.
 
 IP extraction priority: `x-forwarded-for` → `x-real-ip` → fallback to `"local"`.
 
@@ -229,19 +227,27 @@ All errors return JSON `{ error: string }`; HTTP status reflects the error categ
 
 ## 9. Environment Variables
 
-| Variable               | Required | Default | Description                                                |
-| ---------------------- | -------- | ------- | ---------------------------------------------------------- |
-| `DEEPSEEK_API_KEY`     | ✅       | —       | DeepSeek API key; all coach requests return 500 without it |
-| `RATE_LIMIT_WINDOW_MS` | —        | `60000` | Rate-limit time window in milliseconds                     |
-| `RATE_LIMIT_MAX`       | —        | `10`    | Max requests per window per IP                             |
+| Variable                   | Required | Default         | Description                                                |
+| -------------------------- | -------- | --------------- | ---------------------------------------------------------- |
+| `DEEPSEEK_API_KEY`         | ✅       | —               | DeepSeek API key; all coach requests return 500 without it |
+| `COACH_MODEL`              | —        | `deepseek-chat` | Model identifier for the AI coach                          |
+| `RATE_LIMIT_WINDOW_MS`     | —        | `60000`         | Rate-limit time window in milliseconds                     |
+| `RATE_LIMIT_MAX`           | —        | `10`            | Max requests per window per IP                             |
+| `UPSTASH_REDIS_REST_URL`   | —        | —               | Upstash Redis REST URL; enables persistent rate limiting   |
+| `UPSTASH_REDIS_REST_TOKEN` | —        | —               | Upstash Redis REST Token                                   |
 
 **Local development**: create `.env.local` in the project root:
 
 ```
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
+# Optional: switch model
+# COACH_MODEL=deepseek-chat
 # Optional: adjust rate limit parameters
 # RATE_LIMIT_WINDOW_MS=60000
 # RATE_LIMIT_MAX=10
+# Optional: enable Upstash Redis persistent rate limiting
+# UPSTASH_REDIS_REST_URL=https://...
+# UPSTASH_REDIS_REST_TOKEN=...
 ```
 
 **Vercel deployment**: add in Project Settings → Environment Variables, enabled for Production + Preview + Development.
@@ -250,14 +256,14 @@ DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
 
 ## 10. Security Considerations
 
-| Risk                                  | Mitigation                                                                                           |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Large malicious request bodies        | 8 KB hard cap (checked via `content-length` header)                                                  |
-| API abuse / flood                     | In-process rate limiting (recommend Redis in production)                                             |
-| Content injection via message history | Each `content` is truncated to 2 000 chars; max 6 messages forwarded                                 |
-| Forged `puzzleId`                     | Server looks up `puzzleId` in `PUZZLES`; unknown IDs return 404                                      |
-| System prompt leakage                 | Client only receives `reply`; system prompt is built server-side only and never sent in the response |
-| API key exposure                      | Stored in server-side environment variable; never sent to the browser                                |
+| Risk                                  | Mitigation                                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Large malicious request bodies        | 8 KB hard cap (checked via `content-length` header)                                                           |
+| API abuse / flood                     | In-process rate limiting (not shared across instances); fail-open on rate-limiter failure — service continues |
+| Content injection via message history | Each `content` is truncated to 2 000 chars; max 6 messages forwarded                                          |
+| Forged `puzzleId`                     | Server looks up `puzzleId` in `PUZZLES`; unknown IDs return 404                                               |
+| System prompt leakage                 | Client only receives `reply`; system prompt is built server-side only and never sent in the response          |
+| API key exposure                      | Stored in server-side environment variable; never sent to the browser                                         |
 
 ---
 

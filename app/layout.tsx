@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Playfair_Display } from "next/font/google";
 import { headers } from "next/headers";
@@ -47,6 +49,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <main className="flex-1 w-full">{children}</main>
         </LocaleProvider>
         <GlobalCursor />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

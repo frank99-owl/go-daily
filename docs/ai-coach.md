@@ -160,13 +160,11 @@ const completion = await client.chat.completions.create({
 
 ## 5. 速率限制
 
-当前实现：`MemoryRateLimiter`，基于进程内存 `Map<string, number[]>`。可通过环境变量调整参数：
+默认使用 `MemoryRateLimiter`（进程内存 `Map<string, number[]>`），可通过 `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` 调整参数。
 
-**限制**：进程级，不跨进程共享。Vercel Serverless 多实例部署时各实例独立计数。
+当配置了 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN` 时，自动切换为 `UpstashRateLimiter`，实现跨实例共享的持久化限流。
 
-**生产环境推荐**：迁移至 Redis（详见 [extensibility.md](./extensibility.md)）。
-
-IP 提取优先级：`x-forwarded-for` → `x-real-ip` → 回退到 `"local"`。
+**IP 提取优先级**：`x-forwarded-for` → `x-real-ip` → 回退到 `"local"`。
 
 ---
 
@@ -229,19 +227,27 @@ try {
 
 ## 9. 环境变量
 
-| 变量                   | 必填 | 默认值  | 说明                                          |
-| ---------------------- | ---- | ------- | --------------------------------------------- |
-| `DEEPSEEK_API_KEY`     | ✅   | —       | DeepSeek API 密钥，缺失时所有教练请求返回 500 |
-| `RATE_LIMIT_WINDOW_MS` | —    | `60000` | 速率限制时间窗口（毫秒）                      |
-| `RATE_LIMIT_MAX`       | —    | `10`    | 每窗口每 IP 最大请求数                        |
+| 变量                       | 必填 | 默认值          | 说明                                          |
+| -------------------------- | ---- | --------------- | --------------------------------------------- |
+| `DEEPSEEK_API_KEY`         | ✅   | —               | DeepSeek API 密钥，缺失时所有教练请求返回 500 |
+| `COACH_MODEL`              | —    | `deepseek-chat` | AI 教练使用的模型标识符                       |
+| `RATE_LIMIT_WINDOW_MS`     | —    | `60000`         | 速率限制时间窗口（毫秒）                      |
+| `RATE_LIMIT_MAX`           | —    | `10`            | 每窗口每 IP 最大请求数                        |
+| `UPSTASH_REDIS_REST_URL`   | —    | —               | Upstash Redis REST URL，配置后启用持久化限流  |
+| `UPSTASH_REDIS_REST_TOKEN` | —    | —               | Upstash Redis REST Token                      |
 
 **本地开发**：在项目根目录创建 `.env.local`：
 
 ```
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
+# 可选：切换模型
+# COACH_MODEL=deepseek-chat
 # 可选：调整限流参数
 # RATE_LIMIT_WINDOW_MS=60000
 # RATE_LIMIT_MAX=10
+# 可选：启用 Upstash Redis 持久化限流
+# UPSTASH_REDIS_REST_URL=https://...
+# UPSTASH_REDIS_REST_TOKEN=...
 ```
 
 **Vercel 部署**：在项目 Settings → Environment Variables 中配置，勾选 Production + Preview + Development。
@@ -250,14 +256,14 @@ DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
 
 ## 10. 安全考量
 
-| 风险             | 缓解措施                                                       |
-| ---------------- | -------------------------------------------------------------- |
-| 恶意大请求体     | 8 KB 上限（`content-length` 检查）                             |
-| 暴力刷 API       | 进程级速率限制（生产建议 Redis）                               |
-| 消息内容注入     | 每条 `content` 截断至 2 000 字符，历史最多 6 条                |
-| 伪造 `puzzleId`  | 服务端从 `PUZZLES` 数组查找，不存在返回 404                    |
-| 系统 Prompt 泄露 | 客户端只收到 `reply`，系统 prompt 仅在服务端构建，不随响应返回 |
-| API Key 泄露     | 存储在服务端环境变量，不暴露给浏览器                           |
+| 风险             | 缓解措施                                                           |
+| ---------------- | ------------------------------------------------------------------ |
+| 恶意大请求体     | 8 KB 上限（`content-length` 检查）                                 |
+| 暴力刷 API       | 进程级速率限制（不跨实例共享）；限流器故障时 fail-open，不阻断服务 |
+| 消息内容注入     | 每条 `content` 截断至 2 000 字符，历史最多 6 条                    |
+| 伪造 `puzzleId`  | 服务端从 `PUZZLES` 数组查找，不存在返回 404                        |
+| 系统 Prompt 泄露 | 客户端只收到 `reply`，系统 prompt 仅在服务端构建，不随响应返回     |
+| API Key 泄露     | 存储在服务端环境变量，不暴露给浏览器                               |
 
 ---
 

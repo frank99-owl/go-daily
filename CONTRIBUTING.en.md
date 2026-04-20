@@ -174,7 +174,7 @@ See [docs/i18n.en.md](./docs/i18n.en.md) for details.
    ```bash
    npm run format:check       # Prettier formatting check passes
    npm run lint               # no ESLint errors
-   npm run test               # all tests green (46/46)
+   npm run test               # all tests green (49/49)
    npm run validate:puzzles   # puzzle data validates
    npm run build              # production build succeeds
    ```

@@ -89,6 +89,15 @@ Open `http://localhost:3000`.
 
 `.env*` is gitignored by default; `.env.example` is the only env file that gets committed.
 
+### Production deployment notes
+
+> These are **current-code realities** for anyone deploying to production — not a roadmap.
+
+- **Rate limiting** uses `MemoryRateLimiter` by default (in-process `Map`). When `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are configured, it automatically switches to `UpstashRateLimiter` for cross-instance persistence.
+- **Model name** is controlled by the optional `COACH_MODEL` env variable (defaults to `deepseek-chat`).
+- **Analytics / Speed Insights** are wired in via `@vercel/analytics` and `@vercel/speed-insights` (zero-config on Vercel).
+- **Sentry** is not configured.
+
 ## Adding new puzzles
 
 Curated puzzles are hand-written in `content/curatedPuzzles.ts`. Each entry needs:
@@ -112,7 +121,6 @@ This repo is wired for Vercel. Import the GitHub repo, set `DEEPSEEK_API_KEY` in
 - **LLM is a coach, not a judge.** DeepSeek reads the provided solution note and paraphrases it in the student's language — it can hallucinate variations the note doesn't cover. For v2, integrating KataGo would give objective ground truth.
 - **No capture / ko logic.** The board doesn't simulate captures; puzzles are chosen so the solution is a single vital point rather than a capture sequence.
 - **One timezone, one puzzle.** The daily switch is local-midnight, so crossing timezones may show you the same puzzle or skip ahead a day.
-- **Rate limiting is in-memory only.** The current `MemoryRateLimiter` works for a single instance but does not share state across Vercel serverless instances. Persistent rate limiting (Redis / KV) is planned for production scale.
 
 ---
 

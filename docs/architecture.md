@@ -116,7 +116,7 @@ AttemptRecord[] （时序 append-only）
 | 历史棋谱数据         | `content/games/leeAlphagoG4.ts`     | 李世石 vs AlphaGo 第 4 局 SGF + 元数据（「神之一手」）                   |
 | 类型                 | `types/index.ts`                    | `Puzzle` / `AttemptRecord` / `PuzzleStatus` / `Locale` 等                |
 | zod schema           | `types/schemas.ts`                  | 运行时校验 schema，API + validatePuzzles 共用                            |
-| 限流抽象             | `lib/rateLimit.ts`                  | `RateLimiter` 接口 + `MemoryRateLimiter` 实现                            |
+| 限流抽象             | `lib/rateLimit.ts`                  | `RateLimiter` 接口 + `MemoryRateLimiter` / `UpstashRateLimiter` 自动切换 |
 | 站点 URL             | `lib/siteUrl.ts`                    | 读取 `NEXT_PUBLIC_SITE_URL`，用于 canonical / sitemap / robots           |
 | localStorage 读写    | `lib/storage.ts`                    | `loadAttempts` / `saveAttempt` / `getAttemptFor` / `getAttemptsFor`      |
 | 状态派生             | `lib/puzzleStatus.ts`               | 纯函数，消费 attempts 数组                                               |

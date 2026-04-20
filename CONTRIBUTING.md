@@ -174,7 +174,7 @@ npm run import:puzzles
    ```bash
    npm run format:check   # Prettier 格式检查通过
    npm run lint           # 无 ESLint 报错
-   npm run test           # 单元测试全绿（46/46）
+   npm run test           # 单元测试全绿（49/49）
    npm run validate:puzzles  # 题目数据验证通过
    npm run build          # 生产构建成功
    ```

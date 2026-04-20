@@ -213,11 +213,11 @@ export async function generateStaticParams() {
 
 ### 6.1 当前限制
 
-| 限制       | 描述                                            |
-| ---------- | ----------------------------------------------- |
-| 速率限制   | 进程内存，重启即清零；不持久                    |
-| 模型       | `deepseek-chat`，固定                           |
-| 仅进程内存 | 多实例部署（Vercel Serverless）时各实例独立计数 |
+| 限制     | 描述                                                                |
+| -------- | ------------------------------------------------------------------- |
+| 速率限制 | `MemoryRateLimiter` 为默认；配置 Upstash 环境变量后自动切换为持久化 |
+| 模型     | `COACH_MODEL` 环境变量，默认 `deepseek-chat`                        |
+| 观测     | `Vercel Analytics` + `Speed Insights` 已接入                        |
 
 ### 6.2 阶段 A：持久化速率限制
 
@@ -235,20 +235,19 @@ async function rateLimited(ip: string): Promise<boolean> {
 }
 ```
 
-### 6.3 阶段 B：模型切换 / 降级
+### 6.3 模型切换 / 降级
 
-`app/api/coach/route.ts` 中模型名写死为 `"deepseek-chat"`。  
-建议改为环境变量：
+`COACH_MODEL` 环境变量已在 `app/api/coach/route.ts` 中接入：
+
+```ts
+const model = process.env.COACH_MODEL ?? "deepseek-chat";
+```
+
+如需针对高难度题目切换更强的模型，只需在环境变量中修改：
 
 ```
 COACH_MODEL=deepseek-chat          # 默认
 COACH_MODEL=deepseek-reasoner      # 高难度题目
-```
-
-Route Handler 读取：
-
-```ts
-const model = process.env.COACH_MODEL ?? "deepseek-chat";
 ```
 
 ---

@@ -116,7 +116,7 @@ Key contract: `lib/puzzleStatus.ts` **never imports `window`**. Every function i
 | Game record data            | `content/games/leeAlphagoG4.ts`     | Lee Sedol vs AlphaGo Game 4 SGF + metadata ("divine move")                        |
 | Types                       | `types/index.ts`                    | `Puzzle` / `AttemptRecord` / `PuzzleStatus` / `Locale` etc.                       |
 | zod schema                  | `types/schemas.ts`                  | Runtime validation schemas shared by API + validatePuzzles                        |
-| Rate limiter                | `lib/rateLimit.ts`                  | `RateLimiter` interface + `MemoryRateLimiter` implementation                      |
+| Rate limiter                | `lib/rateLimit.ts`                  | `RateLimiter` interface + `MemoryRateLimiter` / `UpstashRateLimiter` auto-switch  |
 | Site URL                    | `lib/siteUrl.ts`                    | Reads `NEXT_PUBLIC_SITE_URL` for canonical / sitemap / robots                     |
 | localStorage I/O            | `lib/storage.ts`                    | `loadAttempts` / `saveAttempt` / `getAttemptFor` / `getAttemptsFor`               |
 | Status derivation           | `lib/puzzleStatus.ts`               | Pure functions over attempts                                                      |

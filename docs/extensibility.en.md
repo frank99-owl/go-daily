@@ -212,11 +212,11 @@ Once data moves to a database in Phase B, the validation script needs to connect
 
 ### 6.1 Current Limitations
 
-| Limitation                | Description                                                      |
-| ------------------------- | ---------------------------------------------------------------- |
-| Rate limiting             | In-process `Map`; resets on restart; not shared across instances |
-| Model                     | `deepseek-chat`, hard-coded                                      |
-| Multi-instance deployment | Each Vercel serverless instance has its own rate-limit counter   |
+| Limitation    | Description                                                              |
+| ------------- | ------------------------------------------------------------------------ |
+| Rate limiting | `MemoryRateLimiter` by default; auto-switches to Upstash when configured |
+| Model         | `COACH_MODEL` env variable, defaults to `deepseek-chat`                  |
+| Observability | `Vercel Analytics` + `Speed Insights` wired in                           |
 
 ### 6.2 Phase A: Persistent Rate Limiting
 
@@ -234,20 +234,19 @@ async function rateLimited(ip: string): Promise<boolean> {
 }
 ```
 
-### 6.3 Phase B: Configurable Model
+### 6.3 Configurable Model
 
-The model name is hard-coded in `app/api/coach/route.ts`.  
-Switch to an environment variable:
+`COACH_MODEL` is already wired in `app/api/coach/route.ts`:
+
+```ts
+const model = process.env.COACH_MODEL ?? "deepseek-chat";
+```
+
+To switch to a stronger model for harder puzzles, update the environment variable:
 
 ```
 COACH_MODEL=deepseek-chat          # default
 COACH_MODEL=deepseek-reasoner      # for harder puzzles
-```
-
-Route Handler reads:
-
-```ts
-const model = process.env.COACH_MODEL ?? "deepseek-chat";
 ```
 
 ---

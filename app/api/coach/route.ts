@@ -30,8 +30,12 @@ export async function POST(request: Request) {
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
     "local";
-  if (rateLimiter.isLimited(ip)) {
-    return badRequest("Too many requests, slow down.", 429);
+  try {
+    if (await rateLimiter.isLimited(ip)) {
+      return badRequest("Too many requests, slow down.", 429);
+    }
+  } catch (error) {
+    console.error("[RateLimitError] Failing open for ip:", ip, error);
   }
 
   // Parse
@@ -85,8 +89,11 @@ export async function POST(request: Request) {
       apiKey,
       baseURL: "https://api.deepseek.com",
     });
+
+    const model = process.env.COACH_MODEL || "deepseek-chat";
+
     const completion = await client.chat.completions.create({
-      model: "deepseek-chat",
+      model,
       messages: openaiMessages,
       temperature: 0.6,
       max_tokens: 400,
