@@ -43,18 +43,26 @@ app/
   page.tsx + TodayClient  · daily puzzle screen
   result/                 · judgment, solution reveal, coach, share card
   stats/                  · streak / accuracy / history
-  api/coach/route.ts      · LLM proxy (8KB cap, 10 req/min/IP, history trimmed to 6 turns)
+  api/coach/route.ts      · LLM proxy (8KB cap, 10 req/min/IP, history trimmed to 6 turns, zod-validated)
 components/
   GoBoard                 · canvas board + click-to-play + hover ghost
   CoachDialogue           · on-demand chat, sessionStorage per puzzle+locale
   ShareCard               · off-screen canvas → PNG / Web Share
   Nav · LanguageToggle · PuzzleHeader
 lib/
-  board · judge · storage · puzzleOfTheDay · i18n · coachPrompt
+  board · judge · storage · puzzleOfTheDay · i18n · coachPrompt · rateLimit
 content/
-  puzzles.ts              · ⭐ puzzle library (extend here)
+  puzzles.ts              · ⭐ environment-aware entry: server reads full data, client reads light index
+  puzzles.server.ts       · server-side full data loader
+  data/
+    puzzleIndex.json      · light client-side index (summaries only)
+    importedPuzzles.json  · bulk-imported puzzles (auto-generated)
+    puzzleLibrary.json    · full puzzle library (auto-generated)
   messages/{zh,en,ja,ko}.json
-types/index.ts            · Puzzle / AttemptRecord / CoachMessage / Locale
+  curatedPuzzles.ts       · hand-written curated puzzles
+types/
+  index.ts                · Puzzle / AttemptRecord / CoachMessage / Locale
+  schemas.ts              · zod runtime schemas (shared by API + validator)
 ```
 
 ## Local development
@@ -72,32 +80,39 @@ Open `http://localhost:3000`.
 
 ## Environment variables
 
-| Name               | Required | Where                                                                         |
-| ------------------ | -------- | ----------------------------------------------------------------------------- |
-| `DEEPSEEK_API_KEY` | yes      | `.env.local` locally · Vercel → Project → Environment Variables in production |
+| Name                   | Required | Default                       | Where                                                                         |
+| ---------------------- | -------- | ----------------------------- | ----------------------------------------------------------------------------- |
+| `DEEPSEEK_API_KEY`     | yes      | —                             | `.env.local` locally · Vercel → Project → Environment Variables in production |
+| `NEXT_PUBLIC_SITE_URL` | no       | `https://go-daily.vercel.app` | Used for canonical URLs, sitemap, and robots                                  |
+| `RATE_LIMIT_WINDOW_MS` | no       | `60000` (60s)                 | Rate-limit time window in milliseconds                                        |
+| `RATE_LIMIT_MAX`       | no       | `10`                          | Max requests per window per IP                                                |
 
 `.env*` is gitignored by default; `.env.example` is the only env file that gets committed.
 
 ## Adding new puzzles
 
-All puzzles live in a single typed array at `content/puzzles.ts`. Each entry needs:
+Curated puzzles are hand-written in `content/curatedPuzzles.ts`. Each entry needs:
 
 - `stones[]` — the starting position (coords 0-indexed from the top-left)
 - `correct[]` — one or more accepted solution points
 - `prompt` and `solutionNote` in **all four locales**
 
+For bulk imports, place SGF files in `scripts/sgf/` and run `npm run import:puzzles`. This outputs to `content/data/importedPuzzles.json`.
+
+The data entry layer (`content/puzzles.ts`) aggregates curated and imported sources. On the server, full puzzle data is loaded via `content/puzzles.server.ts`; on the client, only a lightweight index (`content/data/puzzleIndex.json`) is fetched.
+
 The coach receives `solutionNote[locale]` as ground truth, so write it carefully — the model is instructed not to invent new tactics beyond what's in the note.
 
 ## Deploy
 
-This repo is wired for Vercel. Import the GitHub repo, set `DEEPSEEK_API_KEY` in the project's environment variables, and every push to `main` ships.
+This repo is wired for Vercel. Import the GitHub repo, set `DEEPSEEK_API_KEY` in the project's environment variables, configure `NEXT_PUBLIC_SITE_URL` to your production domain, and every push to `main` ships.
 
 ## Known limitations (v1)
 
 - **LLM is a coach, not a judge.** DeepSeek reads the provided solution note and paraphrases it in the student's language — it can hallucinate variations the note doesn't cover. For v2, integrating KataGo would give objective ground truth.
 - **No capture / ko logic.** The board doesn't simulate captures; puzzles are chosen so the solution is a single vital point rather than a capture sequence.
 - **One timezone, one puzzle.** The daily switch is local-midnight, so crossing timezones may show you the same puzzle or skip ahead a day.
-- **Library of 1210 puzzles.** A browseable puzzle library with difficulty filtering and review mode.
+- **Rate limiting is in-memory only.** The current `MemoryRateLimiter` works for a single instance but does not share state across Vercel serverless instances. Persistent rate limiting (Redis / KV) is planned for production scale.
 
 ---
 

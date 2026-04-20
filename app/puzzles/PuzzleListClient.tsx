@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useLocale } from "@/lib/i18n";
-import { PUZZLES } from "@/content/puzzles";
-import { PuzzleStatusBadge } from "@/components/PuzzleStatusBadge";
+import { useEffect, useMemo, useState } from "react";
+
 import { DifficultyLegend } from "@/components/DifficultyLegend";
-import { loadAttempts } from "@/lib/storage";
-import { localized } from "@/lib/i18n";
+import { PuzzleStatusBadge } from "@/components/PuzzleStatusBadge";
+import { useLocale } from "@/lib/i18n";
+import { localized } from "@/lib/localized";
 import { computeStatusTallies, getStatusFor, lastAttemptMsMap } from "@/lib/puzzleStatus";
-import type { AttemptRecord, Puzzle, PuzzleStatus } from "@/types";
+import { loadAttempts } from "@/lib/storage";
+import type { AttemptRecord, PuzzleSummary, PuzzleStatus } from "@/types";
 
 type SortKey = "default" | "difficulty-asc" | "difficulty-desc" | "recent";
 type StatusFilter = "all" | "wrong" | "todo";
 
-export function PuzzleListClient() {
+export function PuzzleListClient({ summaries }: { summaries: PuzzleSummary[] }) {
   const { t } = useLocale();
 
   const [difficulty, setDifficulty] = useState<string>("all");
@@ -35,16 +35,16 @@ export function PuzzleListClient() {
   const tallies = useMemo(
     () =>
       computeStatusTallies(
-        PUZZLES.map((p) => p.id),
+        summaries.map((p) => p.id),
         attemptsList,
       ),
-    [attemptsList],
+    [attemptsList, summaries],
   );
 
   const lastAttemptByPuzzle = useMemo(() => lastAttemptMsMap(attemptsList), [attemptsList]);
 
   const filtered = useMemo(() => {
-    const base = PUZZLES.filter((p) => {
+    const base = summaries.filter((p) => {
       if (difficulty !== "all" && String(p.difficulty) !== difficulty) return false;
       if (statusFilter !== "all") {
         const s = getStatusFor(p.id, attemptsList);
@@ -54,7 +54,7 @@ export function PuzzleListClient() {
       return true;
     });
 
-    // Sorting — clone so we don't mutate PUZZLES ordering.
+    // Sorting — clone so we don't mutate summaries ordering.
     const sorted = base.slice();
     if (sortKey === "difficulty-asc") {
       sorted.sort((a, b) => a.difficulty - b.difficulty);
@@ -68,7 +68,7 @@ export function PuzzleListClient() {
       });
     }
     return sorted;
-  }, [difficulty, statusFilter, sortKey, attemptsList, lastAttemptByPuzzle]);
+  }, [difficulty, statusFilter, sortKey, attemptsList, lastAttemptByPuzzle, summaries]);
 
   const difficulties = ["all", "1", "2", "3", "4", "5"];
 
@@ -85,7 +85,7 @@ export function PuzzleListClient() {
               {t.puzzles.title}
             </h1>
             <p className="text-sm text-white/50">
-              {t.puzzles.total.replace("{{count}}", String(PUZZLES.length))}
+              {t.puzzles.total.replace("{{count}}", String(summaries.length))}
             </p>
           </div>
 
@@ -108,7 +108,7 @@ export function PuzzleListClient() {
             <span className="inline-flex items-center gap-1.5">
               <PuzzleStatusBadge status="unattempted" size="sm" />
               <span>
-                {t.puzzles.statusUnattempted} {ready ? tallies.unattempted : PUZZLES.length}
+                {t.puzzles.statusUnattempted} {ready ? tallies.unattempted : summaries.length}
               </span>
             </span>
           </div>
@@ -201,7 +201,7 @@ export function PuzzleListClient() {
   );
 }
 
-function PuzzleCard({ puzzle, status }: { puzzle: Puzzle; status: PuzzleStatus }) {
+function PuzzleCard({ puzzle, status }: { puzzle: PuzzleSummary; status: PuzzleStatus }) {
   const { t, locale } = useLocale();
 
   const statusTitle =
@@ -223,7 +223,7 @@ function PuzzleCard({ puzzle, status }: { puzzle: Puzzle; status: PuzzleStatus }
 
       <div className="flex items-center justify-between mb-2 pr-6">
         <span className="text-sm text-white/50 truncate max-w-[70%]">
-          {puzzle.isCurated === false ? (puzzle.source ?? "Library") : puzzle.date}
+          {puzzle.source ?? puzzle.date}
         </span>
       </div>
 

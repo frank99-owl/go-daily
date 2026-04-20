@@ -1,23 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { GoBoard } from "@/components/GoBoard";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
 import { CoachDialogue } from "@/components/CoachDialogue";
+import { GoBoard } from "@/components/GoBoard";
 import { ShareCard } from "@/components/ShareCard";
 import { useLocale } from "@/lib/i18n";
-import { PUZZLES } from "@/content/puzzles";
+import { localized } from "@/lib/localized";
 import { getAttemptFor, getAttemptsFor } from "@/lib/storage";
-import { localized } from "@/lib/i18n";
 import type { AttemptRecord, Puzzle, Stone } from "@/types";
 
-export function ResultClient() {
-  const params = useSearchParams();
-  const id = params.get("id") ?? "";
-  const puzzle: Puzzle | undefined = PUZZLES.find((p) => p.id === id);
+export function ResultClient({
+  initialPuzzle,
+  todayPuzzleId,
+}: {
+  initialPuzzle: Puzzle;
+  todayPuzzleId: string;
+}) {
+  const puzzle = initialPuzzle;
   const { t, locale } = useLocale();
   const [attempt, setAttempt] = useState<AttemptRecord | null>(null);
   const [history, setHistory] = useState<AttemptRecord[]>([]);
@@ -62,6 +65,8 @@ export function ResultClient() {
 
   const correct = attempt?.correct ?? false;
   const hasSolution = !!puzzle.solutionSequence?.length;
+  const retryHref =
+    puzzle.id === todayPuzzleId ? "/today" : `/puzzles/${encodeURIComponent(puzzle.id)}`;
 
   // History tally across ALL attempts on this puzzle (not just today). Shows
   // the "第 N 次尝试 · 累计 X 对 Y 错" banner — LeetCode-style submission count.
@@ -75,7 +80,7 @@ export function ResultClient() {
 
   const handlePlay = () => {
     setShowAnswer(true);
-    setSolutionStep(0);
+    setSolutionStep(1);
     setIsPlaying(true);
   };
 
@@ -119,27 +124,39 @@ export function ResultClient() {
           size={puzzle.boardSize}
           stones={puzzle.stones}
           toPlay={puzzle.toPlay}
-          userMove={attempt?.userMove ?? null}
-          highlight={showAnswer ? puzzle.correct : undefined}
+          userMove={showAnswer ? null : (attempt?.userMove ?? null)}
+          highlight={showAnswer && !hasSolution ? puzzle.correct : undefined}
           extraStones={extraStones}
           disabled
           cropToStones={puzzle.boardSize === 19}
           boardStyle="dark"
         />
       </div>
+      <p className="text-center text-sm text-white/45">{t.result.boardCoordinateHint}</p>
 
       <div className="flex items-center justify-center gap-3 flex-wrap">
-        <button
-          type="button"
-          onClick={() => {
-            setShowAnswer((v) => !v);
-            setSolutionStep(0);
-            setIsPlaying(false);
-          }}
-          className="px-4 py-2 rounded-full border border-white/10 text-sm text-white/60 hover:text-white transition-colors"
-        >
-          {showAnswer ? t.result.hideAnswer : t.result.viewAnswer}
-        </button>
+        {!correct && (
+          <Link
+            href={retryHref}
+            className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[#00f2ff] hover:text-black transition-colors"
+          >
+            {t.result.retry}
+          </Link>
+        )}
+
+        {!hasSolution && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowAnswer((v) => !v);
+              setSolutionStep(0);
+              setIsPlaying(false);
+            }}
+            className="px-4 py-2 rounded-full border border-white/10 text-sm text-white/60 hover:text-white transition-colors"
+          >
+            {showAnswer ? t.result.hideAnswer : t.result.viewAnswer}
+          </button>
+        )}
 
         {hasSolution && (
           <>
@@ -184,7 +201,7 @@ export function ResultClient() {
           href="/"
           className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[#00f2ff] hover:text-black transition-colors"
         >
-          {t.result.backToToday}
+          {t.result.backToHome}
         </Link>
       </div>
 
@@ -195,8 +212,13 @@ export function ResultClient() {
       {/* Solution notes are only shown for curated puzzles — library imports
           have a generic placeholder note which is not worth the visual space. */}
       {showAnswer && puzzle.isCurated !== false && (
-        <section className="rounded-xl border border-white/10 bg-white/5 p-5 text-sm leading-relaxed text-white/60">
-          {localized(puzzle.solutionNote, locale)}
+        <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+          <div className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-[#00f2ff]/70">
+            {t.result.curatedNote}
+          </div>
+          <div className="text-sm leading-relaxed text-white/60">
+            {localized(puzzle.solutionNote, locale)}
+          </div>
         </section>
       )}
 

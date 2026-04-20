@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useLocale } from "@/lib/i18n";
 import { motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
 import { useRef } from "react";
+
+import { useLocale } from "@/lib/i18n";
 
 export function HeroSection() {
   const { t, locale } = useLocale();
@@ -63,13 +65,18 @@ export function HeroSection() {
       className="sticky top-0 h-screen z-10 flex items-center overflow-hidden"
     >
       {/* Background Image - parallax */}
-      <motion.div className="absolute inset-0 z-0" style={{ y: bgY }}>
+      <motion.div className="absolute inset-0 z-0 overflow-hidden" style={{ y: bgY }}>
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10" />
-        <img
-          alt="Go board"
-          className="w-full h-[120%] object-cover opacity-80"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd0x2ASouWz7G63car9i2KEMeaaeLqddV5NJ-ccOEkKgduWyV8OO45pqtd8-lj1ItI-58w80b9E0Tiz0zILDtV1ZzZsvjPzTzhWQGLzHhxK4DCjCllyGChzOXnjKw8KeNwMphoEFkHpekX_5C4xlitFU7ohKFj6SCL9Bx5iycXD5eMJ2bRLyJJJLUxVhlwLrhzLwEAvnaAd4QtphEGa38xkWfFVrYguokFDgwPNszucyamhxrc-nujboyk3iWYEB3OSTyfKrXgErYV"
-        />
+        <div className="relative h-[120%] w-full">
+          <Image
+            alt="Go board"
+            className="object-cover opacity-80"
+            fill
+            priority
+            sizes="100vw"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd0x2ASouWz7G63car9i2KEMeaaeLqddV5NJ-ccOEkKgduWyV8OO45pqtd8-lj1ItI-58w80b9E0Tiz0zILDtV1ZzZsvjPzTzhWQGLzHhxK4DCjCllyGChzOXnjKw8KeNwMphoEFkHpekX_5C4xlitFU7ohKFj6SCL9Bx5iycXD5eMJ2bRLyJJJLUxVhlwLrhzLwEAvnaAd4QtphEGa38xkWfFVrYguokFDgwPNszucyamhxrc-nujboyk3iWYEB3OSTyfKrXgErYV"
+          />
+        </div>
       </motion.div>
 
       {/* Content - fade out on scroll */}

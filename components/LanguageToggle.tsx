@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+
 import { useLocale } from "@/lib/i18n";
 import type { Locale } from "@/types";
 
@@ -28,13 +29,23 @@ export function LanguageToggle() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Keyboard: Escape closes the menu.
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" && open) {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
+
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" onKeyDown={handleKeyDown}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="text-white/40 hover:text-white transition-colors flex items-center"
         aria-label="Language"
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -53,11 +64,16 @@ export function LanguageToggle() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-50 rounded-lg border border-white/10 bg-[#0a0a0a]/95 backdrop-blur-xl p-1 shadow-lg min-w-[80px]">
+        <div
+          className="absolute right-0 top-8 z-50 rounded-lg border border-white/10 bg-[#0a0a0a]/95 backdrop-blur-xl p-1 shadow-lg min-w-[80px]"
+          role="menu"
+        >
           {ORDER.map((l) => (
             <button
               key={l}
               type="button"
+              role="menuitem"
+              aria-current={locale === l ? "true" : undefined}
               onClick={() => {
                 setLocale(l);
                 setOpen(false);

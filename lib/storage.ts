@@ -1,7 +1,16 @@
-import type { AttemptRecord } from "@/types";
-import { todayLocalKey } from "./puzzleOfTheDay";
+import type { AttemptRecord, Coord } from "@/types";
+
+import { todayLocalKey } from "./dateUtils";
 
 const KEY = "go-daily.attempts";
+
+type CreateAttemptRecordInput = {
+  puzzleId: string;
+  userMove: Coord | null;
+  correct: boolean;
+  date?: string;
+  solvedAtMs?: number;
+};
 
 export function loadAttempts(): AttemptRecord[] {
   if (typeof window === "undefined") return [];
@@ -25,6 +34,22 @@ export function saveAttempt(record: AttemptRecord): void {
   const all = loadAttempts();
   all.push(record);
   window.localStorage.setItem(KEY, JSON.stringify(all));
+}
+
+export function createAttemptRecord({
+  puzzleId,
+  userMove,
+  correct,
+  date = todayLocalKey(),
+  solvedAtMs = Date.now(),
+}: CreateAttemptRecordInput): AttemptRecord {
+  return {
+    puzzleId,
+    date,
+    userMove,
+    correct,
+    solvedAtMs,
+  };
 }
 
 /** Latest attempt for a puzzle (most recent `solvedAtMs`), or null if none. */

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "@/lib/i18n";
+
 import { Heatmap } from "@/components/Heatmap";
+import { useLocale } from "@/lib/i18n";
 import { computeAccuracy, computeStreak, loadAttempts } from "@/lib/storage";
 import type { AttemptRecord } from "@/types";
 

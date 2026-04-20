@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { coordEquals, isInBounds, isOccupied, starPoints } from "./board";
+
 import type { Stone } from "@/types";
+
+import { coordEquals, isInBounds, isOccupied, starPoints } from "./board";
 
 describe("coordEquals", () => {
   it("returns true for identical coords", () => {

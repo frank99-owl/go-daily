@@ -160,12 +160,7 @@ The `openai` npm package is used (not the Anthropic SDK); only `baseURL` needs c
 
 ## 5. Rate Limiting
 
-Current implementation: an in-process `Map<string, number[]>` keyed by IP address.
-
-```ts
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1-minute window
-const RATE_LIMIT_MAX = 10; // 10 requests per window
-```
+Current implementation: `MemoryRateLimiter`, backed by an in-process `Map<string, number[]>`. Parameters are adjustable via environment variables:
 
 **Limitation**: process-scoped — not shared across instances. In a Vercel Serverless deployment with multiple instances, each instance counts independently.
 
@@ -234,14 +229,19 @@ All errors return JSON `{ error: string }`; HTTP status reflects the error categ
 
 ## 9. Environment Variables
 
-| Variable           | Required | Description                                                |
-| ------------------ | -------- | ---------------------------------------------------------- |
-| `DEEPSEEK_API_KEY` | ✅       | DeepSeek API key; all coach requests return 500 without it |
+| Variable               | Required | Default | Description                                                |
+| ---------------------- | -------- | ------- | ---------------------------------------------------------- |
+| `DEEPSEEK_API_KEY`     | ✅       | —       | DeepSeek API key; all coach requests return 500 without it |
+| `RATE_LIMIT_WINDOW_MS` | —        | `60000` | Rate-limit time window in milliseconds                     |
+| `RATE_LIMIT_MAX`       | —        | `10`    | Max requests per window per IP                             |
 
 **Local development**: create `.env.local` in the project root:
 
 ```
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
+# Optional: adjust rate limit parameters
+# RATE_LIMIT_WINDOW_MS=60000
+# RATE_LIMIT_MAX=10
 ```
 
 **Vercel deployment**: add in Project Settings → Environment Variables, enabled for Production + Preview + Development.

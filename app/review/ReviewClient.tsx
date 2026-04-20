@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useLocale } from "@/lib/i18n";
-import { PUZZLES } from "@/content/puzzles";
-import { PuzzleStatusBadge } from "@/components/PuzzleStatusBadge";
-import { loadAttempts } from "@/lib/storage";
-import { getStatusFor, lastAttemptMsMap } from "@/lib/puzzleStatus";
-import { localized } from "@/lib/i18n";
-import { BOARD_SIZE_LABELS } from "@/types";
-import type { AttemptRecord, Puzzle } from "@/types";
+import { useEffect, useMemo, useState } from "react";
 
-export function ReviewClient() {
+import { PuzzleStatusBadge } from "@/components/PuzzleStatusBadge";
+import { useLocale } from "@/lib/i18n";
+import { localized } from "@/lib/localized";
+import { getStatusFor, lastAttemptMsMap } from "@/lib/puzzleStatus";
+import { loadAttempts } from "@/lib/storage";
+import { BOARD_SIZE_LABELS } from "@/types";
+import type { AttemptRecord, PuzzleSummary } from "@/types";
+
+export function ReviewClient({ summaries }: { summaries: PuzzleSummary[] }) {
   const { t, locale } = useLocale();
   const [attempts, setAttempts] = useState<AttemptRecord[] | null>(null);
 
@@ -33,12 +33,14 @@ export function ReviewClient() {
   }, [attemptsList]);
 
   const wrongPuzzles = useMemo(() => {
-    return PUZZLES.filter((p) => getStatusFor(p.id, attemptsList) === "attempted").sort((a, b) => {
-      const aMs = lastAttemptByPuzzle.get(a.id) ?? 0;
-      const bMs = lastAttemptByPuzzle.get(b.id) ?? 0;
-      return bMs - aMs;
-    });
-  }, [attemptsList, lastAttemptByPuzzle]);
+    return summaries
+      .filter((p) => getStatusFor(p.id, attemptsList) === "attempted")
+      .sort((a, b) => {
+        const aMs = lastAttemptByPuzzle.get(a.id) ?? 0;
+        const bMs = lastAttemptByPuzzle.get(b.id) ?? 0;
+        return bMs - aMs;
+      });
+  }, [summaries, attemptsList, lastAttemptByPuzzle]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -86,7 +88,7 @@ function ReviewCard({
   tagLabel,
   statusTitle,
 }: {
-  puzzle: Puzzle;
+  puzzle: PuzzleSummary;
   lastMs: number;
   attemptCount: number;
   locale: "zh" | "en" | "ja" | "ko";

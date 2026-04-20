@@ -16,7 +16,8 @@
     "difficulty": "难度",
     "submit": "确认落子",
     "reset": "重新选择",
-    "hint": "点击空交叉点落子"
+    "hint": "点击空交叉点落子",
+    "boardCoordinateHint": "坐标统一使用 (x,y)，左上角是 (0,0)。19 路题目可能只显示局部。"
   },
   "result": {
     "correct": "正确！",
@@ -24,12 +25,16 @@
     "viewAnswer": "查看正解",
     "hideAnswer": "隐藏正解",
     "playSolution": "播放正解",
+    "retry": "再做一次",
     "backToToday": "返回今日",
-    "coachTitle": "AI 陪练",
+    "backToHome": "返回首页",
+    "coachTitle": "AI 教练",
     "coachEmpty": "想到什么随时问——比如「为什么这一手是急所？」「如果白去扑会怎么样？」",
     "coachPlaceholder": "向 AI 提问…",
     "send": "发送",
     "thinking": "AI 思考中…",
+    "curatedNote": "精选讲解",
+    "boardCoordinateHint": "AI 教练提到的坐标与页面一致：使用 (x,y)，左上角为 (0,0)。",
     "attemptCount": "第 {{count}} 次尝试",
     "historyTally": "累计 {{correct}} 对 · {{wrong}} 错"
   },

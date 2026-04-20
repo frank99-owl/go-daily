@@ -1,8 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import {
+  computeCropWindow,
+  coordEquals,
+  fullWindow,
+  isInBounds,
+  isOccupied,
+  starPoints,
+  type BoardWindow,
+} from "@/lib/board";
 import type { Color, Coord, Stone } from "@/types";
-import { coordEquals, isInBounds, isOccupied, starPoints } from "@/lib/board";
 
 type Props = {
   size: 9 | 13 | 19;
@@ -28,73 +37,6 @@ type Props = {
   /** Highlight circle color. Defaults to CSS accent var. */
   highlightColor?: string;
 };
-
-/** Auto-crop padding (in board cells) around detected stones. */
-const CROP_PAD = 2;
-
-type Window = { xMin: number; xMax: number; yMin: number; yMax: number };
-
-function fullWindow(size: number): Window {
-  return { xMin: 0, xMax: size - 1, yMin: 0, yMax: size - 1 };
-}
-
-/** Compute the bounding box of all meaningful cells + padding, clamped to board. */
-function computeCrop(
-  size: number,
-  stones: Stone[],
-  extraStones: Stone[] | undefined,
-  highlight: Coord[] | undefined,
-  userMove: Coord | null | undefined,
-): Window {
-  const coords: Coord[] = [...stones, ...(extraStones ?? []), ...(highlight ?? [])];
-  if (userMove) coords.push(userMove);
-
-  if (coords.length === 0) return fullWindow(size);
-
-  let xMin = size - 1,
-    xMax = 0,
-    yMin = size - 1,
-    yMax = 0;
-  for (const c of coords) {
-    if (c.x < xMin) xMin = c.x;
-    if (c.x > xMax) xMax = c.x;
-    if (c.y < yMin) yMin = c.y;
-    if (c.y > yMax) yMax = c.y;
-  }
-
-  xMin = Math.max(0, xMin - CROP_PAD);
-  yMin = Math.max(0, yMin - CROP_PAD);
-  xMax = Math.min(size - 1, xMax + CROP_PAD);
-  yMax = Math.min(size - 1, yMax + CROP_PAD);
-
-  // Make the window square — a non-square canvas would distort stone shapes.
-  const w = xMax - xMin + 1;
-  const h = yMax - yMin + 1;
-  const dim = Math.max(w, h);
-
-  if (w < dim) {
-    // Prefer extending toward the far edge (away from the corner).
-    const extra = dim - w;
-    if (xMin === 0) {
-      xMax = Math.min(size - 1, xMax + extra);
-    } else {
-      xMin = Math.max(0, xMin - extra);
-    }
-    // Clamp again if we hit an edge without reaching dim.
-    if (xMax - xMin + 1 < dim) xMax = Math.min(size - 1, xMin + dim - 1);
-  }
-  if (h < dim) {
-    const extra = dim - h;
-    if (yMin === 0) {
-      yMax = Math.min(size - 1, yMax + extra);
-    } else {
-      yMin = Math.max(0, yMin - extra);
-    }
-    if (yMax - yMin + 1 < dim) yMax = Math.min(size - 1, yMin + dim - 1);
-  }
-
-  return { xMin, xMax, yMin, yMax };
-}
 
 function keyOf(c: Coord): string {
   return `${c.x},${c.y}`;
@@ -143,9 +85,11 @@ export function GoBoard({
   // Compute the render window (full board or cropped bbox). We intentionally
   // don't include `hover` here — otherwise the visible area would wobble as
   // the user moves the pointer.
-  const win: Window = useMemo(
+  const win: BoardWindow = useMemo(
     () =>
-      cropToStones ? computeCrop(size, stones, extraStones, highlight, userMove) : fullWindow(size),
+      cropToStones
+        ? computeCropWindow(size, stones, extraStones, highlight, userMove)
+        : fullWindow(size),
     [cropToStones, size, stones, extraStones, highlight, userMove],
   );
 
@@ -407,7 +351,7 @@ export function GoBoard({
           "rounded-md shadow-sm touch-none select-none " +
           (disabled ? "cursor-none" : "cursor-none")
         }
-        aria-label="Go board"
+        aria-label={`Go board, ${size} by ${size}`}
         role="img"
       />
     </div>

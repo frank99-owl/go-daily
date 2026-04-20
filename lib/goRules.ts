@@ -1,4 +1,5 @@
 import type { Color, Coord } from "@/types";
+
 import { Move } from "./sgf";
 
 function keyOf(c: Coord): string {

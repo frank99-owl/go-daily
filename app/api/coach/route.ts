@@ -1,47 +1,21 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import type { CoachMessage, Coord, Locale } from "@/types";
-import { PUZZLES } from "@/content/puzzles";
+
+import { getPuzzle } from "@/content/puzzles";
 import { buildSystemPrompt } from "@/lib/coachPrompt";
+import { createRateLimiter } from "@/lib/rateLimit";
+import type { CoachMessage } from "@/types";
+import { CoachRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 8 * 1024; // 8 KB
 const MAX_HISTORY = 6;
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX = 10;
 
-type CoachRequest = {
-  puzzleId: string;
-  locale: Locale;
-  userMove: Coord;
-  isCorrect: boolean;
-  history: CoachMessage[];
-};
-
-// Simple per-process in-memory rate limit. Not persistent, not perfect,
-// but enough of a brake against an accidentally noisy client.
-const hits = new Map<string, number[]>();
-
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const windowStart = now - RATE_LIMIT_WINDOW_MS;
-  const prev = (hits.get(ip) ?? []).filter((t) => t > windowStart);
-  if (prev.length >= RATE_LIMIT_MAX) {
-    hits.set(ip, prev);
-    return true;
-  }
-  prev.push(now);
-  hits.set(ip, prev);
-  return false;
-}
+const rateLimiter = createRateLimiter();
 
 function badRequest(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
-}
-
-function isLocale(v: unknown): v is Locale {
-  return v === "zh" || v === "en" || v === "ja" || v === "ko";
 }
 
 export async function POST(request: Request) {
@@ -56,37 +30,27 @@ export async function POST(request: Request) {
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
     "local";
-  if (rateLimited(ip)) {
+  if (rateLimiter.isLimited(ip)) {
     return badRequest("Too many requests, slow down.", 429);
   }
 
   // Parse
-  let body: Partial<CoachRequest>;
+  let rawBody: unknown;
   try {
-    body = (await request.json()) as Partial<CoachRequest>;
+    rawBody = await request.json();
   } catch {
     return badRequest("Invalid JSON.");
   }
 
-  const { puzzleId, locale, userMove, isCorrect, history } = body;
-
-  if (typeof puzzleId !== "string" || !puzzleId) {
-    return badRequest("Missing puzzleId.");
-  }
-  if (!isLocale(locale)) {
-    return badRequest("Invalid locale.");
-  }
-  if (!userMove || typeof userMove.x !== "number" || typeof userMove.y !== "number") {
-    return badRequest("Invalid userMove.");
-  }
-  if (typeof isCorrect !== "boolean") {
-    return badRequest("Missing isCorrect.");
-  }
-  if (!Array.isArray(history) || history.length === 0) {
-    return badRequest("History must contain at least the user's question.");
+  const parseResult = CoachRequestSchema.safeParse(rawBody);
+  if (!parseResult.success) {
+    const first = parseResult.error.issues[0];
+    return badRequest(first.message);
   }
 
-  const puzzle = PUZZLES.find((p) => p.id === puzzleId);
+  const { puzzleId, locale, userMove, isCorrect, history } = parseResult.data;
+
+  const puzzle = await getPuzzle(puzzleId);
   if (!puzzle) return badRequest("Unknown puzzleId.", 404);
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
@@ -99,13 +63,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // Keep only the last MAX_HISTORY turns, and strip anything exotic.
+  // Keep only the last MAX_HISTORY turns.
   const trimmedHistory: CoachMessage[] = history
     .slice(-MAX_HISTORY)
-    .filter(
-      (m): m is CoachMessage =>
-        !!m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string",
-    )
     .map((m) => ({ role: m.role, content: m.content.slice(0, 2000), ts: 0 }));
 
   const systemPrompt = buildSystemPrompt(puzzle, locale, userMove, isCorrect);

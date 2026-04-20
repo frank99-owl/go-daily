@@ -33,11 +33,14 @@
 ### 2.1 Current Architecture
 
 ```
-content/puzzles/index.ts
-  └─ export const PUZZLES: Puzzle[] = [...]  // full array baked into JS bundle at build time
+content/puzzles.server.ts
+  └─ Loads full Puzzle[] from data/*.json; server-side aggregation for page.tsx
+
+content/puzzles.ts
+  └─ Environment-aware entry: server reads full data, client reads puzzleIndex.json lightweight index
 ```
 
-All pages import every puzzle statically via `import { PUZZLES } from "@/content/puzzles"`.
+Server-side pages load full data asynchronously via `content/puzzles.server.ts`; client-side pages (e.g. library list) only consume the lightweight `content/data/puzzleIndex.json` index, never statically importing the full puzzle library.
 
 ### 2.2 Phase A (~1 000 puzzles): Group by File
 
@@ -217,7 +220,7 @@ Once data moves to a database in Phase B, the validation script needs to connect
 
 ### 6.2 Phase A: Persistent Rate Limiting
 
-Replace the `hits: Map` with [Upstash Redis](https://upstash.com/):
+Implement the `RateLimiter` interface to replace the current `MemoryRateLimiter`:
 
 ```ts
 import { Redis } from "@upstash/redis";

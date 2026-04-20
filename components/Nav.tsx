@@ -1,21 +1,24 @@
 "use client";
 
+import { Shuffle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Shuffle } from "lucide-react";
+
 import { useLocale } from "@/lib/i18n";
-import { LanguageToggle } from "./LanguageToggle";
-import { PUZZLES } from "@/content/puzzles";
 import { pickRandomPuzzle } from "@/lib/random";
 import { loadAttempts } from "@/lib/storage";
 
-export function Nav() {
+import { LanguageToggle } from "./LanguageToggle";
+
+export function Nav({ puzzleIds = [] }: { puzzleIds?: string[] }) {
   const { t } = useLocale();
   const router = useRouter();
 
   const handleRandom = () => {
     const attempts = loadAttempts();
-    const pick = pickRandomPuzzle(PUZZLES, attempts, "all");
+    // Wrap IDs in objects to satisfy pickRandomPuzzle's generic constraint
+    const pool = puzzleIds.map((id) => ({ id }));
+    const pick = pickRandomPuzzle(pool, attempts, "all");
     if (!pick) return;
     router.push(`/puzzles/${encodeURIComponent(pick.id)}`);
   };

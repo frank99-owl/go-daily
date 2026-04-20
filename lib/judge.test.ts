@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { judgeMove } from "./judge";
+
 import type { Puzzle } from "@/types";
+
+import { judgeMove } from "./judge";
 
 const mockPuzzle: Puzzle = {
   id: "test-1",

@@ -33,11 +33,14 @@
 ### 2.1 当前架构
 
 ```
-content/puzzles/index.ts
-  └─ export const PUZZLES: Puzzle[] = [...]  // 全量数组，构建时打入 JS bundle
+content/puzzles.server.ts
+  └─ 从 data/*.json 加载完整 Puzzle[]，服务端聚合后供 page.tsx 使用
+
+content/puzzles.ts
+  └─ 环境感知入口：服务端读 full data，客户端读 puzzleIndex.json 轻量索引
 ```
 
-所有页面通过 `import { PUZZLES } from "@/content/puzzles"` 静态引入全部题目。
+服务端页面通过 `content/puzzles.server.ts` 异步加载全量数据；客户端页面（如题库列表）只消费 `content/data/puzzleIndex.json` 的轻量索引，不再静态 import 完整题库。
 
 ### 2.2 阶段 A（~1 000 题）：按文件分组
 
@@ -218,7 +221,7 @@ export async function generateStaticParams() {
 
 ### 6.2 阶段 A：持久化速率限制
 
-用 [Upstash Redis](https://upstash.com/) 替换 `hits: Map`：
+实现 `RateLimiter` 接口，替换当前的 `MemoryRateLimiter`：
 
 ```ts
 import { Redis } from "@upstash/redis";

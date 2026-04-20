@@ -44,14 +44,13 @@ A curated puzzle = full 4-language explanation, AI coach enabled, eligible for t
 
 1. **Design the position** — sketch on paper / SGF editor. Pin down initial stones and the correct first move.
 2. **Record coordinates**. Internal system is **0-indexed `(x, y)` from top-left**. The R17 star point on a 19×19 is `(x=15, y=2)`. SGF letter mapping: a=0, b=1, ..., s=18.
-3. **Add an entry to `content/puzzles.ts`**:
+3. **Add an entry to `content/curatedPuzzles.ts`**:
 
 ```ts
-// content/puzzles.ts
+// content/curatedPuzzles.ts
 import type { Puzzle } from "@/types";
-import { IMPORTED_PUZZLES } from "@/content/data/importedPuzzles";
 
-const CURATED_PUZZLES: Puzzle[] = [
+export const CURATED_PUZZLES: Puzzle[] = [
   {
     id: "2026-05-01",
     date: "2026-05-01",
@@ -104,9 +103,9 @@ const CURATED_PUZZLES: Puzzle[] = [
     source: "Frank · 2026 spring", // optional
   },
 ];
-
-export const PUZZLES: Puzzle[] = [...CURATED_PUZZLES, ...IMPORTED_PUZZLES];
 ```
+
+The data entry layer (`content/puzzles.ts` / `content/puzzles.server.ts`) automatically aggregates `curatedPuzzles.ts` with `importedPuzzles.json`. You do not need to merge manually.
 
 4. **Run the validator**:
 
@@ -133,7 +132,7 @@ npm run dev
 
 ## Path B: Bulk SGF import
 
-That's how the current `content/data/importedPuzzles.ts` (100 Cho Chikun beginner life-and-death problems) was populated.
+That's how the current `content/data/importedPuzzles.json` (100 Cho Chikun beginner life-and-death problems) was populated.
 
 ### Command
 
@@ -145,7 +144,7 @@ Under the hood, `scripts/importTsumego.ts`:
 
 1. Pulls from GitHub `sanderland/tsumego` (MIT), collection `Cho Chikun Encyclopedia Life And Death - Elementary`
 2. Takes the first 100, converts SGF coords to `(x, y)`
-3. Writes `content/data/importedPuzzles.ts` (with an auto-generated banner — don't edit by hand)
+3. Writes `content/data/importedPuzzles.json` (do not edit by hand)
 
 ### Design conventions
 
@@ -171,14 +170,18 @@ Other collections are browsable at [sanderland/tsumego](https://github.com/sande
 If you plug in a new source later (OGS games, Frank's own SGF folder, some API) — follow the importTsumego shape:
 
 1. New `scripts/importX.ts`, reads source, maps to `Puzzle[]`
-2. Writes to its own file `content/data/importedX.ts` (auto-generated banner + do-not-edit convention)
-3. Merge in `content/puzzles.ts`:
+2. Writes to its own file `content/data/importedX.json` (do-not-edit convention)
+3. Register the new data source in `content/puzzles.server.ts`:
 
 ```ts
-export const PUZZLES: Puzzle[] = [
-  ...CURATED_PUZZLES,
-  ...IMPORTED_PUZZLES,
-  ...IMPORTED_X_PUZZLES, // new source
+// content/puzzles.server.ts
+import importedXPuzzles from "./data/importedX.json";
+
+// Merge during aggregation
+const ALL_PUZZLES: Puzzle[] = [
+  ...curatedPuzzles,
+  ...importedPuzzles,
+  ...importedXPuzzles, // new source
 ];
 ```
 
@@ -187,12 +190,12 @@ export const PUZZLES: Puzzle[] = [
 
 **Do not**:
 
-- Append other sources directly into `content/data/importedPuzzles.ts` — that file is auto-generated and will be clobbered next import run.
+- Append other sources directly into `content/data/importedPuzzles.json` — that file is auto-generated and will be clobbered next import run.
 - Skip the validator on commit. You might get away with it solo, but CI/deployment will blow up.
 
 ## Validator rules
 
-`scripts/validatePuzzles.ts` hunts for these hard errors:
+`scripts/validatePuzzles.ts` first checks with a `zod` schema for basic type validity, then runs custom semantic rules:
 
 | Rule               | What it catches                                                 |
 | ------------------ | --------------------------------------------------------------- |
@@ -220,7 +223,7 @@ export const PUZZLES: Puzzle[] = [
 | Symptom                                           | Likely cause                                                                                                                          |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run build` fails with `✗ 1 issue(s)`         | Run `npm run validate:puzzles` to see the detailed report                                                                             |
-| New curated puzzle doesn't show in `/puzzles`     | Check it's actually merged into the exported `PUZZLES` array; restart dev server                                                      |
+| New curated puzzle doesn't show in `/puzzles`     | Check `content/puzzles.server.ts` has correctly aggregated the curated source; restart dev server                                     |
 | Coach mentions things not in the solution         | `solutionNote` is too thin; the coach can only ground on it plus `solutionSequence` + `wrongBranches`                                 |
 | Switching to Japanese shows English solution text | `localized()` fallback kicked in — that means `solutionNote.ja` is empty. The validator should've blocked this; something bypassed it |
 | Result page has no "View solution" button         | Current logic: `showAnswer` only renders when `correct` is non-empty. Make sure `correct[]` is populated                              |

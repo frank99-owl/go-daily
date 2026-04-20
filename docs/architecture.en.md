@@ -19,33 +19,34 @@ A single-page tour of how go-daily is organised: where the layer boundaries are,
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  middleware.ts  Request interception (i18n cookie → header)   │
-│  app/         Routes · page components (Server / Client)      │
-│  components/  Reusable UI units (GoBoard · ShareCard · Nav …) │
-│  lib/         Pure logic (board · judge · storage · i18n …)   │
-│  content/     Data (puzzles.ts · messages/*.json · games/)    │
-│  types/       Type definitions (Puzzle · AttemptRecord · …)   │
-│  scripts/     Build / authoring tools                         │
+│  proxy.ts      Request forwarding (i18n cookie → header)      │
+│  app/          Routes · page components (Server / Client)      │
+│  components/   Reusable UI units (GoBoard · ShareCard · Nav …) │
+│  lib/          Pure logic (board · judge · storage · i18n …)   │
+│  content/      Data (puzzles.ts · puzzles.server.ts ·          │
+│                messages/*.json · data/*.json · games/)           │
+│  types/        Type definitions (Puzzle · AttemptRecord · …)   │
+│  scripts/      Build / authoring tools                         │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Dependency direction**: `middleware` → `app` → `components` → `lib` → `types`/`content`. Going the other way is off-limits.
+**Dependency direction**: `proxy` → `app` → `components` → `lib` → `types`/`content`. Going the other way is off-limits.
 
 ## Route map
 
 | Route           | Server component            | Client component                   | Role                                                                                 |
 | --------------- | --------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------ |
 | `/`             | `app/page.tsx`              | `HeroSection` + `BoardShowcase`    | Landing page — parallax scroll + AlphaGo Game 4 demo                                 |
-| `/today`        | `app/today/page.tsx`        | `app/TodayClient.tsx`              | Daily puzzle — calls `getPuzzleForDate(todayLocalKey())`, hands off to `TodayClient` |
-| `/puzzles`      | `app/puzzles/page.tsx`      | `app/puzzles/PuzzleListClient.tsx` | Full library with filter / sort / search                                             |
-| `/puzzles/[id]` | `app/puzzles/[id]/page.tsx` | reuses `TodayClient`               | Open a specific puzzle; `generateStaticParams()` covers the full `PUZZLES` array     |
+| `/today`        | `app/today/page.tsx`        | `app/TodayClient.tsx`              | Daily puzzle — async `getPuzzleForDate(todayLocalKey())`, hands off to `TodayClient` |
+| `/puzzles`      | `app/puzzles/page.tsx`      | `app/puzzles/PuzzleListClient.tsx` | Full library — async summary fetch, filter / sort / search                           |
+| `/puzzles/[id]` | `app/puzzles/[id]/page.tsx` | reuses `TodayClient`               | Open a specific puzzle; `generateStaticParams()` covers all library IDs              |
 | `/result`       | `app/result/page.tsx`       | `app/result/ResultClient.tsx`      | Verdict banner, solution playback, AI coach, share card                              |
 | `/review`       | `app/review/page.tsx`       | `app/review/ReviewClient.tsx`      | Mistake notebook — `attempted` status, newest first                                  |
 | `/stats`        | `app/stats/page.tsx`        | `app/stats/StatsClient.tsx`        | Streak · accuracy · total · heatmap                                                  |
 | `/developer`    | `app/developer/page.tsx`    | —                                  | Developer page                                                                       |
-| `/api/coach`    | `app/api/coach/route.ts`    | —                                  | LLM proxy (POST JSON)                                                                |
+| `/api/coach`    | `app/api/coach/route.ts`    | —                                  | LLM proxy (POST JSON, zod schema validated)                                          |
 
-**Server vs Client convention**: `page.tsx` stays minimal — "fetch puzzle · build props · hand to Client". The heavy lifting is in `*Client.tsx`. Because everything that touches `localStorage` or preferences must be client-side, the interactive pages are all client components.
+**Server vs Client convention**: `page.tsx` stays minimal — "async fetch puzzle · build props · hand to Client". The heavy lifting is in `*Client.tsx`. Because everything that touches `localStorage` or preferences must be client-side, the interactive pages are all client components.
 
 ## Core data flow
 
@@ -66,10 +67,12 @@ Entry point is `/today` (daily puzzle) or `/puzzles/[id]` (a specific puzzle):
        ↓                    ← lib/storage.ts, append to localStorage
  router.push(`/result?id=${puzzle.id}`)
        ↓
- ResultClient reads URL id → PUZZLES.find → renders
+ ResultClient reads URL id → getPuzzle(id) → renders
        ├─ getAttemptFor(id)       // latest (verdict banner)
        └─ getAttemptsFor(id)      // full history (attempt count, tally)
 ```
+
+> `getPuzzle(id)` is an async function exported from `content/puzzles.ts`: on the server it reads full data via `puzzles.server.ts`; on the client it queries the lightweight `puzzleIndex.json`.
 
 ### Daily rotation (date → index → puzzle)
 
@@ -77,7 +80,7 @@ Entry point is `/today` (daily puzzle) or `/puzzles/[id]` (a specific puzzle):
 
 1. `todayLocalKey()` returns local `YYYY-MM-DD`
 2. `getPuzzleForDate(date)` computes the day offset vs. `ROTATION_ANCHOR` (`2026-04-18`)
-3. `offset % PUZZLES.length` gives a stable puzzle per calendar day
+3. `offset % libraryLength` gives a stable puzzle per calendar day
 
 **We no longer match on `puzzle.date`** — imported puzzles share a placeholder date, so it shouldn't drive the schedule. Pure modular arithmetic; wraps automatically once we exhaust the library.
 
@@ -102,33 +105,40 @@ Key contract: `lib/puzzleStatus.ts` **never imports `window`**. Every function i
 
 ## Module map
 
-| Module                      | Path                               | One-liner                                                           |
-| --------------------------- | ---------------------------------- | ------------------------------------------------------------------- |
-| Full library                | `content/puzzles.ts`               | Exports `PUZZLES` · `getPuzzleById()` · `getCuratedPuzzles()`       |
-| Imported corpus (generated) | `content/data/importedPuzzles.ts`  | Produced by `scripts/importTsumego.ts` — do not hand-edit           |
-| Game record data            | `content/games/leeAlphagoG4.ts`    | Lee Sedol vs AlphaGo Game 4 SGF + metadata ("divine move")          |
-| Types                       | `types/index.ts`                   | `Puzzle` / `AttemptRecord` / `PuzzleStatus` / `Locale` etc.         |
-| localStorage I/O            | `lib/storage.ts`                   | `loadAttempts` / `saveAttempt` / `getAttemptFor` / `getAttemptsFor` |
-| Status derivation           | `lib/puzzleStatus.ts`              | Pure functions over attempts                                        |
-| Judge                       | `lib/judge.ts`                     | One-line lookup into `puzzle.correct[]`                             |
-| Daily rotation              | `lib/puzzleOfTheDay.ts`            | `getPuzzleForDate` + `todayLocalKey`                                |
-| Random picker               | `lib/random.ts`                    | `pickRandomPuzzle(pool: "all"│"unattempted"│"wrong")`               |
-| Board geometry              | `lib/board.ts`                     | `isInBounds` / `isOccupied` / `starPoints`                          |
-| Go rules engine             | `lib/goRules.ts`                   | `playMove`: place, capture (single/group), self-capture check       |
-| SGF parser                  | `lib/sgf.ts`                       | `parseSgfMoves`: SGF string → coordinate sequence                   |
-| Snapshot builder            | `lib/gameSnapshots.ts`             | `buildSnapshots`: generate per-move board snapshots from SGF        |
-| Localized text              | `lib/i18n.tsx`                     | `localized(text, locale)` with en→zh→ja→ko fallback                 |
-| i18n context                | `lib/i18n.tsx`                     | `LocaleProvider` + `useLocale()` · persists to `go-daily.locale`    |
-| i18n middleware             | `middleware.ts`                    | cookie `go-daily.locale` → `x-locale` header, eliminates SSR flash  |
-| Coach prompt factory        | `lib/coachPrompt.ts`               | Builds the 4-language system prompt · injects board + solution note |
-| Board renderer              | `components/GoBoard.tsx`           | Canvas 2D · HiDPI · auto-crop · dark/classic dual theme             |
-| Landing Hero                | `components/HeroSection.tsx`       | Parallax scroll · locale-aware typography · background image        |
-| Board showcase              | `components/BoardShowcase.tsx`     | Scroll-driven animation · AlphaGo Game 4 "divine move" demo         |
-| Demo board                  | `components/DemoGameBoard.tsx`     | Historical game move-by-move replay · phase transitions             |
-| Custom cursor               | `components/GlobalCursor.tsx`      | Global custom mouse cursor (neon cyan glow)                         |
-| Coach UI                    | `components/CoachDialogue.tsx`     | Chat · writes to `sessionStorage` keyed by puzzleId + locale        |
-| Share card                  | `components/ShareCard.tsx`         | 1080×1080 PNG + Web Share                                           |
-| Status badge                | `components/PuzzleStatusBadge.tsx` | Tri-state dot: solved / attempted / unattempted                     |
+| Module                      | Path                                | One-liner                                                                         |
+| --------------------------- | ----------------------------------- | --------------------------------------------------------------------------------- |
+| Data entry (env-aware)      | `content/puzzles.ts`                | `getPuzzle()` / `getAllSummaries()` — server reads full, client reads index       |
+| Server full data            | `content/puzzles.server.ts`         | Loads full `Puzzle[]` from `data/*.json`; server-only                             |
+| Client light index          | `content/data/puzzleIndex.json`     | `PuzzleSummary[]` for list / review pages                                         |
+| Imported corpus (generated) | `content/data/importedPuzzles.json` | Produced by `scripts/importTsumego.ts` — do not hand-edit                         |
+| Full library (generated)    | `content/data/puzzleLibrary.json`   | Aggregated complete puzzle library JSON                                           |
+| Curated puzzles             | `content/curatedPuzzles.ts`         | Hand-written curated puzzles, aggregated by `puzzles.server.ts`                   |
+| Game record data            | `content/games/leeAlphagoG4.ts`     | Lee Sedol vs AlphaGo Game 4 SGF + metadata ("divine move")                        |
+| Types                       | `types/index.ts`                    | `Puzzle` / `AttemptRecord` / `PuzzleStatus` / `Locale` etc.                       |
+| zod schema                  | `types/schemas.ts`                  | Runtime validation schemas shared by API + validatePuzzles                        |
+| Rate limiter                | `lib/rateLimit.ts`                  | `RateLimiter` interface + `MemoryRateLimiter` implementation                      |
+| Site URL                    | `lib/siteUrl.ts`                    | Reads `NEXT_PUBLIC_SITE_URL` for canonical / sitemap / robots                     |
+| localStorage I/O            | `lib/storage.ts`                    | `loadAttempts` / `saveAttempt` / `getAttemptFor` / `getAttemptsFor`               |
+| Status derivation           | `lib/puzzleStatus.ts`               | Pure functions over attempts                                                      |
+| Judge                       | `lib/judge.ts`                      | One-line lookup into `puzzle.correct[]`                                           |
+| Daily rotation              | `lib/puzzleOfTheDay.ts`             | `getPuzzleForDate` + `todayLocalKey`                                              |
+| Random picker               | `lib/random.ts`                     | `pickRandomPuzzle(pool: "all"│"unattempted"│"wrong")`                             |
+| Board geometry              | `lib/board.ts`                      | `isInBounds` / `isOccupied` / `starPoints`                                        |
+| Go rules engine             | `lib/goRules.ts`                    | `playMove`: place, capture (single/group), self-capture check                     |
+| SGF parser                  | `lib/sgf.ts`                        | `parseSgfMoves`: SGF string → coordinate sequence                                 |
+| Snapshot builder            | `lib/gameSnapshots.ts`              | `buildSnapshots`: generate per-move board snapshots from SGF                      |
+| Localized text              | `lib/i18n.tsx`                      | `localized(text, locale)` with en→zh→ja→ko fallback                               |
+| i18n context                | `lib/i18n.tsx`                      | `LocaleProvider` + `useLocale()` · persists to `go-daily.locale`                  |
+| i18n proxy                  | `proxy.ts`                          | cookie `go-daily.locale` → `x-locale` header, eliminates SSR flash                |
+| Coach prompt factory        | `lib/coachPrompt.ts`                | Builds the 4-language system prompt · injects board + solution note               |
+| Board renderer              | `components/GoBoard.tsx`            | Canvas 2D · HiDPI · auto-crop · dark/classic dual theme                           |
+| Landing Hero                | `components/HeroSection.tsx`        | Parallax scroll · locale-aware typography · background image                      |
+| Board showcase              | `components/BoardShowcase.tsx`      | Scroll-driven animation · AlphaGo Game 4 "divine move" demo                       |
+| Demo board                  | `components/DemoGameBoard.tsx`      | Historical game move-by-move replay · phase transitions                           |
+| Custom cursor               | `components/GlobalCursor.tsx`       | Global custom mouse cursor (neon cyan glow)                                       |
+| Coach UI                    | `components/CoachDialogue.tsx`      | Chat · writes to `sessionStorage` keyed by `go-daily.coach.${puzzleId}.${locale}` |
+| Share card                  | `components/ShareCard.tsx`          | 1080×1080 PNG + Web Share                                                         |
+| Status badge                | `components/PuzzleStatusBadge.tsx`  | Tri-state dot: solved / attempted / unattempted                                   |
 
 ## Styling system
 
@@ -161,18 +171,18 @@ Fonts: Inter (Latin) + Playfair Display (display serif) + Zhi Mang Xing (Chinese
 
 ## Build & scripts
 
-| Command                    | Purpose                                                                                   |
-| -------------------------- | ----------------------------------------------------------------------------------------- |
-| `npm run dev`              | Local dev server (Turbopack)                                                              |
-| `npm run build`            | Production build. The `prebuild` hook runs `validate:puzzles` first                       |
-| `npm run lint`             | ESLint (flat config · Next.js + TypeScript rules)                                         |
-| `npm run import:puzzles`   | Pulls the top 100 problems from sanderland/tsumego into `content/data/importedPuzzles.ts` |
-| `npm run validate:puzzles` | Hard-error check: duplicate IDs / out-of-bounds / missing locales / invalid enums         |
-| `npm run format`           | Prettier formatting on all files                                                          |
-| `npm run format:check`     | Prettier format check (for CI)                                                            |
-| `npm run test`             | Vitest unit tests (board / judge / goRules / sgf)                                         |
+| Command                    | Purpose                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`              | Local dev server (Turbopack)                                                                                  |
+| `npm run build`            | Production build. The `prebuild` hook runs `validate:puzzles` first                                           |
+| `npm run lint`             | ESLint (flat config · Next.js + TypeScript rules)                                                             |
+| `npm run import:puzzles`   | Pulls the top 100 problems from sanderland/tsumego into `content/data/importedPuzzles.json`                   |
+| `npm run validate:puzzles` | Hard-error check: duplicate IDs / out-of-bounds / missing locales / invalid enums (zod schema + custom rules) |
+| `npm run format`           | Prettier formatting on all files                                                                              |
+| `npm run format:check`     | Prettier format check (for CI)                                                                                |
+| `npm run test`             | Vitest unit tests (board / judge / goRules / sgf / puzzleOfTheDay / storage + API + components)               |
 
-**Key design**: `prebuild → validate:puzzles` is a deploy safety net. Any dirty data that would cause 404s or crashes is caught at `npm run build`, never shipped.
+**Key design**: `prebuild → validate:puzzles` is a deploy safety net. Any dirty data that would cause 404s or crashes is caught at `npm run build`, never shipped. The validator now uses zod schema as its first type-check layer, then custom semantic rules on top.
 
 ## Further reading
 

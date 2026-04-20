@@ -66,7 +66,7 @@ npm run dev
 | `npm run validate:puzzles` | 验证所有题目数据的完整性                |
 | `npm run format`           | Prettier 格式化全部文件                 |
 | `npm run format:check`     | Prettier 格式检查（CI 用）              |
-| `npm run test`             | Vitest 单元测试                         |
+| `npm run test`             | Vitest 单元测试 + 组件测试 + API 测试   |
 | `npm run import:puzzles`   | 从 GitHub SGF 仓库导入经典死活题        |
 
 ---
@@ -76,7 +76,7 @@ npm run dev
 ```
 go-daily/
 ├── app/                  # Next.js App Router 页面和 API
-│   ├── api/coach/        # AI 教练 Route Handler
+│   ├── api/coach/        # AI 教练 Route Handler（zod 驱动校验）
 │   ├── developer/        # 开发者页
 │   ├── puzzles/          # 题库页和 [id] 动态路由
 │   ├── result/           # 结果页
@@ -86,15 +86,20 @@ go-daily/
 ├── components/           # 共享 UI 组件
 ├── content/
 │   ├── messages/         # 四语言翻译 JSON
-│   ├── puzzles.ts        # 题目聚合器
-│   ├── data/             # 大数据文件（auto-generated）
+│   ├── puzzles.ts        # 环境感知数据入口（server/client 自动切换）
+│   ├── puzzles.server.ts # 服务端全量数据加载
+│   ├── curatedPuzzles.ts # 手写精选题
+│   ├── data/             # 大数据文件（auto-generated JSON）
+│   │   ├── puzzleIndex.json      # 客户端轻量索引
+│   │   ├── importedPuzzles.json  # 批量导入题
+│   │   └── puzzleLibrary.json    # 全量题库
 │   └── games/            # 历史棋谱 SGF 数据
 ├── docs/                 # 项目文档（中英双语）
-├── lib/                  # 工具函数（i18n、storage、coach、goRules、sgf 等）
+├── lib/                  # 工具函数（i18n、storage、coach、goRules、sgf、rateLimit 等）
 ├── scripts/              # 构建脚本（验证、导入）
-├── types/                # 全局 TypeScript 类型定义
+├── types/                # 全局 TypeScript 类型定义 + zod schema
 ├── public/               # 静态资产
-└── middleware.ts         # i18n cookie → header 转发
+└── proxy.ts              # i18n cookie → header 转发
 ```
 
 完整架构说明见 [docs/architecture.md](./docs/architecture.md)。
@@ -108,6 +113,7 @@ go-daily/
 - **strict 模式**（`tsconfig.json`），不允许 `any`（特殊情况需注释说明）
 - 路径别名：`@/*` 映射到项目根目录，避免 `../../../` 相对路径
 - 类型定义集中在 `types/index.ts`，不分散在各文件
+- 新增 zod schema 统一放在 `types/schemas.ts`
 
 ### React
 
@@ -134,7 +140,7 @@ go-daily/
 
 ### 手动添加（精选题）
 
-1. 在 `content/puzzles/index.ts` 中添加一个 `Puzzle` 对象
+1. 在 `content/curatedPuzzles.ts` 中添加一个 `Puzzle` 对象
 2. 运行 `npm run validate:puzzles` 验证
 3. 详细字段说明见 [docs/puzzle-authoring.md](./docs/puzzle-authoring.md)
 
@@ -144,6 +150,8 @@ go-daily/
 # 将 SGF 文件放入 scripts/sgf/
 npm run import:puzzles
 ```
+
+输出写入 `content/data/importedPuzzles.json`（带 auto-generated 横幅，不要手改）。
 
 批量导入的题目建议设 `isCurated: false`（禁用 AI 教练，防止幻觉）。
 
@@ -166,7 +174,7 @@ npm run import:puzzles
    ```bash
    npm run format:check   # Prettier 格式检查通过
    npm run lint           # 无 ESLint 报错
-   npm run test           # 单元测试全绿
+   npm run test           # 单元测试全绿（46/46）
    npm run validate:puzzles  # 题目数据验证通过
    npm run build          # 生产构建成功
    ```
@@ -179,7 +187,7 @@ npm run import:puzzles
 
 ## 8. 测试
 
-项目使用 **Vitest** 进行单元测试，覆盖核心纯函数：
+项目使用 **Vitest** 进行单元测试，覆盖核心纯函数、组件和 API：
 
 ```bash
 npm run test       # 运行全部测试
@@ -188,21 +196,17 @@ npm run test:watch # 监听模式
 
 现有测试文件：
 
-| 文件                  | 覆盖内容                                    |
-| --------------------- | ------------------------------------------- |
-| `lib/board.test.ts`   | `coordEquals` / `isInBounds` / `starPoints` |
-| `lib/judge.test.ts`   | 正解/非正解/多正解判断                      |
-| `lib/goRules.test.ts` | 提子算法（单子提、群提、不自提）            |
-| `lib/sgf.test.ts`     | SGF 坐标解析、分支跳过                      |
-
-### 缺失的测试（欢迎贡献）
-
-| 层级     | 目标模块                                 | 推荐框架               |
-| -------- | ---------------------------------------- | ---------------------- |
-| 单元测试 | `lib/puzzleStatus.ts`（纯函数）          | Vitest                 |
-| 单元测试 | `scripts/validatePuzzles.ts`（验证规则） | Vitest                 |
-| 组件测试 | `GoBoard`（canvas 渲染）                 | Playwright / Storybook |
-| E2E 测试 | 首页落子 → 结果页流程                    | Playwright             |
+| 文件                                      | 覆盖内容                                    |
+| ----------------------------------------- | ------------------------------------------- |
+| `lib/board.test.ts`                       | `coordEquals` / `isInBounds` / `starPoints` |
+| `lib/judge.test.ts`                       | 正解/非正解/多正解判断                      |
+| `lib/goRules.test.ts`                     | 提子算法（单子提、群提、不自提）            |
+| `lib/sgf.test.ts`                         | SGF 坐标解析、分支跳过                      |
+| `lib/puzzleOfTheDay.test.ts`              | 每日轮换算法                                |
+| `lib/storage.test.ts`                     | localStorage 读写与序列化                   |
+| `tests/api/coach.test.ts`                 | Coach API 请求校验、限流、错误码            |
+| `tests/components/CoachDialogue.test.tsx` | CoachDialogue 渲染与交互                    |
+| `tests/components/GoBoard.test.tsx`       | GoBoard canvas 渲染与点击坐标               |
 
 ---
 

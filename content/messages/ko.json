@@ -16,7 +16,8 @@
     "difficulty": "난이도",
     "submit": "착수 확인",
     "reset": "다시 선택",
-    "hint": "빈 교차점을 눌러 돌을 놓으세요"
+    "hint": "빈 교차점을 눌러 돌을 놓으세요",
+    "boardCoordinateHint": "좌표는 (x,y) 형식이며 왼쪽 위가 (0,0)입니다. 19로 문제는 일부만 보일 수 있습니다."
   },
   "result": {
     "correct": "맞았어요！",
@@ -24,12 +25,16 @@
     "viewAnswer": "정답 보기",
     "hideAnswer": "정답 숨기기",
     "playSolution": "정답 재생",
+    "retry": "다시 풀기",
     "backToToday": "오늘로 돌아가기",
+    "backToHome": "홈으로 돌아가기",
     "coachTitle": "AI 코치",
     "coachEmpty": "무엇이든 물어보세요 — 예: \"왜 이곳이 급소인가요?\" / \"백이 젖히면 어떻게 되나요?\"",
     "coachPlaceholder": "코치에게 물어보기…",
     "send": "보내기",
     "thinking": "생각 중…",
+    "curatedNote": "엄선 해설",
+    "boardCoordinateHint": "AI 코치의 좌표는 페이지와 같은 (x,y) 형식이며 왼쪽 위가 (0,0)입니다.",
     "attemptCount": "{{count}}번째 시도",
     "historyTally": "누적 정답 {{correct}} · 오답 {{wrong}}"
   },

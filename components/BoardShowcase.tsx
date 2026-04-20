@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
-import { DemoGameBoard, type DemoPhase } from "./DemoGameBoard";
+import { useRef, useState, useCallback } from "react";
+
 import { LEE_ALPHAGO_G4_SGF, LEE_ALPHAGO_G4_META } from "@/content/games/leeAlphagoG4";
-import { parseSgfMoves } from "@/lib/sgf";
 import { buildSnapshots } from "@/lib/gameSnapshots";
 import { useLocale } from "@/lib/i18n";
+import { parseSgfMoves } from "@/lib/sgf";
+
+import { DemoGameBoard, type DemoPhase } from "./DemoGameBoard";
 
 const SNAPSHOTS = buildSnapshots(parseSgfMoves(LEE_ALPHAGO_G4_SGF));
 

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GoBoard } from "./GoBoard";
+
 import type { Snapshot } from "@/lib/gameSnapshots";
 import type { Coord } from "@/types";
+
+import { GoBoard } from "./GoBoard";
 
 export type DemoPhase = "idle" | "showGod" | "playing" | "ended";
 

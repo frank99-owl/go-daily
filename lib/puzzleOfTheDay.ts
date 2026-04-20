@@ -1,5 +1,6 @@
 import type { Puzzle } from "@/types";
-import { PUZZLES } from "@/content/puzzles";
+
+import { todayLocalKey } from "./dateUtils";
 
 // Anchor date for the rotation: day 0 of the cycle. Today (2026-04-18) is the
 // first day the app ships with a non-empty library, so it maps to index 0.
@@ -14,27 +15,19 @@ function parseYmdUTC(ymd: string): number {
 
 /**
  * Return the puzzle scheduled for the given local YYYY-MM-DD.
- *
- * We no longer match on `puzzle.date` — imported puzzles all share a placeholder
- * date. Instead we compute a day index from a fixed anchor and pick by modulo,
- * so every calendar day gets a stable (but cycling) puzzle.
- *
- * Falls back to the first puzzle if the corpus is unexpectedly empty, so callers
- * can still render something instead of crashing.
  */
-export function getPuzzleForDate(date: string): Puzzle {
-  if (PUZZLES.length === 0) {
+export async function getPuzzleForDate(date: string): Promise<Puzzle> {
+  const { PUZZLES } = await import("@/content/puzzles.server");
+
+  const curated = PUZZLES.filter((p) => p.isCurated !== false);
+  const pool = curated.length > 0 ? curated : PUZZLES;
+
+  if (pool.length === 0) {
     throw new Error("No puzzles available — did importTsumego.ts run?");
   }
   const diffDays = Math.floor((parseYmdUTC(date) - parseYmdUTC(ROTATION_ANCHOR)) / DAY_MS);
-  const idx = ((diffDays % PUZZLES.length) + PUZZLES.length) % PUZZLES.length;
-  return PUZZLES[idx];
+  const idx = ((diffDays % pool.length) + pool.length) % pool.length;
+  return pool[idx];
 }
 
-// Local YYYY-MM-DD.
-export function todayLocalKey(d: Date = new Date()): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+export { todayLocalKey };

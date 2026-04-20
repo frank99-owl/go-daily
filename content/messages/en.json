@@ -16,7 +16,8 @@
     "difficulty": "Difficulty",
     "submit": "Confirm move",
     "reset": "Reset",
-    "hint": "Tap an empty intersection to place a stone"
+    "hint": "Tap an empty intersection to place a stone",
+    "boardCoordinateHint": "Coordinates use (x,y) with the top-left as (0,0). 19x19 puzzles may show only a local corner."
   },
   "result": {
     "correct": "Correct!",
@@ -24,12 +25,16 @@
     "viewAnswer": "View solution",
     "hideAnswer": "Hide solution",
     "playSolution": "Play solution",
+    "retry": "Try again",
     "backToToday": "Back to today",
+    "backToHome": "Back to home",
     "coachTitle": "AI Coach",
     "coachEmpty": "Ask anything — e.g. \"Why is this the vital point?\" or \"What happens if White hanes?\"",
     "coachPlaceholder": "Ask the coach…",
     "send": "Send",
     "thinking": "Thinking…",
+    "curatedNote": "Curated note",
+    "boardCoordinateHint": "The AI coach uses the same (x,y) coordinates as the page, with the top-left as (0,0).",
     "attemptCount": "Attempt #{{count}}",
     "historyTally": "{{correct}} correct · {{wrong}} wrong overall"
   },

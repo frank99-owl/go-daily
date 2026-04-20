@@ -18,7 +18,11 @@
 
 ## 1. Puzzle — 题目对象
 
-源文件：`types/index.ts`，实际数据：`content/puzzles/index.ts`。
+类型定义：`types/index.ts`  
+运行时校验：`types/schemas.ts`（zod）  
+curated 数据：`content/curatedPuzzles.ts`  
+generated 数据：`content/data/importedPuzzles.json`、`content/data/puzzleLibrary.json`  
+聚合入口：`content/puzzles.ts`（环境感知）/ `content/puzzles.server.ts`（服务端全量）
 
 | 字段               | 类型                 | 必填 | 说明                                                                             |
 | ------------------ | -------------------- | ---- | -------------------------------------------------------------------------------- |
@@ -54,6 +58,25 @@ interface WrongBranch {
 }
 ```
 
+### 1.3 PuzzleSummary（轻量索引）
+
+`content/data/puzzleIndex.json` 中存储的是 `PuzzleSummary[]`，只包含列表页需要的最小字段：
+
+```ts
+type PuzzleSummary = {
+  id: string;
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  source: string;
+  date: string;
+  prompt: LocalizedText;
+  isCurated: boolean;
+  boardSize: 9 | 13 | 19;
+  tag: PuzzleTag;
+};
+```
+
+客户端题库页和复习页只消费 `PuzzleSummary`，不加载完整 `Puzzle` 数据。
+
 ---
 
 ## 2. AttemptRecord — 作答记录
@@ -86,7 +109,7 @@ interface WrongBranch {
 | `content` | `string`                | 消息正文（每条限 2000 字符，服务端截断） |
 | `ts`      | `number`                | 客户端时间戳（仅展示用，服务端忽略）     |
 
-**sessionStorage 键**：`coach-${puzzleId}-${locale}`  
+**sessionStorage 键**：`go-daily.coach.${puzzleId}.${locale}`  
 每个（题目 × 语言）组合独立存储，切换语言后对话不混用。
 
 ---
@@ -124,11 +147,11 @@ type PuzzleStatus = "solved" | "attempted" | "unattempted";
 
 ## 5. 客户端存储键
 
-| 存储             | 键                            | 内容                   | 生命周期         |
-| ---------------- | ----------------------------- | ---------------------- | ---------------- |
-| `localStorage`   | `go-daily.attempts`           | `AttemptRecord[]` JSON | 永久（手动清除） |
-| `localStorage`   | `go-daily.locale`             | `Locale` 字符串        | 永久             |
-| `sessionStorage` | `coach-${puzzleId}-${locale}` | `CoachMessage[]` JSON  | 标签页关闭即清空 |
+| 存储             | 键                                     | 内容                   | 生命周期         |
+| ---------------- | -------------------------------------- | ---------------------- | ---------------- |
+| `localStorage`   | `go-daily.attempts`                    | `AttemptRecord[]` JSON | 永久（手动清除） |
+| `localStorage`   | `go-daily.locale`                      | `Locale` 字符串        | 永久             |
+| `sessionStorage` | `go-daily.coach.${puzzleId}.${locale}` | `CoachMessage[]` JSON  | 标签页关闭即清空 |
 
 > **localStorage 无上限保护**：目前没有自动清理。预计每条记录约 100 字节，10 万条约 10 MB，一般浏览器限额 5–10 MB。规模化后需要加入**滚动清理**（见 [extensibility.md](./extensibility.md)）。
 

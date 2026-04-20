@@ -160,12 +160,7 @@ const completion = await client.chat.completions.create({
 
 ## 5. 速率限制
 
-当前实现：进程内存 `Map<string, number[]>`，键为 IP 地址。
-
-```ts
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 分钟窗口
-const RATE_LIMIT_MAX = 10; // 窗口内最多 10 次
-```
+当前实现：`MemoryRateLimiter`，基于进程内存 `Map<string, number[]>`。可通过环境变量调整参数：
 
 **限制**：进程级，不跨进程共享。Vercel Serverless 多实例部署时各实例独立计数。
 
@@ -234,14 +229,19 @@ try {
 
 ## 9. 环境变量
 
-| 变量               | 必填 | 说明                                          |
-| ------------------ | ---- | --------------------------------------------- |
-| `DEEPSEEK_API_KEY` | ✅   | DeepSeek API 密钥，缺失时所有教练请求返回 500 |
+| 变量                   | 必填 | 默认值  | 说明                                          |
+| ---------------------- | ---- | ------- | --------------------------------------------- |
+| `DEEPSEEK_API_KEY`     | ✅   | —       | DeepSeek API 密钥，缺失时所有教练请求返回 500 |
+| `RATE_LIMIT_WINDOW_MS` | —    | `60000` | 速率限制时间窗口（毫秒）                      |
+| `RATE_LIMIT_MAX`       | —    | `10`    | 每窗口每 IP 最大请求数                        |
 
 **本地开发**：在项目根目录创建 `.env.local`：
 
 ```
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
+# 可选：调整限流参数
+# RATE_LIMIT_WINDOW_MS=60000
+# RATE_LIMIT_MAX=10
 ```
 
 **Vercel 部署**：在项目 Settings → Environment Variables 中配置，勾选 Production + Preview + Development。

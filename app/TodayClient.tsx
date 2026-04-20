@@ -2,14 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
 import { GoBoard } from "@/components/GoBoard";
 import { PuzzleHeader } from "@/components/PuzzleHeader";
 import { useLocale } from "@/lib/i18n";
 import { judgeMove } from "@/lib/judge";
-import { saveAttempt } from "@/lib/storage";
+import { createAttemptRecord, saveAttempt } from "@/lib/storage";
 import type { Coord, Puzzle } from "@/types";
 
-export function TodayClient({ puzzle }: { puzzle: Puzzle }) {
+export function TodayClient({ puzzle, metaLabel }: { puzzle: Puzzle; metaLabel?: string }) {
   const router = useRouter();
   const { t } = useLocale();
   const [pending, setPending] = useState<Coord | null>(null);
@@ -17,19 +18,19 @@ export function TodayClient({ puzzle }: { puzzle: Puzzle }) {
   const submit = () => {
     if (!pending) return;
     const correct = judgeMove(puzzle, pending);
-    saveAttempt({
-      puzzleId: puzzle.id,
-      date: puzzle.date,
-      userMove: pending,
-      correct,
-      solvedAtMs: Date.now(),
-    });
+    saveAttempt(
+      createAttemptRecord({
+        puzzleId: puzzle.id,
+        userMove: pending,
+        correct,
+      }),
+    );
     router.push(`/result?id=${encodeURIComponent(puzzle.id)}`);
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <PuzzleHeader puzzle={puzzle} />
+      <PuzzleHeader puzzle={puzzle} metaLabel={metaLabel} />
       <div className="mx-auto">
         <GoBoard
           size={puzzle.boardSize}
@@ -41,6 +42,7 @@ export function TodayClient({ puzzle }: { puzzle: Puzzle }) {
           boardStyle="dark"
         />
       </div>
+      <p className="text-center text-sm text-white/45">{t.home.boardCoordinateHint}</p>
       <div className="flex items-center justify-center gap-3">
         <button
           type="button"

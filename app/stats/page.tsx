@@ -1,4 +1,11 @@
+import { Metadata } from "next";
+
 import { StatsClient } from "./StatsClient";
+
+export const metadata: Metadata = {
+  title: "Your Progress & Stats — Go Daily",
+  description: "View your Go puzzle solving streak, accuracy, and detailed progress statistics.",
+};
 
 export default function StatsPage() {
   return (

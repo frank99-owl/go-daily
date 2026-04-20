@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { playMove } from "./goRules";
+
 import type { Color, Coord } from "@/types";
+
+import { playMove } from "./goRules";
 
 function makeBoard(stones: { coord: Coord; color: Color }[]): Map<string, Color> {
   const b = new Map<string, Color>();

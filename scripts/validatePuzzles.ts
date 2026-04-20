@@ -10,8 +10,9 @@
  *
  * Exits 0 on success; exits 1 with a readable report on failure.
  */
-import { PUZZLES } from "../content/puzzles";
+import { PUZZLES } from "../content/puzzles.server";
 import type { Coord, Locale, Puzzle, PuzzleTag, Stone } from "../types";
+import { PuzzleSchema } from "../types/schemas";
 
 const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];
 const ALLOWED_TAGS: ReadonlySet<PuzzleTag> = new Set([
@@ -41,6 +42,17 @@ function coordKey(c: Coord): string {
 
 function validatePuzzle(p: Puzzle, issues: Issue[]): void {
   const push = (rule: string, detail: string) => issues.push({ puzzleId: p.id, rule, detail });
+
+  // Layer 1: zod schema validation (shared with runtime route)
+  const schemaResult = PuzzleSchema.safeParse(p);
+  if (!schemaResult.success) {
+    const id = typeof p.id === "string" && p.id ? p.id : "<unknown>";
+    for (const err of schemaResult.error.issues) {
+      const path = err.path.length > 0 ? err.path.join(".") : "value";
+      issues.push({ puzzleId: id, rule: "schema", detail: `${path}: ${err.message}` });
+    }
+    return; // skip custom semantic checks when schema fails
+  }
 
   // 1. Board size
   if (!ALLOWED_BOARD_SIZES.has(p.boardSize)) {

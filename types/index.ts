@@ -35,6 +35,17 @@ export interface Puzzle {
   source?: string;
 }
 
+export interface PuzzleSummary {
+  id: string;
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  source: string;
+  date: string;
+  prompt: LocalizedText;
+  isCurated: boolean;
+  boardSize: 9 | 13 | 19;
+  tag: PuzzleTag;
+}
+
 export interface AttemptRecord {
   puzzleId: string;
   date: string; // YYYY-MM-DD

@@ -18,7 +18,11 @@
 
 ## 1. Puzzle
 
-Source: `types/index.ts` · Data: `content/puzzles/index.ts`
+Type definitions: `types/index.ts`  
+Runtime validation: `types/schemas.ts` (zod)  
+Curated data: `content/curatedPuzzles.ts`  
+Generated data: `content/data/importedPuzzles.json`, `content/data/puzzleLibrary.json`  
+Aggregation entry: `content/puzzles.ts` (env-aware) / `content/puzzles.server.ts` (server full data)
 
 | Field              | Type                 | Required | Description                                                                                                         |
 | ------------------ | -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -33,7 +37,7 @@ Source: `types/index.ts` · Data: `content/puzzles/index.ts`
 | `isCurated`        | `boolean`            | —        | Defaults to `true`; when explicitly `false`, disables AI coach and hides the curated badge                          |
 | `tag`              | `PuzzleTag`          | ✅       | `"life-death" \| "tesuji" \| "endgame" \| "opening"`                                                                |
 | `difficulty`       | `1..5`               | ✅       | Integer; 1 = easiest                                                                                                |
-| `prompt`           | `LocalizedText`      | ✅       | 4-locale puzzle description e.g. `{ zh:"黑先活", en:"Black to live", ja:"…", ko:"…" }`                              |
+| `prompt`           | `LocalizedText`      | ✅       | 4-locale puzzle description e.g. `{ zh:"Black to live", en:"Black to live", ja:"…", ko:"…" }`                       |
 | `solutionNote`     | `LocalizedText`      | ✅\*     | 4-locale ground-truth explanation fed to the AI coach (\* validator skips content check when `isCurated === false`) |
 | `source`           | `string`             | —        | Optional source note (SGF filename, book, etc.)                                                                     |
 
@@ -53,6 +57,25 @@ interface WrongBranch {
   note: LocalizedText; // 4-locale explanation (AI coach reference)
 }
 ```
+
+### 1.3 PuzzleSummary (lightweight index)
+
+`content/data/puzzleIndex.json` stores `PuzzleSummary[]`, containing only the minimal fields needed for list pages:
+
+```ts
+type PuzzleSummary = {
+  id: string;
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  source: string;
+  date: string;
+  prompt: LocalizedText;
+  isCurated: boolean;
+  boardSize: 9 | 13 | 19;
+  tag: PuzzleTag;
+};
+```
+
+The client-side library and review pages only consume `PuzzleSummary`, never loading full `Puzzle` data.
 
 ---
 
@@ -86,7 +109,7 @@ Stored in `sessionStorage`; lifetime is tied to the browser tab — cleared on c
 | `content` | `string`                | Message text (capped at 2000 chars server-side)         |
 | `ts`      | `number`                | Client-side timestamp (display only; ignored by server) |
 
-**sessionStorage key**: `coach-${puzzleId}-${locale}`  
+**sessionStorage key**: `go-daily.coach.${puzzleId}.${locale}`  
 Each (puzzle × locale) pair is stored independently so switching language doesn't mix conversations.
 
 ---
@@ -124,11 +147,11 @@ Derivation rules:
 
 ## 5. Client-Side Storage Keys
 
-| Storage          | Key                           | Content                | Lifetime                           |
-| ---------------- | ----------------------------- | ---------------------- | ---------------------------------- |
-| `localStorage`   | `go-daily.attempts`           | `AttemptRecord[]` JSON | Permanent (until manually cleared) |
-| `localStorage`   | `go-daily.locale`             | `Locale` string        | Permanent                          |
-| `sessionStorage` | `coach-${puzzleId}-${locale}` | `CoachMessage[]` JSON  | Tab close clears it                |
+| Storage          | Key                                    | Content                | Lifetime                           |
+| ---------------- | -------------------------------------- | ---------------------- | ---------------------------------- |
+| `localStorage`   | `go-daily.attempts`                    | `AttemptRecord[]` JSON | Permanent (until manually cleared) |
+| `localStorage`   | `go-daily.locale`                      | `Locale` string        | Permanent                          |
+| `sessionStorage` | `go-daily.coach.${puzzleId}.${locale}` | `CoachMessage[]` JSON  | Tab close clears it                |
 
 > **No localStorage size guard**: each record is ~100 bytes. 100k records ≈ 10 MB, which approaches the 5–10 MB browser limit. At scale, a rolling-trim strategy is needed (see [extensibility.en.md](./extensibility.en.md)).
 
