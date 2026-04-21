@@ -10,11 +10,15 @@
  *
  * Exits 0 on success; exits 1 with a readable report on failure.
  */
-import { PUZZLES } from "../content/puzzles.server";
-import type { Coord, Locale, Puzzle, PuzzleTag, Stone } from "../types";
+import fs from "fs";
+import path from "path";
+
+import { PUZZLES, buildPuzzleSummaries } from "../content/puzzles.server";
+import type { Coord, Locale, Puzzle, PuzzleSummary, PuzzleTag, Stone } from "../types";
 import { PuzzleSchema } from "../types/schemas";
 
 const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];
+const DATA_DIR = path.join(process.cwd(), "content/data");
 const ALLOWED_TAGS: ReadonlySet<PuzzleTag> = new Set([
   "life-death",
   "tesuji",
@@ -38,6 +42,117 @@ function inBounds(c: Coord, size: number): boolean {
 
 function coordKey(c: Coord): string {
   return `${c.x},${c.y}`;
+}
+
+function loadIndexSummaries(issues: Issue[]): PuzzleSummary[] {
+  const indexPath = path.join(DATA_DIR, "puzzleIndex.json");
+
+  if (!fs.existsSync(indexPath)) {
+    issues.push({
+      puzzleId: "<summary-index>",
+      rule: "summaryIndex",
+      detail: "content/data/puzzleIndex.json is missing — run `npm run sync:puzzle-index`",
+    });
+    return [];
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(indexPath, "utf-8")) as PuzzleSummary[];
+  } catch (error) {
+    issues.push({
+      puzzleId: "<summary-index>",
+      rule: "summaryIndex",
+      detail: `content/data/puzzleIndex.json is unreadable: ${String(error)}`,
+    });
+    return [];
+  }
+}
+
+function compareSummaryIndex(expected: PuzzleSummary[], actual: PuzzleSummary[], issues: Issue[]): void {
+  if (actual.length !== expected.length) {
+    issues.push({
+      puzzleId: "<summary-index>",
+      rule: "summaryIndex",
+      detail: `summary count mismatch — index has ${actual.length}, PUZZLES produce ${expected.length}`,
+    });
+  }
+
+  const expectedById = new Map(expected.map((summary) => [summary.id, summary]));
+  const actualById = new Map(actual.map((summary) => [summary.id, summary]));
+
+  for (const summary of actual) {
+    const canonical = expectedById.get(summary.id);
+    if (!canonical) {
+      issues.push({
+        puzzleId: summary.id,
+        rule: "summaryIndex",
+        detail: "stale puzzle summary — ID exists in puzzleIndex.json but not in PUZZLES",
+      });
+      continue;
+    }
+
+    if (summary.difficulty !== canonical.difficulty) {
+      issues.push({
+        puzzleId: summary.id,
+        rule: "summaryIndex",
+        detail: `difficulty mismatch — index=${summary.difficulty}, expected=${canonical.difficulty}`,
+      });
+    }
+    if (summary.source !== canonical.source) {
+      issues.push({
+        puzzleId: summary.id,
+        rule: "summaryIndex",
+        detail: `source mismatch — index="${summary.source}", expected="${canonical.source}"`,
+      });
+    }
+    if (summary.date !== canonical.date) {
+      issues.push({
+        puzzleId: summary.id,
+        rule: "summaryIndex",
+        detail: `date mismatch — index=${summary.date}, expected=${canonical.date}`,
+      });
+    }
+    if (summary.isCurated !== canonical.isCurated) {
+      issues.push({
+        puzzleId: summary.id,
+        rule: "summaryIndex",
+        detail: `isCurated mismatch — index=${summary.isCurated}, expected=${canonical.isCurated}`,
+      });
+    }
+    if (summary.boardSize !== canonical.boardSize) {
+      issues.push({
+        puzzleId: summary.id,
+        rule: "summaryIndex",
+        detail: `boardSize mismatch — index=${summary.boardSize}, expected=${canonical.boardSize}`,
+      });
+    }
+    if (summary.tag !== canonical.tag) {
+      issues.push({
+        puzzleId: summary.id,
+        rule: "summaryIndex",
+        detail: `tag mismatch — index=${summary.tag}, expected=${canonical.tag}`,
+      });
+    }
+    for (const locale of LOCALES) {
+      if (summary.prompt?.[locale] !== canonical.prompt?.[locale]) {
+        issues.push({
+          puzzleId: summary.id,
+          rule: "summaryIndex",
+          detail: `prompt.${locale} mismatch between puzzleIndex.json and PUZZLES`,
+        });
+      }
+    }
+  }
+
+  for (const summary of expected) {
+    if (!actualById.has(summary.id)) {
+      issues.push({
+        puzzleId: summary.id,
+        rule: "summaryIndex",
+        detail: "missing puzzle summary — ID exists in PUZZLES but not in puzzleIndex.json",
+      });
+    }
+  }
 }
 
 function validatePuzzle(p: Puzzle, issues: Issue[]): void {
@@ -194,6 +309,12 @@ function main(): void {
   });
 
   for (const p of PUZZLES) validatePuzzle(p, issues);
+
+  const expectedSummaries = buildPuzzleSummaries(PUZZLES);
+  const indexSummaries = loadIndexSummaries(issues);
+  if (indexSummaries.length > 0) {
+    compareSummaryIndex(expectedSummaries, indexSummaries, issues);
+  }
 
   const curated = PUZZLES.filter((p) => p.isCurated !== false).length;
   const library = PUZZLES.length - curated;

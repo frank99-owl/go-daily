@@ -43,3 +43,8 @@ next-env.d.ts
 
 # Claude Code session files
 .claude/
+
+# generated audit artifacts
+/reports/puzzle-audit/*.json
+/reports/puzzle-audit/*.md
+!/reports/puzzle-audit/.gitkeep
