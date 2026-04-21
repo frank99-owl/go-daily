@@ -1,14 +1,43 @@
 import { describe, expect, it } from "vitest";
 
-import { getStatusFor, getHistoryFor, computeStatusTallies, lastAttemptMsMap } from "@/lib/puzzleStatus";
+import {
+  getStatusFor,
+  getHistoryFor,
+  computeStatusTallies,
+  lastAttemptMsMap,
+} from "@/lib/puzzleStatus";
 import type { AttemptRecord } from "@/types";
 
 describe("puzzleStatus", () => {
   const attempts: AttemptRecord[] = [
-    { puzzleId: "p1", correct: false, solvedAtMs: 1000 },
-    { puzzleId: "p1", correct: true, solvedAtMs: 2000 },
-    { puzzleId: "p2", correct: false, solvedAtMs: 1500 },
-    { puzzleId: "p3", correct: true, solvedAtMs: 500 },
+    {
+      puzzleId: "p1",
+      date: "2026-04-21",
+      userMove: { x: 0, y: 0 },
+      correct: false,
+      solvedAtMs: 1000,
+    },
+    {
+      puzzleId: "p1",
+      date: "2026-04-21",
+      userMove: { x: 1, y: 1 },
+      correct: true,
+      solvedAtMs: 2000,
+    },
+    {
+      puzzleId: "p2",
+      date: "2026-04-21",
+      userMove: { x: 2, y: 2 },
+      correct: false,
+      solvedAtMs: 1500,
+    },
+    {
+      puzzleId: "p3",
+      date: "2026-04-21",
+      userMove: { x: 3, y: 3 },
+      correct: true,
+      solvedAtMs: 500,
+    },
   ];
 
   describe("getStatusFor", () => {

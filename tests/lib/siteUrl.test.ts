@@ -22,7 +22,7 @@ describe("siteUrl", () => {
   it("returns configured url and strips trailing slashes", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "https://custom.example.com/";
     expect(getSiteUrl()).toBe("https://custom.example.com");
-    
+
     process.env.NEXT_PUBLIC_SITE_URL = "https://custom.example.com///";
     expect(getSiteUrl()).toBe("https://custom.example.com");
   });

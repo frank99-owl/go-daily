@@ -10,20 +10,20 @@ describe("gameSnapshots", () => {
     ];
 
     const snapshots = buildSnapshots(moves);
-    
+
     // N moves -> N+1 snapshots
     expect(snapshots.length).toBe(3);
-    
+
     // Empty board
     expect(snapshots[0].moveNumber).toBe(0);
     expect(snapshots[0].stones.length).toBe(0);
     expect(snapshots[0].lastMove).toBeNull();
-    
+
     // Move 1
     expect(snapshots[1].moveNumber).toBe(1);
     expect(snapshots[1].stones.length).toBe(1);
     expect(snapshots[1].lastMove).toEqual({ x: 0, y: 0 });
-    
+
     // Move 2
     expect(snapshots[2].moveNumber).toBe(2);
     expect(snapshots[2].stones.length).toBe(2);

@@ -16,12 +16,22 @@ describe("localized", () => {
   });
 
   it("falls back to 'en' if requested locale is missing", () => {
-    const partialText = { zh: "你好", en: "Hello" };
+    const partialText = {
+      zh: "你好",
+      en: "Hello",
+      ja: "",
+      ko: "",
+    };
     expect(localized(partialText, "ja" as any)).toBe("Hello");
   });
 
   it("falls back to 'zh' if 'en' is missing", () => {
-    const partialText = { zh: "你好", ja: "こんにちは" };
+    const partialText = {
+      zh: "你好",
+      en: "",
+      ja: "こんにちは",
+      ko: "",
+    };
     expect(localized(partialText, "ko" as any)).toBe("你好");
   });
 

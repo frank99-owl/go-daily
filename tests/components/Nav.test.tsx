@@ -67,17 +67,13 @@ describe("Nav", () => {
     (pickRandomPuzzle as any).mockReturnValue({ id: "random_id" });
 
     render(<Nav puzzleIds={["p1", "p2"]} />);
-    
+
     // There might be multiple elements with "Random" (e.g. icon and text), but we can find by title/aria-label
     const randomBtn = screen.getByLabelText("Random");
     fireEvent.click(randomBtn);
 
     expect(loadAttempts).toHaveBeenCalled();
-    expect(pickRandomPuzzle).toHaveBeenCalledWith(
-      [{ id: "p1" }, { id: "p2" }],
-      [],
-      "all"
-    );
+    expect(pickRandomPuzzle).toHaveBeenCalledWith([{ id: "p1" }, { id: "p2" }], [], "all");
     expect(mockPush).toHaveBeenCalledWith("/puzzles/random_id");
   });
 
@@ -85,7 +81,7 @@ describe("Nav", () => {
     (pickRandomPuzzle as any).mockReturnValue(null);
 
     render(<Nav puzzleIds={[]} />);
-    
+
     const randomBtn = screen.getByLabelText("Random");
     fireEvent.click(randomBtn);
 

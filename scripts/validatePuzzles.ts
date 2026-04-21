@@ -68,7 +68,11 @@ function loadIndexSummaries(issues: Issue[]): PuzzleSummary[] {
   }
 }
 
-function compareSummaryIndex(expected: PuzzleSummary[], actual: PuzzleSummary[], issues: Issue[]): void {
+function compareSummaryIndex(
+  expected: PuzzleSummary[],
+  actual: PuzzleSummary[],
+  issues: Issue[],
+): void {
   if (actual.length !== expected.length) {
     issues.push({
       puzzleId: "<summary-index>",

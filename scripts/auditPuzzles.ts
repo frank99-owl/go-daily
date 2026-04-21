@@ -2,10 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import { PUZZLES, buildPuzzleSummaries } from "../content/puzzles.server";
-import {
-  checkCoachEligibility,
-  type CoachEligibilityReason,
-} from "../lib/coachEligibility";
+import { checkCoachEligibility, type CoachEligibilityReason } from "../lib/coachEligibility";
 import type { Locale, Puzzle, PuzzleSummary } from "../types";
 
 const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];
@@ -114,7 +111,10 @@ function addDays(ymd: string, delta: number): string {
 
 function calculateCuratedRunwayDays(puzzles: Puzzle[], today: string): number {
   const curatedDates = new Set(
-    puzzles.filter((p) => p.isCurated !== false).map((p) => p.date).filter(Boolean),
+    puzzles
+      .filter((p) => p.isCurated !== false)
+      .map((p) => p.date)
+      .filter(Boolean),
   );
 
   let runwayDays = 0;
@@ -184,7 +184,9 @@ function buildImbalanceWarnings(
 
   if (Object.keys(boardSizeDistribution).length === 1) {
     const [onlyBoardSize] = Object.keys(boardSizeDistribution);
-    warnings.push(`All puzzles currently use ${onlyBoardSize}x${onlyBoardSize}; there is no board-size diversity yet.`);
+    warnings.push(
+      `All puzzles currently use ${onlyBoardSize}x${onlyBoardSize}; there is no board-size diversity yet.`,
+    );
   }
 
   for (const [difficulty, count] of Object.entries(difficultyDistribution)) {
@@ -201,7 +203,9 @@ function buildImbalanceWarnings(
     if (ratio >= 0.6) {
       warnings.push(`Tag "${tag}" dominates ${(ratio * 100).toFixed(1)}% of the library.`);
     } else if (ratio > 0 && ratio <= 0.05) {
-      warnings.push(`Tag "${tag}" is underrepresented at ${(ratio * 100).toFixed(1)}% of the library.`);
+      warnings.push(
+        `Tag "${tag}" is underrepresented at ${(ratio * 100).toFixed(1)}% of the library.`,
+      );
     }
   }
 
@@ -339,8 +343,8 @@ export function auditPuzzles(puzzles: Puzzle[], options: AuditOptions = {}): Aud
     result.dateRange = { min: minDate, max: maxDate };
   }
 
-  result.coachEligibleCandidates.sort((a, b) =>
-    b.averageNoteLength - a.averageNoteLength || a.id.localeCompare(b.id),
+  result.coachEligibleCandidates.sort(
+    (a, b) => b.averageNoteLength - a.averageNoteLength || a.id.localeCompare(b.id),
   );
 
   result.imbalanceWarnings = buildImbalanceWarnings(
@@ -403,16 +407,16 @@ ${Object.entries(result.tagDistribution)
 ## Coach Eligibility
 - **Eligible Candidates:** ${result.coachEligibleCandidates.length}
 - **Reason Breakdown:** ${Object.entries(result.coachEligibilityReasons)
-  .map(([reason, count]) => `${reason}=${count}`)
-  .join(", ")}
+    .map(([reason, count]) => `${reason}=${count}`)
+    .join(", ")}
 - **Quality Tiers:** ${Object.entries(result.solutionNoteQualityTiers)
-  .map(([tier, count]) => `${tier}=${count}`)
-  .join(", ")}
+    .map(([tier, count]) => `${tier}=${count}`)
+    .join(", ")}
 
 ## Prompt Template Dedupe
 - **Unique Template Counts:** ${LOCALES.map(
-  (locale) => `${locale}=${result.promptTemplateStats.uniqueCountsByLocale[locale]}`,
-).join(", ")}
+    (locale) => `${locale}=${result.promptTemplateStats.uniqueCountsByLocale[locale]}`,
+  ).join(", ")}
 ${topPromptStats}
 
 ## Imbalance Warnings

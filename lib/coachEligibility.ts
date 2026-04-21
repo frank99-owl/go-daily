@@ -18,7 +18,16 @@ const GENERIC_NOTE_PATTERNS: Record<Locale, RegExp[]> = {
 
 const EXPLANATION_PATTERNS: Record<Locale, RegExp[]> = {
   zh: [/因为/, /如果/, /之后/, /随后/, /从而/, /否则/, /才能/, /先.*再/],
-  en: [/because/i, /\bif\b/i, /\bonce\b/i, /\bafter\b/i, /\bthen\b/i, /otherwise/i, /allows?/i, /prevents?/i],
+  en: [
+    /because/i,
+    /\bif\b/i,
+    /\bonce\b/i,
+    /\bafter\b/i,
+    /\bthen\b/i,
+    /otherwise/i,
+    /allows?/i,
+    /prevents?/i,
+  ],
   ja: [/ため/, /もし/, /その後/, /そこで/, /先に/, /〜と/, /できる/, /止め/],
   ko: [/때문/, /만약/, /이후/, /그러면/, /먼저/, /그래서/, /막을 수/, /확보/],
 };

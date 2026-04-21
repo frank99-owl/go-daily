@@ -10,7 +10,7 @@ describe("dateUtils", () => {
       // We can mock it or check pattern.
       const key = todayLocalKey(d);
       expect(key).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      
+
       const parts = key.split("-");
       expect(parts[0]).toBe(String(d.getFullYear()));
       expect(parts[1]).toBe(String(d.getMonth() + 1).padStart(2, "0"));

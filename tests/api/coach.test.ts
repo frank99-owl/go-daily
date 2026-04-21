@@ -194,7 +194,7 @@ describe("/api/coach", () => {
       vi.spyOn(MemoryRateLimiter.prototype, "isLimited").mockImplementationOnce(() => {
         throw new Error("Redis timeout simulated");
       });
-      
+
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const body = {
@@ -213,20 +213,20 @@ describe("/api/coach", () => {
         headers: { "content-type": "application/json", "x-forwarded-for": "fail-open-ip" },
         body: JSON.stringify(body),
       });
-      
+
       const mockedCreate = vi.fn().mockResolvedValue({
         choices: [{ message: { content: "I am the coach." } }],
       });
       (OpenAI.prototype.chat.completions.create as any).mockImplementation(mockedCreate);
 
       const res = await POST(req);
-      
+
       // Should not be 429
       expect(res.status).not.toBe(429);
       expect(consoleSpy).toHaveBeenCalledWith(
         "[RateLimitError] Failing open for ip:",
         "fail-open-ip",
-        expect.any(Error)
+        expect.any(Error),
       );
     });
   });
@@ -241,10 +241,10 @@ describe("/api/coach", () => {
           userMove: { x: 0, y: 0 },
           isCorrect: true,
           history: [{ role: "user", content: "hi", ts: 0 }],
-        })
+        }),
       );
       expect(res.status).toBe(500);
-      const json = await res.json() as any;
+      const json = (await res.json()) as any;
       expect(json.error).toContain("missing DEEPSEEK_API_KEY");
     });
 
@@ -259,10 +259,10 @@ describe("/api/coach", () => {
           userMove: { x: 0, y: 0 },
           isCorrect: true,
           history: [{ role: "user", content: "hi", ts: 0 }],
-        })
+        }),
       );
       expect(res.status).toBe(502);
-      const json = await res.json() as any;
+      const json = (await res.json()) as any;
       expect(json.error).toContain("temporarily unavailable");
     });
 
@@ -277,10 +277,10 @@ describe("/api/coach", () => {
           userMove: { x: 0, y: 0 },
           isCorrect: true,
           history: [{ role: "user", content: "hi", ts: 0 }],
-        })
+        }),
       );
       expect(res.status).toBe(502);
-      const json = await res.json() as any;
+      const json = (await res.json()) as any;
       expect(json.error).toContain("Empty reply from the model");
     });
   });
@@ -288,7 +288,9 @@ describe("/api/coach", () => {
   describe("200 — Success & COACH_MODEL branching", () => {
     it("uses default deepseek-chat when COACH_MODEL is unset", async () => {
       delete process.env.COACH_MODEL;
-      const mockedCreate = vi.fn().mockResolvedValue({ choices: [{ message: { content: "Response" } }] });
+      const mockedCreate = vi
+        .fn()
+        .mockResolvedValue({ choices: [{ message: { content: "Response" } }] });
       (OpenAI.prototype.chat.completions.create as any).mockImplementation(mockedCreate);
 
       const res = await POST(
@@ -298,17 +300,21 @@ describe("/api/coach", () => {
           userMove: { x: 0, y: 0 },
           isCorrect: true,
           history: [{ role: "user", content: "hi", ts: 0 }],
-        })
+        }),
       );
       expect(res.status).toBe(200);
-      expect(mockedCreate).toHaveBeenCalledWith(expect.objectContaining({
-        model: "deepseek-chat",
-      }));
+      expect(mockedCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: "deepseek-chat",
+        }),
+      );
     });
 
     it("uses specific COACH_MODEL when set", async () => {
       process.env.COACH_MODEL = "custom-model-x";
-      const mockedCreate = vi.fn().mockResolvedValue({ choices: [{ message: { content: "Response" } }] });
+      const mockedCreate = vi
+        .fn()
+        .mockResolvedValue({ choices: [{ message: { content: "Response" } }] });
       (OpenAI.prototype.chat.completions.create as any).mockImplementation(mockedCreate);
 
       const res = await POST(
@@ -318,12 +324,14 @@ describe("/api/coach", () => {
           userMove: { x: 0, y: 0 },
           isCorrect: true,
           history: [{ role: "user", content: "hi", ts: 0 }],
-        })
+        }),
       );
       expect(res.status).toBe(200);
-      expect(mockedCreate).toHaveBeenCalledWith(expect.objectContaining({
-        model: "custom-model-x",
-      }));
+      expect(mockedCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: "custom-model-x",
+        }),
+      );
     });
   });
 });
