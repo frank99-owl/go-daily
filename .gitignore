@@ -48,3 +48,6 @@ next-env.d.ts
 /reports/puzzle-audit/*.json
 /reports/puzzle-audit/*.md
 !/reports/puzzle-audit/.gitkeep
+/reports/content-queue/*.json
+/reports/content-queue/*.md
+!/reports/content-queue/.gitkeep

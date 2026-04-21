@@ -4,17 +4,18 @@ import path from "path";
 import type { Puzzle, PuzzleSummary } from "@/types";
 
 import { CURATED_PUZZLES, CURATED_SOURCE_IDS } from "./curatedPuzzles";
+import { applyEditorialOverride } from "./editorialOverrides";
 
 const DATA_DIR = path.join(process.cwd(), "content/data");
 
 /** Load full puzzle data from JSON files. */
 function loadPuzzles(): Puzzle[] {
-  const imported = JSON.parse(
-    fs.readFileSync(path.join(DATA_DIR, "importedPuzzles.json"), "utf-8"),
-  ) as Puzzle[];
-  const library = JSON.parse(
-    fs.readFileSync(path.join(DATA_DIR, "puzzleLibrary.json"), "utf-8"),
-  ) as Puzzle[];
+  const imported = (
+    JSON.parse(fs.readFileSync(path.join(DATA_DIR, "importedPuzzles.json"), "utf-8")) as Puzzle[]
+  ).map(applyEditorialOverride);
+  const library = (
+    JSON.parse(fs.readFileSync(path.join(DATA_DIR, "puzzleLibrary.json"), "utf-8")) as Puzzle[]
+  ).map(applyEditorialOverride);
 
   const curatedSourceIds = new Set<string>(CURATED_SOURCE_IDS);
   const remainingLibraryPuzzles = library.filter((p) => !curatedSourceIds.has(p.id));

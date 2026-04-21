@@ -14,6 +14,7 @@ and a machine-readable JSON file for follow-up work.
 npm run sync:puzzle-index
 npm run validate:puzzles
 npm run audit:puzzles
+npm run queue:content
 ```
 
 - `sync:puzzle-index`: regenerates `content/data/puzzleIndex.json` from the
@@ -21,6 +22,8 @@ npm run audit:puzzles
 - `validate:puzzles`: enforces schema, semantic, and summary-index consistency.
 - `audit:puzzles`: produces a richer QA report for content planning and model
   follow-up work.
+- `queue:content`: builds ranked coach-ready and curated-runway candidate queues
+  from the canonical puzzle library.
 
 ## Outputs
 
@@ -28,6 +31,8 @@ Audit output is written to a fixed location:
 
 - `reports/puzzle-audit/latest.md`
 - `reports/puzzle-audit/latest.json`
+- `reports/content-queue/latest.md`
+- `reports/content-queue/latest.json`
 
 The files are intentionally ignored by git. They are reproducible build
 artifacts, not source of truth.
@@ -74,5 +79,7 @@ artifacts, not source of truth.
 2. Run `npm run validate:puzzles` before pushing.
 3. Run `npm run audit:puzzles` when preparing content work for Kimi or reviewing
    library health.
-4. Use `latest.json` as the machine-readable input for batch candidate selection,
+4. Run `npm run queue:content` when you need ranked coach-ready / runway
+   candidates for content production.
+5. Use `latest.json` as the machine-readable input for batch candidate selection,
    not as a manually edited source file.

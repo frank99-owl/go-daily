@@ -2,7 +2,11 @@ import fs from "fs";
 import path from "path";
 
 import { PUZZLES, buildPuzzleSummaries } from "../content/puzzles.server";
-import { checkCoachEligibility, type CoachEligibilityReason } from "../lib/coachEligibility";
+import {
+  checkCoachEligibility,
+  type CoachEligibilityReason,
+  type CoachQualityTier,
+} from "../lib/coachEligibility";
 import type { Locale, Puzzle, PuzzleSummary } from "../types";
 
 const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];
@@ -34,7 +38,9 @@ interface AuditOptions {
 interface AuditCandidate {
   id: string;
   isCurated: boolean;
+  eligible: boolean;
   reason: CoachEligibilityReason;
+  qualityTier: CoachQualityTier;
   averageNoteLength: number;
   hasVariationSupport: boolean;
 }
@@ -86,6 +92,7 @@ function emptyReasonCounts(): Record<CoachEligibilityReason, number> {
     "generic-solution-note": 0,
     "short-solution-note": 0,
     "insufficient-explanation": 0,
+    "partial-explanation": 0,
   };
 }
 
@@ -131,10 +138,8 @@ function classifySolutionNoteQuality(puzzle: Puzzle): SolutionNoteQualityTier {
 
   if (eligibility.reason === "missing-solution-note") return "missing";
   if (eligibility.reason === "generic-solution-note") return "generic-placeholder";
-  if (eligibility.reason === "short-solution-note") return "thin";
-  if (eligibility.eligible) {
-    return eligibility.hasVariationSupport ? "coach-ready" : "explained";
-  }
+  if (eligibility.qualityTier === "coach-ready") return "coach-ready";
+  if (eligibility.qualityTier === "explained") return "explained";
   return "thin";
 }
 
@@ -332,7 +337,9 @@ export function auditPuzzles(puzzles: Puzzle[], options: AuditOptions = {}): Aud
       result.coachEligibleCandidates.push({
         id: puzzle.id,
         isCurated: !!puzzle.isCurated,
+        eligible: eligibility.eligible,
         reason: eligibility.reason,
+        qualityTier: eligibility.qualityTier,
         averageNoteLength: eligibility.averageNoteLength,
         hasVariationSupport: eligibility.hasVariationSupport,
       });

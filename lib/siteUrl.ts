@@ -12,3 +12,12 @@ export function getSiteUrl(): string {
 
   return normalizeSiteUrl(configured);
 }
+
+export function absoluteUrl(path = "/"): string {
+  if (!path || path === "/") {
+    return getSiteUrl();
+  }
+
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${getSiteUrl()}${normalizedPath}`;
+}

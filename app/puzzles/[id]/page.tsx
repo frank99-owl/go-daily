@@ -21,9 +21,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    alternates: {
+      canonical: `/puzzles/${encodeURIComponent(puzzle.id)}`,
+    },
     openGraph: {
       title,
       description,
+      url: `/puzzles/${encodeURIComponent(puzzle.id)}`,
     },
   };
 }

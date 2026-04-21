@@ -33,6 +33,7 @@
     "coachPlaceholder": "Ask the coach…",
     "send": "Send",
     "thinking": "Thinking…",
+    "coachLimited": "AI coach is available on curated puzzles and approved coach-ready practice sets only.",
     "curatedNote": "Curated note",
     "boardCoordinateHint": "The AI coach uses the same (x,y) coordinates as the page, with the top-left as (0,0).",
     "attemptCount": "Attempt #{{count}}",
@@ -93,7 +94,12 @@
     "sortDifficultyDesc": "Difficulty ↓",
     "sortRecent": "Recent",
     "tally": "{{solved}} solved · {{attempted}} attempted · {{unattempted}} todo",
-    "curated": "Curated"
+    "curated": "Curated",
+    "collectionTagEyebrow": "Tag Collection",
+    "collectionDifficultyEyebrow": "Difficulty Collection",
+    "collectionTagDescription": "Browse {{count}} puzzles in {{tag}}.",
+    "collectionDifficultyDescription": "Browse {{count}} puzzles at difficulty {{level}}.",
+    "backToLibrary": "Back to library"
   },
   "review": {
     "title": "Review",

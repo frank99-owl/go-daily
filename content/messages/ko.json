@@ -33,6 +33,7 @@
     "coachPlaceholder": "코치에게 물어보기…",
     "send": "보내기",
     "thinking": "생각 중…",
+    "coachLimited": "AI 코치는 현재 엄선 문제와 승인된 coach-ready 연습 문제에서만 사용할 수 있습니다.",
     "curatedNote": "엄선 해설",
     "boardCoordinateHint": "AI 코치의 좌표는 페이지와 같은 (x,y) 형식이며 왼쪽 위가 (0,0)입니다.",
     "attemptCount": "{{count}}번째 시도",
@@ -93,7 +94,12 @@
     "sortDifficultyDesc": "난이도 ↓",
     "sortRecent": "최근 시도",
     "tally": "해결 {{solved}} · 시도 {{attempted}} · 미시도 {{unattempted}}",
-    "curated": "엄선"
+    "curated": "엄선",
+    "collectionTagEyebrow": "태그 컬렉션",
+    "collectionDifficultyEyebrow": "난이도 컬렉션",
+    "collectionTagDescription": "{{tag}} 문제 {{count}}개를 한 번에 둘러보세요.",
+    "collectionDifficultyDescription": "난이도 {{level}} 문제 {{count}}개를 한 번에 둘러보세요.",
+    "backToLibrary": "문제집으로 돌아가기"
   },
   "review": {
     "title": "오답노트",

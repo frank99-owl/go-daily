@@ -38,17 +38,23 @@ export type CoachEligibilityReason =
   | "missing-solution-note"
   | "generic-solution-note"
   | "short-solution-note"
-  | "insufficient-explanation";
+  | "insufficient-explanation"
+  | "partial-explanation";
+
+export type CoachQualityTier = "blocked" | "thin" | "explained" | "coach-ready";
 
 export interface CoachEligibilityResult {
   eligible: boolean;
   reason: CoachEligibilityReason;
+  qualityTier: CoachQualityTier;
   averageNoteLength: number;
   explanationLocaleCount: number;
   genericLocaleCount: number;
   hasVariationSupport: boolean;
   noteLengths: Record<Locale, number>;
 }
+
+const COACH_READY_MIN_AVERAGE_NOTE_LENGTH = 72;
 
 function noteForLocale(puzzle: Puzzle, locale: Locale): string {
   return puzzle.solutionNote?.[locale]?.trim() ?? "";
@@ -71,6 +77,7 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
     return {
       eligible: false,
       reason: "missing-correct-answer",
+      qualityTier: "blocked",
       averageNoteLength,
       explanationLocaleCount: 0,
       genericLocaleCount: 0,
@@ -84,6 +91,7 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
     return {
       eligible: false,
       reason: "missing-solution-note",
+      qualityTier: "blocked",
       averageNoteLength,
       explanationLocaleCount: 0,
       genericLocaleCount: 0,
@@ -100,6 +108,7 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
     return {
       eligible: false,
       reason: "generic-solution-note",
+      qualityTier: "blocked",
       averageNoteLength,
       explanationLocaleCount: 0,
       genericLocaleCount,
@@ -116,6 +125,7 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
     return {
       eligible: false,
       reason: "short-solution-note",
+      qualityTier: "thin",
       averageNoteLength,
       explanationLocaleCount: 0,
       genericLocaleCount,
@@ -132,6 +142,20 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
     return {
       eligible: false,
       reason: "insufficient-explanation",
+      qualityTier: "thin",
+      averageNoteLength,
+      explanationLocaleCount,
+      genericLocaleCount,
+      hasVariationSupport,
+      noteLengths,
+    };
+  }
+
+  if (averageNoteLength < COACH_READY_MIN_AVERAGE_NOTE_LENGTH && !hasVariationSupport) {
+    return {
+      eligible: false,
+      reason: "partial-explanation",
+      qualityTier: "explained",
       averageNoteLength,
       explanationLocaleCount,
       genericLocaleCount,
@@ -143,6 +167,7 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
   return {
     eligible: true,
     reason: "eligible",
+    qualityTier: "coach-ready",
     averageNoteLength,
     explanationLocaleCount,
     genericLocaleCount,

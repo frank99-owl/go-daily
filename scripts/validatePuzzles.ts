@@ -13,7 +13,9 @@
 import fs from "fs";
 import path from "path";
 
+import coachEligibleIds from "../content/data/coachEligibleIds.json";
 import { PUZZLES, buildPuzzleSummaries } from "../content/puzzles.server";
+import { checkCoachEligibility } from "../lib/coachEligibility";
 import type { Coord, Locale, Puzzle, PuzzleSummary, PuzzleTag, Stone } from "../types";
 import { PuzzleSchema } from "../types/schemas";
 
@@ -154,6 +156,51 @@ function compareSummaryIndex(
         puzzleId: summary.id,
         rule: "summaryIndex",
         detail: "missing puzzle summary — ID exists in PUZZLES but not in puzzleIndex.json",
+      });
+    }
+  }
+}
+
+function validateCoachAllowlist(issues: Issue[]): void {
+  const ids = coachEligibleIds as string[];
+  const seen = new Set<string>();
+  const byId = new Map(PUZZLES.map((puzzle) => [puzzle.id, puzzle]));
+
+  for (const id of ids) {
+    if (seen.has(id)) {
+      issues.push({
+        puzzleId: id,
+        rule: "coachAllowlist",
+        detail: "duplicate ID in content/data/coachEligibleIds.json",
+      });
+      continue;
+    }
+    seen.add(id);
+
+    const puzzle = byId.get(id);
+    if (!puzzle) {
+      issues.push({
+        puzzleId: id,
+        rule: "coachAllowlist",
+        detail: "ID exists in coachEligibleIds.json but not in PUZZLES",
+      });
+      continue;
+    }
+
+    if (puzzle.isCurated) {
+      issues.push({
+        puzzleId: id,
+        rule: "coachAllowlist",
+        detail: "curated puzzles should not also be listed in coachEligibleIds.json",
+      });
+    }
+
+    const eligibility = checkCoachEligibility(puzzle);
+    if (!eligibility.eligible) {
+      issues.push({
+        puzzleId: id,
+        rule: "coachAllowlist",
+        detail: `allowlisted puzzle is not coach-ready (reason=${eligibility.reason}, tier=${eligibility.qualityTier})`,
       });
     }
   }
@@ -319,6 +366,7 @@ function main(): void {
   if (indexSummaries.length > 0) {
     compareSummaryIndex(expectedSummaries, indexSummaries, issues);
   }
+  validateCoachAllowlist(issues);
 
   const curated = PUZZLES.filter((p) => p.isCurated !== false).length;
   const library = PUZZLES.length - curated;

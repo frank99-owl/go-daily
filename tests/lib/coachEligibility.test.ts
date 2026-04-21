@@ -52,6 +52,7 @@ describe("checkCoachEligibility", () => {
     expect(checkCoachEligibility(puzzle)).toMatchObject({
       eligible: true,
       reason: "eligible",
+      qualityTier: "coach-ready",
       hasVariationSupport: true,
     });
   });
@@ -71,6 +72,7 @@ describe("checkCoachEligibility", () => {
     expect(checkCoachEligibility(puzzle)).toMatchObject({
       eligible: false,
       reason: "generic-solution-note",
+      qualityTier: "blocked",
     });
   });
 
@@ -89,6 +91,7 @@ describe("checkCoachEligibility", () => {
     expect(checkCoachEligibility(puzzle)).toMatchObject({
       eligible: false,
       reason: "short-solution-note",
+      qualityTier: "thin",
     });
   });
 
@@ -106,6 +109,24 @@ describe("checkCoachEligibility", () => {
     expect(checkCoachEligibility(puzzle)).toMatchObject({
       eligible: false,
       reason: "missing-correct-answer",
+      qualityTier: "blocked",
+    });
+  });
+
+  it("marks well-explained but lighter notes as explained instead of coach-ready", () => {
+    const puzzle = makeBasePuzzle({
+      solutionNote: {
+        zh: "黑先抢急所，因为这样能先压住白棋的眼位。如果黑走别处，白就会先手补强。",
+        en: "Black should take the vital point because it reduces White's eye space. If Black starts elsewhere, White settles first.",
+        ja: "黒は急所を先に取るべきです。なぜなら白の眼形を圧迫できるからです。もし別に打つと白に先手で整えられます。",
+        ko: "흑은 급소를 먼저 차지해야 합니다. 그 이유는 백의 눈 모양을 줄이기 때문입니다. 만약 다른 곳에 두면 백이 먼저 정리합니다.",
+      },
+    });
+
+    expect(checkCoachEligibility(puzzle)).toMatchObject({
+      eligible: false,
+      reason: "partial-explanation",
+      qualityTier: "explained",
     });
   });
 });

@@ -33,6 +33,7 @@
     "coachPlaceholder": "向 AI 提问…",
     "send": "发送",
     "thinking": "AI 思考中…",
+    "coachLimited": "AI 教练目前只对精选题和已批准的 coach-ready 练习题开放。",
     "curatedNote": "精选讲解",
     "boardCoordinateHint": "AI 教练提到的坐标与页面一致：使用 (x,y)，左上角为 (0,0)。",
     "attemptCount": "第 {{count}} 次尝试",
@@ -93,7 +94,12 @@
     "sortDifficultyDesc": "难度 ↓",
     "sortRecent": "最近尝试",
     "tally": "已解决 {{solved}} · 尝试过 {{attempted}} · 未开始 {{unattempted}}",
-    "curated": "精选"
+    "curated": "精选",
+    "collectionTagEyebrow": "分类题单",
+    "collectionDifficultyEyebrow": "难度题单",
+    "collectionTagDescription": "浏览 {{tag}} 分类下的 {{count}} 道题。",
+    "collectionDifficultyDescription": "浏览难度 {{level}} 下的 {{count}} 道题。",
+    "backToLibrary": "返回题库"
   },
   "review": {
     "title": "错题本",

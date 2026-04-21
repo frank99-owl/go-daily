@@ -1,11 +1,19 @@
 import { MetadataRoute } from "next";
 
 import { getAllSummaries } from "@/content/puzzles";
+import {
+  getAvailableDifficulties,
+  getAvailableTags,
+  getDifficultyCollectionPath,
+  getTagCollectionPath,
+} from "@/lib/puzzleCollections";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
   const summaries = await getAllSummaries();
+  const tags = getAvailableTags(summaries);
+  const difficulties = getAvailableDifficulties(summaries);
 
   const puzzleEntries = summaries.map((p) => ({
     url: `${baseUrl}/puzzles/${encodeURIComponent(p.id)}`,
@@ -21,5 +29,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === "" ? 1.0 : 0.8,
   }));
 
-  return [...staticRoutes, ...puzzleEntries];
+  const collectionRoutes = [
+    ...tags.map((tag) => ({
+      url: `${baseUrl}${getTagCollectionPath(tag)}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
+    ...difficulties.map((difficulty) => ({
+      url: `${baseUrl}${getDifficultyCollectionPath(difficulty)}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
+  ];
+
+  return [...staticRoutes, ...collectionRoutes, ...puzzleEntries];
 }

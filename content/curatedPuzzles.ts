@@ -3,11 +3,21 @@ import path from "path";
 
 import type { Coord, LocalizedText, Puzzle, Stone, WrongBranch } from "@/types";
 
+import { applyEditorialOverride } from "./editorialOverrides";
+import {
+  CURATED_RUNWAY_SOURCE_IDS,
+  CURATED_RUNWAY_START_DATE,
+  buildAutoCuratedId,
+} from "./editorialSelections";
+import { buildEditorialPrompt, buildEditorialSolutionNote } from "./editorialTemplates";
+
 // Load library data from JSON to avoid huge TS compilation overhead
 const libraryPath = path.join(process.cwd(), "content/data/puzzleLibrary.json");
-const LIBRARY_PUZZLES = JSON.parse(fs.readFileSync(libraryPath, "utf-8")) as Puzzle[];
+const LIBRARY_PUZZLES = (JSON.parse(fs.readFileSync(libraryPath, "utf-8")) as Puzzle[]).map(
+  applyEditorialOverride,
+);
 
-const CURATED_SOURCE_IDS = [
+const BASE_CURATED_SOURCE_IDS = [
   "lib-0102",
   "lib-0103",
   "lib-0007",
@@ -37,7 +47,7 @@ function branch(userWrongMove: Coord, refutation: Stone[], note: LocalizedText):
 }
 
 type CuratedOverrides = {
-  sourceId: (typeof CURATED_SOURCE_IDS)[number];
+  sourceId: string;
   id: string;
   date: string;
   prompt: LocalizedText;
@@ -73,9 +83,32 @@ function curatedFrom({
   };
 }
 
-export { CURATED_SOURCE_IDS };
+function addDays(ymd: string, delta: number): string {
+  const [year, month, day] = ymd.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + delta));
+  return next.toISOString().slice(0, 10);
+}
 
-export const CURATED_PUZZLES: Puzzle[] = [
+function autoCuratedFrom(sourceId: string, index: number): Puzzle {
+  const base = LIBRARY_PUZZLES.find((p) => p.id === sourceId);
+  if (!base) {
+    throw new Error(`Missing runway source library puzzle: ${sourceId}`);
+  }
+
+  return {
+    ...base,
+    id: buildAutoCuratedId(index),
+    date: addDays(CURATED_RUNWAY_START_DATE, index),
+    prompt: buildEditorialPrompt(base),
+    solutionNote: buildEditorialSolutionNote(base),
+    isCurated: true,
+    source: `Editorial runway · derived from ${sourceId}`,
+  };
+}
+
+export const CURATED_SOURCE_IDS = [...BASE_CURATED_SOURCE_IDS, ...CURATED_RUNWAY_SOURCE_IDS];
+
+const BASE_CURATED_PUZZLES: Puzzle[] = [
   curatedFrom({
     sourceId: "lib-0102",
     id: "cld-001",
@@ -327,3 +360,9 @@ export const CURATED_PUZZLES: Puzzle[] = [
     ),
   }),
 ];
+
+const AUTO_CURATED_PUZZLES: Puzzle[] = CURATED_RUNWAY_SOURCE_IDS.map((sourceId, index) =>
+  autoCuratedFrom(sourceId, index),
+);
+
+export const CURATED_PUZZLES: Puzzle[] = [...BASE_CURATED_PUZZLES, ...AUTO_CURATED_PUZZLES];

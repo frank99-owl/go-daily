@@ -15,7 +15,8 @@
     "import:puzzles": "tsx scripts/importTsumego.ts",
     "sync:puzzle-index": "tsx scripts/syncPuzzleIndex.ts",
     "validate:puzzles": "tsx scripts/validatePuzzles.ts",
-    "audit:puzzles": "tsx scripts/auditPuzzles.ts"
+    "audit:puzzles": "tsx scripts/auditPuzzles.ts",
+    "queue:content": "tsx scripts/queueContent.ts"
   },
   "dependencies": {
     "@upstash/redis": "^1.37.0",

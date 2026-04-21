@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { CoachDialogue } from "@/components/CoachDialogue";
 import { GoBoard } from "@/components/GoBoard";
 import { ShareCard } from "@/components/ShareCard";
+import { getCoachAccess } from "@/lib/coachAccess";
 import { useLocale } from "@/lib/i18n";
 import { localized } from "@/lib/localized";
 import { getAttemptFor, getAttemptsFor } from "@/lib/storage";
@@ -67,6 +68,7 @@ export function ResultClient({
   const hasSolution = !!puzzle.solutionSequence?.length;
   const retryHref =
     puzzle.id === todayPuzzleId ? "/today" : `/puzzles/${encodeURIComponent(puzzle.id)}`;
+  const coachAccess = getCoachAccess(puzzle);
 
   // History tally across ALL attempts on this puzzle (not just today). Shows
   // the "第 N 次尝试 · 累计 X 对 Y 错" banner — LeetCode-style submission count.
@@ -222,11 +224,17 @@ export function ResultClient({
         </section>
       )}
 
-      {/* AI coach is only offered for curated puzzles — library imports lack
-          hand-authored 4-language solution notes, so grounding would be weak
-          and hallucination risk high. */}
-      {attempt?.userMove && puzzle.isCurated !== false && (
+      {/* AI coach stays gated: curated puzzles are always allowed, while
+          library/imported puzzles must pass the quality bar and land in the
+          approved allowlist before the coach is shown. */}
+      {attempt?.userMove && coachAccess.available && (
         <CoachDialogue puzzleId={puzzle.id} userMove={attempt.userMove} isCorrect={correct} />
+      )}
+
+      {attempt?.userMove && !coachAccess.available && (
+        <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+          <div className="text-sm leading-relaxed text-white/60">{t.result.coachLimited}</div>
+        </section>
       )}
     </div>
   );

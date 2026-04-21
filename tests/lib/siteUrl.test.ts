@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import { getSiteUrl } from "@/lib/siteUrl";
+import { absoluteUrl, getSiteUrl } from "@/lib/siteUrl";
 
 describe("siteUrl", () => {
   const originalEnv = process.env;
@@ -30,5 +30,13 @@ describe("siteUrl", () => {
   it("trims whitespace from the environment variable", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "  https://space.example.com/  ";
     expect(getSiteUrl()).toBe("https://space.example.com");
+  });
+
+  it("builds absolute urls from relative paths", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://custom.example.com/";
+
+    expect(absoluteUrl("/puzzles")).toBe("https://custom.example.com/puzzles");
+    expect(absoluteUrl("today")).toBe("https://custom.example.com/today");
+    expect(absoluteUrl("/")).toBe("https://custom.example.com");
   });
 });

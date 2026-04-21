@@ -33,6 +33,7 @@
     "coachPlaceholder": "コーチに質問…",
     "send": "送信",
     "thinking": "思考中…",
+    "coachLimited": "AI コーチは現在、精選問題と承認済みの coach-ready 問題でのみ利用できます。",
     "curatedNote": "精選解説",
     "boardCoordinateHint": "AI コーチの座標はページ表示と同じ (x,y) 形式で、左上が (0,0) です。",
     "attemptCount": "{{count}} 回目",
@@ -93,7 +94,12 @@
     "sortDifficultyDesc": "難易度 ↓",
     "sortRecent": "最近挑戦",
     "tally": "正解 {{solved}} · 挑戦中 {{attempted}} · 未挑戦 {{unattempted}}",
-    "curated": "精選"
+    "curated": "精選",
+    "collectionTagEyebrow": "分類コレクション",
+    "collectionDifficultyEyebrow": "難易度コレクション",
+    "collectionTagDescription": "{{tag}} の問題を {{count}} 問まとめて見られます。",
+    "collectionDifficultyDescription": "難易度 {{level}} の問題を {{count}} 問まとめて見られます。",
+    "backToLibrary": "問題一覧へ戻る"
   },
   "review": {
     "title": "復習ノート",

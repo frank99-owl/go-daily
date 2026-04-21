@@ -9,12 +9,23 @@ import { useLocale } from "@/lib/i18n";
 import { localized } from "@/lib/localized";
 import { computeStatusTallies, getStatusFor, lastAttemptMsMap } from "@/lib/puzzleStatus";
 import { loadAttempts } from "@/lib/storage";
-import type { AttemptRecord, PuzzleSummary, PuzzleStatus } from "@/types";
+import type { AttemptRecord, PuzzleStatus, PuzzleSummary, PuzzleTag } from "@/types";
 
 type SortKey = "default" | "difficulty-asc" | "difficulty-desc" | "recent";
 type StatusFilter = "all" | "wrong" | "todo";
 
-export function PuzzleListClient({ summaries }: { summaries: PuzzleSummary[] }) {
+type PuzzleCollection =
+  | { kind: "all" }
+  | { kind: "tag"; tag: PuzzleTag }
+  | { kind: "difficulty"; level: number };
+
+export function PuzzleListClient({
+  summaries,
+  collection = { kind: "all" },
+}: {
+  summaries: PuzzleSummary[];
+  collection?: PuzzleCollection;
+}) {
   const { t } = useLocale();
 
   const [difficulty, setDifficulty] = useState<string>("all");
@@ -71,6 +82,31 @@ export function PuzzleListClient({ summaries }: { summaries: PuzzleSummary[] }) 
   }, [difficulty, statusFilter, sortKey, attemptsList, lastAttemptByPuzzle, summaries]);
 
   const difficulties = ["all", "1", "2", "3", "4", "5"];
+  const collectionTitle =
+    collection.kind === "tag"
+      ? `${t.tags[collection.tag]} · ${t.puzzles.title}`
+      : collection.kind === "difficulty"
+        ? `${t.home.difficulty} ${"★".repeat(collection.level)}${"☆".repeat(5 - collection.level)}`
+        : t.puzzles.title;
+  const collectionEyebrow =
+    collection.kind === "tag"
+      ? t.puzzles.collectionTagEyebrow
+      : collection.kind === "difficulty"
+        ? t.puzzles.collectionDifficultyEyebrow
+        : null;
+  const collectionDescription =
+    collection.kind === "tag"
+      ? t.puzzles.collectionTagDescription
+          .replace("{{count}}", String(summaries.length))
+          .replace("{{tag}}", t.tags[collection.tag])
+      : collection.kind === "difficulty"
+        ? t.puzzles.collectionDifficultyDescription
+            .replace("{{count}}", String(summaries.length))
+            .replace(
+              "{{level}}",
+              `${"★".repeat(collection.level)}${"☆".repeat(5 - collection.level)}`,
+            )
+        : t.puzzles.total.replace("{{count}}", String(summaries.length));
 
   const selectBase =
     "rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 focus:outline-none focus:border-[#00f2ff]";
@@ -81,12 +117,20 @@ export function PuzzleListClient({ summaries }: { summaries: PuzzleSummary[] }) 
       <div className="flex items-start justify-between gap-6">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
+            {collectionEyebrow && (
+              <span className="text-xs font-medium uppercase tracking-[0.2em] text-[#00f2ff]/70">
+                {collectionEyebrow}
+              </span>
+            )}
             <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl text-white">
-              {t.puzzles.title}
+              {collectionTitle}
             </h1>
-            <p className="text-sm text-white/50">
-              {t.puzzles.total.replace("{{count}}", String(summaries.length))}
-            </p>
+            <p className="text-sm text-white/50">{collectionDescription}</p>
+            {collection.kind !== "all" && (
+              <Link href="/puzzles" className="text-sm text-[#00f2ff] hover:opacity-80">
+                {t.puzzles.backToLibrary}
+              </Link>
+            )}
           </div>
 
           {/* Status tally bar */}
