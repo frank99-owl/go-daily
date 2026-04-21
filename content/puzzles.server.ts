@@ -25,27 +25,27 @@ function loadPuzzles(): Puzzle[] {
 // Cache the full puzzles in memory on the server
 export const PUZZLES: Puzzle[] = loadPuzzles();
 
+export function toPuzzleSummary(puzzle: Puzzle): PuzzleSummary {
+  return {
+    id: puzzle.id,
+    difficulty: puzzle.difficulty,
+    source: puzzle.source || puzzle.date,
+    date: puzzle.date,
+    prompt: puzzle.prompt,
+    isCurated: !!puzzle.isCurated,
+    boardSize: puzzle.boardSize,
+    tag: puzzle.tag,
+  };
+}
+
+export function buildPuzzleSummaries(puzzles: Puzzle[] = PUZZLES): PuzzleSummary[] {
+  return puzzles.map(toPuzzleSummary);
+}
+
 export function getPuzzleById(id: string): Puzzle | undefined {
   return PUZZLES.find((p) => p.id === id);
 }
 
 export function getAllSummaries(): PuzzleSummary[] {
-  // We can either compute them from PUZZLES or read the index file
-  // Reading the index file is faster if it's already there
-  const indexPath = path.join(DATA_DIR, "puzzleIndex.json");
-  if (fs.existsSync(indexPath)) {
-    return JSON.parse(fs.readFileSync(indexPath, "utf-8"));
-  }
-
-  // Fallback: generate from full data
-  return PUZZLES.map((p) => ({
-    id: p.id,
-    difficulty: p.difficulty,
-    source: p.source || p.date,
-    date: p.date,
-    prompt: p.prompt,
-    isCurated: !!p.isCurated,
-    boardSize: p.boardSize,
-    tag: p.tag,
-  }));
+  return buildPuzzleSummaries(PUZZLES);
 }
