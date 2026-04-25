@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { Download, Share2 } from "lucide-react";
-import { useLocale } from "@/lib/i18n";
+import { useRef, useState } from "react";
+
 import { starPoints } from "@/lib/board";
+import { useLocale } from "@/lib/i18n";
 import type { Locale, Puzzle, Stone } from "@/types";
 
 type Props = {
@@ -66,7 +67,7 @@ function getVerdictFont(locale: Locale): string {
     case "zh":
       return '"Ma Shan Zheng", cursive';
     case "ja":
-      return '"Klee One", cursive';
+      return '"Yuji Syuku", serif';
     case "ko":
       return '"Gowun Batang", serif';
     case "en":
@@ -265,7 +266,7 @@ export function ShareCard({ puzzle, correct, elapsedSeconds }: Props) {
       <button
         type="button"
         onClick={handleDownload}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[color:var(--color-line)] text-sm text-ink-2 hover:text-ink hover:border-[color:var(--color-accent)] transition-colors"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ink text-paper text-sm font-medium hover:bg-[color:var(--color-accent)] transition-colors"
       >
         <Download className="h-4 w-4" />
         {t.share.download}

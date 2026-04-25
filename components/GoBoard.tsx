@@ -1,8 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import {
+  computeCropWindow,
+  coordEquals,
+  fullWindow,
+  isInBounds,
+  isOccupied,
+  starPoints,
+  type BoardWindow,
+} from "@/lib/board";
 import type { Color, Coord, Stone } from "@/types";
-import { coordEquals, isInBounds, isOccupied, starPoints } from "@/lib/board";
 
 type Props = {
   size: 9 | 13 | 19;
@@ -27,77 +36,60 @@ type Props = {
   moveNumbers?: Map<string, number>;
   /** Highlight circle color. Defaults to CSS accent var. */
   highlightColor?: string;
+  /** Enables focus + keyboard cursor navigation for interactive boards. */
+  keyboardEnabled?: boolean;
+  /** Focuses the board wrapper after mount. */
+  focusOnMount?: boolean;
 };
-
-/** Auto-crop padding (in board cells) around detected stones. */
-const CROP_PAD = 2;
-
-type Window = { xMin: number; xMax: number; yMin: number; yMax: number };
-
-function fullWindow(size: number): Window {
-  return { xMin: 0, xMax: size - 1, yMin: 0, yMax: size - 1 };
-}
-
-/** Compute the bounding box of all meaningful cells + padding, clamped to board. */
-function computeCrop(
-  size: number,
-  stones: Stone[],
-  extraStones: Stone[] | undefined,
-  highlight: Coord[] | undefined,
-  userMove: Coord | null | undefined,
-): Window {
-  const coords: Coord[] = [...stones, ...(extraStones ?? []), ...(highlight ?? [])];
-  if (userMove) coords.push(userMove);
-
-  if (coords.length === 0) return fullWindow(size);
-
-  let xMin = size - 1,
-    xMax = 0,
-    yMin = size - 1,
-    yMax = 0;
-  for (const c of coords) {
-    if (c.x < xMin) xMin = c.x;
-    if (c.x > xMax) xMax = c.x;
-    if (c.y < yMin) yMin = c.y;
-    if (c.y > yMax) yMax = c.y;
-  }
-
-  xMin = Math.max(0, xMin - CROP_PAD);
-  yMin = Math.max(0, yMin - CROP_PAD);
-  xMax = Math.min(size - 1, xMax + CROP_PAD);
-  yMax = Math.min(size - 1, yMax + CROP_PAD);
-
-  // Make the window square — a non-square canvas would distort stone shapes.
-  const w = xMax - xMin + 1;
-  const h = yMax - yMin + 1;
-  const dim = Math.max(w, h);
-
-  if (w < dim) {
-    // Prefer extending toward the far edge (away from the corner).
-    const extra = dim - w;
-    if (xMin === 0) {
-      xMax = Math.min(size - 1, xMax + extra);
-    } else {
-      xMin = Math.max(0, xMin - extra);
-    }
-    // Clamp again if we hit an edge without reaching dim.
-    if (xMax - xMin + 1 < dim) xMax = Math.min(size - 1, xMin + dim - 1);
-  }
-  if (h < dim) {
-    const extra = dim - h;
-    if (yMin === 0) {
-      yMax = Math.min(size - 1, yMax + extra);
-    } else {
-      yMin = Math.max(0, yMin - extra);
-    }
-    if (yMax - yMin + 1 < dim) yMax = Math.min(size - 1, yMin + dim - 1);
-  }
-
-  return { xMin, xMax, yMin, yMax };
-}
 
 function keyOf(c: Coord): string {
   return `${c.x},${c.y}`;
+}
+
+export function computeBoardGeometry(px: number, cellsAcross: number) {
+  if (cellsAcross <= 1) {
+    const pad = px / 2;
+    return { pad, usable: 0, step: 0 };
+  }
+
+  const minPad = px * 0.06;
+  // Cropped 19x19 windows zoom the stones up. Use enough edge padding that
+  // stones and cursor rings on the outermost visible intersections cannot clip.
+  const safePad = (0.46 * px + 6 * (cellsAcross - 1)) / (cellsAcross - 1 + 0.92);
+  const pad = Math.max(minPad, safePad);
+  const usable = px - pad * 2;
+  const step = usable / (cellsAcross - 1);
+
+  return { pad, usable, step };
+}
+
+function findInitialKeyboardCursor(
+  win: BoardWindow,
+  size: 9 | 13 | 19,
+  stones: Stone[],
+  preferred?: Coord | null,
+): Coord | null {
+  if (preferred && isInBounds(preferred, size)) {
+    return preferred;
+  }
+
+  const centerX = Math.round((win.xMin + win.xMax) / 2);
+  const centerY = Math.round((win.yMin + win.yMax) / 2);
+  const candidates: Coord[] = [];
+
+  for (let y = win.yMin; y <= win.yMax; y++) {
+    for (let x = win.xMin; x <= win.xMax; x++) {
+      candidates.push({ x, y });
+    }
+  }
+
+  candidates.sort((a, b) => {
+    const distanceA = Math.abs(a.x - centerX) + Math.abs(a.y - centerY);
+    const distanceB = Math.abs(b.x - centerX) + Math.abs(b.y - centerY);
+    return distanceA - distanceB;
+  });
+
+  return candidates.find((candidate) => !isOccupied(stones, candidate)) ?? candidates[0] ?? null;
 }
 
 // Canvas-drawn Go board. HiDPI aware. Coordinates are 0-indexed from top-left,
@@ -116,11 +108,15 @@ export function GoBoard({
   boardStyle = "classic",
   moveNumbers,
   highlightColor,
+  keyboardEnabled = false,
+  focusOnMount = false,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [cssSize, setCssSize] = useState(maxPx);
   const [hover, setHover] = useState<Coord | null>(null);
+  const [keyboardCursor, setKeyboardCursor] = useState<Coord | null>(null);
+  const [keyboardCursorVisible, setKeyboardCursorVisible] = useState(false);
 
   const isDark = boardStyle === "dark";
   const accent = highlightColor ?? "var(--color-accent)";
@@ -143,9 +139,11 @@ export function GoBoard({
   // Compute the render window (full board or cropped bbox). We intentionally
   // don't include `hover` here — otherwise the visible area would wobble as
   // the user moves the pointer.
-  const win: Window = useMemo(
+  const win: BoardWindow = useMemo(
     () =>
-      cropToStones ? computeCrop(size, stones, extraStones, highlight, userMove) : fullWindow(size),
+      cropToStones
+        ? computeCropWindow(size, stones, extraStones, highlight, userMove)
+        : fullWindow(size),
     [cropToStones, size, stones, extraStones, highlight, userMove],
   );
 
@@ -153,6 +151,21 @@ export function GoBoard({
     (c: Coord) => c.x >= win.xMin && c.x <= win.xMax && c.y >= win.yMin && c.y <= win.yMax,
     [win],
   );
+
+  const activeKeyboardCursor = useMemo(() => {
+    if (!keyboardEnabled) return null;
+
+    if (keyboardCursor && isInBounds(keyboardCursor, size) && inWindow(keyboardCursor)) {
+      return keyboardCursor;
+    }
+
+    return findInitialKeyboardCursor(win, size, stones, userMove);
+  }, [keyboardEnabled, keyboardCursor, inWindow, size, stones, userMove, win]);
+
+  useEffect(() => {
+    if (!keyboardEnabled || !focusOnMount) return;
+    wrapRef.current?.focus();
+  }, [keyboardEnabled, focusOnMount]);
 
   // Derive rendering geometry.
   const render = useCallback(() => {
@@ -174,10 +187,8 @@ export function GoBoard({
     ctx.fillRect(0, 0, px, px);
 
     // Grid geometry: padding so edge intersections aren't right on the rim.
-    const pad = px * 0.06;
-    const usable = px - pad * 2;
     const cellsAcross = win.xMax - win.xMin + 1; // === cellsDown (window is square)
-    const step = usable / Math.max(1, cellsAcross - 1);
+    const { pad, step } = computeBoardGeometry(px, cellsAcross);
     const px_ = (i: number) => pad + (i - win.xMin) * step;
     const py_ = (j: number) => pad + (j - win.yMin) * step;
 
@@ -307,6 +318,24 @@ export function GoBoard({
       drawStone(hover, toPlay, 0.35);
     }
 
+    if (
+      keyboardEnabled &&
+      keyboardCursorVisible &&
+      activeKeyboardCursor &&
+      inWindow(activeKeyboardCursor)
+    ) {
+      const cx = px_(activeKeyboardCursor.x);
+      const cy = py_(activeKeyboardCursor.y);
+      ctx.save();
+      ctx.strokeStyle = "#00f2ff";
+      ctx.lineWidth = Math.max(2, px / 220);
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, stoneR * 0.82, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // When we're showing only a corner of a full board, soften the interior
     // boundaries (edges of the window that aren't the real board edge) with a
     // gradient to the board color. This communicates "the board continues here"
@@ -343,6 +372,9 @@ export function GoBoard({
     extraStones,
     disabled,
     hover,
+    activeKeyboardCursor,
+    keyboardCursorVisible,
+    keyboardEnabled,
     win,
     inWindow,
     cropToStones,
@@ -361,10 +393,8 @@ export function GoBoard({
       if (!canvas) return null;
       const rect = canvas.getBoundingClientRect();
       const px = rect.width;
-      const pad = px * 0.06;
-      const usable = px - pad * 2;
       const cellsAcross = win.xMax - win.xMin + 1;
-      const step = usable / Math.max(1, cellsAcross - 1);
+      const { pad, step } = computeBoardGeometry(px, cellsAcross);
       const x = Math.round((clientX - rect.left - pad) / step) + win.xMin;
       const y = Math.round((clientY - rect.top - pad) / step) + win.yMin;
       const c = { x, y };
@@ -388,6 +418,7 @@ export function GoBoard({
   const handleLeave = () => setHover(null);
 
   const handleClick: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
+    wrapRef.current?.focus();
     if (disabled || !onPlay) return;
     const c = pickCoord(e.clientX, e.clientY);
     if (!c) return;
@@ -396,8 +427,66 @@ export function GoBoard({
     onPlay(c);
   };
 
+  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
+    if (!keyboardEnabled || disabled) return;
+
+    switch (event.key) {
+      case "ArrowUp":
+        event.preventDefault();
+        setKeyboardCursorVisible(true);
+        setKeyboardCursor(() =>
+          activeKeyboardCursor
+            ? { ...activeKeyboardCursor, y: Math.max(win.yMin, activeKeyboardCursor.y - 1) }
+            : activeKeyboardCursor,
+        );
+        break;
+      case "ArrowDown":
+        event.preventDefault();
+        setKeyboardCursorVisible(true);
+        setKeyboardCursor(() =>
+          activeKeyboardCursor
+            ? { ...activeKeyboardCursor, y: Math.min(win.yMax, activeKeyboardCursor.y + 1) }
+            : activeKeyboardCursor,
+        );
+        break;
+      case "ArrowLeft":
+        event.preventDefault();
+        setKeyboardCursorVisible(true);
+        setKeyboardCursor(() =>
+          activeKeyboardCursor
+            ? { ...activeKeyboardCursor, x: Math.max(win.xMin, activeKeyboardCursor.x - 1) }
+            : activeKeyboardCursor,
+        );
+        break;
+      case "ArrowRight":
+        event.preventDefault();
+        setKeyboardCursorVisible(true);
+        setKeyboardCursor(() =>
+          activeKeyboardCursor
+            ? { ...activeKeyboardCursor, x: Math.min(win.xMax, activeKeyboardCursor.x + 1) }
+            : activeKeyboardCursor,
+        );
+        break;
+      case " ":
+      case "Enter":
+        event.preventDefault();
+        if (!activeKeyboardCursor || !onPlay) return;
+        if (isOccupied(stones, activeKeyboardCursor)) return;
+        if (userMove && coordEquals(userMove, activeKeyboardCursor)) return;
+        onPlay(activeKeyboardCursor);
+        break;
+    }
+  };
+
   return (
-    <div ref={wrapRef} className="flex justify-center" style={{ width: maxPx, maxWidth: maxPx }}>
+    <div
+      ref={wrapRef}
+      className="flex justify-center rounded-lg focus:outline-none"
+      style={{ width: maxPx, maxWidth: maxPx }}
+      tabIndex={keyboardEnabled ? 0 : -1}
+      onKeyDown={handleKeyDown}
+      aria-label={`Go board, ${size} by ${size}`}
+    >
       <canvas
         ref={canvasRef}
         onPointerMove={handleMove}
@@ -407,7 +496,8 @@ export function GoBoard({
           "rounded-md shadow-sm touch-none select-none " +
           (disabled ? "cursor-none" : "cursor-none")
         }
-        aria-label="Go board"
+        aria-hidden={keyboardEnabled || undefined}
+        aria-label={`Go board, ${size} by ${size}`}
         role="img"
       />
     </div>

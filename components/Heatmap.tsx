@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { useLocale } from "@/lib/i18n";
 import type { AttemptRecord, Locale } from "@/types";
 

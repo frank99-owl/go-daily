@@ -6,8 +6,36 @@
     "home": "首页",
     "puzzles": "题库",
     "review": "错题本",
-    "developer": "开发者",
-    "random": "随机题目"
+    "about": "项目介绍",
+    "random": "随机题目",
+    "signIn": "登录",
+    "account": "账户",
+    "signOut": "退出登录"
+  },
+  "about": {
+    "title": "关于项目、棋道与 AI 时代的思考",
+    "introTitle": "序言：在喧嚣中寻找一片棋盘",
+    "introText1": "在今天这个信息过载、工具繁杂的时代，我们往往被无数的按钮、广告和复杂的交互所包围。很多围棋软件也难逃此径，功能堆砌却让棋手难以静心。",
+    "introText2": "go-daily 的诞生，源于一个极其简单的初衷：创造一个真正能让人沉浸其中的空间。我们刻意去除了冗余的装饰，采用极简的设计语言，是为了让你的目光重新回到那纵横十九路的经纬之间。在这里，没有杂音，只有你和棋形，以及落子时那片刻的宁静。",
+    "section1Title": "1. 专注于过程，而非标准答案",
+    "section1Text1": "我们相信，围棋的魅力不在于最终那个代表胜负的数字，而在于通往终点时每一步的“思考过程”。",
+    "section1Text2": "在很多时候，AI 显得“太强了”。它能瞬间给出成千上万次模拟后的胜率曲线和最优解，但这往往剥夺了棋手进步的乐趣。被直接灌输的知识是廉价的。",
+    "section1Text3": "在 go-daily 中，我们不急于告诉你哪里是“正确”的。我们相信，只有通过那种被称为“计算”的思考，所获得的感悟才是真正属于你自己的。这里的 AI 教练，其存在的意义不是为了展示它有多么算无遗策，而是作为一个引导者，陪你一起复盘，在犹豫时推你一把，最终引导人类棋手通过自己的思考变得更强。",
+    "section2Title": "2. 精神图腾",
+    "section2Text1": "2016 年 3 月 13 日，首尔。那是人类围棋史上最具哲学意义的瞬间之一。",
+    "section2Text2": "面对代表着极致计算、几乎不可战胜的 AlphaGo，李世石在第四局下出了那手被誉为“神之一手”的挖（Move 78）。从概率的角度看，那一手在 AI 的模拟序列中出现的几率只有万分之一，甚至被算法判定为“误着”。",
+    "section2Text3": "但恰恰是这万分之一的灵感，在绝境中迸发，超越了常规逻辑，击穿了机器的认知。那一刻，李世石向世界证明了：即便是在这方有限的棋盘上，依然存在着计算无法穷尽的“美”与“变数”。",
+    "section2Text4": "这种精神也是 go-daily 想传递的——在这个算法统治的时代，不要放弃那份属于人类的灵感与直觉。我们鼓励每一位用户在面对死活题时，不只是寻找最稳妥的解法，而是去寻找那手属于你自己的“神之一手”。",
+    "section3Title": "3. AI 时代下，人类的机会与修行",
+    "section3Text1": "当 AI 已经在竞技水平上彻底超越人类，围棋对于我们的意义正在发生本质的回归。",
+    "section3Text2": "从“胜负”到“求道”：围棋不再仅仅是为了赢过对面的人。它回归到了一种自我修行（Inner Peace）。在棋盘上的博弈，本质上是自己与自己的对话，是磨练专注力、判断力和抗压能力的过程。",
+    "section3Text3": "共生与进化：我们不需要和 AI 竞争计算力，那是毫无意义的。我们要做的是学会如何与 AI 对话，利用它那广博的知识储备来拓宽我们认知的边界。go-daily 便是这种“对话”的载体——我们不再视 AI 为对手，而视其为通往更高棋理道路上的阶梯。",
+    "section4Title": "4. 开发者寄语",
+    "section4Text1": "你好，我是 Frank，go-daily 的开发者。",
+    "section4Text2": "我本身也是一个深度的围棋爱好者，目前是业余 3 段。作为棋友，我深知在棋力上升期遇到瓶颈时的迷茫；作为开发者，我亦在思索如何用技术服务于这份古老的艺术。",
+    "section4Text3": "在这个 AI 狂飙突进、一切都追求“快”的时代，我选择做一个“慢下来”的工具。go-daily 带有我的一点理想主义色彩：我希望它不只是一个死活题库，而是一个能让你在忙碌的一天中抽出 5 分钟，坐下来，认真算一步棋的地方。",
+    "section4Text4": "棋道漫漫，我们都是求道者。希望这个小小的项目，能陪伴你在黑白交替的岁月中，看到更广阔的世界。",
+    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game."
   },
   "home": {
     "todaysProblem": "今日一题",
@@ -16,7 +44,9 @@
     "difficulty": "难度",
     "submit": "确认落子",
     "reset": "重新选择",
-    "hint": "点击空交叉点落子"
+    "hint": "点击空交叉点落子",
+    "boardCoordinateHint": "坐标统一使用 (x,y)，左上角是 (0,0)。19 路题目可能只显示局部。",
+    "keyboardShortcuts": "快捷键：方向键移动光标 · Enter 或 Space 落子 · R 重置 · Esc 清除当前选择"
   },
   "result": {
     "correct": "正确！",
@@ -24,12 +54,29 @@
     "viewAnswer": "查看正解",
     "hideAnswer": "隐藏正解",
     "playSolution": "播放正解",
+    "retry": "再做一次",
     "backToToday": "返回今日",
-    "coachTitle": "AI 陪练",
+    "backToHome": "返回首页",
+    "coachTitle": "AI 教练",
     "coachEmpty": "想到什么随时问——比如「为什么这一手是急所？」「如果白去扑会怎么样？」",
     "coachPlaceholder": "向 AI 提问…",
     "send": "发送",
     "thinking": "AI 思考中…",
+    "coachLimited": "AI 教练目前只对精选题和已批准的 coach-ready 练习题开放。",
+    "coachGuestLocked": "登录后即可使用 AI 教练，并把你的进度同步到多设备。",
+    "coachPlanFree": "免费版",
+    "coachPlanPro": "Pro",
+    "coachUsageNatural": "今日剩余 {{today}} 次 · 本月剩余 {{month}} 次",
+    "coachUsageBilling": "今日剩余 {{today}} 次 · 本计费周期剩余 {{month}} 次",
+    "coachStatusLoading": "正在检查教练权限…",
+    "coachDeviceLimit": "免费账号同一时间只支持 1 台设备。升级到 Pro 后即可多端同步，并在所有设备使用 AI 教练。",
+    "coachDailyLimitReached": "你今天的 AI 教练额度已经用完。",
+    "coachMonthlyLimitReached": "你本月的 AI 教练额度已经用完。",
+    "coachUpgradeCta": "升级到 Pro",
+    "coachSignInCta": "登录后使用 AI 教练",
+    "curatedNote": "精选讲解",
+    "boardCoordinateHint": "AI 教练提到的坐标与页面一致：使用 (x,y)，左上角为 (0,0)。",
+    "keyboardShortcuts": "快捷键：R 重新挑战 · 左右方向键查看解答步骤 · Esc 关闭当前解答视图",
     "attemptCount": "第 {{count}} 次尝试",
     "historyTally": "累计 {{correct}} 对 · {{wrong}} 错"
   },
@@ -46,7 +93,14 @@
     "heatmapNoActivity": "未做题",
     "heatmapOneAttempt": "1 次尝试",
     "heatmapManyAttempts": "{{count}} 次尝试",
-    "heatmapCorrectSuffix": "（{{correct}} 正确）"
+    "heatmapCorrectSuffix": "（{{correct}} 正确）",
+    "backupTitle": "备份与恢复",
+    "backupDescription": "将你的战绩导出为 JSON 文件，或在另一台设备上导入。",
+    "export": "导出战绩",
+    "import": "导入战绩",
+    "importing": "正在导入…",
+    "importSuccess": "已导入 {{count}} 条新记录，当前共 {{total}} 条。",
+    "importError": "导入失败：{{error}}"
   },
   "share": {
     "title": "分享今日战绩",
@@ -74,7 +128,8 @@
       "all": "全部",
       "9": "9路",
       "13": "13路",
-      "19": "19路"
+      "19": "19路",
+      "local19": "19路局部"
     },
     "statusSolved": "已解决",
     "statusAttempted": "尝试过",
@@ -88,14 +143,50 @@
     "sortDifficultyDesc": "难度 ↓",
     "sortRecent": "最近尝试",
     "tally": "已解决 {{solved}} · 尝试过 {{attempted}} · 未开始 {{unattempted}}",
-    "curated": "精选"
+    "curated": "精选",
+    "collectionTagEyebrow": "分类题单",
+    "collectionDifficultyEyebrow": "难度题单",
+    "collectionTagDescription": "浏览 {{tag}} 分类下的 {{count}} 道题。",
+    "collectionDifficultyDescription": "浏览难度 {{level}} 下的 {{count}} 道题。",
+    "backToLibrary": "返回题库"
   },
   "review": {
     "title": "错题本",
     "subtitle": "回头看看那些还没拿下的题",
     "empty": "还没有错题，继续保持！",
+    "srsSubtitle": "Pro 间隔复习：只显示今天到期的题",
+    "emptySrs": "今天没有到期复习题，明天再来看看。",
+    "freeLimitNotice": "Free 错题本显示最近 {{limit}} 题，还有 {{count}} 题可用 Pro SRS 管理。",
+    "freeLimitCta": "升级 Pro",
     "lastAttempted": "最近尝试 {{date}}",
     "attemptCount": "{{count}} 次尝试"
+  },
+  "pricing": {
+    "title": "升级到 Pro",
+    "subtitle": "解锁多端同步、更高的 AI 教练额度，以及无广告体验。",
+    "monthlyName": "Pro 月付",
+    "yearlyName": "Pro 年付",
+    "monthlyPrice": "$2.99 / 月",
+    "yearlyPrice": "$29.90 / 年",
+    "trial": "包含 7 天银行卡试用期。",
+    "featureSync": "多端同步",
+    "featureCoach": "AI 教练：10 次/天 · 50 次/计费周期",
+    "featureNoAds": "无广告",
+    "monthlyCta": "开始月付计划",
+    "yearlyCta": "开始年付计划",
+    "processing": "正在跳转到 Stripe…",
+    "error": "无法启动结账流程，请稍后再试。",
+    "signInRequired": "开通 Pro 前请先登录 go-daily。",
+    "signInCta": "登录后继续",
+    "alreadyPro": "你已经是 Pro 用户啦",
+    "alreadyProBody": "在 Stripe 后台可以查看账单、切换月付 / 年付或取消订阅。",
+    "managePortal": "管理订阅",
+    "intervalMonthly": "月付",
+    "intervalYearly": "年付",
+    "seePlans": "查看套餐",
+    "later": "以后再说",
+    "upsellTitle": "升级到 Pro",
+    "upsellSubtitle": "解锁多端同步、更高的 AI 教练额度、无广告体验。"
   },
   "hero": {
     "titleLine1": "围棋智慧",
@@ -113,5 +204,122 @@
     "phaseShowGod": "神之一手",
     "phasePlaying": "回放中",
     "phaseEnded": "终局"
+  },
+  "manifest": {
+    "name": "go-daily — 每日围棋一题",
+    "shortName": "go-daily",
+    "description": "一天一题，苏格拉底式 AI 教练陪你复盘。"
+  },
+  "metadata": {
+    "home": {
+      "title": "go-daily — 每日围棋死活题与 AI 教练",
+      "description": "每天精选一道围棋死活题，苏格拉底式 AI 教练帮你理解「为什么」，而不只是「下哪里」。"
+    },
+    "today": {
+      "title": "今日一题 — go-daily",
+      "description": "挑战今日精选围棋死活题，卡住了就向 AI 教练求助。"
+    },
+    "puzzles": {
+      "title": "题库 — go-daily",
+      "description": "浏览数百道死活、手筋、官子题。按难度筛选，追踪进度。"
+    },
+    "review": {
+      "title": "错题本 — go-daily",
+      "description": "回顾做错的题目，攻克你还没掌握的棋形。"
+    },
+    "stats": {
+      "title": "战绩统计 — go-daily",
+      "description": "查看连胜记录、正确率和详细做题统计。"
+    },
+    "puzzleDetail": {
+      "title": "第 {{id}} 题 — go-daily",
+      "description": "{{prompt}}（{{boardSize}} 路围棋题）。每日死活题，AI 教练陪你复盘。"
+    },
+    "difficultyCollection": {
+      "title": "难度 {{level}} 围棋题 — go-daily",
+      "description": "浏览 go-daily 难度 {{level}} 的题目，集中练习特定水平的读棋挑战。"
+    },
+    "tagCollection": {
+      "title": "{{tag}} 围棋题 — go-daily",
+      "description": "在 go-daily 题库中浏览 {{tag}} 分类的题目，进入专项练习。"
+    },
+    "login": {
+      "title": "登录 — go-daily",
+      "description": "登录 go-daily，让你的战绩与错题本跨设备同步，安稳存放在云端。"
+    },
+    "account": {
+      "title": "账户 — go-daily",
+      "description": "管理你的 go-daily 账户，查看登录方式，或删除数据。"
+    },
+    "pricing": {
+      "title": "升级到 Pro — go-daily",
+      "description": "升级到 Pro，解锁多端同步、更高的 AI 教练额度，以及无广告体验。"
+    }
+  },
+  "auth": {
+    "login": {
+      "eyebrow": "欢迎回来",
+      "title": "登录 go-daily",
+      "subtitle": "跨设备同步你的战绩与错题本。我们不会发帖、不会挖你数据、更不会卖给任何人。",
+      "google": "使用 Google 登录",
+      "dividerOr": "或",
+      "emailLabel": "邮箱",
+      "emailPlaceholder": "you@example.com",
+      "magicLink": "发送登录链接",
+      "sending": "发送中…",
+      "checkInbox": "请查收邮件",
+      "checkInboxDetail": "已向 {{email}} 发送登录链接，1 小时内有效。",
+      "resend": "再发一次",
+      "errorGeneric": "出错了，请再试一次。",
+      "errorInvalidEmail": "邮箱格式不对。",
+      "errorOAuthFailed": "无法跳转到 Google 登录，请稍后重试。",
+      "continueAsGuest": "继续以游客身份使用",
+      "guestHint": "游客进度只保存在当前设备。",
+      "closePrompt": "关闭登录提示",
+      "privacyHint": "继续即表示你同意 go-daily 保存你的邮箱与做题记录用于账号同步。",
+      "alreadySignedIn": "你已经登录了。"
+    },
+    "session": {
+      "syncing": "正在同步你的数据…",
+      "deviceLimitTitle": "这个免费账号已经在另一台设备上使用中",
+      "deviceLimitBody": "升级到 Pro 可开启多端同步；或者你也可以退出登录，在当前浏览器继续以游客身份使用。",
+      "upgradeCta": "升级到 Pro",
+      "signOutGuestCta": "退出登录并继续游客模式",
+      "mergeTitle": "选择如何同步这台设备",
+      "mergeBody": "我们发现这台设备上有 {{local}} 条本地记录，云端还有 {{remote}} 条记录。",
+      "mergeHint": "合并会保留双方的唯一记录；保留云端会丢弃仅存在于本地的记录；保留此设备会优先保留当前浏览器的本地记录。",
+      "mergeRecommended": "合并（推荐）",
+      "mergeKeepCloud": "保留云端",
+      "mergeKeepLocal": "保留此设备"
+    },
+    "account": {
+      "title": "账户",
+      "signedInAs": "登录邮箱",
+      "provider": "登录方式",
+      "providerGoogle": "Google",
+      "providerEmail": "邮箱链接",
+      "signOut": "退出登录",
+      "signingOut": "正在退出…",
+      "billingTitle": "订阅",
+      "billingDescription": "在 Stripe 后台查看账单、更新付款方式、切换套餐或取消订阅。",
+      "manageSubscription": "管理订阅",
+      "openingPortal": "正在打开 Stripe…",
+      "billingPortalError": "无法打开订阅管理，请稍后再试。",
+      "dangerTitle": "危险操作",
+      "dangerDescription": "永久删除 go-daily 账户以及所有做题记录，此操作不可撤销。",
+      "deleteAccount": "删除账户",
+      "deleteConfirmTitle": "确认删除账户？",
+      "deleteConfirmBody": "这将永久删除你的个人资料、做题记录、复习卡片以及任何订阅信息。本设备的本地数据不受影响。",
+      "deleteConfirmType": "请输入 DELETE 以确认",
+      "deleteConfirmPlaceholder": "DELETE",
+      "deleteConfirmButton": "确认删除",
+      "deleteCancel": "取消",
+      "deleteInProgress": "删除中…",
+      "deleteFailed": "删除失败，请稍后重试或联系客服。",
+      "deleteSucceeded": "账户已删除。"
+    },
+    "callback": {
+      "authError": "登录失败：{{message}}"
+    }
   }
 }

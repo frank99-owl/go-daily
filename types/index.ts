@@ -30,9 +30,20 @@ export interface Puzzle {
   isCurated?: boolean;
   tag: PuzzleTag;
   difficulty: 1 | 2 | 3 | 4 | 5; // 1 easiest
-  prompt: LocalizedText; // e.g. "黑先活"
+  prompt: LocalizedText; // e.g. "Black to play and live"
   solutionNote: LocalizedText; // ground-truth reasoning for the LLM
   source?: string;
+}
+
+export interface PuzzleSummary {
+  id: string;
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  source: string;
+  date: string;
+  prompt: LocalizedText;
+  isCurated: boolean;
+  boardSize: 9 | 13 | 19;
+  tag: PuzzleTag;
 }
 
 export interface AttemptRecord {

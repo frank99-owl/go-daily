@@ -1,18 +1,39 @@
-import type { AttemptRecord } from "@/types";
-import { todayLocalKey } from "./puzzleOfTheDay";
+import type { AttemptRecord, Coord } from "@/types";
 
-const KEY = "go-daily.attempts";
+import { todayLocalKey } from "./dateUtils";
+import { loadWithIntegrity, migratePlainData, saveWithIntegrity } from "./storageIntegrity";
+
+export const ATTEMPTS_STORAGE_KEY = "go-daily.attempts";
+
+type CreateAttemptRecordInput = {
+  puzzleId: string;
+  userMove: Coord | null;
+  correct: boolean;
+  date?: string;
+  solvedAtMs?: number;
+};
 
 export function loadAttempts(): AttemptRecord[] {
   if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as AttemptRecord[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+
+  // Try integrity-protected load first
+  const protectedData = loadWithIntegrity<AttemptRecord>(ATTEMPTS_STORAGE_KEY);
+  if (protectedData !== null) return protectedData;
+
+  // Fall back to plain data (migration path for existing users)
+  const plain = migratePlainData<AttemptRecord>(ATTEMPTS_STORAGE_KEY);
+  if (plain !== null) {
+    // Migrate to new format
+    saveWithIntegrity(ATTEMPTS_STORAGE_KEY, plain);
+    return plain;
   }
+
+  return [];
+}
+
+export function replaceAttempts(records: AttemptRecord[]): void {
+  if (typeof window === "undefined") return;
+  saveWithIntegrity(ATTEMPTS_STORAGE_KEY, records);
 }
 
 /**
@@ -24,7 +45,23 @@ export function saveAttempt(record: AttemptRecord): void {
   if (typeof window === "undefined") return;
   const all = loadAttempts();
   all.push(record);
-  window.localStorage.setItem(KEY, JSON.stringify(all));
+  replaceAttempts(all);
+}
+
+export function createAttemptRecord({
+  puzzleId,
+  userMove,
+  correct,
+  date = todayLocalKey(),
+  solvedAtMs = Date.now(),
+}: CreateAttemptRecordInput): AttemptRecord {
+  return {
+    puzzleId,
+    date,
+    userMove,
+    correct,
+    solvedAtMs,
+  };
 }
 
 /** Latest attempt for a puzzle (most recent `solvedAtMs`), or null if none. */

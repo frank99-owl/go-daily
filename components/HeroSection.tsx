@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useLocale } from "@/lib/i18n";
 import { motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
 import { useRef } from "react";
+
+import { LocalizedLink } from "@/components/LocalizedLink";
+import { useLocale } from "@/lib/i18n";
 
 export function HeroSection() {
   const { t, locale } = useLocale();
@@ -46,7 +48,7 @@ export function HeroSection() {
     locale === "zh"
       ? { fontFamily: '"Zhi Mang Xing", cursive', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
       : locale === "ja"
-        ? { fontFamily: '"Klee One", cursive', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
+        ? { fontFamily: '"Yuji Syuku", serif', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
         : locale === "ko"
           ? { fontFamily: '"Gowun Batang", serif', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
           : {
@@ -54,7 +56,8 @@ export function HeroSection() {
               textShadow: "0 0 30px rgba(255, 255, 255, 0.2)",
             };
 
-  const secondLineOffset = locale === "en" ? "" : "ml-8 md:ml-16";
+  const secondLineOffset =
+    locale === "en" ? "" : locale === "ja" ? "ml-16 md:ml-32" : "ml-8 md:ml-16";
 
   return (
     <section
@@ -63,13 +66,18 @@ export function HeroSection() {
       className="sticky top-0 h-screen z-10 flex items-center overflow-hidden"
     >
       {/* Background Image - parallax */}
-      <motion.div className="absolute inset-0 z-0" style={{ y: bgY }}>
+      <motion.div className="absolute inset-0 z-0 overflow-hidden" style={{ y: bgY }}>
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10" />
-        <img
-          alt="Go board"
-          className="w-full h-[120%] object-cover opacity-80"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd0x2ASouWz7G63car9i2KEMeaaeLqddV5NJ-ccOEkKgduWyV8OO45pqtd8-lj1ItI-58w80b9E0Tiz0zILDtV1ZzZsvjPzTzhWQGLzHhxK4DCjCllyGChzOXnjKw8KeNwMphoEFkHpekX_5C4xlitFU7ohKFj6SCL9Bx5iycXD5eMJ2bRLyJJJLUxVhlwLrhzLwEAvnaAd4QtphEGa38xkWfFVrYguokFDgwPNszucyamhxrc-nujboyk3iWYEB3OSTyfKrXgErYV"
-        />
+        <div className="relative h-[120%] w-full">
+          <Image
+            alt="Go board"
+            className="object-cover opacity-80"
+            fill
+            priority
+            sizes="100vw"
+            src="/hero-bg.jpg"
+          />
+        </div>
       </motion.div>
 
       {/* Content - fade out on scroll */}
@@ -99,14 +107,14 @@ export function HeroSection() {
             {t.hero.subtitle}
           </p>
           <div className="pt-8 flex items-center gap-10">
-            <Link
+            <LocalizedLink
               href="/today"
               data-hover-target
               className="group flex items-center gap-4 text-white font-[family-name:var(--font-sans)] font-light text-sm tracking-[0.2em] uppercase transition-all"
             >
               <span className="w-12 h-px bg-white/30 group-hover:w-16 group-hover:bg-white transition-all duration-500" />
               {t.hero.getStarted}
-            </Link>
+            </LocalizedLink>
             <button
               type="button"
               onClick={scrollToBoard}

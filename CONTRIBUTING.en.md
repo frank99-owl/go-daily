@@ -38,14 +38,15 @@ npm install
 
 # 3. Create a local environment file (needed for AI coach)
 cp .env.example .env.local
-# Edit .env.local and fill in DEEPSEEK_API_KEY
+# Edit .env.local and fill in DEEPSEEK_API_KEY and optional Supabase/PostHog/Sentry vars
 
 # 4. Start the development server (Turbopack, hot-reload)
 npm run dev
-# Visit http://localhost:3000
+# Visit http://localhost:3000 — middleware auto-redirects to /{locale}
 ```
 
 > **The app works without `DEEPSEEK_API_KEY`** — all features work normally; the AI coach panel will simply show "service unavailable".
+> **The app works without Supabase** — runs in anonymous-only mode (localStorage storage).
 
 ### Recommended VS Code Extensions
 
@@ -57,17 +58,22 @@ npm run dev
 
 ## 2. npm Scripts Reference
 
-| Command                    | Description                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------ |
-| `npm run dev`              | Start development server (Turbopack, port 3000)                                                  |
-| `npm run build`            | Production build (automatically triggers `validate:puzzles`)                                     |
-| `npm run start`            | Start the production server (requires a prior `build`)                                           |
-| `npm run lint`             | Run ESLint                                                                                       |
-| `npm run validate:puzzles` | Validate integrity of all puzzle data                                                            |
-| `npm run format`           | Prettier formatting on all files                                                                 |
-| `npm run format:check`     | Prettier format check (for CI)                                                                   |
-| `npm run test`             | Vitest unit tests                                                                                |
-| `npm run import:puzzles`   | Bulk-import puzzles from SGF files (see [puzzle-authoring.en.md](./docs/puzzle-authoring.en.md)) |
+| Command                     | Description                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------ |
+| `npm run dev`               | Start development server (Turbopack, port 3000)                                                  |
+| `npm run build`             | Production build (automatically triggers `validate:puzzles`)                                     |
+| `npm run start`             | Start the production server (requires a prior `build`)                                           |
+| `npm run lint`              | Run ESLint                                                                                       |
+| `npm run validate:puzzles`  | Validate integrity of all puzzle data                                                            |
+| `npm run sync:puzzle-index` | Regenerate `content/data/puzzleIndex.json` from canonical PUZZLES                                |
+| `npm run audit:puzzles`     | Content QA report (curated runway, coach readiness)                                              |
+| `npm run queue:content`     | Build ranked content candidate queues                                                            |
+| `npm run supabase:health`   | Supabase connection health check                                                                 |
+| `npm run format`            | Prettier formatting on all files                                                                 |
+| `npm run format:check`      | Prettier format check (for CI)                                                                   |
+| `npm run test`              | Vitest unit tests + component tests + API tests                                                  |
+| `npm run test:watch`        | Vitest watch mode                                                                                |
+| `npm run import:puzzles`    | Bulk-import puzzles from SGF files (see [puzzle-authoring.en.md](./docs/puzzle-authoring.en.md)) |
 
 ---
 
@@ -75,26 +81,50 @@ npm run dev
 
 ```
 go-daily/
-├── app/                  # Next.js App Router pages and API
-│   ├── api/coach/        # AI Coach Route Handler
-│   ├── developer/        # Developer page
-│   ├── puzzles/          # Puzzle library and [id] dynamic route
-│   ├── result/           # Result page
-│   ├── review/           # Review page
-│   ├── stats/            # Stats page
-│   └── today/            # Daily puzzle page
-├── components/           # Shared UI components
+├── app/                      # Next.js App Router pages and API
+│   ├── [locale]/             # URL-based i18n: /zh/, /en/, /ja/, /ko/
+│   │   ├── today/            # Daily puzzle
+│   │   ├── puzzles/          # Puzzle library and [id] dynamic route
+│   │   ├── result/           # Result page
+│   │   ├── review/           # Review page
+│   │   ├── stats/            # Stats page
+│   │   └── about/            # About page (formerly developer page)
+│   ├── api/
+│   │   ├── coach/            # AI Coach Route Handler
+│   │   └── report-error/     # Client error reporting
+│   ├── auth/callback/        # OAuth callback handler
+│   └── manifest.ts           # Dynamic localised PWA manifest
+├── components/               # Shared UI components
 ├── content/
-│   ├── messages/         # 4-locale translation JSON files
-│   ├── puzzles.ts        # Puzzle aggregator
-│   ├── data/             # Large data files (auto-generated)
-│   └── games/            # Historical game record SGF data
-├── docs/                 # Project documentation (bilingual CN/EN)
-├── lib/                  # Utilities (i18n, storage, coach, goRules, sgf, etc.)
-├── scripts/              # Build scripts (validation, import)
-├── types/                # Global TypeScript type definitions
-├── public/               # Static assets
-└── middleware.ts         # i18n cookie → header forwarding
+│   ├── messages/             # 4-locale translation JSON files
+│   ├── puzzles.ts            # Environment-aware data entry
+│   ├── puzzles.server.ts     # Server-side full data loader
+│   ├── curatedPuzzles.ts     # Hand-written curated puzzles
+│   ├── data/                 # Large data files (auto-generated JSON)
+│   │   ├── puzzleIndex.json
+│   │   ├── classicalPuzzles.json
+│   │   └── classicalPuzzles.json
+│   └── games/                # Historical game record SGF data
+├── docs/                     # Project documentation (bilingual CN/EN)
+├── lib/                      # Utilities
+│   ├── supabase/             # client / server / middleware / service
+│   ├── posthog/              # client / events
+│   ├── localePath.ts         # Locale negotiation, URL prefix/strip
+│   ├── syncStorage.ts        # Unified storage (localStorage + IndexedDB + Supabase)
+│   ├── mergeOnLogin.ts       # anon → authed data merge
+│   ├── deviceId.ts           # per-browser UUID
+│   ├── deviceRegistry.ts     # Free-plan single-device limit
+│   ├── attemptKey.ts         # Canonical dedup key
+│   ├── clientIp.ts           # Real client IP extraction
+│   ├── board / judge / storage / puzzleOfTheDay / i18n
+│   ├── coachPrompt / rateLimit / puzzleStatus / goRules / sgf
+│   └── gameSnapshots / siteUrl / exportData / storageIntegrity
+├── scripts/                  # Build scripts (validation, import, audit, queue)
+├── supabase/
+│   └── migrations/0001_init.sql  # Database schema
+├── types/                    # Global TypeScript type definitions + zod schemas
+├── public/                   # Static assets
+└── proxy.ts                  # Next.js middleware: locale negotiation + Supabase session refresh
 ```
 
 For a full architecture walkthrough, see [docs/architecture.en.md](./docs/architecture.en.md).
@@ -108,6 +138,7 @@ For a full architecture walkthrough, see [docs/architecture.en.md](./docs/archit
 - **strict mode** (`tsconfig.json`); no `any` (add a comment if unavoidable)
 - Path alias: `@/*` maps to the project root — avoid `../../../` relative paths
 - Type definitions are centralized in `types/index.ts`, not scattered across files
+- New zod schemas go in `types/schemas.ts`
 
 ### React
 
@@ -121,6 +152,7 @@ For a full architecture walkthrough, see [docs/architecture.en.md](./docs/archit
 - All UI strings accessed via the `t` object from `useLocale()`
 - Puzzle `prompt` / `solutionNote` fields always use `localized(text, locale)` — never direct indexing
 - Adding a translation key requires updating all 4 locale files
+- Use `LocalizedLink` component for locale-aware routing; don't hard-code `/{locale}/...`
 
 ### Styling
 
@@ -134,7 +166,7 @@ For a full architecture walkthrough, see [docs/architecture.en.md](./docs/archit
 
 ### Manual (Curated Puzzles)
 
-1. Add a `Puzzle` object to `content/puzzles/index.ts`
+1. Add a `Puzzle` object to `content/curatedPuzzles.ts`
 2. Run `npm run validate:puzzles` to validate
 3. See [docs/puzzle-authoring.en.md](./docs/puzzle-authoring.en.md) for field details
 
@@ -144,6 +176,8 @@ For a full architecture walkthrough, see [docs/architecture.en.md](./docs/archit
 # Put SGF files in scripts/sgf/
 npm run import:puzzles
 ```
+
+Output is written to `content/data/classicalPuzzles.json` (auto-generated banner — don't edit by hand).
 
 Bulk-imported puzzles should have `isCurated: false` (disables the AI coach to prevent hallucination).
 
@@ -164,11 +198,11 @@ See [docs/i18n.en.md](./docs/i18n.en.md) for details.
 1. Branch off `main`: `git checkout -b feat/my-feature`
 2. Make your changes locally and verify that all of the following pass:
    ```bash
-   npm run format:check       # Prettier formatting check passes
-   npm run lint               # no ESLint errors
-   npm run test               # unit tests all green
-   npm run validate:puzzles   # puzzle data validates
-   npm run build              # production build succeeds
+   npm run format:check        # Prettier formatting check passes
+   npm run lint                # no ESLint errors
+   npm run test                # all tests green (199/38)
+   npm run validate:puzzles    # puzzle data validates
+   npm run build               # production build succeeds
    ```
 3. Open a PR with a description covering:
    - What changed
@@ -179,7 +213,7 @@ See [docs/i18n.en.md](./docs/i18n.en.md) for details.
 
 ## 8. Testing
 
-The project uses **Vitest** for unit tests, covering core pure functions:
+The project uses **Vitest** for unit tests, covering core pure functions, components, and API:
 
 ```bash
 npm run test       # run all tests
@@ -188,21 +222,20 @@ npm run test:watch # watch mode
 
 Current test files:
 
-| File                  | Coverage                                       |
-| --------------------- | ---------------------------------------------- |
-| `lib/board.test.ts`   | `coordEquals` / `isInBounds` / `starPoints`    |
-| `lib/judge.test.ts`   | Correct / wrong / multi-correct verdicts       |
-| `lib/goRules.test.ts` | Capture logic (single, group, no self-capture) |
-| `lib/sgf.test.ts`     | SGF coord parsing, branch skipping             |
-
-### Missing tests (contributions welcome)
-
-| Layer     | Module                                          | Recommended Framework  |
-| --------- | ----------------------------------------------- | ---------------------- |
-| Unit      | `lib/puzzleStatus.ts` (pure functions)          | Vitest                 |
-| Unit      | `scripts/validatePuzzles.ts` (validation rules) | Vitest                 |
-| Component | `GoBoard` (canvas rendering)                    | Playwright / Storybook |
-| E2E       | Home move submission → result page flow         | Playwright             |
+| File                                      | Coverage                                       |
+| ----------------------------------------- | ---------------------------------------------- |
+| `lib/board.test.ts`                       | `coordEquals` / `isInBounds` / `starPoints`    |
+| `lib/judge.test.ts`                       | Correct / wrong / multi-correct verdicts       |
+| `lib/goRules.test.ts`                     | Capture logic (single, group, no self-capture) |
+| `lib/sgf.test.ts`                         | SGF coord parsing, branch skipping             |
+| `lib/puzzleOfTheDay.test.ts`              | Daily rotation algorithm                       |
+| `lib/storage.test.ts`                     | localStorage I/O and serialization             |
+| `lib/mergeOnLogin.test.ts`                | anon → authed data merge decisions             |
+| `lib/deviceRegistry.test.ts`              | Free-plan single-device limit evaluation       |
+| `lib/localePath.test.ts`                  | Locale negotiation, URL prefix/strip           |
+| `tests/api/coach.test.ts`                 | Coach API validation, rate limiting, errors    |
+| `tests/components/CoachDialogue.test.tsx` | CoachDialogue rendering and interaction        |
+| `tests/components/GoBoard.test.tsx`       | GoBoard canvas rendering and click coordinates |
 
 ---
 

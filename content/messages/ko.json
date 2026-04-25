@@ -6,8 +6,36 @@
     "home": "홈",
     "puzzles": "문제집",
     "review": "오답노트",
-    "developer": "개발자",
-    "random": "랜덤 문제"
+    "about": "프로젝트 소개",
+    "random": "랜덤 문제",
+    "signIn": "로그인",
+    "account": "계정",
+    "signOut": "로그아웃"
+  },
+  "about": {
+    "title": "알고리즘의 시대, 기도로의 회귀",
+    "introTitle": "프롤로그: 소란을 뒤로하고, 열아홉 줄의 정적으로",
+    "introText1": "정보가 범람하고 도구가 복잡해진 오늘날, 우리는 수많은 광고와 번거로운 기능들에 둘러싸여 있습니다. 많은 바둑 서비스들이 기능을 쌓아 올리는 데 급급하여, 대국자가 진정으로 몰입할 수 있는 여백을 잃어가고 있습니다.",
+    "introText2": "go-daily는 아주 단순한 믿음에서 시작되었습니다. '진정으로 몰입할 수 있는 공간'을 만드는 것. 불필요한 장식을 걷어내고 미니멀한 디자인을 채택한 것은, 여러분의 시선을 다시 열아홉 줄의 경위(經緯) 위로 되돌리기 위함입니다. 이곳에는 오직 당신과 기형(棋形), 그리고 돌을 놓는 순간의 정적만이 존재합니다.",
+    "section1Title": "1. 정답이 아닌, 사유의 깊이에 집중하다",
+    "section1Text1": "바둑의 매력은 승패라는 결과가 아니라, 종국에 이르기까지 모든 수에 담긴 '사고의 질'에 있다고 믿습니다.",
+    "section1Text2": "AI가 압도적으로 강력해진 지금, 알고리즘이 제시하는 '정답'을 무비판적으로 따르는 것은 스스로 길을 찾아가는 즐거움을 앗아갑니다. 쉽게 얻은 지식은 그만큼 쉽게 무너지기 마련입니다.",
+    "section1Text3": "'수읽기'라는 고통스러운 사유의 과정을 거쳐 얻은 깨달음만이 진정으로 당신의 것이 됩니다. 이곳의 AI 코치는 전지전능한 예언자가 아닙니다. 당신과 함께 반상을 살피고, 망설일 때 질문을 던지며, 궁극적으로 당신 자신의 직관을 깨우는 안내자입니다.",
+    "section2Title": "2. 제78수의 정신",
+    "section2Text1": "2016년 3월 13일, 서울. 바둑 역사상 가장 철학적인 울림을 주었던 순간이었습니다.",
+    "section2Text2": "무결점의 계산을 자랑하던 알파고를 상대로, 이세돌 9단은 '신의 한 수'라 불리는 '끼움(제78수)'을 두었습니다. AI의 시뮬레이션에서는 만분의 일의 확률조차 되지 않았던, 오직 인간만이 던질 수 있었던 승부수였습니다.",
+    "section2Text3": "그 순간 그는 세상에 증명했습니다. 유한한 바둑판 위일지라도, 계산으로는 다 헤아릴 수 없는 인간의 영감과 아름다움이 존재함을.",
+    "section2Text4": "go-daily는 이 정신을 계승합니다. 단순히 안전한 길을 찾는 것이 아니라, 당신의 직관에 응답하는 당신만의 '신의 한 수'를 찾아내기를 응원합니다.",
+    "section3Title": "3. AI 시대, 인간의 길: 구도의 길",
+    "section3Text1": "AI가 경기력에서 인간을 앞지른 지금, 바둑의 의미는 상대와 겨루는 '승부'를 넘어 자신을 닦는 '구도'로 돌아오고 있습니다.",
+    "section3Text2": "승부에서 수담(手談)으로: 바둑은 더 이상 상대를 굴복시키기 위한 도구가 아닙니다. 그것은 자신과의 대화이며, 마음을 다스리는 수행(Inner Peace)입니다. 반상 위의 고독한 싸움은 집중력과 판단력, 그리고 흔들리지 않는 마음을 기르는 거울이 됩니다.",
+    "section3Text3": "공생: 우리는 기계와 경쟁하는 것이 아니라, 그들의 방대함으로부터 배워 우리 자신의 지평을 넓혀야 합니다. go-daily는 인간의 직관과 AI의 지혜를 잇는 가교이며, 더 깊은 기리에 도달하기 위한 계단입니다.",
+    "section4Title": "4. 개발자의 편지",
+    "section4Text1": "안녕하세요, 개발자 Frank입니다. 저 또한 아마 3단의 바둑 애호가입니다.",
+    "section4Text2": "한 명의 기객으로서 실력이 정체되었을 때의 답답함을 잘 알고 있습니다. 개발자로서 이 고전적인 예술을 어떻게 기술로 보필할 수 있을지 고민하고 있습니다.",
+    "section4Text3": "속도가 미덕인 시대에, 저는 일부러 '느린' 도구를 만들었습니다. 바쁜 하루 중 5분만이라도 차분히 앉아 한 수를 읽고 마음을 정돈하는 것. 그런 이상주의를 이 프로젝트에 담았습니다.",
+    "section4Text4": "기도(棋道)는 멀고, 우리는 모두 도를 구하는 자들입니다. 이 작은 프로젝트가 흑과 백이 교차하는 세월 속에서 당신이 더 넓은 세상을 보는 데 보탬이 되기를 소망합니다.",
+    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game."
   },
   "home": {
     "todaysProblem": "오늘의 문제",
@@ -16,7 +44,9 @@
     "difficulty": "난이도",
     "submit": "착수 확인",
     "reset": "다시 선택",
-    "hint": "빈 교차점을 눌러 돌을 놓으세요"
+    "hint": "빈 교차점을 눌러 돌을 놓으세요",
+    "boardCoordinateHint": "좌표는 (x,y) 형식이며 왼쪽 위가 (0,0)입니다. 19로 문제는 일부만 보일 수 있습니다.",
+    "keyboardShortcuts": "단축키: 방향키로 커서 이동 · Enter 또는 Space로 착수 · R로 초기화 · Esc로 현재 착수 해제"
   },
   "result": {
     "correct": "맞았어요！",
@@ -24,12 +54,29 @@
     "viewAnswer": "정답 보기",
     "hideAnswer": "정답 숨기기",
     "playSolution": "정답 재생",
+    "retry": "다시 풀기",
     "backToToday": "오늘로 돌아가기",
+    "backToHome": "홈으로 돌아가기",
     "coachTitle": "AI 코치",
     "coachEmpty": "무엇이든 물어보세요 — 예: \"왜 이곳이 급소인가요?\" / \"백이 젖히면 어떻게 되나요?\"",
     "coachPlaceholder": "코치에게 물어보기…",
     "send": "보내기",
     "thinking": "생각 중…",
+    "coachLimited": "AI 코치는 현재 엄선 문제와 승인된 coach-ready 연습 문제에서만 사용할 수 있습니다.",
+    "coachGuestLocked": "AI 코치를 사용하려면 로그인하세요. 진행 기록도 여러 기기에서 동기화됩니다.",
+    "coachPlanFree": "무료",
+    "coachPlanPro": "Pro",
+    "coachUsageNatural": "오늘 남음 {{today}}회 · 이번 달 남음 {{month}}회",
+    "coachUsageBilling": "오늘 남음 {{today}}회 · 이번 결제 주기 남음 {{month}}회",
+    "coachStatusLoading": "코치 권한을 확인하는 중…",
+    "coachDeviceLimit": "무료 계정은 동시에 1대의 기기만 사용할 수 있습니다. Pro로 업그레이드하면 다중 기기 동기화와 AI 코치를 사용할 수 있습니다.",
+    "coachDailyLimitReached": "오늘의 AI 코치 한도를 모두 사용했습니다.",
+    "coachMonthlyLimitReached": "이번 달 AI 코치 한도를 모두 사용했습니다.",
+    "coachUpgradeCta": "Pro로 업그레이드",
+    "coachSignInCta": "로그인하고 AI 코치 사용하기",
+    "curatedNote": "엄선 해설",
+    "boardCoordinateHint": "AI 코치의 좌표는 페이지와 같은 (x,y) 형식이며 왼쪽 위가 (0,0)입니다.",
+    "keyboardShortcuts": "단축키: R로 다시 도전 · 좌우 방향키로 해설 수순 이동 · Esc로 현재 해설 보기 닫기",
     "attemptCount": "{{count}}번째 시도",
     "historyTally": "누적 정답 {{correct}} · 오답 {{wrong}}"
   },
@@ -46,7 +93,14 @@
     "heatmapNoActivity": "기록 없음",
     "heatmapOneAttempt": "1회 시도",
     "heatmapManyAttempts": "{{count}}회 시도",
-    "heatmapCorrectSuffix": " (정답 {{correct}})"
+    "heatmapCorrectSuffix": " (정답 {{correct}})",
+    "backupTitle": "백업 및 복원",
+    "backupDescription": "기록을 JSON 파일로 내보내거나 다른 기기에서 가져올 수 있습니다.",
+    "export": "기록 내보내기",
+    "import": "기록 가져오기",
+    "importing": "가져오는 중…",
+    "importSuccess": "새 기록 {{count}}개를 가져왔습니다. 현재 총 {{total}}개가 저장되어 있습니다.",
+    "importError": "가져오기에 실패했습니다: {{error}}"
   },
   "share": {
     "title": "오늘의 결과 공유",
@@ -74,7 +128,8 @@
       "all": "전체",
       "9": "9로",
       "13": "13로",
-      "19": "19로"
+      "19": "19로",
+      "local19": "19로 일부"
     },
     "statusSolved": "해결",
     "statusAttempted": "시도중",
@@ -88,19 +143,55 @@
     "sortDifficultyDesc": "난이도 ↓",
     "sortRecent": "최근 시도",
     "tally": "해결 {{solved}} · 시도 {{attempted}} · 미시도 {{unattempted}}",
-    "curated": "엄선"
+    "curated": "엄선",
+    "collectionTagEyebrow": "태그 컬렉션",
+    "collectionDifficultyEyebrow": "난이도 컬렉션",
+    "collectionTagDescription": "{{tag}} 문제 {{count}}개를 한 번에 둘러보세요.",
+    "collectionDifficultyDescription": "난이도 {{level}} 문제 {{count}}개를 한 번에 둘러보세요.",
+    "backToLibrary": "문제집으로 돌아가기"
   },
   "review": {
     "title": "오답노트",
     "subtitle": "아직 풀지 못한 문제를 되짚어 봅시다",
     "empty": "오답이 없습니다. 이대로 계속!",
+    "srsSubtitle": "Pro 간격 복습: 오늘 복습할 문제",
+    "emptySrs": "오늘 복습할 카드가 없습니다.",
+    "freeLimitNotice": "Free 오답노트는 최근 {{limit}}문제까지 표시합니다. Pro SRS로 {{count}}문제를 더 관리할 수 있습니다.",
+    "freeLimitCta": "Pro로 업그레이드",
     "lastAttempted": "최근 시도 {{date}}",
     "attemptCount": "{{count}}회 시도"
   },
+  "pricing": {
+    "title": "Go Pro",
+    "subtitle": "다중 기기 동기화, 더 높은 AI 코치 한도, 광고 제거를 잠금 해제하세요.",
+    "monthlyName": "Pro 월간",
+    "yearlyName": "Pro 연간",
+    "monthlyPrice": "$2.99 / 월",
+    "yearlyPrice": "$29.90 / 년",
+    "trial": "7일 카드 체험 포함.",
+    "featureSync": "다중 기기 동기화",
+    "featureCoach": "AI 코치: 하루 10회 · 결제 주기당 50회",
+    "featureNoAds": "광고 없음",
+    "monthlyCta": "월간 플랜 시작",
+    "yearlyCta": "연간 플랜 시작",
+    "processing": "Stripe로 이동하는 중…",
+    "error": "결제를 시작할 수 없습니다. 다시 시도해 주세요.",
+    "signInRequired": "Pro로 업그레이드하기 전에 go-daily에 로그인하세요.",
+    "signInCta": "로그인하고 계속",
+    "alreadyPro": "이미 Pro를 이용 중입니다",
+    "alreadyProBody": "Stripe 포털에서 청구 내역을 확인하고, 월간/연간 플랜을 전환하거나 해지할 수 있습니다.",
+    "managePortal": "구독 관리",
+    "intervalMonthly": "월간",
+    "intervalYearly": "연간",
+    "seePlans": "플랜 보기",
+    "later": "나중에",
+    "upsellTitle": "Pro로 업그레이드",
+    "upsellSubtitle": "다중 기기 동기화, 더 높은 AI 코치 한도, 광고 없는 환경을 잠금 해제하세요."
+  },
   "hero": {
-    "titleLine1": "바둑의 지혜",
-    "titleLine2": "종횡 사이",
-    "subtitle": "고대 게임의 침묵 속 전투를 경험하세요. 돌을 둘 때마다 기량을 닦고, 천 년의 지혜를 느껴 보세요.",
+    "titleLine1": "반상의 우주",
+    "titleLine2": "흑백의 대화",
+    "subtitle": "고요한 반상에 귀를 기울이면, 한 수마다 천 년의 지혜가 숨 쉰다. 흑과 백의 대화에, 당신도 함께하세요.",
     "getStarted": "시작하기",
     "watchMatch": "관전하기"
   },
@@ -113,5 +204,122 @@
     "phaseShowGod": "신의 한 수",
     "phasePlaying": "재생 중",
     "phaseEnded": "종국"
+  },
+  "manifest": {
+    "name": "go-daily — 매일 바둑 사활 문제",
+    "shortName": "go-daily",
+    "description": "하루 한 문제, 소크라테스식 AI 코치와 함께 복기하세요."
+  },
+  "metadata": {
+    "home": {
+      "title": "go-daily — 매일 바둑 사활 문제와 AI 코치",
+      "description": "매일 엄선된 바둑 문제로 소크라테스식 AI 코치와 함께 '왜'를 이해하세요."
+    },
+    "today": {
+      "title": "오늘의 문제 — go-daily",
+      "description": "오늘의 엄선된 바둑 문제에 도전하고 막히면 AI 코치에게 물어보세요."
+    },
+    "puzzles": {
+      "title": "문제집 — go-daily",
+      "description": "사활, 기초, 끝내기 등 수백 개의 문제를 둘러보세요. 난이도별 필터링과 진행 상황 추적."
+    },
+    "review": {
+      "title": "오답노트 — go-daily",
+      "description": "틀린 문제를 되짚어 보고 아직 익숙하지 않은 패턴을 마스터하세요."
+    },
+    "stats": {
+      "title": "기록 및 통계 — go-daily",
+      "description": "연승 기록, 정답률, 상세한 문제 히스토리를 확인하세요."
+    },
+    "puzzleDetail": {
+      "title": "문제 {{id}} — go-daily",
+      "description": "{{prompt}}（{{boardSize}}로 바둑 문제）。매일 사활 문제, AI 코치와 함께 복기하세요."
+    },
+    "difficultyCollection": {
+      "title": "난이도 {{level}} 바둑 문제 — go-daily",
+      "description": "go-daily 난이도 {{level}} 문제를 둘러보고 특정 수준의 읽기 과제를 집중적으로 연습하세요."
+    },
+    "tagCollection": {
+      "title": "{{tag}} 바둑 문제 — go-daily",
+      "description": "go-daily 문제집에서 {{tag}} 분류의 문제를 둘러보고 집중 연습에 들어가세요."
+    },
+    "login": {
+      "title": "로그인 — go-daily",
+      "description": "go-daily에 로그인하여 기록과 오답노트를 여러 기기에서 동기화하고 클라우드에 안전하게 보관하세요."
+    },
+    "account": {
+      "title": "계정 — go-daily",
+      "description": "go-daily 계정을 관리하고, 로그인 방법을 확인하거나 데이터를 삭제할 수 있습니다."
+    },
+    "pricing": {
+      "title": "Go Pro — go-daily",
+      "description": "Pro로 업그레이드하여 다중 기기 동기화, 더 높은 AI 코치 한도, 광고 없는 환경을 이용하세요."
+    }
+  },
+  "auth": {
+    "login": {
+      "eyebrow": "다시 오신 걸 환영합니다",
+      "title": "go-daily 로그인",
+      "subtitle": "기록과 오답노트를 여러 기기에서 동기화합니다. 게시·데이터 수집·판매는 절대 하지 않습니다.",
+      "google": "Continue with Google",
+      "dividerOr": "또는",
+      "emailLabel": "이메일",
+      "emailPlaceholder": "you@example.com",
+      "magicLink": "로그인 링크 보내기",
+      "sending": "보내는 중…",
+      "checkInbox": "메일을 확인해 주세요",
+      "checkInboxDetail": "{{email}} 으로 로그인 링크를 보냈습니다. 1시간 동안 유효합니다.",
+      "resend": "다시 보내기",
+      "errorGeneric": "문제가 발생했습니다. 다시 시도해 주세요.",
+      "errorInvalidEmail": "이메일 형식이 올바르지 않습니다.",
+      "errorOAuthFailed": "Google 로그인을 시작할 수 없습니다. 다시 시도해 주세요.",
+      "continueAsGuest": "게스트로 계속하기",
+      "guestHint": "게스트 진행 기록은 이 기기에만 저장됩니다.",
+      "closePrompt": "로그인 안내 닫기",
+      "privacyHint": "계속하면 계정 동기화를 위해 go-daily가 이메일과 풀이 기록을 저장하는 데 동의하게 됩니다.",
+      "alreadySignedIn": "이미 로그인되어 있습니다."
+    },
+    "session": {
+      "syncing": "데이터를 동기화하는 중…",
+      "deviceLimitTitle": "이 무료 계정은 이미 다른 기기에서 사용 중입니다",
+      "deviceLimitBody": "Pro로 업그레이드하면 다중 기기 동기화를 사용할 수 있습니다. 또는 로그아웃하고 이 브라우저에서는 게스트로 계속할 수 있습니다.",
+      "upgradeCta": "Pro로 업그레이드",
+      "signOutGuestCta": "로그아웃하고 게스트로 계속하기",
+      "mergeTitle": "이 기기를 어떻게 동기화할지 선택하세요",
+      "mergeBody": "이 기기에는 로컬 기록 {{local}}개, 클라우드에는 {{remote}}개가 있습니다.",
+      "mergeHint": "병합은 양쪽의 고유 기록을 모두 보존합니다. 클라우드 유지는 로컬 전용 기록을 버리고, 이 기기 유지는 현재 브라우저의 로컬 기록을 유지합니다.",
+      "mergeRecommended": "병합(권장)",
+      "mergeKeepCloud": "클라우드 유지",
+      "mergeKeepLocal": "이 기기 유지"
+    },
+    "account": {
+      "title": "계정",
+      "signedInAs": "로그인 이메일",
+      "provider": "로그인 방식",
+      "providerGoogle": "Google",
+      "providerEmail": "이메일 링크",
+      "signOut": "로그아웃",
+      "signingOut": "로그아웃 중…",
+      "billingTitle": "구독",
+      "billingDescription": "Stripe에서 청구 내역 확인, 결제 수단 변경, 플랜 전환 또는 해지를 할 수 있습니다.",
+      "manageSubscription": "구독 관리",
+      "openingPortal": "Stripe 여는 중…",
+      "billingPortalError": "구독 관리 화면을 열 수 없습니다. 다시 시도해 주세요.",
+      "dangerTitle": "위험 구역",
+      "dangerDescription": "go-daily 계정과 모든 풀이 기록을 영구적으로 삭제합니다. 되돌릴 수 없습니다.",
+      "deleteAccount": "계정 삭제",
+      "deleteConfirmTitle": "정말 삭제하시겠습니까?",
+      "deleteConfirmBody": "프로필, 풀이 기록, 복습 카드, 구독 정보가 모두 영구 삭제됩니다. 이 기기의 로컬 데이터는 삭제되지 않습니다.",
+      "deleteConfirmType": "확인을 위해 DELETE를 입력하세요",
+      "deleteConfirmPlaceholder": "DELETE",
+      "deleteConfirmButton": "계정 삭제",
+      "deleteCancel": "취소",
+      "deleteInProgress": "삭제 중…",
+      "deleteFailed": "삭제에 실패했습니다. 잠시 후 다시 시도하거나 고객센터에 문의하세요.",
+      "deleteSucceeded": "계정이 삭제되었습니다."
+    },
+    "callback": {
+      "authError": "로그인에 실패했습니다: {{message}}"
+    }
   }
 }

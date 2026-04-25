@@ -21,7 +21,7 @@
 
 ## 1. 功能概述
 
-AI 教练是一个基于 DeepSeek 大模型的围棋辅导对话功能，在**结果页**（`app/result/`）展示，帮助用户理解自己的落子是否正确以及背后的棋理。
+AI 教练是一个基于 DeepSeek 大模型的围棋辅导对话功能，在**结果页**（`app/[locale]/result/`）展示，帮助用户理解自己的落子是否正确以及背后的棋理。
 
 **功能特点**：
 
@@ -160,24 +160,19 @@ const completion = await client.chat.completions.create({
 
 ## 5. 速率限制
 
-当前实现：进程内存 `Map<string, number[]>`，键为 IP 地址。
+默认使用 `MemoryRateLimiter`（进程内存 `Map<string, number[]>`），可通过 `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` 调整参数。
 
-```ts
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 分钟窗口
-const RATE_LIMIT_MAX = 10; // 窗口内最多 10 次
-```
+当配置了 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN` 时，自动切换为 `UpstashRateLimiter`，实现跨实例共享的持久化限流。
 
-**限制**：进程级，不跨进程共享。Vercel Serverless 多实例部署时各实例独立计数。
+**IP 提取优先级**：`CF-Connecting-IP` → `X-Forwarded-For`（首个 hop）→ `X-Real-IP` → 回退到 `"unknown"`。
 
-**生产环境推荐**：迁移至 Redis（详见 [extensibility.md](./extensibility.md)）。
-
-IP 提取优先级：`x-forwarded-for` → `x-real-ip` → 回退到 `"local"`。
+详见 `lib/clientIp.ts`。
 
 ---
 
 ## 6. 会话存储
 
-客户端在 `sessionStorage` 中按 `coach-${puzzleId}-${locale}` 键存储对话历史（`CoachMessage[]`）。
+客户端在 `sessionStorage` 中按 `go-daily.coach.${puzzleId}.${locale}` 键存储对话历史（`CoachMessage[]`）。
 
 ```ts
 interface CoachMessage {
@@ -196,7 +191,7 @@ interface CoachMessage {
 ## 7. `isCurated` 门控
 
 ```ts
-// app/result/ResultClient.tsx（示意）
+// app/[locale]/result/ResultClient.tsx（示意）
 {puzzle.isCurated !== false && (
   <CoachPanel puzzle={puzzle} ... />
 )}
@@ -234,14 +229,27 @@ try {
 
 ## 9. 环境变量
 
-| 变量               | 必填 | 说明                                          |
-| ------------------ | ---- | --------------------------------------------- |
-| `DEEPSEEK_API_KEY` | ✅   | DeepSeek API 密钥，缺失时所有教练请求返回 500 |
+| 变量                       | 必填 | 默认值          | 说明                                          |
+| -------------------------- | ---- | --------------- | --------------------------------------------- |
+| `DEEPSEEK_API_KEY`         | ✅   | —               | DeepSeek API 密钥，缺失时所有教练请求返回 500 |
+| `COACH_MODEL`              | —    | `deepseek-chat` | AI 教练使用的模型标识符                       |
+| `RATE_LIMIT_WINDOW_MS`     | —    | `60000`         | 速率限制时间窗口（毫秒）                      |
+| `RATE_LIMIT_MAX`           | —    | `10`            | 每窗口每 IP 最大请求数                        |
+| `UPSTASH_REDIS_REST_URL`   | —    | —               | Upstash Redis REST URL，配置后启用持久化限流  |
+| `UPSTASH_REDIS_REST_TOKEN` | —    | —               | Upstash Redis REST Token                      |
 
 **本地开发**：在项目根目录创建 `.env.local`：
 
 ```
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
+# 可选：切换模型
+# COACH_MODEL=deepseek-chat
+# 可选：调整限流参数
+# RATE_LIMIT_WINDOW_MS=60000
+# RATE_LIMIT_MAX=10
+# 可选：启用 Upstash Redis 持久化限流
+# UPSTASH_REDIS_REST_URL=https://...
+# UPSTASH_REDIS_REST_TOKEN=...
 ```
 
 **Vercel 部署**：在项目 Settings → Environment Variables 中配置，勾选 Production + Preview + Development。
@@ -250,14 +258,14 @@ DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
 
 ## 10. 安全考量
 
-| 风险             | 缓解措施                                                       |
-| ---------------- | -------------------------------------------------------------- |
-| 恶意大请求体     | 8 KB 上限（`content-length` 检查）                             |
-| 暴力刷 API       | 进程级速率限制（生产建议 Redis）                               |
-| 消息内容注入     | 每条 `content` 截断至 2 000 字符，历史最多 6 条                |
-| 伪造 `puzzleId`  | 服务端从 `PUZZLES` 数组查找，不存在返回 404                    |
-| 系统 Prompt 泄露 | 客户端只收到 `reply`，系统 prompt 仅在服务端构建，不随响应返回 |
-| API Key 泄露     | 存储在服务端环境变量，不暴露给浏览器                           |
+| 风险             | 缓解措施                                                           |
+| ---------------- | ------------------------------------------------------------------ |
+| 恶意大请求体     | 8 KB 上限（`content-length` 检查）                                 |
+| 暴力刷 API       | 进程级速率限制（不跨实例共享）；限流器故障时 fail-open，不阻断服务 |
+| 消息内容注入     | 每条 `content` 截断至 2 000 字符，历史最多 6 条                    |
+| 伪造 `puzzleId`  | 服务端从 `PUZZLES` 数组查找，不存在返回 404                        |
+| 系统 Prompt 泄露 | 客户端只收到 `reply`，系统 prompt 仅在服务端构建，不随响应返回     |
+| API Key 泄露     | 存储在服务端环境变量，不暴露给浏览器                               |
 
 ---
 

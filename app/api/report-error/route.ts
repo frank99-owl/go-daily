@@ -1,0 +1,95 @@
+import * as Sentry from "@sentry/nextjs";
+
+import { createApiResponse } from "@/lib/apiHeaders";
+import { getClientIP } from "@/lib/clientIp";
+import { createRateLimiter } from "@/lib/rateLimit";
+import { ClientErrorReportSchema } from "@/types/schemas";
+
+export const runtime = "nodejs";
+
+const MAX_BODY_BYTES = 4 * 1024;
+const rateLimiter = createRateLimiter();
+
+type ClientErrorReport = ReturnType<typeof ClientErrorReportSchema.parse>;
+
+function captureClientErrorReport(report: ClientErrorReport, ip: string): void {
+  Sentry.withScope((scope) => {
+    scope.setTag("source", "client-error-report");
+    scope.setTag("client_locale", report.locale ?? "unknown");
+    if (report.puzzleId) {
+      scope.setTag("puzzle_id", report.puzzleId);
+    }
+    scope.setContext("client_error", {
+      ip,
+      url: report.url,
+      timestamp: report.timestamp,
+      userAgent: report.userAgent,
+      locale: report.locale,
+      puzzleId: report.puzzleId,
+    });
+
+    const error = new Error(report.message);
+    if (report.stack) {
+      error.stack = report.stack;
+    }
+    Sentry.captureException(error);
+  });
+}
+
+export async function POST(request: Request) {
+  const contentType = request.headers.get("content-type");
+  if (!contentType?.includes("application/json")) {
+    return createApiResponse({ error: "Content-Type must be application/json." }, { status: 400 });
+  }
+
+  const contentLength = request.headers.get("content-length");
+  if (contentLength) {
+    const length = Number(contentLength);
+    if (!Number.isFinite(length) || length <= 0) {
+      return createApiResponse({ error: "Invalid Content-Length." }, { status: 400 });
+    }
+    if (length > MAX_BODY_BYTES) {
+      return createApiResponse({ error: "Request body too large." }, { status: 413 });
+    }
+  }
+
+  const ip = getClientIP(request);
+  try {
+    if (await rateLimiter.isLimited(`client-error:${ip}`)) {
+      return createApiResponse({ error: "Too many reports, slow down." }, { status: 429 });
+    }
+  } catch (error) {
+    console.warn("[client-error] rate limiter failed open", error);
+  }
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return createApiResponse({ error: "Invalid JSON." }, { status: 400 });
+  }
+
+  const parsed = ClientErrorReportSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return createApiResponse(
+      { error: parsed.error.issues[0]?.message ?? "Invalid payload." },
+      { status: 400 },
+    );
+  }
+
+  const report = parsed.data;
+
+  console.error("[client-error]", {
+    ip,
+    message: report.message,
+    stack: report.stack,
+    url: report.url,
+    timestamp: report.timestamp,
+    userAgent: report.userAgent,
+    locale: report.locale,
+    puzzleId: report.puzzleId,
+  });
+  captureClientErrorReport(report, ip);
+
+  return createApiResponse({ ok: true });
+}

@@ -1,7 +1,10 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+
 import { useLocale } from "@/lib/i18n";
+import { localePath } from "@/lib/localePath";
 import type { Locale } from "@/types";
 
 const LABELS: Record<Locale, string> = {
@@ -15,6 +18,8 @@ const ORDER: Locale[] = ["zh", "en", "ja", "ko"];
 
 export function LanguageToggle() {
   const { locale, setLocale } = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -28,13 +33,23 @@ export function LanguageToggle() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Keyboard: Escape closes the menu.
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" && open) {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
+
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" onKeyDown={handleKeyDown}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="text-white/40 hover:text-white transition-colors flex items-center"
         aria-label="Language"
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -53,14 +68,24 @@ export function LanguageToggle() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-50 rounded-lg border border-white/10 bg-[#0a0a0a]/95 backdrop-blur-xl p-1 shadow-lg min-w-[80px]">
+        <div
+          className="absolute right-0 top-8 z-50 rounded-lg border border-white/10 bg-[#0a0a0a]/95 backdrop-blur-xl p-1 shadow-lg min-w-[80px]"
+          role="menu"
+        >
           {ORDER.map((l) => (
             <button
               key={l}
               type="button"
+              role="menuitem"
+              aria-current={locale === l ? "true" : undefined}
               onClick={() => {
                 setLocale(l);
                 setOpen(false);
+                // URL segment is the source of truth — also swap the locale
+                // prefix so search, OG tags, and hreflang all stay consistent.
+                if (pathname) {
+                  router.push(localePath(l, pathname));
+                }
               }}
               className={
                 "block w-full text-left px-3 py-1.5 text-sm rounded-md transition-colors " +

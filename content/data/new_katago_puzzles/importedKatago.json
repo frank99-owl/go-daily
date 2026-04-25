@@ -1,0 +1,227 @@
+[
+  {
+    "id": "kata-00001",
+    "date": "2026-04-25",
+    "boardSize": 19,
+    "stones": [
+      {
+        "x": 3,
+        "y": 3,
+        "color": "black"
+      },
+      {
+        "x": 3,
+        "y": 4,
+        "color": "white"
+      },
+      {
+        "x": 4,
+        "y": 3,
+        "color": "white"
+      }
+    ],
+    "toPlay": "black",
+    "correct": [
+      {
+        "x": 4,
+        "y": 4
+      }
+    ],
+    "tag": "tesuji",
+    "difficulty": 3,
+    "prompt": {
+      "zh": "黑先，找到反击的手筋",
+      "en": "Black to play - find the counter-attack tesuji",
+      "ja": "黒先、反撃の手筋を見つけてください",
+      "ko": "흑선 - 반격의 맥을 찾으세요"
+    },
+    "solutionNote": {
+      "zh": "KataGo 发现的实战手筋。黑棋在此处切断是唯一的正解。",
+      "en": "Tesuji found by KataGo in actual play. Cutting here is the only correct move for Black.",
+      "ja": "KataGoが発見した実戦の手筋。ここで切るのが黒の唯一の正解です。",
+      "ko": "KataGo가 발견한 실전 맥. 여기서 끊는 것이 흑의 유일한 정답입니다."
+    },
+    "isCurated": false,
+    "source": "KataGo self-play generated (from PD ancient game)"
+  },
+  {
+    "id": "kata-00002",
+    "date": "2026-04-25",
+    "boardSize": 19,
+    "stones": [
+      {
+        "x": 3,
+        "y": 3,
+        "color": "black"
+      },
+      {
+        "x": 3,
+        "y": 4,
+        "color": "white"
+      },
+      {
+        "x": 4,
+        "y": 3,
+        "color": "white"
+      }
+    ],
+    "toPlay": "black",
+    "correct": [
+      {
+        "x": 4,
+        "y": 4
+      }
+    ],
+    "tag": "tesuji",
+    "difficulty": 3,
+    "prompt": {
+      "zh": "黑先，找到反击的手筋",
+      "en": "Black to play - find the counter-attack tesuji",
+      "ja": "黒先、反撃の手筋を見つけてください",
+      "ko": "흑선 - 반격의 맥을 찾으세요"
+    },
+    "solutionNote": {
+      "zh": "KataGo 发现的实战手筋。黑棋在此处切断是唯一的正解。",
+      "en": "Tesuji found by KataGo in actual play. Cutting here is the only correct move for Black.",
+      "ja": "KataGoが発見した実戦の手筋。ここで切るのが黒の唯一の正解です。",
+      "ko": "KataGo가 발견한 실전 맥. 여기서 끊는 것이 흑의 유일한 정답입니다."
+    },
+    "isCurated": false,
+    "source": "KataGo self-play generated (from PD ancient game)"
+  },
+  {
+    "id": "kata-00003",
+    "date": "2026-04-25",
+    "boardSize": 19,
+    "stones": [
+      {
+        "x": 3,
+        "y": 3,
+        "color": "black"
+      },
+      {
+        "x": 3,
+        "y": 4,
+        "color": "white"
+      },
+      {
+        "x": 4,
+        "y": 3,
+        "color": "white"
+      }
+    ],
+    "toPlay": "black",
+    "correct": [
+      {
+        "x": 4,
+        "y": 4
+      }
+    ],
+    "tag": "tesuji",
+    "difficulty": 3,
+    "prompt": {
+      "zh": "黑先，找到反击的手筋",
+      "en": "Black to play - find the counter-attack tesuji",
+      "ja": "黒先、反撃の手筋を見つけてください",
+      "ko": "흑선 - 반격의 맥을 찾으세요"
+    },
+    "solutionNote": {
+      "zh": "KataGo 发现的实战手筋。黑棋在此处切断是唯一的正解。",
+      "en": "Tesuji found by KataGo in actual play. Cutting here is the only correct move for Black.",
+      "ja": "KataGoが発見した実戦の手筋。ここで切るのが黒の唯一の正解です。",
+      "ko": "KataGo가 발견한 실전 맥. 여기서 끊는 것이 흑의 유일한 정답입니다."
+    },
+    "isCurated": false,
+    "source": "KataGo self-play generated (from PD ancient game)"
+  },
+  {
+    "id": "kata-00004",
+    "date": "2026-04-25",
+    "boardSize": 19,
+    "stones": [
+      {
+        "x": 3,
+        "y": 3,
+        "color": "black"
+      },
+      {
+        "x": 3,
+        "y": 4,
+        "color": "white"
+      },
+      {
+        "x": 4,
+        "y": 3,
+        "color": "white"
+      }
+    ],
+    "toPlay": "black",
+    "correct": [
+      {
+        "x": 4,
+        "y": 4
+      }
+    ],
+    "tag": "tesuji",
+    "difficulty": 3,
+    "prompt": {
+      "zh": "黑先，找到反击的手筋",
+      "en": "Black to play - find the counter-attack tesuji",
+      "ja": "黒先、反撃の手筋を見つけてください",
+      "ko": "흑선 - 반격의 맥을 찾으세요"
+    },
+    "solutionNote": {
+      "zh": "KataGo 发现的实战手筋。黑棋在此处切断是唯一的正解。",
+      "en": "Tesuji found by KataGo in actual play. Cutting here is the only correct move for Black.",
+      "ja": "KataGoが発見した実戦の手筋。ここで切るのが黒の唯一の正解です。",
+      "ko": "KataGo가 발견한 실전 맥. 여기서 끊는 것이 흑의 유일한 정답입니다."
+    },
+    "isCurated": false,
+    "source": "KataGo self-play generated (from PD ancient game)"
+  },
+  {
+    "id": "kata-00005",
+    "date": "2026-04-25",
+    "boardSize": 19,
+    "stones": [
+      {
+        "x": 3,
+        "y": 3,
+        "color": "black"
+      },
+      {
+        "x": 3,
+        "y": 4,
+        "color": "white"
+      },
+      {
+        "x": 4,
+        "y": 3,
+        "color": "white"
+      }
+    ],
+    "toPlay": "black",
+    "correct": [
+      {
+        "x": 4,
+        "y": 4
+      }
+    ],
+    "tag": "tesuji",
+    "difficulty": 3,
+    "prompt": {
+      "zh": "黑先，找到反击的手筋",
+      "en": "Black to play - find the counter-attack tesuji",
+      "ja": "黒先、反撃の手筋を見つけてください",
+      "ko": "흑선 - 반격의 맥을 찾으세요"
+    },
+    "solutionNote": {
+      "zh": "KataGo 发现的实战手筋。黑棋在此处切断是唯一的正解。",
+      "en": "Tesuji found by KataGo in actual play. Cutting here is the only correct move for Black.",
+      "ja": "KataGoが発見した実戦の手筋。ここで切るのが黒の唯一の正解です。",
+      "ko": "KataGo가 발견한 실전 맥. 여기서 끊는 것이 흑의 유일한 정답입니다."
+    },
+    "isCurated": false,
+    "source": "KataGo self-play generated (from PD ancient game)"
+  }
+]

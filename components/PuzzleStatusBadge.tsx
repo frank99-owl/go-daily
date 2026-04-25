@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+
 import type { PuzzleStatus } from "@/types";
 
 /**

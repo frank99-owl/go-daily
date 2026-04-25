@@ -1,6 +1,7 @@
 import type { Coord, Stone } from "@/types";
+
+import { playMove, type BoardSize } from "./goRules";
 import { Move } from "./sgf";
-import { playMove } from "./goRules";
 
 export type Snapshot = {
   stones: Stone[];
@@ -12,8 +13,12 @@ export type Snapshot = {
  * Build an array of board snapshots from a move sequence.
  * Index 0 is the empty board. Index N is the board after move N.
  * Length = moves.length + 1.
+ *
+ * `boardSize` defaults to 19 to preserve legacy 19×19 SGF replay behavior;
+ * pass 9 or 13 when replaying tsumego moves on smaller boards so edge
+ * captures resolve correctly.
  */
-export function buildSnapshots(moves: Move[]): Snapshot[] {
+export function buildSnapshots(moves: Move[], boardSize: BoardSize = 19): Snapshot[] {
   const snapshots: Snapshot[] = [];
 
   // Empty board
@@ -23,7 +28,7 @@ export function buildSnapshots(moves: Move[]): Snapshot[] {
 
   for (let i = 0; i < moves.length; i++) {
     const move = moves[i];
-    const result = playMove(board, move);
+    const result = playMove(board, move, { boardSize });
     board = result.board;
 
     // Convert board Map to Stone[]

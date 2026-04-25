@@ -6,8 +6,36 @@
     "home": "Home",
     "puzzles": "Puzzles",
     "review": "Review",
-    "developer": "Developer",
-    "random": "Random Puzzle"
+    "about": "About",
+    "random": "Random Puzzle",
+    "signIn": "Sign in",
+    "account": "Account",
+    "signOut": "Sign out"
+  },
+  "about": {
+    "title": "The Way of Go in the Age of Algorithms",
+    "introTitle": "Prologue: A Sanctuary in the Noise",
+    "introText1": "We live in an era of digital cacophony. Most Go applications today are cluttered with ads and complex features that distract from the simple beauty of the game.",
+    "introText2": "go-daily was built as a sanctuary. By stripping away the noise, we return the focus to the 19x19 grid—a place for true immersion and quiet reflection. Here, there is only you, the shapes, and the fleeting tranquility of placing a stone.",
+    "section1Title": "1. The Virtue of Deliberation",
+    "section1Text1": "The beauty of Go lies not in the final score, but in the quality of thought behind every move.",
+    "section1Text2": "Modern AI is formidable, but its strength can be a double-edged sword. When an algorithm hands you the 'correct' move instantly, it robs you of the struggle that defines true improvement. Knowledge directly handed down is fragile.",
+    "section1Text3": "Insights earned through the 'pain' of deep calculation are the only ones that truly belong to you. Our AI coach is not an oracle of answers, but a Socratic guide—reviewing with you, prompting you when you hesitate, and ultimately empowering your own intuition.",
+    "section2Title": "2. The Spirit of Move 78",
+    "section2Text1": "On March 13, 2016, the world witnessed a moment of pure human transcendence.",
+    "section2Text2": "Against the cold, calculating logic of AlphaGo, Lee Sedol played the 'Divine Move'—a wedge at L11. It was a move the algorithm had deemed a 1-in-10,000 statistical anomaly.",
+    "section2Text3": "In that moment, Lee Sedol proved that even on a finite board, there exists a beauty and spirit that cannot be reduced to binary code or probability.",
+    "section2Text4": "go-daily carries this spirit. We encourage you to seek your own 'Divine Move'—not just the safest play, but the one that resonates with your own intuition and sparks joy in discovery.",
+    "section3Title": "3. Human Opportunity: Seeking the Way",
+    "section3Text1": "Now that machines have surpassed us in skill, the meaning of Go has returned to its essence: a path for self-cultivation.",
+    "section3Text2": "From Conquest to Contemplation: Go is no longer a battle to be won against an opponent, but a dialogue with oneself. It is a tool for Inner Peace and a mirror for honing focus and resilience.",
+    "section3Text3": "Symbiosis: We do not compete with machines; we learn from their vastness to expand our own horizons. go-daily is a bridge between human intuition and artificial wisdom—a ladder to higher truths.",
+    "section4Title": "4. A Note from the Developer",
+    "section4Text1": "Hello, I'm Frank, the developer of go-daily.",
+    "section4Text2": "I am a deep Go enthusiast myself, currently at Amateur 3-dan. As a fellow player, I know the frustration of the plateau; as a developer, I am exploring how technology can serve this ancient art.",
+    "section4Text3": "In an age of speed, go-daily is an exercise in idealism. I hope it's a place where you can take five minutes out of a busy day to simply sit down, think deeply, and place one stone with intent.",
+    "section4Text4": "The Way of Go is long, and we are all seekers. I hope this project accompanies you through the alternating seasons of black and white, to see a wider world.",
+    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game."
   },
   "home": {
     "todaysProblem": "Today's Problem",
@@ -16,7 +44,9 @@
     "difficulty": "Difficulty",
     "submit": "Confirm move",
     "reset": "Reset",
-    "hint": "Tap an empty intersection to place a stone"
+    "hint": "Tap an empty intersection to place a stone",
+    "boardCoordinateHint": "Coordinates use (x,y) with the top-left as (0,0). 19x19 puzzles may show only a local corner.",
+    "keyboardShortcuts": "Shortcuts: Arrow keys move the cursor · Enter or Space places a stone · R resets · Esc clears the current move"
   },
   "result": {
     "correct": "Correct!",
@@ -24,12 +54,29 @@
     "viewAnswer": "View solution",
     "hideAnswer": "Hide solution",
     "playSolution": "Play solution",
+    "retry": "Try again",
     "backToToday": "Back to today",
+    "backToHome": "Back to home",
     "coachTitle": "AI Coach",
     "coachEmpty": "Ask anything — e.g. \"Why is this the vital point?\" or \"What happens if White hanes?\"",
     "coachPlaceholder": "Ask the coach…",
     "send": "Send",
     "thinking": "Thinking…",
+    "coachLimited": "AI coach is available on curated puzzles and approved coach-ready practice sets only.",
+    "coachGuestLocked": "Sign in to use AI Coach and sync your progress across devices.",
+    "coachPlanFree": "Free",
+    "coachPlanPro": "Pro",
+    "coachUsageNatural": "{{today}} left today · {{month}} left this month",
+    "coachUsageBilling": "{{today}} left today · {{month}} left this billing cycle",
+    "coachStatusLoading": "Checking coach access…",
+    "coachDeviceLimit": "Free accounts work on one device at a time. Upgrade to Pro for multi-device sync and AI Coach everywhere.",
+    "coachDailyLimitReached": "You've used today's AI Coach limit.",
+    "coachMonthlyLimitReached": "You've used this month's AI Coach limit.",
+    "coachUpgradeCta": "Upgrade to Pro",
+    "coachSignInCta": "Sign in for AI Coach",
+    "curatedNote": "Curated note",
+    "boardCoordinateHint": "The AI coach uses the same (x,y) coordinates as the page, with the top-left as (0,0).",
+    "keyboardShortcuts": "Shortcuts: R retries · Left and right arrows step through the solution · Esc closes the current solution view",
     "attemptCount": "Attempt #{{count}}",
     "historyTally": "{{correct}} correct · {{wrong}} wrong overall"
   },
@@ -46,7 +93,14 @@
     "heatmapNoActivity": "No activity",
     "heatmapOneAttempt": "1 attempt",
     "heatmapManyAttempts": "{{count}} attempts",
-    "heatmapCorrectSuffix": " ({{correct}} correct)"
+    "heatmapCorrectSuffix": " ({{correct}} correct)",
+    "backupTitle": "Backup & restore",
+    "backupDescription": "Export your records to a JSON file or import them on another device.",
+    "export": "Export records",
+    "import": "Import records",
+    "importing": "Importing…",
+    "importSuccess": "Imported {{count}} new record(s). {{total}} total saved.",
+    "importError": "Import failed: {{error}}"
   },
   "share": {
     "title": "Share today's result",
@@ -74,7 +128,8 @@
       "all": "All",
       "9": "9×9",
       "13": "13×13",
-      "19": "19×19"
+      "19": "19×19",
+      "local19": "19×19 local"
     },
     "statusSolved": "Solved",
     "statusAttempted": "Attempted",
@@ -88,14 +143,50 @@
     "sortDifficultyDesc": "Difficulty ↓",
     "sortRecent": "Recent",
     "tally": "{{solved}} solved · {{attempted}} attempted · {{unattempted}} todo",
-    "curated": "Curated"
+    "curated": "Curated",
+    "collectionTagEyebrow": "Tag Collection",
+    "collectionDifficultyEyebrow": "Difficulty Collection",
+    "collectionTagDescription": "Browse {{count}} puzzles in {{tag}}.",
+    "collectionDifficultyDescription": "Browse {{count}} puzzles at difficulty {{level}}.",
+    "backToLibrary": "Back to library"
   },
   "review": {
     "title": "Review",
     "subtitle": "Puzzles you haven't cracked yet",
     "empty": "No mistakes to review — keep it up!",
+    "srsSubtitle": "Pro spaced review: puzzles due today",
+    "emptySrs": "No review cards are due today.",
+    "freeLimitNotice": "Free review shows the latest {{limit}} puzzles. Pro SRS can manage {{count}} more.",
+    "freeLimitCta": "Upgrade to Pro",
     "lastAttempted": "Last tried {{date}}",
     "attemptCount": "{{count}} attempts"
+  },
+  "pricing": {
+    "title": "Go Pro",
+    "subtitle": "Unlock cross-device sync, higher AI Coach limits, and an ad-free experience.",
+    "monthlyName": "Pro Monthly",
+    "yearlyName": "Pro Yearly",
+    "monthlyPrice": "$2.99 / month",
+    "yearlyPrice": "$29.90 / year",
+    "trial": "Includes a 7-day card trial.",
+    "featureSync": "Cross-device sync",
+    "featureCoach": "AI Coach: 10/day · 50/billing cycle",
+    "featureNoAds": "No ads",
+    "monthlyCta": "Start monthly plan",
+    "yearlyCta": "Start yearly plan",
+    "processing": "Redirecting to Stripe…",
+    "error": "Couldn't start checkout. Please try again.",
+    "signInRequired": "Sign in to go-daily before upgrading to Pro.",
+    "signInCta": "Sign in to continue",
+    "alreadyPro": "You're already on Pro",
+    "alreadyProBody": "Open the Stripe portal to see invoices, switch monthly / yearly, or cancel.",
+    "managePortal": "Manage subscription",
+    "intervalMonthly": "Monthly",
+    "intervalYearly": "Yearly",
+    "seePlans": "See plans",
+    "later": "Maybe later",
+    "upsellTitle": "Upgrade to Pro",
+    "upsellSubtitle": "Unlock cross-device sync, higher AI Coach limits, and an ad-free experience."
   },
   "hero": {
     "titleLine1": "The Intelligence",
@@ -113,5 +204,122 @@
     "phaseShowGod": "Divine Move",
     "phasePlaying": "Replay",
     "phaseEnded": "Final Position"
+  },
+  "manifest": {
+    "name": "go-daily — Daily Go Puzzle",
+    "shortName": "go-daily",
+    "description": "One Go puzzle a day with a Socratic AI coach."
+  },
+  "metadata": {
+    "home": {
+      "title": "go-daily — Daily Go Puzzle with AI Coach",
+      "description": "Master Go (Weiqi/Baduk) with one hand-picked puzzle a day. Socratic AI coaching helps you understand the 'why', not just the 'where'."
+    },
+    "today": {
+      "title": "Today's Puzzle — go-daily",
+      "description": "Challenge yourself with today's hand-picked Go puzzle and improve your reading with AI coaching."
+    },
+    "puzzles": {
+      "title": "Puzzle Library — go-daily",
+      "description": "Browse hundreds of life-and-death, tesuji, and endgame puzzles. Filter by difficulty and track your progress."
+    },
+    "review": {
+      "title": "Review Your Mistakes — go-daily",
+      "description": "Review the puzzles you've missed and master the shapes you find difficult."
+    },
+    "stats": {
+      "title": "Your Progress & Stats — go-daily",
+      "description": "View your Go puzzle solving streak, accuracy, and detailed progress statistics."
+    },
+    "puzzleDetail": {
+      "title": "Puzzle {{id}} — go-daily",
+      "description": "{{prompt}} ({{boardSize}} Go problem). Solve daily tsumego with AI coach guidance."
+    },
+    "difficultyCollection": {
+      "title": "Difficulty {{level}} Go Puzzles — go-daily",
+      "description": "Browse go-daily puzzles at difficulty {{level}} and practice a focused band of reading challenges."
+    },
+    "tagCollection": {
+      "title": "{{tag}} Go Puzzles — go-daily",
+      "description": "Browse {{tag}} puzzles in the go-daily library and jump straight into focused practice."
+    },
+    "login": {
+      "title": "Sign in — go-daily",
+      "description": "Sign in to go-daily to sync your progress across devices and keep your mistake log safe in the cloud."
+    },
+    "account": {
+      "title": "Account — go-daily",
+      "description": "Manage your go-daily account, review your sign-in method, and remove your data."
+    },
+    "pricing": {
+      "title": "Go Pro — go-daily",
+      "description": "Upgrade to Go Pro for cross-device sync, higher AI Coach limits, and an ad-free experience."
+    }
+  },
+  "auth": {
+    "login": {
+      "eyebrow": "Welcome back",
+      "title": "Sign in to go-daily",
+      "subtitle": "Sync your progress and mistake log across devices. We won't post, mine, or sell anything — ever.",
+      "google": "Continue with Google",
+      "dividerOr": "or",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "magicLink": "Send magic link",
+      "sending": "Sending…",
+      "checkInbox": "Check your inbox",
+      "checkInboxDetail": "We sent a sign-in link to {{email}}. It expires in 1 hour.",
+      "resend": "Send another link",
+      "errorGeneric": "Something went wrong. Please try again.",
+      "errorInvalidEmail": "That doesn't look like a valid email.",
+      "errorOAuthFailed": "Couldn't start Google sign-in. Please try again.",
+      "continueAsGuest": "Continue as guest",
+      "guestHint": "Guest progress stays on this device only.",
+      "closePrompt": "Close sign-in prompt",
+      "privacyHint": "By continuing you agree that go-daily may store your email and solving history to sync your account.",
+      "alreadySignedIn": "You're already signed in."
+    },
+    "session": {
+      "syncing": "Syncing your data…",
+      "deviceLimitTitle": "This Free account is already active on another device",
+      "deviceLimitBody": "Upgrade to Pro for multi-device sync, or sign out and continue as guest on this browser.",
+      "upgradeCta": "Upgrade to Pro",
+      "signOutGuestCta": "Sign out and continue as guest",
+      "mergeTitle": "Choose how to sync this device",
+      "mergeBody": "We found {{local}} local attempts on this device and {{remote}} attempts in the cloud.",
+      "mergeHint": "Merge keeps everything unique. Keep cloud discards local-only history. Keep this device keeps this browser's local-only history.",
+      "mergeRecommended": "Merge (recommended)",
+      "mergeKeepCloud": "Keep cloud",
+      "mergeKeepLocal": "Keep this device"
+    },
+    "account": {
+      "title": "Account",
+      "signedInAs": "Signed in as",
+      "provider": "Sign-in method",
+      "providerGoogle": "Google",
+      "providerEmail": "Email magic link",
+      "signOut": "Sign out",
+      "signingOut": "Signing out…",
+      "billingTitle": "Subscription",
+      "billingDescription": "Open Stripe to view invoices, update payment details, switch plans, or cancel.",
+      "manageSubscription": "Manage subscription",
+      "openingPortal": "Opening Stripe…",
+      "billingPortalError": "Couldn't open subscription management. Please try again.",
+      "dangerTitle": "Danger zone",
+      "dangerDescription": "Permanently delete your go-daily account and all associated solving history. This cannot be undone.",
+      "deleteAccount": "Delete account",
+      "deleteConfirmTitle": "Delete your account?",
+      "deleteConfirmBody": "This will permanently remove your profile, attempts, review cards, and any subscription. Local data on this device will not be deleted.",
+      "deleteConfirmType": "Type DELETE to confirm",
+      "deleteConfirmPlaceholder": "DELETE",
+      "deleteConfirmButton": "Delete my account",
+      "deleteCancel": "Cancel",
+      "deleteInProgress": "Deleting…",
+      "deleteFailed": "Couldn't delete your account. Please try again or contact support.",
+      "deleteSucceeded": "Your account has been deleted."
+    },
+    "callback": {
+      "authError": "Sign-in failed: {{message}}"
+    }
   }
 }

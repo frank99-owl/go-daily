@@ -19,12 +19,12 @@
 
 ## 1. Scale-Phase Overview
 
-| Phase       | Puzzle Count   | Primary Bottleneck                                      | Recommended Action                                     |
-| ----------- | -------------- | ------------------------------------------------------- | ------------------------------------------------------ |
-| **Current** | ~1 210         | None                                                    | Keep as-is                                             |
-| **Phase A** | 100 → 1 000    | First-load JS bundle (full import)                      | Split files + lazy load                                |
-| **Phase B** | 1 000 → 10 000 | `generateStaticParams` timeout; localStorage near limit | Database + API; IndexedDB                              |
-| **Phase C** | 10 000+        | Client-side search/filter cannot handle it              | Server-side search (full-text index); CDN board images |
+| Phase       | Puzzle Count   | Primary Bottleneck                                      | Recommended Action                                     | Current Status |
+| ----------- | -------------- | ------------------------------------------------------- | ------------------------------------------------------ | -------------- |
+| **Current** | ~1 210         | None                                                    | Keep as-is                                             | ✅             |
+| **Phase A** | 100 → 1 000    | First-load JS bundle (full import)                      | Split files + lazy load                                | —              |
+| **Phase B** | 1 000 → 10 000 | `generateStaticParams` timeout; localStorage near limit | Database + API; IndexedDB                              | —              |
+| **Phase C** | 10 000+        | Client-side search/filter cannot handle it              | Server-side search (full-text index); CDN board images | —              |
 
 ---
 
@@ -33,11 +33,20 @@
 ### 2.1 Current Architecture
 
 ```
-content/puzzles/index.ts
-  └─ export const PUZZLES: Puzzle[] = [...]  // full array baked into JS bundle at build time
+content/puzzles.server.ts
+  └─ Loads full Puzzle[] from data/*.json; server-side aggregation for page.tsx
+
+content/puzzles.ts
+  └─ Environment-aware entry: server reads full data, client reads puzzleIndex.json lightweight index
 ```
 
-All pages import every puzzle statically via `import { PUZZLES } from "@/content/puzzles"`.
+Server-side pages load full data asynchronously via `content/puzzles.server.ts`; client-side pages (e.g. library list) only consume the lightweight `content/data/puzzleIndex.json` index, never statically importing the full puzzle library.
+
+**Build strategy**:
+
+- Curated puzzle detail pages (`/{locale}/puzzles/[id]`) are SSG at build time
+- All other puzzle detail pages use ISR with `revalidate = 86400` (24h)
+- Static page count reduced from ~4,900 to ~300 for faster builds
 
 ### 2.2 Phase A (~1 000 puzzles): Group by File
 
@@ -57,7 +66,7 @@ content/puzzles/
 For lazy-loading the library page:
 
 ```ts
-// app/puzzles/page.tsx
+// app/[locale]/puzzles/page.tsx
 import dynamic from "next/dynamic";
 const PuzzleListClient = dynamic(() => import("./PuzzleListClient"), { ssr: false });
 ```
@@ -68,7 +77,7 @@ const PuzzleListClient = dynamic(() => import("./PuzzleListClient"), { ssr: fals
 
 Recommended approach:
 
-1. **SQLite + Turso** (edge database, zero ops):
+1. **Supabase Postgres** (already connected, scalable):
    - One row per puzzle; store full JSON or split into columns
    - Next.js Route Handler provides `/api/puzzles?tag=&difficulty=&page=` paginated endpoint
    - Library page switches to client-side paginated fetch
@@ -76,7 +85,7 @@ Recommended approach:
 2. **Replace `generateStaticParams` with ISR**:
 
    ```ts
-   // app/puzzles/[id]/page.tsx
+   // app/[locale]/puzzles/[id]/page.tsx
    export const revalidate = 86400; // regenerate daily
    // no longer enumerates full PUZZLES; use fallback: "blocking"
    ```
@@ -85,8 +94,14 @@ Recommended approach:
 
 ### 2.4 Bulk Import
 
-Use `scripts/importTsumego.ts` (`npm run import:puzzles`) to generate puzzles from SGF files in bulk.  
-Set `isCurated: false` on imported puzzles to disable the AI coach and prevent hallucination.  
+Use `scripts/importTsumego.ts` (`npm run import:puzzles`) to generate puzzles from SGF files in bulk.
+Set `isCurated: false` on imported puzzles to disable the AI coach and prevent hallucination.
+
+New content audit tools:
+
+- `npm run audit:puzzles` — Content QA report (curated runway, coach readiness)
+- `npm run queue:content` — Build ranked content candidate queues
+
 See [puzzle-authoring.en.md](./puzzle-authoring.en.md) for details.
 
 ---
@@ -126,10 +141,19 @@ For an editorial "daily curated pick" workflow:
 
 ## 4. Scaling Client-Side Storage
 
-### 4.1 Current Implementation
+### 4.1 Current Implementation (Phase 1 Delivered)
 
-`localStorage["go-daily.attempts"]` → `AttemptRecord[]` JSON  
-~100 bytes per record; 100 records ≈ 10 KB; 10 000 records ≈ 1 MB.
+**Anonymous users**:
+
+- `localStorage["go-daily.attempts"]` → `AttemptRecord[]` JSON
+- ~100 bytes per record; 100 records ≈ 10 KB; 10 000 records ≈ 1 MB
+
+**Logged-in users** (`lib/syncStorage.ts`):
+
+- Local immediate write to `localStorage`
+- Simultaneously queued to `IndexedDB`
+- Background flush to Supabase (exponential backoff retry, max 10 attempts)
+- Page init `sync()` pulls cloud delta and merges to local
 
 ### 4.2 Phase A (~1 000 records): Rolling Trim
 
@@ -165,12 +189,14 @@ const db = await openDB("go-daily", 1, {
 
 Keep the same function signatures as `lib/storage.ts` — components don't need to change.
 
-### 4.4 Cloud Sync (Optional)
+### 4.4 Cloud Sync (Delivered)
 
-To support cross-device sync (e.g. Clerk + Supabase):
+Supabase Auth + Postgres already connected:
 
-- On login: `POST /api/sync` uploads local records; backend merges by deduplication.
-- On app load: `GET /api/attempts` overwrites local with the merged set.
+- Auto `registerDevice()` on login (`lib/deviceRegistry.ts`)
+- `planMerge()` + `applyMergeDecision()` handles local vs remote conflicts (`lib/mergeOnLogin.ts`)
+- `syncStorage.ts` dual-write + queue + retry
+- Free tier limited to 1 device, paid unlimited
 
 ---
 
@@ -181,18 +207,20 @@ To support cross-device sync (e.g. Clerk + Supabase):
 Current:
 
 ```ts
-// app/puzzles/[id]/page.tsx
+// app/[locale]/puzzles/[id]/page.tsx
 export async function generateStaticParams() {
-  return PUZZLES.map((p) => ({ id: p.id }));
+  // Only curated puzzles SSG, rest ISR
+  return CURATED_PUZZLES.map((p) => ({ id: p.id }));
 }
+export const revalidate = 86400;
 ```
 
-1 000 puzzles → ~1–2 min build time to generate 1 000 static pages — acceptable.  
-10 000 puzzles → switch to ISR (see Section 2.3).
+1 000 puzzles → ~300 static pages at build time, acceptable.
+10 000 puzzles → evaluate build time; if needed, switch all to ISR (fallback: "blocking").
 
 ### 5.2 Image Assets
 
-Board thumbnails (PNG/WebP) can go in `public/boards/` and use Next.js `<Image>` for automatic optimization.  
+Board thumbnails (PNG/WebP) can go in `public/boards/` and use Next.js `<Image>` for automatic optimization.
 At larger scale, use a CDN (Cloudflare Images / Vercel Blob).
 
 ### 5.3 `prebuild` Validation
@@ -209,15 +237,15 @@ Once data moves to a database in Phase B, the validation script needs to connect
 
 ### 6.1 Current Limitations
 
-| Limitation                | Description                                                      |
-| ------------------------- | ---------------------------------------------------------------- |
-| Rate limiting             | In-process `Map`; resets on restart; not shared across instances |
-| Model                     | `deepseek-chat`, hard-coded                                      |
-| Multi-instance deployment | Each Vercel serverless instance has its own rate-limit counter   |
+| Limitation    | Description                                                              |
+| ------------- | ------------------------------------------------------------------------ |
+| Rate limiting | `MemoryRateLimiter` by default; auto-switches to Upstash when configured |
+| Model         | `COACH_MODEL` env variable, defaults to `deepseek-chat`                  |
+| Observability | PostHog + Sentry + Vercel Analytics + Speed Insights wired in            |
 
 ### 6.2 Phase A: Persistent Rate Limiting
 
-Replace the `hits: Map` with [Upstash Redis](https://upstash.com/):
+Implement the `RateLimiter` interface to replace the current `MemoryRateLimiter`:
 
 ```ts
 import { Redis } from "@upstash/redis";
@@ -231,20 +259,19 @@ async function rateLimited(ip: string): Promise<boolean> {
 }
 ```
 
-### 6.3 Phase B: Configurable Model
+### 6.3 Configurable Model
 
-The model name is hard-coded in `app/api/coach/route.ts`.  
-Switch to an environment variable:
+`COACH_MODEL` is already wired in `app/api/coach/route.ts`:
+
+```ts
+const model = process.env.COACH_MODEL ?? "deepseek-chat";
+```
+
+To switch to a stronger model for harder puzzles, update the environment variable:
 
 ```
 COACH_MODEL=deepseek-chat          # default
 COACH_MODEL=deepseek-reasoner      # for harder puzzles
-```
-
-Route Handler reads:
-
-```ts
-const model = process.env.COACH_MODEL ?? "deepseek-chat";
 ```
 
 ---
@@ -253,9 +280,10 @@ const model = process.env.COACH_MODEL ?? "deepseek-chat";
 
 See [i18n.en.md](./i18n.en.md) for the full guide. Key extensibility points:
 
-- **Add a new locale**: create `content/messages/<locale>.json`, register it in `DICTS` in `lib/i18n.tsx`, and add the value to `Locale` in `types/index.ts`.
+- **Add a new locale**: create `content/messages/<locale>.json`, register it in `SUPPORTED_LOCALES` in `lib/localePath.ts`, add to `Locale` in `types/index.ts`, register in `DICTS` in `lib/i18n.tsx`.
 - **Add a new translation key**: add it to `en.json`. TypeScript's `type Messages = typeof en` immediately requires all other locale files to add the same key (compile-time error).
 - **`lib/i18n.tsx`**: the fallback chain is `en → zh → ja → ko` (inside the `localized()` function). Update `FALLBACK_ORDER` when adding a new locale.
+- **Default locale**: currently `en`, can be adjusted based on primary user base.
 
 ---
 
@@ -267,8 +295,11 @@ Complete these as your data and feature set grow:
 - [ ] 1 000 → 10 000 puzzles: external database; switch `generateStaticParams` to ISR
 - [ ] Attempt records > 2 000: add rolling trim or migrate to IndexedDB
 - [ ] Multi-instance deployment: switch rate limiting to Redis
-- [ ] AI coach model: make configurable via environment variable
-- [ ] Cross-device sync: add user auth + cloud storage
+- [x] AI coach model: `COACH_MODEL` env variable already wired
+- [x] Cross-device sync: Supabase Auth + syncStorage delivered
+- [x] User authentication: Supabase OAuth delivered
+- [x] Analytics & monitoring: PostHog + Sentry delivered
+- [x] Device limit + paywall: deviceRegistry delivered
 
 ---
 

@@ -6,8 +6,36 @@
     "home": "ホーム",
     "puzzles": "問題集",
     "review": "復習",
-    "developer": "開発者",
-    "random": "ランダム問題"
+    "about": "プロジェクト紹介",
+    "random": "ランダム問題",
+    "signIn": "ログイン",
+    "account": "アカウント",
+    "signOut": "ログアウト"
+  },
+  "about": {
+    "title": "アルゴリズム時代における棋道への問い",
+    "introTitle": "序文：喧騒を離れ、十九路の静寂へ",
+    "introText1": "情報が溢れ、ツールが複雑化した現代において、私たちは無数の広告や煩雑な機能に囲まれています。多くの囲碁アプリもその例に漏れず、対局者が真に心を落ち着ける場所を失いつつあります。",
+    "introText2": "go-daily は、極めてシンプルな初衷から誕生しました。「真に没頭できる空間」を作ること。装飾を削ぎ落とし、ミニマルなデザインを採用したのは、あなたの視線を再び十九路の経緯へと戻すためです。ここにあるのは、あなたと棋形、そして石を置く瞬間の静寂だけです。",
+    "section1Title": "1. 答えではなく、思考の深淵に触れる",
+    "section1Text1": "囲碁の魅力は勝敗という数字にあるのではなく、終局に至るまでの「読み」の質にあると私たちは信じています。",
+    "section1Text2": "AI が「強すぎる」現代において、アルゴリズムが示す「正解」をただなぞるだけでは、自ら道を切り拓く喜びは失われてしまいます。安易に与えられた知識は、脆く、儚いものです。",
+    "section1Text3": "「読み（計算）」という苦しい思考の果てに得られた気づきこそが、真にあなた自身の血肉となります。ここの AI コーチは万能の予言者ではありません。むしろ、あなたと共に盤面を深掘りし、迷った時に問いを投げかけ、あなた自身の直感を解き放つためのガイドです。",
+    "section2Title": "2. 第78手の精神",
+    "section2Text1": "2016年3月13日、ソウル。それは囲碁の歴史において、最も哲学的な瞬間の一つでした。",
+    "section2Text2": "計算の極致である AlphaGo に対し、李世ドル（イ・セドル）九段は「神の一手」と称えられる「ワリ込み（第78手）」を放ちました。AI のシミュレーションでは1万分の1の確率しかないと判定された、まさに奇跡の一手でした。",
+    "section2Text3": "あの瞬間、彼は世界に証明しました。碁盤という限られた宇宙であっても、計算では汲み尽くせない人間のインスピレーションと美が存在することを。",
+    "section2Text4": "go-daily はこの精神を継承します。単に安全な道を探すのではなく、あなた自身の直感に響く、あなただけの「神の一手」を追い求めてください。",
+    "section3Title": "3. AI 時代における人間の歩み：求道",
+    "section3Text1": "AI が競技レベルで人間を凌駕した今、囲碁の意義は「勝負」から、自己を磨く「求道」へと回帰しています。",
+    "section3Text2": "「勝負」から「手談」へ：囲碁はもはや相手を打ち負かすための道具ではなく、自己との対話であり、精神を整えるための修行（Inner Peace）です。盤上の攻防は、集中力と判断力、そして折れない心を磨く鏡となります。",
+    "section3Text3": "共生：私たちは機械と競うのではなく、その広大な知見から学び、自らの認識を広げるべきです。go-daily は、人間の直感と AI の英知を繋ぐ架け橋であり、より高い棋理へと至るための階段です。",
+    "section4Title": "4. 開発者より",
+    "section4Text1": "こんにちは、開発者の Frank です。アマチュア三段の囲碁愛好家でもあります。",
+    "section4Text2": "一人の棋士として、上達の壁に突き当たった時の迷いを知っています。また一人の開発者として、この古の芸術をいかにテクノロジーで支えられるかを模索しています。",
+    "section4Text3": "速さが求められる時代に、あえて「ゆっくり」としたツールを作りました。忙しい一日の中で5分だけ、腰を落ち着けて一手を読み、心を整える。そんな理想主義をこのプロジェクトに込めています。",
+    "section4Text4": "棋道は遥か遠く、私たちは皆、道を求める者です。黒と白が交錯する歳月の中で、あなたがより広い世界を見ることの一助となれば幸いです。",
+    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game."
   },
   "home": {
     "todaysProblem": "今日の一題",
@@ -16,7 +44,9 @@
     "difficulty": "難易度",
     "submit": "着手確定",
     "reset": "やり直す",
-    "hint": "空いている交点をタップして打ってください"
+    "hint": "空いている交点をタップして打ってください",
+    "boardCoordinateHint": "座標は (x,y) で統一され、左上が (0,0) です。19路の問題は一部だけ表示されることがあります。",
+    "keyboardShortcuts": "ショートカット: 矢印キーでカーソル移動 · Enter または Space で着手 · R でリセット · Esc で現在の着手を解除"
   },
   "result": {
     "correct": "当たり！",
@@ -24,12 +54,29 @@
     "viewAnswer": "正解を見る",
     "hideAnswer": "正解を隠す",
     "playSolution": "正解を再生",
+    "retry": "もう一度解く",
     "backToToday": "今日に戻る",
+    "backToHome": "ホームへ戻る",
     "coachTitle": "AI コーチ",
     "coachEmpty": "気になることを何でもどうぞ——「なぜここが急所？」「白がハネたらどうなる？」",
     "coachPlaceholder": "コーチに質問…",
     "send": "送信",
     "thinking": "思考中…",
+    "coachLimited": "AI コーチは現在、精選問題と承認済みの coach-ready 問題でのみ利用できます。",
+    "coachGuestLocked": "AI コーチを使うにはログインしてください。進捗も複数デバイスで同期されます。",
+    "coachPlanFree": "無料",
+    "coachPlanPro": "Pro",
+    "coachUsageNatural": "本日残り {{today}} 回 · 今月残り {{month}} 回",
+    "coachUsageBilling": "本日残り {{today}} 回 · 今回の請求サイクル残り {{month}} 回",
+    "coachStatusLoading": "コーチ権限を確認中…",
+    "coachDeviceLimit": "無料アカウントは同時に 1 台のデバイスのみ利用できます。Pro にアップグレードすると複数端末同期と AI コーチが使えます。",
+    "coachDailyLimitReached": "本日の AI コーチ利用上限に達しました。",
+    "coachMonthlyLimitReached": "今月の AI コーチ利用上限に達しました。",
+    "coachUpgradeCta": "Pro にアップグレード",
+    "coachSignInCta": "ログインして AI コーチを使う",
+    "curatedNote": "精選解説",
+    "boardCoordinateHint": "AI コーチの座標はページ表示と同じ (x,y) 形式で、左上が (0,0) です。",
+    "keyboardShortcuts": "ショートカット: R で再挑戦 · 左右キーで解答手順を送る/戻す · Esc で現在の解答表示を閉じる",
     "attemptCount": "{{count}} 回目",
     "historyTally": "通算 {{correct}} 正解 · {{wrong}} 不正解"
   },
@@ -46,7 +93,14 @@
     "heatmapNoActivity": "記録なし",
     "heatmapOneAttempt": "1 回",
     "heatmapManyAttempts": "{{count}} 回",
-    "heatmapCorrectSuffix": "（うち正解 {{correct}}）"
+    "heatmapCorrectSuffix": "（うち正解 {{correct}}）",
+    "backupTitle": "バックアップと復元",
+    "backupDescription": "戦績を JSON ファイルとして書き出すか、別の端末から読み込めます。",
+    "export": "戦績をエクスポート",
+    "import": "戦績をインポート",
+    "importing": "インポート中…",
+    "importSuccess": "{{count}} 件の新しい記録を取り込みました。現在の保存件数は {{total}} 件です。",
+    "importError": "インポートに失敗しました: {{error}}"
   },
   "share": {
     "title": "今日の結果をシェア",
@@ -74,7 +128,8 @@
       "all": "すべて",
       "9": "9路",
       "13": "13路",
-      "19": "19路"
+      "19": "19路",
+      "local19": "19路一部"
     },
     "statusSolved": "正解済",
     "statusAttempted": "挑戦中",
@@ -88,19 +143,55 @@
     "sortDifficultyDesc": "難易度 ↓",
     "sortRecent": "最近挑戦",
     "tally": "正解 {{solved}} · 挑戦中 {{attempted}} · 未挑戦 {{unattempted}}",
-    "curated": "精選"
+    "curated": "精選",
+    "collectionTagEyebrow": "分類コレクション",
+    "collectionDifficultyEyebrow": "難易度コレクション",
+    "collectionTagDescription": "{{tag}} の問題を {{count}} 問まとめて見られます。",
+    "collectionDifficultyDescription": "難易度 {{level}} の問題を {{count}} 問まとめて見られます。",
+    "backToLibrary": "問題一覧へ戻る"
   },
   "review": {
     "title": "復習ノート",
     "subtitle": "まだ正解していない問題を振り返ろう",
     "empty": "復習する問題はありません。この調子！",
+    "srsSubtitle": "Pro 間隔復習：今日の復習対象",
+    "emptySrs": "今日復習するカードはありません。",
+    "freeLimitNotice": "Free の復習は最新 {{limit}} 問までです。Pro SRS なら残り {{count}} 問も管理できます。",
+    "freeLimitCta": "Pro にアップグレード",
     "lastAttempted": "最終挑戦 {{date}}",
     "attemptCount": "{{count}} 回挑戦"
   },
+  "pricing": {
+    "title": "Go Pro",
+    "subtitle": "複数端末同期、より高い AI コーチ上限、広告なしを解除します。",
+    "monthlyName": "Pro 月額",
+    "yearlyName": "Pro 年額",
+    "monthlyPrice": "$2.99 / 月",
+    "yearlyPrice": "$29.90 / 年",
+    "trial": "7 日間のカード試用付き。",
+    "featureSync": "複数端末同期",
+    "featureCoach": "AI コーチ: 10回/日 · 50回/請求サイクル",
+    "featureNoAds": "広告なし",
+    "monthlyCta": "月額プランを始める",
+    "yearlyCta": "年額プランを始める",
+    "processing": "Stripe に移動しています…",
+    "error": "チェックアウトを開始できませんでした。もう一度お試しください。",
+    "signInRequired": "Pro にアップグレードする前に go-daily にログインしてください。",
+    "signInCta": "ログインして続ける",
+    "alreadyPro": "すでに Pro をご利用中です",
+    "alreadyProBody": "Stripe ポータルで請求履歴の確認、月額/年額の切替、解約ができます。",
+    "managePortal": "サブスクリプションを管理",
+    "intervalMonthly": "月額",
+    "intervalYearly": "年額",
+    "seePlans": "プランを見る",
+    "later": "あとで",
+    "upsellTitle": "Pro にアップグレード",
+    "upsellSubtitle": "複数端末同期・高い AI コーチ上限・広告なしを解除します。"
+  },
   "hero": {
-    "titleLine1": "碁の叡智",
-    "titleLine2": "縦横の間",
-    "subtitle": "古代のゲームの静かな戦いを体験しよう。石を打つたびに技を磨き、千年の叡智の重みを感じよう。",
+    "titleLine1": "盤上の宇宙",
+    "titleLine2": "手談の道",
+    "subtitle": "盤上の静寂に耳を澄ませば、一手ごとに千年の叡智が息づく。黒と白の対話、あなたも加わってみよう。",
     "getStarted": "はじめる",
     "watchMatch": "観戦する"
   },
@@ -113,5 +204,122 @@
     "phaseShowGod": "神の一手",
     "phasePlaying": "再生中",
     "phaseEnded": "終局"
+  },
+  "manifest": {
+    "name": "go-daily — 毎日の囲碁詰碁",
+    "shortName": "go-daily",
+    "description": "1日1題、ソクラテス式AIコーチと一緒に棋力を磨く。"
+  },
+  "metadata": {
+    "home": {
+      "title": "go-daily — 毎日の囲碁詰碁とAIコーチ",
+      "description": "毎日1題の厳選囲碁問題で、ソクラテス式AIコーチと共に「なぜ」を理解しよう。"
+    },
+    "today": {
+      "title": "今日の問題 — go-daily",
+      "description": "今日の厳選囲碁問題に挑戦し、行き詰まったらAIコーチに聞こう。"
+    },
+    "puzzles": {
+      "title": "問題集 — go-daily",
+      "description": "死活、手筋、ヨセなど数百問の問題を閲覧。難易度で絞り込み、進捗を追跡。"
+    },
+    "review": {
+      "title": "復習ノート — go-daily",
+      "description": "間違えた問題を振り返って、まだ習得していない棋形をマスターしよう。"
+    },
+    "stats": {
+      "title": "戦績 — go-daily",
+      "description": "連勝記録、正解率、詳細な問題履歴を確認。"
+    },
+    "puzzleDetail": {
+      "title": "問題 {{id}} — go-daily",
+      "description": "{{prompt}}（{{boardSize}}路の囲碁問題）。毎日の詰碁をAIコーチと一緒に。"
+    },
+    "difficultyCollection": {
+      "title": "難易度 {{level}} の囲碁問題 — go-daily",
+      "description": "go-daily の難易度{{level}}の問題を閲覧し、特定レベルの読みに集中して練習。"
+    },
+    "tagCollection": {
+      "title": "{{tag}} の囲碁問題 — go-daily",
+      "description": "go-daily の問題集で {{tag}} 分類の問題を閲覧し、专项练习に取り組む。"
+    },
+    "login": {
+      "title": "ログイン — go-daily",
+      "description": "go-daily にログインして、戦績と復習帳を端末間で同期し、クラウドで安全に保管しましょう。"
+    },
+    "account": {
+      "title": "アカウント — go-daily",
+      "description": "go-daily アカウントの管理、ログイン方法の確認、データの削除ができます。"
+    },
+    "pricing": {
+      "title": "Go Pro — go-daily",
+      "description": "Pro にアップグレードして、複数端末同期・高い AI コーチ上限・広告なしを利用しましょう。"
+    }
+  },
+  "auth": {
+    "login": {
+      "eyebrow": "おかえりなさい",
+      "title": "go-daily にログイン",
+      "subtitle": "戦績と復習帳を端末間で同期します。投稿や広告、データの転売は一切行いません。",
+      "google": "Google でログイン",
+      "dividerOr": "または",
+      "emailLabel": "メールアドレス",
+      "emailPlaceholder": "you@example.com",
+      "magicLink": "ログインリンクを送信",
+      "sending": "送信中…",
+      "checkInbox": "メールをご確認ください",
+      "checkInboxDetail": "{{email}} にログインリンクを送信しました。有効期限は1時間です。",
+      "resend": "もう一度送る",
+      "errorGeneric": "エラーが発生しました。もう一度お試しください。",
+      "errorInvalidEmail": "メールアドレスの形式が正しくありません。",
+      "errorOAuthFailed": "Google ログインを開始できませんでした。もう一度お試しください。",
+      "continueAsGuest": "ゲストとして続ける",
+      "guestHint": "ゲストの進捗はこの端末にのみ保存されます。",
+      "closePrompt": "サインイン案内を閉じる",
+      "privacyHint": "続行すると、go-daily がアカウント同期のためメールアドレスと解答履歴を保存することに同意したことになります。",
+      "alreadySignedIn": "すでにログイン済みです。"
+    },
+    "session": {
+      "syncing": "データを同期しています…",
+      "deviceLimitTitle": "この無料アカウント은 別のデバイスですでに利用中です",
+      "deviceLimitBody": "Pro にアップグレードすると複数端末同期が使えます。もしくはサインアウトしてこのブラウザではゲストとして続行できます。",
+      "upgradeCta": "Pro にアップグレード",
+      "signOutGuestCta": "サインアウトしてゲストとして続ける",
+      "mergeTitle": "この端末の同期方法を選んでください",
+      "mergeBody": "この端末にはローカル記録が {{local}} 件、クラウドには {{remote}} 件見つかりました。",
+      "mergeHint": "統合は双方の固有データを残します。クラウド優先はローカル専用履歴を破棄し、この端末を優先はこのブラウザのローカル履歴を残します。",
+      "mergeRecommended": "統合（推奨）",
+      "mergeKeepCloud": "クラウドを使う",
+      "mergeKeepLocal": "この端末を使う"
+    },
+    "account": {
+      "title": "アカウント",
+      "signedInAs": "ログイン中のメール",
+      "provider": "ログイン方法",
+      "providerGoogle": "Google",
+      "providerEmail": "メールリンク",
+      "signOut": "ログアウト",
+      "signingOut": "ログアウト中…",
+      "billingTitle": "サブスクリプション",
+      "billingDescription": "Stripe で請求履歴の確認、支払い方法の更新、プラン変更、解約ができます。",
+      "manageSubscription": "サブスクリプションを管理",
+      "openingPortal": "Stripe を開いています…",
+      "billingPortalError": "サブスクリプション管理を開けませんでした。もう一度お試しください。",
+      "dangerTitle": "危険操作",
+      "dangerDescription": "go-daily アカウントと全ての解答履歴を完全に削除します。この操作は取り消せません。",
+      "deleteAccount": "アカウントを削除",
+      "deleteConfirmTitle": "本当に削除しますか？",
+      "deleteConfirmBody": "プロフィール、解答履歴、复习カード、サブスクリプションがすべて永久に削除されます。本端末のローカルデータは削除されません。",
+      "deleteConfirmType": "確認のため DELETE と入力してください",
+      "deleteConfirmPlaceholder": "DELETE",
+      "deleteConfirmButton": "削除する",
+      "deleteCancel": "キャンセル",
+      "deleteInProgress": "削除中…",
+      "deleteFailed": "削除に失敗しました。时间をおいて再試行するか、サポートにお問い合わせください。",
+      "deleteSucceeded": "アカウントを削除しました。"
+    },
+    "callback": {
+      "authError": "ログインに失敗しました：{{message}}"
+    }
   }
 }

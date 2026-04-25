@@ -1,25 +1,35 @@
-// Puzzle aggregator — currently backed entirely by the classical tsumego corpus
-// (sanderland/tsumego, MIT) imported via scripts/importTsumego.ts.
-//
-// Conventions we keep in place for future curated content:
-//   - `isCurated !== false` → full AI-coach treatment + hand-authored solutionNote
-//   - `isCurated === false` → library-only, coach gated off (prevents hallucination)
-//
-// Right now every puzzle is `isCurated: false`; `getCuratedPuzzles()` returns [].
-// When Frank hand-writes 19×19 problems later, they'll carry `isCurated: true`
-// and automatically flow back into the daily rotation + coach.
+import type { Puzzle, PuzzleSummary } from "@/types";
 
-import type { Puzzle } from "@/types";
-import { IMPORTED_PUZZLES } from "@/content/data/importedPuzzles";
-import { LIBRARY_PUZZLES } from "@/content/data/puzzleLibrary";
+// This file serves as the main entry point for puzzles.
+// It will branch between server-side full data and client-side summary data.
 
-export const PUZZLES: Puzzle[] = [...IMPORTED_PUZZLES, ...LIBRARY_PUZZLES];
-
-export function getPuzzleById(id: string): Puzzle | undefined {
-  return PUZZLES.find((p) => p.id === id);
+/**
+ * Get a puzzle by its ID.
+ * On the server, this returns the full puzzle.
+ * On the client, this should generally be avoided if the full data is needed;
+ * the page should fetch the data and pass it as props.
+ */
+export async function getPuzzle(id: string): Promise<Puzzle | undefined> {
+  if (typeof window === "undefined") {
+    const { getPuzzleById } = await import("./puzzles.server");
+    return getPuzzleById(id);
+  }
+  // Client-side fallback or error
+  console.warn("getPuzzle() called on client. Ensure data is passed via props.");
+  return undefined;
 }
 
-/** Puzzles that back the daily rotation and get full AI-coach treatment. */
-export function getCuratedPuzzles(): Puzzle[] {
-  return PUZZLES.filter((p) => p.isCurated !== false);
+/**
+ * Get all puzzle summaries.
+ * Safe to call on both server and client.
+ */
+export async function getAllSummaries(): Promise<PuzzleSummary[]> {
+  if (typeof window === "undefined") {
+    const { getAllSummaries: getServerSummaries } = await import("./puzzles.server");
+    return getServerSummaries();
+  } else {
+    // On the client, we'll import the pre-generated index
+    const index = await import("./data/puzzleIndex.json");
+    return (index.default || index) as PuzzleSummary[];
+  }
 }

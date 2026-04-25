@@ -43,3 +43,12 @@ next-env.d.ts
 
 # Claude Code session files
 .claude/
+
+# generated audit artifacts
+/reports/puzzle-audit/*.json
+/reports/puzzle-audit/*.md
+!/reports/puzzle-audit/.gitkeep
+/reports/content-queue/*.json
+/reports/content-queue/*.md
+!/reports/content-queue/.gitkeep
+\n# KataGo & Analysis Assets\nkatago_model.bin.gz\ndefault_config.cfg\nanalysis_logs/\nlogs/\n*.sgf\nkatago_spike.py\nscripts/mvp_katago.ts\nscripts/tempCombine.ts\nscripts/testSgf.ts\nscripts/anonymizePuzzles.ts\n/temp_sources/
