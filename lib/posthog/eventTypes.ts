@@ -1,3 +1,5 @@
+import type { CoachErrorCode } from "@/lib/coachErrorCodes";
+
 export type ViewerPlanForAnalytics = "guest" | "free" | "pro";
 
 export type EventMap = {
@@ -18,7 +20,7 @@ export type EventMap = {
   portal_click: { source: "pricing" | "account" };
   upsell_open: { source: "coach_daily" | "coach_monthly" | "coach_device" | "coach_anon" };
   coach_limit_hit: {
-    code: "login_required" | "device_limit" | "daily_limit_reached" | "monthly_limit_reached";
+    code: CoachErrorCode;
   };
   trial_started: SubscriptionAnalyticsProps & {
     trialEnd: string | null;

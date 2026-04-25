@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { type CoachErrorCode, isCoachErrorCode } from "@/lib/coachErrorCodes";
 import { useLocale } from "@/lib/i18n";
 import { track } from "@/lib/posthog/events";
 import type { CoachMessage, Coord, Locale } from "@/types";
@@ -14,24 +15,7 @@ type Props = {
   isCorrect: boolean;
 };
 
-type CoachErrorCode =
-  | "login_required"
-  | "device_limit"
-  | "daily_limit_reached"
-  | "monthly_limit_reached";
-
 type CoachError = { kind: CoachErrorCode } | { kind: "generic"; message: string };
-
-const LIMIT_ERROR_CODES: readonly CoachErrorCode[] = [
-  "login_required",
-  "device_limit",
-  "daily_limit_reached",
-  "monthly_limit_reached",
-];
-
-function isLimitErrorCode(code: unknown): code is CoachErrorCode {
-  return typeof code === "string" && (LIMIT_ERROR_CODES as readonly string[]).includes(code);
-}
 
 const historyKey = (puzzleId: string, locale: Locale) => `go-daily.coach.${puzzleId}.${locale}`;
 
@@ -97,7 +81,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
       });
       const data = (await res.json()) as { reply?: string; error?: string; code?: string };
       if (!res.ok || !data.reply) {
-        if (isLimitErrorCode(data.code)) {
+        if (isCoachErrorCode(data.code)) {
           track("coach_limit_hit", { code: data.code });
           setError({ kind: data.code });
         } else {

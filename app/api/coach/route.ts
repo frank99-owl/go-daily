@@ -2,6 +2,7 @@ import { getPuzzle } from "@/content/puzzles";
 import { createApiResponse } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { getCoachAccess } from "@/lib/coachAccess";
+import { COACH_ERROR_CODES } from "@/lib/coachErrorCodes";
 import { buildSystemPrompt } from "@/lib/coachPrompt";
 import { createManagedCoachProvider } from "@/lib/coachProvider";
 import { formatDateInTimeZone } from "@/lib/coachQuota";
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
   if (userError || !user) {
     return coachError({
       status: 401,
-      code: "login_required",
+      code: COACH_ERROR_CODES.LOGIN_REQUIRED,
       error: "Sign in required.",
     });
   }
@@ -134,7 +135,7 @@ export async function POST(request: Request) {
   if (coachState.deviceLimited) {
     return coachError({
       status: 403,
-      code: "device_limit",
+      code: COACH_ERROR_CODES.DEVICE_LIMIT,
       error: "Free account device limit reached.",
       usage: coachState.usage,
     });
@@ -143,7 +144,7 @@ export async function POST(request: Request) {
   if (!coachState.usage) {
     return coachError({
       status: 401,
-      code: "login_required",
+      code: COACH_ERROR_CODES.LOGIN_REQUIRED,
       error: "Sign in required.",
     });
   }
@@ -151,7 +152,7 @@ export async function POST(request: Request) {
   if (coachState.usage.dailyRemaining <= 0) {
     return coachError({
       status: 429,
-      code: "daily_limit_reached",
+      code: COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
       error: "Daily AI coach limit reached.",
       usage: coachState.usage,
     });
@@ -160,7 +161,7 @@ export async function POST(request: Request) {
   if (coachState.usage.monthlyRemaining <= 0) {
     return coachError({
       status: 429,
-      code: "monthly_limit_reached",
+      code: COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED,
       error: "Monthly AI coach limit reached.",
       usage: coachState.usage,
     });
@@ -280,7 +281,7 @@ export async function GET(request: Request) {
   if (userError || !user) {
     return coachError({
       status: 401,
-      code: "login_required",
+      code: COACH_ERROR_CODES.LOGIN_REQUIRED,
       error: "Sign in required.",
     });
   }
@@ -294,7 +295,7 @@ export async function GET(request: Request) {
   if (coachState.deviceLimited) {
     return coachError({
       status: 403,
-      code: "device_limit",
+      code: COACH_ERROR_CODES.DEVICE_LIMIT,
       error: "Free account device limit reached.",
       usage: coachState.usage,
     });
