@@ -1,39 +1,32 @@
 // Shared types for go-daily
+//
+// Types whose runtime shape is enforced by Zod live in `types/schemas.ts`
+// and are mirrored here via `z.infer` so the schema is the single source
+// of truth. Pure UI / derived types stay hand-written below.
 
-export type Locale = "zh" | "en" | "ja" | "ko";
-export type LocalizedText = Record<Locale, string>;
+import type { z } from "zod";
 
-export type Coord = { x: number; y: number }; // 0..boardSize-1
-export type Color = "black" | "white";
-export type Stone = Coord & { color: Color };
-export type PuzzleTag = "life-death" | "tesuji" | "endgame" | "opening";
+import type {
+  CoachMessageSchema,
+  ColorSchema,
+  CoordSchema,
+  LocaleSchema,
+  LocalizedTextSchema,
+  PuzzleSchema,
+  PuzzleTagSchema,
+  StoneSchema,
+  WrongBranchSchema,
+} from "./schemas";
 
-/** A wrong-move branch with refutation sequence. */
-export interface WrongBranch {
-  userWrongMove: Coord; // the incorrect move
-  refutation: Stone[]; // opponent's reply sequence
-  note: LocalizedText;
-}
-
-export interface Puzzle {
-  id: string; // e.g. "2026-04-18" (daily) or "ld1-0" (seed-shift)
-  date: string; // YYYY-MM-DD, local
-  boardSize: 9 | 13 | 19;
-  stones: Stone[]; // pre-placed position
-  toPlay: Color;
-  correct: Coord[]; // accepted FIRST solution points (for judging)
-  /** Full correct variation sequence (multi-step). Shown on result page. */
-  solutionSequence?: Stone[];
-  /** Common wrong branches with refutation. */
-  wrongBranches?: WrongBranch[];
-  /** Whether this puzzle has full solution data (shown in library). */
-  isCurated?: boolean;
-  tag: PuzzleTag;
-  difficulty: 1 | 2 | 3 | 4 | 5; // 1 easiest
-  prompt: LocalizedText; // e.g. "Black to play and live"
-  solutionNote: LocalizedText; // ground-truth reasoning for the LLM
-  source?: string;
-}
+export type Locale = z.infer<typeof LocaleSchema>;
+export type LocalizedText = z.infer<typeof LocalizedTextSchema>;
+export type Coord = z.infer<typeof CoordSchema>;
+export type Color = z.infer<typeof ColorSchema>;
+export type Stone = z.infer<typeof StoneSchema>;
+export type PuzzleTag = z.infer<typeof PuzzleTagSchema>;
+export type WrongBranch = z.infer<typeof WrongBranchSchema>;
+export type Puzzle = z.infer<typeof PuzzleSchema>;
+export type CoachMessage = z.infer<typeof CoachMessageSchema>;
 
 export interface PuzzleSummary {
   id: string;
@@ -61,12 +54,6 @@ export interface AttemptRecord {
  *   unattempted → no attempts recorded
  */
 export type PuzzleStatus = "solved" | "attempted" | "unattempted";
-
-export interface CoachMessage {
-  role: "user" | "assistant";
-  content: string;
-  ts: number;
-}
 
 export const BOARD_SIZE_LABELS: Record<9 | 13 | 19, string> = {
   9: "9×9",

@@ -2,6 +2,19 @@ import { z } from "zod";
 
 export const LocaleSchema = z.enum(["zh", "en", "ja", "ko"]);
 
+/**
+ * Localized text must have all four locales present. Using an explicit
+ * object schema (rather than `z.record(LocaleSchema, ...)`) so the inferred
+ * type is `Record<Locale, string>` instead of `Partial<Record<...>>`,
+ * matching the runtime guarantee enforced by the puzzle validator.
+ */
+export const LocalizedTextSchema = z.object({
+  zh: z.string(),
+  en: z.string(),
+  ja: z.string(),
+  ko: z.string(),
+});
+
 export const CoordSchema = z.object({
   x: z.number().int(),
   y: z.number().int(),
@@ -43,7 +56,7 @@ export const PuzzleTagSchema = z.enum(["life-death", "tesuji", "endgame", "openi
 export const WrongBranchSchema = z.object({
   userWrongMove: CoordSchema,
   refutation: z.array(StoneSchema),
-  note: z.record(LocaleSchema, z.string()),
+  note: LocalizedTextSchema,
 });
 
 export const PuzzleSchema = z.object({
@@ -58,7 +71,7 @@ export const PuzzleSchema = z.object({
   isCurated: z.boolean().optional(),
   tag: PuzzleTagSchema,
   difficulty: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
-  prompt: z.record(LocaleSchema, z.string()),
-  solutionNote: z.record(LocaleSchema, z.string()),
+  prompt: LocalizedTextSchema,
+  solutionNote: LocalizedTextSchema,
   source: z.string().optional(),
 });
