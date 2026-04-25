@@ -51,4 +51,20 @@ next-env.d.ts
 /reports/content-queue/*.json
 /reports/content-queue/*.md
 !/reports/content-queue/.gitkeep
-\n# KataGo & Analysis Assets\nkatago_model.bin.gz\ndefault_config.cfg\nanalysis_logs/\nlogs/\n*.sgf\nkatago_spike.py\nscripts/mvp_katago.ts\nscripts/tempCombine.ts\nscripts/testSgf.ts\nscripts/anonymizePuzzles.ts\n/temp_sources/
+# KataGo & Analysis Assets
+katago_model.bin.gz
+*.bin.gz
+default_config.cfg
+analysis_logs/
+logs/
+*.sgf
+katago_spike.py
+scripts/mvp_katago.ts
+scripts/tempCombine.ts
+scripts/testSgf.ts
+scripts/anonymizePuzzles.ts
+/temp_sources/
+
+# Data Pipeline Isolation
+data_pipeline/
+temp_sources/
