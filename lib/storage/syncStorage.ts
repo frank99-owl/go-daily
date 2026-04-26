@@ -14,7 +14,7 @@ import { del, get, set } from "idb-keyval";
 import type { AttemptRecord } from "@/types";
 
 import { attemptKey } from "./attemptKey";
-import { nextSrsCardForAttempt, type SrsCardState } from "@/lib/srs";
+import { nextSrsCardForAttempt, type SrsCardState } from "@/lib/puzzle/srs";
 import {
   loadAttempts as loadLocalAttempts,
   replaceAttempts as replaceLocalAttempts,

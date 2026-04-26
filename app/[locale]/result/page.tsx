@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { getPuzzle } from "@/content/puzzles";
-import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzleOfTheDay";
+import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzle/puzzleOfTheDay";
 
 import { ResultClient } from "./ResultClient";
 

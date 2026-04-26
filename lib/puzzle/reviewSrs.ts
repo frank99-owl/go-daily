@@ -1,5 +1,5 @@
 import { formatDateInTimeZone } from "@/lib/coach/coachQuota";
-import { nextSrsCardForAttempt, type SrsCardState } from "@/lib/srs";
+import { nextSrsCardForAttempt, type SrsCardState } from "@/lib/puzzle/srs";
 import type { createClient } from "@/lib/supabase/server";
 import type { PuzzleSummary } from "@/types";
 

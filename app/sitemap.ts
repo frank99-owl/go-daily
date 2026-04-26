@@ -7,7 +7,7 @@ import {
   getAvailableTags,
   getDifficultyCollectionPath,
   getTagCollectionPath,
-} from "@/lib/puzzleCollections";
+} from "@/lib/puzzle/puzzleCollections";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

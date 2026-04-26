@@ -5,7 +5,7 @@ import {
   getHistoryFor,
   computeStatusTallies,
   lastAttemptMsMap,
-} from "@/lib/puzzleStatus";
+} from "@/lib/puzzle/puzzleStatus";
 import type { AttemptRecord } from "@/types";
 
 describe("puzzleStatus", () => {

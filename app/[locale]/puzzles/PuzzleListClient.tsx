@@ -7,7 +7,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 import { PuzzleStatusBadge } from "@/components/PuzzleStatusBadge";
 import { useLocale } from "@/lib/i18n/i18n";
 import { localized } from "@/lib/i18n/localized";
-import { computeStatusTallies, getStatusFor, lastAttemptMsMap } from "@/lib/puzzleStatus";
+import { computeStatusTallies, getStatusFor, lastAttemptMsMap } from "@/lib/puzzle/puzzleStatus";
 import { loadAttempts } from "@/lib/storage/storage";
 import type { AttemptRecord, PuzzleStatus, PuzzleSummary, PuzzleTag } from "@/types";
 

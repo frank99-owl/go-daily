@@ -27,7 +27,7 @@ vi.mock("@/lib/email", () => ({
   sendDailyPuzzleEmail: emailMocks.sendDailyPuzzleEmail,
 }));
 
-vi.mock("@/lib/puzzleOfTheDay", () => ({
+vi.mock("@/lib/puzzle/puzzleOfTheDay", () => ({
   getPuzzleForDate: puzzleMocks.getPuzzleForDate,
   todayLocalKey: puzzleMocks.todayLocalKey,
 }));

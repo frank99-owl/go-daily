@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import type { Snapshot } from "@/lib/gameSnapshots";
+import type { Snapshot } from "@/lib/puzzle/gameSnapshots";
 import type { Coord } from "@/types";
 
 import { GoBoard } from "./GoBoard";

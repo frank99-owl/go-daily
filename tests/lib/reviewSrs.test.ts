@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { syncAndReadDueSrsItems } from "@/lib/reviewSrs";
+import { syncAndReadDueSrsItems } from "@/lib/puzzle/reviewSrs";
 import type { PuzzleSummary } from "@/types";
 
 type QueryResult = { data?: unknown; error?: { message: string } | null };

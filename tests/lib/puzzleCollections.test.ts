@@ -9,7 +9,7 @@ import {
   getTagCollectionPath,
   isValidPuzzleDifficulty,
   isValidPuzzleTag,
-} from "@/lib/puzzleCollections";
+} from "@/lib/puzzle/puzzleCollections";
 import type { PuzzleSummary } from "@/types";
 
 const summaries: PuzzleSummary[] = [

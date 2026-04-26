@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildSnapshots } from "@/lib/gameSnapshots";
+import { buildSnapshots } from "@/lib/puzzle/gameSnapshots";
 
 describe("gameSnapshots", () => {
   it("builds snapshots correctly for a sequence of moves", () => {

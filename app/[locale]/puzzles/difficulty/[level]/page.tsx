@@ -10,7 +10,7 @@ import {
   getAvailableDifficulties,
   getDifficultyCollectionPath,
   isValidPuzzleDifficulty,
-} from "@/lib/puzzleCollections";
+} from "@/lib/puzzle/puzzleCollections";
 import { absoluteUrl } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 

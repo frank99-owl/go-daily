@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
-import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzleOfTheDay";
+import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzle/puzzleOfTheDay";
 import { absoluteUrl } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 

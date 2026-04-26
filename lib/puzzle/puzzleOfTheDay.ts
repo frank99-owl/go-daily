@@ -1,6 +1,6 @@
 import type { Puzzle } from "@/types";
 
-import { todayLocalKey } from "./dateUtils";
+import { todayLocalKey } from "@/lib/dateUtils";
 
 // Anchor date for the rotation: day 0 of the cycle. Today (2026-04-18) is the
 // first day the app ships with a non-empty library, so it maps to index 0.
