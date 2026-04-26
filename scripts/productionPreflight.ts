@@ -223,9 +223,15 @@ function validateEnvironment(stripeMode: string): void {
     if (!/^sk_(live|test)_/.test(stripeSecret)) {
       fail("STRIPE_SECRET_KEY has a Stripe secret-key prefix");
     } else if (stripeMode === "live" && !stripeSecret.startsWith("sk_live_")) {
-      fail("STRIPE_SECRET_KEY is live mode", "Use `--stripe-mode=test` for sandbox preflight.");
+      fail(
+        "STRIPE_SECRET_KEY is not live mode",
+        "Either swap in an sk_live_ key or rerun with `--stripe-mode=test`.",
+      );
     } else if (stripeMode === "test" && !stripeSecret.startsWith("sk_test_")) {
-      fail("STRIPE_SECRET_KEY is test mode", "Use `--stripe-mode=live` for production preflight.");
+      fail(
+        "STRIPE_SECRET_KEY is not test mode",
+        "Either swap in an sk_test_ key or rerun with `--stripe-mode=live`.",
+      );
     } else {
       pass("STRIPE_SECRET_KEY mode matches preflight mode");
     }
