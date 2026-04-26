@@ -29,35 +29,35 @@ updated: 2026-04-26
 | 能力                                       | 位置                                                        |
 | ------------------------------------------ | ----------------------------------------------------------- |
 | Supabase browser/server/service/middleware | `lib/supabase/*`                                            |
-| Auth OAuth / magic link UI                 | `app/[locale]/login/*`, `lib/auth/auth.ts`                       |
+| Auth OAuth / magic link UI                 | `app/[locale]/login/*`, `lib/auth/auth.ts`                  |
 | Auth 回调（**非 locale 前缀**）            | `app/auth/callback/route.ts`                                |
 | 账户 / 删号（Supabase user）               | `app/[locale]/account/*`, `app/api/account/delete/route.ts` |
 | Session refresh + locale 308               | `proxy.ts`, `lib/supabase/middleware.ts`                    |
-| 同步队列与登录后 pull                      | `lib/storage/syncStorage.ts`, `components/ClientInit.tsx`           |
-| Merge 纯逻辑（UI 冲突未全）                | `lib/auth/mergeOnLogin.ts`                                       |
+| 同步队列与登录后 pull                      | `lib/storage/syncStorage.ts`, `components/ClientInit.tsx`   |
+| Merge 纯逻辑（UI 冲突未全）                | `lib/auth/mergeOnLogin.ts`                                  |
 | 动态 manifest                              | `app/manifest.ts`                                           |
 
 ## Phase 2 — 已实现要点（代码锚点）
 
-| 能力                                           | 位置                                                                                                 |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Stripe Checkout / Portal / Webhook + 幂等账本  | `app/api/stripe/*`                                                                                   |
-| `invoice.paid` 首扣写入锚点                    | `app/api/stripe/webhook/route.ts`（`first_paid_at` / `coach_anchor_day`）                            |
-| `invoice.payment_failed` 回滚 + 换卡邮件       | `app/api/stripe/webhook/route.ts`, `lib/email.ts`                                                    |
-| subscriptions / email delivery 字段            | `supabase/migrations/0003_subscription_anchor_fields.sql`, `0004_email_delivery_fields.sql`          |
-| Entitlements 层（guest / free / pro）          | `lib/entitlements.ts`                                                                                |
-| Free 自然月 + Pro 账单锚点月窗口               | `lib/coach/coachQuota.ts`, `lib/coach/coachState.ts`                                                             |
-| Coach 三层拦截（login / device / day / month） | `app/api/coach/route.ts`                                                                             |
-| Coach Provider 抽象（OpenAI 兼容）             | `lib/coach/coachProvider.ts`                                                                               |
-| 设备限制 + 登录后 merge                        | `lib/auth/deviceRegistry.ts`, `lib/auth/mergeOnLogin.ts`                                                       |
-| 登录卡片复用（Google + Guest；email 受开关）   | `components/AuthPromptCard.tsx`                                                                      |
-| 首页 3s 登录提醒弹窗（同浏览器一次）           | `components/HomeLoginReminder.tsx`                                                                   |
-| 动态 OG / Twitter 分享图                       | `app/opengraph-image.tsx`, `app/twitter-image.tsx`                                                   |
-| `/pricing` 定价页 + Checkout/Portal CTA        | `app/[locale]/pricing/*`                                                                             |
-| Coach upsell CTA + 付费漏斗事件                | `components/CoachDialogue.tsx`, `components/UpsellModal.tsx`, `lib/posthog/*`                        |
-| Resend 邮件基础设施 + 退订 + 每日 cron         | `lib/email.ts`, `app/email/unsubscribe/route.ts`, `app/api/cron/daily-email/route.ts`, `vercel.json` |
-| SRS 错题复习                                   | `lib/puzzle/srs.ts`, `lib/puzzle/reviewSrs.ts`, `app/[locale]/review/*`, `lib/storage/syncStorage.ts`                      |
-| 账户页订阅管理入口                             | `app/[locale]/account/*`, `app/api/stripe/portal/route.ts`                                           |
+| 能力                                           | 位置                                                                                                  |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Stripe Checkout / Portal / Webhook + 幂等账本  | `app/api/stripe/*`                                                                                    |
+| `invoice.paid` 首扣写入锚点                    | `app/api/stripe/webhook/route.ts`（`first_paid_at` / `coach_anchor_day`）                             |
+| `invoice.payment_failed` 回滚 + 换卡邮件       | `app/api/stripe/webhook/route.ts`, `lib/email.ts`                                                     |
+| subscriptions / email delivery 字段            | `supabase/migrations/0003_subscription_anchor_fields.sql`, `0004_email_delivery_fields.sql`           |
+| Entitlements 层（guest / free / pro）          | `lib/entitlements.ts`                                                                                 |
+| Free 自然月 + Pro 账单锚点月窗口               | `lib/coach/coachQuota.ts`, `lib/coach/coachState.ts`                                                  |
+| Coach 三层拦截（login / device / day / month） | `app/api/coach/route.ts`                                                                              |
+| Coach Provider 抽象（OpenAI 兼容）             | `lib/coach/coachProvider.ts`                                                                          |
+| 设备限制 + 登录后 merge                        | `lib/auth/deviceRegistry.ts`, `lib/auth/mergeOnLogin.ts`                                              |
+| 登录卡片复用（Google + Guest；email 受开关）   | `components/AuthPromptCard.tsx`                                                                       |
+| 首页 3s 登录提醒弹窗（同浏览器一次）           | `components/HomeLoginReminder.tsx`                                                                    |
+| 动态 OG / Twitter 分享图                       | `app/opengraph-image.tsx`, `app/twitter-image.tsx`                                                    |
+| `/pricing` 定价页 + Checkout/Portal CTA        | `app/[locale]/pricing/*`                                                                              |
+| Coach upsell CTA + 付费漏斗事件                | `components/CoachDialogue.tsx`, `components/UpsellModal.tsx`, `lib/posthog/*`                         |
+| Resend 邮件基础设施 + 退订 + 每日 cron         | `lib/email.ts`, `app/email/unsubscribe/route.ts`, `app/api/cron/daily-email/route.ts`, `vercel.json`  |
+| SRS 错题复习                                   | `lib/puzzle/srs.ts`, `lib/puzzle/reviewSrs.ts`, `app/[locale]/review/*`, `lib/storage/syncStorage.ts` |
+| 账户页订阅管理入口                             | `app/[locale]/account/*`, `app/api/stripe/portal/route.ts`                                            |
 
 ### Phase 2 — 关键约定
 
