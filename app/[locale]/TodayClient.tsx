@@ -7,7 +7,7 @@ import { GoBoard } from "@/components/GoBoard";
 import { PuzzleHeader } from "@/components/PuzzleHeader";
 import { useCurrentUser } from "@/lib/auth";
 import { useLocale } from "@/lib/i18n";
-import { judgeMove } from "@/lib/judge";
+import { judgeMove } from "@/lib/board/judge";
 import { localePath } from "@/lib/localePath";
 import { createAttemptRecord, saveAttempt } from "@/lib/storage/storage";
 import { createSyncStorage } from "@/lib/storage/syncStorage";

@@ -1,6 +1,6 @@
 "use client";
 
-import { isLocalBoardDisplay } from "@/lib/boardDisplay";
+import { isLocalBoardDisplay } from "@/lib/board/boardDisplay";
 import { useLocale } from "@/lib/i18n";
 import { localized } from "@/lib/localized";
 import type { Puzzle } from "@/types";

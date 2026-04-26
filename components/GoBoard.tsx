@@ -10,7 +10,7 @@ import {
   isOccupied,
   starPoints,
   type BoardWindow,
-} from "@/lib/board";
+} from "@/lib/board/board";
 import type { Color, Coord, Stone } from "@/types";
 
 type Props = {

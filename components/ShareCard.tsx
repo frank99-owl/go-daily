@@ -3,7 +3,7 @@
 import { Download, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { starPoints } from "@/lib/board";
+import { starPoints } from "@/lib/board/board";
 import { useLocale } from "@/lib/i18n";
 import type { Locale, Puzzle, Stone } from "@/types";
 
