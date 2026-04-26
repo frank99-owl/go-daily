@@ -10,7 +10,7 @@ updated: 2026-04-26
 
 1. **本文件** — 当前阶段、完成度、易错点、关键路径。
 2. **`docs/phase2-next-steps.md`** — 下一阶段（Stripe / 付费墙）执行顺序与 DoD。
-3. **`docs/architecture.md`**（或 `architecture.en.md`）— 系统结构。
+3. **`docs/en/ARCHITECTURE.md`**（或 `architecture.en.md`）— 系统结构。
 4. **`docs/i18n.md`** — locale 以 **URL 路径** 为准（`/zh/...`）；cookie 仅辅助根路径重定向。
 5. **`docs/data-schema.md`** — 表与 RLS 意图。
 6. **`docs/production-preflight.md`** — 生产环境变量、Supabase schema、Stripe/Resend/PostHog 验收；脚本入口 `npm run preflight:prod`。

@@ -4,7 +4,7 @@
 
 **Next phase (Stripe / paywall):** [`docs/phase2-next-steps.md`](docs/phase2-next-steps.md)
 
-**Architecture & i18n:** [`docs/architecture.md`](docs/architecture.md), [`docs/i18n.md`](docs/i18n.md)
+**Architecture & i18n:** [`docs/en/ARCHITECTURE.md`](docs/en/ARCHITECTURE.md), [`docs/en/I18N_SEO.md`](docs/en/I18N_SEO.md)
 
 **CI:** `.github/workflows/ci.yml` — run `npm run format:check && npm run lint && npm run test && npm run build` before large merges.
 

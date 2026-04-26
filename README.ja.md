@@ -16,38 +16,24 @@
 
 ## 📚 ドキュメントガイド
 
-エンジニアリングの卓越性と戦略的な明快さを維持するため、ドキュメントは以下の主要な論理軸に基づいて構成されています。
+日本のユーザーや開発者向けに、核心的なロジックを日本語で詳しく解説しています。
 
-### 🎯 [製品と戦略](docs/CONCEPT.md) (英語)
-
-- **[戦略的ビジョン](docs/CONCEPT.md)**: なぜ go-daily なのか？市場ポジショニングと商用哲学。
-- **[ロードマップ](docs/CONCEPT.md)**: MVP からグローバル製品へのマイルストーン。
-- **[コンテンツ管理](docs/CONCEPT.md)**: 問題のキュレーションと AI コーチの「根拠データ」の管理。
-
-### 🧱 [アーキテクチャと設計](docs/ARCHITECTURE.md) (英語)
-
-- **[システム設計](docs/ARCHITECTURE.md)**: 高度な技術アーキテクチャとデータフロー。
-- **[データベース設計](docs/ARCHITECTURE.md)**: Postgres テーブル、RLS セキュリティポリシー、同期ロジック。
-- **[プロジェクト構成](docs/ARCHITECTURE.md)**: ディレクトリ構造とモジュール分割の規範。
-
-### 🛡️ [運用と品質](docs/OPERATIONS_QA.md) (英語)
-
-- **[デプロイガイド](docs/OPERATIONS_QA.md)**: 本番環境のインフラ設定 (Vercel, Supabase, Stripe)。
-- **[チェックリスト](docs/OPERATIONS_QA.md)**: リリース前に実行すべき 47項目の確認事項。
-- **[製品仕様](docs/PRODUCT_SPECS.md)**: SRS アルゴリズム、サブスクリプション権限エンジン、決済の冪等性。
+1.  **[プロジェクト理念と戦略](docs/ja/CONCEPT.md)**：なぜ go-daily なのか？市場ポジショニング、商用哲学、そして「リーン」な運用について。
+2.  **[技術アーキテクチャ詳細](docs/ja/ARCHITECTURE.md)**：`proxy.ts` のリクエストライフサイクル、三段階の永続化エンジン、6ドメイン分離のリファクタリングを深く理解する。
+3.  **[製品仕様と機能ロジック](docs/ja/PRODUCT_SPECS.md)**：SM-2 アルゴリズムのパラメータマッピング、サブスクリプション権限エンジン、AI コーチの有効性判定ロジックの詳細。
+4.  **[運用と品質保証](docs/ja/OPERATIONS_QA.md)**：本番環境デプロイガイド、47項目のリリース前チェックリスト、および 570 以上のテストスイート戦略。
+5.  **[リアルタイム看板](docs/en/PROJECT_STATUS.md)** (英語)：現在のスプリント進捗と本番環境の準備状況を確認する。
 
 ---
 
 ## 🚀 クイックスタート
 
 ### 1. 前提条件
-
-- Node.js 20+
-- DeepSeek または OpenAI 互換の API キー。
-- Supabase プロジェクト（オプション、匿名モードでは不要）。
+*   Node.js 20+
+*   DeepSeek または OpenAI 互換の API キー。
+*   Supabase プロジェクト（オプション、匿名モードでは不要）。
 
 ### 2. インストール
-
 ```bash
 git clone https://github.com/frank99-owl/go-daily.git
 cd go-daily
@@ -56,21 +42,18 @@ npm install
 ```
 
 ### 3. ローカル実行
-
 ```bash
 npm run dev
 ```
-
-`http://localhost:3000` を開きます。ミドルウェアがブラウザの設定に合わせて最適な言語（`/ja` など）にリダイレクトします。
+`http://localhost:3000` を開きます。ミドルウェアがブラウザの設定に合わせて最適な言語にリダイレクトします。
 
 ---
 
 ## 🛠️ 技術スタック
-
-- **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
-- **Backend**: Supabase (Auth/Postgres), Upstash (Redis によるレート制限).
-- **AI**: DeepSeek Chat API.
-- **Business**: Stripe アダプティブプライシング, Resend メールシステム.
+*   **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
+*   **Backend**: Supabase (Auth/Postgres), Upstash (Redis によるレート制限).
+*   **AI**: DeepSeek Chat API.
+*   **Business**: Stripe アダプティブプライシング, Resend メールシステム.
 
 ---
 

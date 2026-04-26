@@ -16,38 +16,24 @@
 
 ## 📚 文档指南
 
-为了保持工程卓越性和战略清晰度，我们的文档被组织为以下核心逻辑支柱：
+我们针对不同语言环境进行了深度本地化。请参阅以下中文文档以了解项目的核心逻辑：
 
-### 🎯 [产品与战略](docs/CONCEPT.md) (英文)
-
-- **[战略愿景](docs/CONCEPT.md)**：为什么做 go-daily？我们的市场定位与商业哲学。
-- **[项目路线图](docs/CONCEPT.md)**：从 MVP 到全球化产品的里程碑。
-- **[内容管理](docs/CONCEPT.md)**：我们如何筛选题目及管理 AI Coach 的“事实根据”。
-
-### 🧱 [架构与设计](docs/ARCHITECTURE.md) (英文)
-
-- **[系统设计](docs/ARCHITECTURE.md)**：高层技术架构与数据流向。
-- **[数据库 Schema](docs/ARCHITECTURE.md)**：Postgres 表结构、RLS 安全策略与同步逻辑。
-- **[项目布局](docs/ARCHITECTURE.md)**：目录结构与模块分组规范。
-
-### 🛡️ [运维与质量](docs/OPERATIONS_QA.md) (英文)
-
-- **[部署指南](docs/OPERATIONS_QA.md)**：生产环境基础设施配置（Vercel, Supabase, Stripe）。
-- **[上线预检清单](docs/OPERATIONS_QA.md)**：发布前必须执行的 47 项检查。
-- **[产品规格](docs/PRODUCT_SPECS.md)**：SRS 算法逻辑、订阅权限引擎与支付幂等逻辑。
+1.  **[项目理念与战略](docs/zh/CONCEPT.md)**：为什么做 go-daily？我们的市场定位、商业哲学与“精益”运营。
+2.  **[技术架构深度解析](docs/zh/ARCHITECTURE.md)**：深入了解 `proxy.ts` 请求生命周期、三态持久化引擎及六域分域重构。
+3.  **[产品规格与功能逻辑](docs/zh/PRODUCT_SPECS.md)**：SM-2 算法参数映射、订阅权限引擎以及 AI 教练准入逻辑的详细说明。
+4.  **[运维与质量保障](docs/zh/OPERATIONS_QA.md)**：生产环境部署指南、47 项发布前预检清单以及 570+ 测试套件策略。
+5.  **[实时项目看板](docs/en/PROJECT_STATUS.md)** (英文)：跟踪当前 Sprint 进度与生产环境就绪状态。
 
 ---
 
 ## 🚀 快速上手
 
 ### 1. 环境要求
-
-- Node.js 20+
-- DeepSeek 或兼容 OpenAI 接口的 API Key。
-- Supabase 项目（可选，匿名模式下无需配置）。
+*   Node.js 20+
+*   DeepSeek 或兼容 OpenAI 接口的 API Key。
+*   Supabase 项目（可选，匿名模式下无需配置）。
 
 ### 2. 安装
-
 ```bash
 git clone https://github.com/frank99-owl/go-daily.git
 cd go-daily
@@ -56,21 +42,18 @@ npm install
 ```
 
 ### 3. 本地运行
-
 ```bash
 npm run dev
 ```
-
-访问 `http://localhost:3000`。中间件会自动根据浏览器偏好重定向到对应的语言路径（如 `/zh`）。
+访问 `http://localhost:3000`。中间件会自动根据浏览器偏好重定向到对应的语言路径。
 
 ---
 
 ## 🛠️ 技术栈
-
-- **前端**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
-- **后端**: Supabase (Auth/Postgres), Upstash (Redis 限流).
-- **AI**: DeepSeek Chat API.
-- **商业**: Stripe 动态定价, Resend 邮件系统.
+*   **前端**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
+*   **后端**: Supabase (Auth/Postgres), Upstash (Redis 限流).
+*   **AI**: DeepSeek Chat API.
+*   **商业**: Stripe 动态定价, Resend 邮件系统.
 
 ---
 
