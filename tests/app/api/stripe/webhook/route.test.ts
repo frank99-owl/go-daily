@@ -34,6 +34,7 @@ describe("Stripe Webhook Idempotency", () => {
 
     mockStripe = {
       webhooks: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         constructEvent: vi.fn((_body, _sig, _secret) => ({
           id: "evt_123",
           type: "customer.subscription.updated",
