@@ -329,4 +329,16 @@
       "authError": "Sign-in failed: {{message}}"
     }
   }
+  , "pipa": {
+    "title": "",
+    "subtitle": "",
+    "description": "",
+    "purpose": "",
+    "items": "",
+    "location": "",
+    "date": "",
+    "retention": "",
+    "rights": "",
+    "accept": ""
+  }
 }

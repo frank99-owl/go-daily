@@ -81,7 +81,7 @@ export default async function LoginPage({
 
   return (
     <div className="mx-auto max-w-md px-4 sm:px-6 pt-24 pb-12 sm:pt-32 sm:pb-16">
-      <LoginClient next={next} authError={auth_error ?? null} />
+      <LoginClient next={next} authError={auth_error ?? null} locale={locale} />
     </div>
   );
 }

@@ -330,4 +330,16 @@
       "authError": "ログインに失敗しました：{{message}}"
     }
   }
+  , "pipa": {
+    "title": "",
+    "subtitle": "",
+    "description": "",
+    "purpose": "",
+    "items": "",
+    "location": "",
+    "date": "",
+    "retention": "",
+    "rights": "",
+    "accept": ""
+  }
 }

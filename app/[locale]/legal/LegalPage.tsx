@@ -3,14 +3,12 @@
 import Link from "next/link";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
 import type { Locale } from "@/types";
 
 import { getLegalCopy, LEGAL_PATHS, type LegalKind } from "./_content";
 
 export function LegalPage({ locale, kind }: { locale: Locale; kind: LegalKind }) {
-  const { t } = useLocale();
   const copy = getLegalCopy(locale, kind);
 
   return (

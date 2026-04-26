@@ -66,5 +66,5 @@ Compliance requires manual verification across external dashboards.
 
 ### Privacy & Governance
 
-- [ ] **PIPA Consent**: (Manual check) Verify the Korea-specific consent modal (planned) displays the correct recipient name for overseas transfers.
+- [ ] **PIPA Consent**: (Manual check) Verify the sequential PIPA consent flow triggers before login for ko locale.
 - [ ] **Sentry PII Filter**: Run a test coaching dialogue and verify in the Sentry dashboard that no email or PII is visible in the breadcrumbs.

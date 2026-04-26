@@ -20,7 +20,7 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 
 1. **Production Smoke Checks**: Verify DNS/SMTP and Stripe Live Webhooks.
 2. **Coach Approval Expansion**: Bulk-approve 3,000+ puzzles for Pro usage.
-3. **UI Enhancements**: Implement the Korea-specific PIPA consent modal.
+3. **UI Enhancements**: Implemented Korea PIPA sequential consent flow in the login process.
 
 ---
 
