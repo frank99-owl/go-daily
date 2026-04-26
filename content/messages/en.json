@@ -328,8 +328,8 @@
     "callback": {
       "authError": "Sign-in failed: {{message}}"
     }
-  }
-  , "pipa": {
+  },
+  "pipa": {
     "title": "",
     "subtitle": "",
     "description": "",

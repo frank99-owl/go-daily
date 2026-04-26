@@ -14,17 +14,13 @@ export function PIPAConsentCard({ onAccept }: { onAccept: () => void }) {
         <div className="w-fit rounded-full border border-[#00f2ff]/30 bg-[#00f2ff]/5 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-[#00f2ff]">
           PIPA Compliance
         </div>
-        <h2 className="text-3xl font-medium tracking-tight text-white">
-          {t.pipa.title}
-        </h2>
-        <p className="text-sm font-normal text-white/50">
-          {t.pipa.subtitle}
-        </p>
+        <h2 className="text-3xl font-medium tracking-tight text-white">{t.pipa.title}</h2>
+        <p className="text-sm font-normal text-white/50">{t.pipa.subtitle}</p>
       </header>
 
       <div className="relative flex flex-col gap-6 text-[13px] leading-relaxed text-white/40">
         <p className="text-white/60">{t.pipa.description}</p>
-        
+
         <ul className="flex flex-col gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-6">
           <li className="flex gap-3">
             <span className="shrink-0 text-[#00f2ff]">•</span>
@@ -44,9 +40,7 @@ export function PIPAConsentCard({ onAccept }: { onAccept: () => void }) {
           </li>
         </ul>
 
-        <p className="italic text-white/30 text-[11px]">
-          {t.pipa.rights}
-        </p>
+        <p className="italic text-white/30 text-[11px]">{t.pipa.rights}</p>
       </div>
 
       <button

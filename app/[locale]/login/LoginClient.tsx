@@ -6,7 +6,15 @@ import { AuthPromptCard } from "@/components/AuthPromptCard";
 import { PIPAConsentCard } from "@/components/modals/PIPAConsentCard";
 import type { Locale } from "@/types";
 
-export function LoginClient({ next, authError, locale }: { next: string; authError: string | null; locale: Locale }) {
+export function LoginClient({
+  next,
+  authError,
+  locale,
+}: {
+  next: string;
+  authError: string | null;
+  locale: Locale;
+}) {
   const [step, setStep] = useState<"loading" | "pipa" | "auth">("loading");
 
   useEffect(() => {

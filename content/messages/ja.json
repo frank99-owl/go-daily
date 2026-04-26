@@ -329,8 +329,8 @@
     "callback": {
       "authError": "ログインに失敗しました：{{message}}"
     }
-  }
-  , "pipa": {
+  },
+  "pipa": {
     "title": "",
     "subtitle": "",
     "description": "",
