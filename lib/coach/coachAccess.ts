@@ -1,5 +1,5 @@
 import coachEligibleIds from "@/content/data/coachEligibleIds.json";
-import { checkCoachEligibility } from "@/lib/coachEligibility";
+import { checkCoachEligibility } from "@/lib/coach/coachEligibility";
 import type { Puzzle } from "@/types";
 
 export type CoachAccessReason = "curated" | "approved" | "restricted";

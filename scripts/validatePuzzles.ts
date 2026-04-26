@@ -15,7 +15,7 @@ import path from "path";
 
 import coachEligibleIds from "../content/data/coachEligibleIds.json";
 import { PUZZLES, buildPuzzleSummaries } from "../content/puzzles.server";
-import { checkCoachEligibility } from "../lib/coachEligibility";
+import { checkCoachEligibility } from "../lib/coach/coachEligibility";
 import type { Coord, Locale, Puzzle, PuzzleSummary, PuzzleTag, Stone } from "../types";
 import { PuzzleSchema } from "../types/schemas";
 

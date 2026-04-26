@@ -3,7 +3,7 @@ import {
   getAnchorDayFromFirstPaidAt,
   getBillingAnchoredMonthWindow,
   getNaturalMonthWindow,
-} from "@/lib/coachQuota";
+} from "@/lib/coach/coachQuota";
 import { evaluateDeviceAccess, type DeviceSeat } from "@/lib/deviceRegistry";
 import { getEntitlements } from "@/lib/entitlements";
 import { createServiceClient } from "@/lib/supabase/service";

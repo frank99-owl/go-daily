@@ -1,4 +1,4 @@
-import type { CoachErrorCode } from "@/lib/coachErrorCodes";
+import type { CoachErrorCode } from "@/lib/coach/coachErrorCodes";
 
 export type ViewerPlanForAnalytics = "guest" | "free" | "pro";
 

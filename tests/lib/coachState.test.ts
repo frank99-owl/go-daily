@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getCoachState, incrementCoachUsage } from "@/lib/coachState";
+import { getCoachState, incrementCoachUsage } from "@/lib/coach/coachState";
 
 // ---------------------------------------------------------------------------
 // Query-builder mock — mirrors the Supabase JS client shape just enough for

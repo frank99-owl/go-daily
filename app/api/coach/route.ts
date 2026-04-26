@@ -1,17 +1,17 @@
 import { getPuzzle } from "@/content/puzzles";
 import { createApiResponse } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
-import { getCoachAccess } from "@/lib/coachAccess";
-import { COACH_ERROR_CODES } from "@/lib/coachErrorCodes";
-import { buildSystemPrompt } from "@/lib/coachPrompt";
-import { createManagedCoachProvider } from "@/lib/coachProvider";
-import { formatDateInTimeZone } from "@/lib/coachQuota";
+import { getCoachAccess } from "@/lib/coach/coachAccess";
+import { COACH_ERROR_CODES } from "@/lib/coach/coachErrorCodes";
+import { buildSystemPrompt } from "@/lib/coach/coachPrompt";
+import { createManagedCoachProvider } from "@/lib/coach/coachProvider";
+import { formatDateInTimeZone } from "@/lib/coach/coachQuota";
 import {
   COACH_DEVICE_ID_HEADER,
   getCoachState,
   incrementCoachUsage,
   type CoachUsageSummary,
-} from "@/lib/coachState";
+} from "@/lib/coach/coachState";
 import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { createRateLimiter } from "@/lib/rateLimit";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";

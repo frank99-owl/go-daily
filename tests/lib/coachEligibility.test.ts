@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { checkCoachEligibility } from "@/lib/coachEligibility";
+import { checkCoachEligibility } from "@/lib/coach/coachEligibility";
 import type { Puzzle } from "@/types";
 
 function makeBasePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {

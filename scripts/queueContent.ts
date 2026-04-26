@@ -3,7 +3,7 @@ import path from "path";
 
 import coachEligibleIds from "../content/data/coachEligibleIds.json";
 import { PUZZLES } from "../content/puzzles.server";
-import { checkCoachEligibility, type CoachQualityTier } from "../lib/coachEligibility";
+import { checkCoachEligibility, type CoachQualityTier } from "../lib/coach/coachEligibility";
 import type { Puzzle, PuzzleSummary, PuzzleTag } from "../types";
 
 import { auditPuzzles } from "./auditPuzzles";

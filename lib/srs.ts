@@ -1,4 +1,4 @@
-import { formatDateInTimeZone } from "./coachQuota";
+import { formatDateInTimeZone } from "@/lib/coach/coachQuota";
 
 export type SrsQuality = 0 | 1 | 2 | 3 | 4 | 5;
 

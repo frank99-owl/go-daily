@@ -5,7 +5,7 @@ import {
   getAnchorDayFromFirstPaidAt,
   getBillingAnchoredMonthWindow,
   getNaturalMonthWindow,
-} from "@/lib/coachQuota";
+} from "@/lib/coach/coachQuota";
 
 describe("getNaturalMonthWindow", () => {
   it("returns the full calendar month for a typical date in UTC", () => {

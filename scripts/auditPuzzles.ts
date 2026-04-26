@@ -6,7 +6,7 @@ import {
   checkCoachEligibility,
   type CoachEligibilityReason,
   type CoachQualityTier,
-} from "../lib/coachEligibility";
+} from "../lib/coach/coachEligibility";
 import type { Locale, Puzzle, PuzzleSummary } from "../types";
 
 const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];

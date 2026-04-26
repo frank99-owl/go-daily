@@ -34,7 +34,7 @@ vi.mock("openai", () => {
   return { default: FakeOpenAI };
 });
 
-import { createManagedCoachProvider } from "@/lib/coachProvider";
+import { createManagedCoachProvider } from "@/lib/coach/coachProvider";
 
 describe("createManagedCoachProvider — constructor wiring", () => {
   const originalEnv = process.env;

@@ -9,7 +9,7 @@ import { CoachDialogue } from "@/components/CoachDialogue";
 import { GoBoard } from "@/components/GoBoard";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { ShareCard } from "@/components/ShareCard";
-import { getCoachAccess } from "@/lib/coachAccess";
+import { getCoachAccess } from "@/lib/coach/coachAccess";
 import { useLocale } from "@/lib/i18n";
 import { localePath } from "@/lib/localePath";
 import { localized } from "@/lib/localized";
