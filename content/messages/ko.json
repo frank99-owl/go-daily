@@ -9,9 +9,17 @@
     "about": "프로젝트 소개",
     "random": "랜덤 문제",
     "signIn": "로그인",
-    "account": "계정",
-    "signOut": "로그아웃"
+    "account": "계정 설정",
+    "signOut": "로그아웃",
+    "footer": {
+      "privacy": "개인정보처리방침",
+      "terms": "서비스 약관",
+      "refund": "환불 정책",
+      "legal": "법적 공시",
+      "rights": "All Rights Reserved."
+    }
   },
+
   "about": {
     "title": "알고리즘의 시대, 기도로의 회귀",
     "introTitle": "프롤로그: 소란을 뒤로하고, 열아홉 줄의 정적으로",

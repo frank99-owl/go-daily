@@ -9,9 +9,17 @@
     "about": "项目介绍",
     "random": "随机题目",
     "signIn": "登录",
-    "account": "账户",
-    "signOut": "退出登录"
+    "account": "个人账户",
+    "signOut": "退出登录",
+    "footer": {
+      "privacy": "隐私政策",
+      "terms": "服务条款",
+      "refund": "退款政策",
+      "legal": "法定公示",
+      "rights": "保留所有权利。"
+    }
   },
+
   "about": {
     "title": "关于项目、棋道与 AI 时代的思考",
     "introTitle": "序言：在喧嚣中寻找一片棋盘",

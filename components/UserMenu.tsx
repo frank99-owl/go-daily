@@ -46,10 +46,7 @@ export function UserMenu() {
     };
   }, [open]);
 
-  // Close whenever the route changes (Next router pushes a new pathname).
-  // The setState-in-effect lint rule fires here, but the intent is genuine:
-  // we're reacting to an external value (router path) flipping, not to
-  // derived render state.
+  // Close whenever the route changes
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setOpen(false);
@@ -61,8 +58,6 @@ export function UserMenu() {
   }
 
   if (!user) {
-    // Carry the user's current page as the post-login redirect target so
-    // clicking "Sign in" from /stats drops them back on /stats.
     const search = searchParams?.toString();
     const next = nextForLocale(locale, (pathname ?? "/") + (search ? `?${search}` : ""));
     const href = `/login?next=${encodeURIComponent(next)}`;
@@ -100,7 +95,7 @@ export function UserMenu() {
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-12 w-56 overflow-hidden rounded-xl border border-white/10 bg-black/80 shadow-xl backdrop-blur"
+          className="absolute right-0 top-12 w-56 overflow-hidden rounded-xl border border-white/10 bg-black/80 shadow-xl backdrop-blur-xl z-[100]"
         >
           <div className="border-b border-white/5 px-4 py-3">
             <p className="text-[11px] uppercase tracking-[0.3em] text-white/40">

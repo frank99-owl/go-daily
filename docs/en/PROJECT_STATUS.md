@@ -13,8 +13,8 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 ## 2. Architectural Audit
 
 - **Consistency**: All logic in `lib/` (SRS, Auth, Coach) is now 100% aligned with the documentation.
-- **Paths**: Fixed the 404 gap for legal pages by implementing the dynamic content route.
-- **Safety**: RLS and PII masking are operational in production.
+- **Paths**: Implemented a global **Footer** with multi-jurisdiction legal routes, resolving the 404 gap.
+- **UI Logic**: Fixed layout overlap issues on `Today` and `Random` pages by optimizing the vertical breathing room (`pb-24`).
 
 ## 3. Immediate Next Steps (Phase 3)
 

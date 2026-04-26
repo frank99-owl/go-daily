@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { AuthRedirectBridge } from "@/components/AuthRedirectBridge";
 import { ClientInit } from "@/components/ClientInit";
+import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
 import { getAllSummaries } from "@/content/puzzles";
 import { LocaleProvider } from "@/lib/i18n/i18n";
@@ -33,8 +34,11 @@ export default async function LocaleLayout({
         <AuthRedirectBridge />
       </Suspense>
       <ClientInit />
-      <Nav puzzleIds={puzzleIds} />
-      <main className="flex-1 w-full">{children}</main>
+      <div className="flex flex-col min-h-screen">
+        <Nav puzzleIds={puzzleIds} />
+        <main className="flex-1 w-full pb-24 sm:pb-32">{children}</main>
+        <Footer />
+      </div>
     </LocaleProvider>
   );
 }

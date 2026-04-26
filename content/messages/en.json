@@ -10,7 +10,14 @@
     "random": "Random Puzzle",
     "signIn": "Sign in",
     "account": "Account",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "footer": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "refund": "Refund Policy",
+      "legal": "Legal Disclosure",
+      "rights": "All Rights Reserved."
+    }
   },
   "about": {
     "title": "The Way of Go in the Age of Algorithms",

@@ -10,8 +10,16 @@
     "random": "ランダム問題",
     "signIn": "ログイン",
     "account": "アカウント",
-    "signOut": "ログアウト"
+    "signOut": "サインアウト",
+    "footer": {
+      "privacy": "プライバシー",
+      "terms": "利用規約",
+      "refund": "返金ポリシー",
+      "legal": "特定商取引法",
+      "rights": "All Rights Reserved."
+    }
   },
+
   "about": {
     "title": "アルゴリズム時代における棋道への問い",
     "introTitle": "序文：喧騒を離れ、十九路の静寂へ",
