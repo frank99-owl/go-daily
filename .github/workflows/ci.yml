@@ -16,6 +16,7 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run validate:puzzles
+      - run: npm run validate:messages
       - run: npx tsc --noEmit
       - run: npm run test
       - run: npm run build
