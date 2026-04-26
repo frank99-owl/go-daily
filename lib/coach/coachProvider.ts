@@ -9,7 +9,7 @@ export interface CoachProvider {
   createReply(messages: CoachProviderMessage[]): Promise<string>;
 }
 
-class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
+export class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
   private readonly client: OpenAI;
   private readonly model: string;
 
@@ -44,6 +44,30 @@ class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
   }
 }
 
+export class FallbackCoachProvider implements CoachProvider {
+  constructor(private readonly providers: CoachProvider[]) {
+    if (providers.length === 0) {
+      throw new Error("FallbackCoachProvider requires at least one provider");
+    }
+  }
+
+  async createReply(messages: CoachProviderMessage[]): Promise<string> {
+    let lastError: unknown;
+    for (const provider of this.providers) {
+      try {
+        return await provider.createReply(messages);
+      } catch (error) {
+        console.warn(
+          "[CoachProvider] API call failed, attempting fallback if available...",
+          error instanceof Error ? error.message : error,
+        );
+        lastError = error;
+      }
+    }
+    throw lastError; // All providers failed
+  }
+}
+
 export function createManagedCoachProvider({
   apiKey,
   timeout,
@@ -51,10 +75,29 @@ export function createManagedCoachProvider({
   apiKey: string;
   timeout: number;
 }): CoachProvider {
-  return new ManagedOpenAICompatibleCoachProvider({
+  const model = process.env.COACH_MODEL || "deepseek-chat";
+  const primaryUrl = process.env.COACH_API_URL || "https://api.deepseek.com";
+  const fallbackUrl = process.env.COACH_FALLBACK_API_URL;
+  const fallbackApiKey = process.env.COACH_FALLBACK_API_KEY || apiKey;
+  const fallbackModel = process.env.COACH_FALLBACK_MODEL || model;
+
+  const primaryProvider = new ManagedOpenAICompatibleCoachProvider({
     apiKey,
-    baseURL: "https://api.deepseek.com",
-    model: process.env.COACH_MODEL || "deepseek-chat",
+    baseURL: primaryUrl,
+    model,
     timeout,
   });
+
+  if (!fallbackUrl) {
+    return primaryProvider;
+  }
+
+  const secondaryProvider = new ManagedOpenAICompatibleCoachProvider({
+    apiKey: fallbackApiKey,
+    baseURL: fallbackUrl,
+    model: fallbackModel,
+    timeout,
+  });
+
+  return new FallbackCoachProvider([primaryProvider, secondaryProvider]);
 }

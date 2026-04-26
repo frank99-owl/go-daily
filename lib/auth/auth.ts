@@ -14,7 +14,7 @@
  */
 "use client";
 
-import type { Session, User } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -159,10 +159,12 @@ async function safeJson(res: Response): Promise<{ error?: string } | null> {
 export function useCurrentUser(): {
   user: User | null;
   loading: boolean;
+  error: Error | null;
 } {
-  const [state, setState] = useState<{ user: User | null; loading: boolean }>({
+  const [state, setState] = useState<{ user: User | null; loading: boolean; error: Error | null }>({
     user: null,
     loading: true,
+    error: null,
   });
 
   useEffect(() => {
@@ -173,26 +175,39 @@ export function useCurrentUser(): {
     } catch (err) {
       console.warn("[auth] Supabase browser client unavailable", err);
       queueMicrotask(() => {
-        setState({ user: null, loading: false });
+        setState({
+          user: null,
+          loading: false,
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
       });
       return;
     }
 
     supabase.auth
       .getSession()
-      .then(({ data }: { data: { session: Session | null } }) => {
+      .then(({ data, error }) => {
         if (!mounted) return;
-        setState({ user: data.session?.user ?? null, loading: false });
+        if (error) {
+          console.warn("[auth] Supabase session read error", error);
+          setState({ user: null, loading: false, error });
+        } else {
+          setState({ user: data.session?.user ?? null, loading: false, error: null });
+        }
       })
       .catch((err) => {
         console.warn("[auth] Supabase session read failed", err);
         if (!mounted) return;
-        setState({ user: null, loading: false });
+        setState({
+          user: null,
+          loading: false,
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
       });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
-      setState({ user: session?.user ?? null, loading: false });
+      setState((prev) => ({ ...prev, user: session?.user ?? null, loading: false }));
     });
 
     return () => {
