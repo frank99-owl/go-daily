@@ -28,7 +28,7 @@ describe("ClientInit", () => {
     vi.clearAllMocks();
     sync.mockResolvedValue({ pushed: 0, pulled: 0 });
     vi.mocked(flushSyncQueue).mockResolvedValue(0);
-    vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false });
+    vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false, error: null });
     originalServiceWorker = navigator.serviceWorker;
   });
 
@@ -49,6 +49,7 @@ describe("ClientInit", () => {
     vi.mocked(useCurrentUser).mockReturnValue({
       user: { id: "user-1" } as ReturnType<typeof useCurrentUser>["user"],
       loading: false,
+      error: null,
     });
 
     render(<ClientInit />);
@@ -63,6 +64,7 @@ describe("ClientInit", () => {
     vi.mocked(useCurrentUser).mockReturnValue({
       user: { id: "user-1" } as ReturnType<typeof useCurrentUser>["user"],
       loading: false,
+      error: null,
     });
 
     render(<ClientInit />);
@@ -86,6 +88,7 @@ describe("ClientInit", () => {
     vi.mocked(useCurrentUser).mockReturnValue({
       user: { id: "user-1" } as ReturnType<typeof useCurrentUser>["user"],
       loading: false,
+      error: null,
     });
 
     render(<ClientInit />);
@@ -111,6 +114,7 @@ describe("ClientInit", () => {
     vi.mocked(useCurrentUser).mockReturnValue({
       user: { id: "user-1" } as ReturnType<typeof useCurrentUser>["user"],
       loading: false,
+      error: null,
     });
 
     render(<ClientInit />);

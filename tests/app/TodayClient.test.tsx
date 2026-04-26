@@ -54,7 +54,7 @@ describe("TodayClient keyboard support", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useRouter).mockReturnValue({ push } as unknown as ReturnType<typeof useRouter>);
-    vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false });
+    vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false, error: null });
   });
 
   it("lets the board select a move with Enter and clears it with R", async () => {
@@ -100,6 +100,7 @@ describe("TodayClient keyboard support", () => {
     vi.mocked(useCurrentUser).mockReturnValue({
       user: { id: "user-123" } as ReturnType<typeof useCurrentUser>["user"],
       loading: false,
+      error: null,
     });
 
     const { container } = render(

@@ -23,8 +23,10 @@ vi.mock("../../../../../lib/email", () => ({
 }));
 
 describe("Stripe Webhook Idempotency", () => {
-  let mockStripe: ReturnType<typeof vi.fn>;
-  let mockAdmin: Record<string, unknown> & { from: ReturnType<typeof vi.fn> };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockStripe: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockAdmin: any;
 
   beforeEach(() => {
     vi.clearAllMocks();

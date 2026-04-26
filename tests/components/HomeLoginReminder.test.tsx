@@ -37,7 +37,7 @@ describe("HomeLoginReminder", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     reducedMotionRef.current = false;
-    vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false });
+    vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false, error: null });
     vi.mocked(window.localStorage.getItem).mockReturnValue(null);
     vi.mocked(window.localStorage.setItem).mockClear();
   });
@@ -66,6 +66,7 @@ describe("HomeLoginReminder", () => {
     vi.mocked(useCurrentUser).mockReturnValue({
       user: { id: "user-1" } as ReturnType<typeof useCurrentUser>["user"],
       loading: false,
+      error: null,
     });
 
     renderReminder();
@@ -76,7 +77,7 @@ describe("HomeLoginReminder", () => {
   });
 
   it("does not show while auth state is still loading", () => {
-    vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: true });
+    vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: true, error: null });
 
     renderReminder();
     act(() => {
