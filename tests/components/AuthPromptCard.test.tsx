@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthPromptCard } from "@/components/AuthPromptCard";
-import { signInWithEmail, signInWithGoogle } from "@/lib/auth";
+import { signInWithEmail, signInWithGoogle } from "@/lib/auth/auth";
 import { LocaleProvider } from "@/lib/i18n";
 
 const pushMock = vi.hoisted(() => vi.fn());
@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock, replace: vi.fn(), refresh: vi.fn() }),
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   isLikelyEmail: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
   signInWithEmail: vi.fn(),
   signInWithGoogle: vi.fn(),

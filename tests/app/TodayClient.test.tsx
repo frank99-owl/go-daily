@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { TodayClient } from "@/app/[locale]/TodayClient";
-import { useCurrentUser } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/auth/auth";
 import { LocaleProvider } from "@/lib/i18n";
 import { createSyncStorage } from "@/lib/storage/syncStorage";
 import type { Puzzle } from "@/types";
@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useCurrentUser: vi.fn(),
 }));
 

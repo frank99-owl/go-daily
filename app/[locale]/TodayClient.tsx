@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 
 import { GoBoard } from "@/components/GoBoard";
 import { PuzzleHeader } from "@/components/PuzzleHeader";
-import { useCurrentUser } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/auth/auth";
 import { useLocale } from "@/lib/i18n";
 import { judgeMove } from "@/lib/board/judge";
 import { localePath } from "@/lib/localePath";

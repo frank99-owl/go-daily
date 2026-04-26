@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { useCurrentUser } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/auth/auth";
 import { initGlobalErrorHandlers } from "@/lib/errorReporting";
 import { createSyncStorage, flushSyncQueue } from "@/lib/storage/syncStorage";
 

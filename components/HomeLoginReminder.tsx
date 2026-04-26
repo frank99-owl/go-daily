@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import { useCurrentUser } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/auth/auth";
 import { useLocale } from "@/lib/i18n";
 import { localePath } from "@/lib/localePath";
 

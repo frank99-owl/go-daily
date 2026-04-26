@@ -8,7 +8,7 @@ const trackMock = vi.hoisted(() => vi.fn());
 const replaceMock = vi.hoisted(() => vi.fn());
 const refreshMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   deleteAccount: vi.fn(),
   signOut: vi.fn(),
 }));

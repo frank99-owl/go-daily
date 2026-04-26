@@ -15,7 +15,7 @@
  * and an async IO layer that talks to Supabase.
  */
 import { describeUserAgent, getOrCreateDeviceId } from "./deviceId";
-import { createClient } from "./supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 export type DeviceAccess = "allow-existing" | "allow-new" | "block-free-device-limit";
 

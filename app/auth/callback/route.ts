@@ -5,7 +5,7 @@ import {
   normalizeAuthNext,
   parsePendingAuthRedirect,
   readCookieValue,
-} from "@/lib/authRedirect";
+} from "@/lib/auth/authRedirect";
 import { sendWelcomeEmail } from "@/lib/email";
 import {
   DEFAULT_LOCALE,

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { deleteAccount, signOut } from "@/lib/auth";
+import { deleteAccount, signOut } from "@/lib/auth/auth";
 import { useLocale } from "@/lib/i18n";
 import { localePath } from "@/lib/localePath";
 import { track } from "@/lib/posthog/events";

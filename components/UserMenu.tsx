@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { nextForLocale, signOut, useCurrentUser } from "@/lib/auth";
+import { nextForLocale, signOut, useCurrentUser } from "@/lib/auth/auth";
 import { useLocale } from "@/lib/i18n";
 import { localePath } from "@/lib/localePath";
 

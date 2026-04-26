@@ -24,7 +24,7 @@ import {
   normalizeAuthNext,
   serializePendingAuthRedirect,
 } from "./authRedirect";
-import { createClient } from "./supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

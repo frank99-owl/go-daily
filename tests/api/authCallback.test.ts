@@ -30,7 +30,7 @@ vi.mock("@/lib/email", () => ({
 }));
 
 import { GET } from "@/app/auth/callback/route";
-import { AUTH_REDIRECT_COOKIE } from "@/lib/authRedirect";
+import { AUTH_REDIRECT_COOKIE } from "@/lib/auth/authRedirect";
 
 type ProfileRow = {
   locale?: string | null;

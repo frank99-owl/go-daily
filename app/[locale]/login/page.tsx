@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { normalizeAuthNext } from "@/lib/authRedirect";
+import { normalizeAuthNext } from "@/lib/auth/authRedirect";
 import { localePath } from "@/lib/localePath";
 import { getMessages } from "@/lib/metadata";
 import { isAuthSessionMissingError } from "@/lib/supabase/authErrors";

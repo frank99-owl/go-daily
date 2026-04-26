@@ -7,7 +7,7 @@ import {
   AUTH_REDIRECT_COOKIE,
   parsePendingAuthRedirect,
   readCookieValue,
-} from "@/lib/authRedirect";
+} from "@/lib/auth/authRedirect";
 import { useLocale } from "@/lib/i18n";
 import { localePath } from "@/lib/localePath";
 

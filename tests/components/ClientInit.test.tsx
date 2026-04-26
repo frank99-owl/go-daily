@@ -2,11 +2,11 @@ import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ClientInit } from "@/components/ClientInit";
-import { useCurrentUser } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/auth/auth";
 import { initGlobalErrorHandlers } from "@/lib/errorReporting";
 import { createSyncStorage, flushSyncQueue } from "@/lib/storage/syncStorage";
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useCurrentUser: vi.fn(),
 }));
 

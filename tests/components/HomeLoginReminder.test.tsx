@@ -2,12 +2,12 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HomeLoginReminder } from "@/components/HomeLoginReminder";
-import { useCurrentUser } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/auth/auth";
 import { LocaleProvider } from "@/lib/i18n";
 
 const STORAGE_KEY = "go-daily.home-login-reminder.dismissed.v1";
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/auth", () => ({
   useCurrentUser: vi.fn(),
 }));
 

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { normalizeAuthNext } from "@/lib/authRedirect";
+import { normalizeAuthNext } from "@/lib/auth/authRedirect";
 import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE,
