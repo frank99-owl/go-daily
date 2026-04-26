@@ -29,11 +29,13 @@
 ## 🚀 クイックスタート
 
 ### 1. 前提条件
-*   Node.js 20+
-*   DeepSeek または OpenAI 互換の API キー。
-*   Supabase プロジェクト（オプション、匿名モードでは不要）。
+
+- Node.js 20+
+- DeepSeek または OpenAI 互換の API キー。
+- Supabase プロジェクト（オプション、匿名モードでは不要）。
 
 ### 2. インストール
+
 ```bash
 git clone https://github.com/frank99-owl/go-daily.git
 cd go-daily
@@ -42,18 +44,21 @@ npm install
 ```
 
 ### 3. ローカル実行
+
 ```bash
 npm run dev
 ```
+
 `http://localhost:3000` を開きます。ミドルウェアがブラウザの設定に合わせて最適な言語にリダイレクトします。
 
 ---
 
 ## 🛠️ 技術スタック
-*   **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
-*   **Backend**: Supabase (Auth/Postgres), Upstash (Redis によるレート制限).
-*   **AI**: DeepSeek Chat API.
-*   **Business**: Stripe アダプティブプライシング, Resend メールシステム.
+
+- **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
+- **Backend**: Supabase (Auth/Postgres), Upstash (Redis によるレート制限).
+- **AI**: DeepSeek Chat API.
+- **Business**: Stripe アダプティブプライシング, Resend メールシステム.
 
 ---
 

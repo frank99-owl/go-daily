@@ -29,11 +29,13 @@
 ## 🚀 빠른 시작
 
 ### 1. 전제 조건
-*   Node.js 20+
-*   DeepSeek 또는 OpenAI 호환 API 키.
-*   Supabase 프로젝트 (옵션, 익명 모드에서는 불필요).
+
+- Node.js 20+
+- DeepSeek 또는 OpenAI 호환 API 키.
+- Supabase 프로젝트 (옵션, 익명 모드에서는 불필요).
 
 ### 2. 설치
+
 ```bash
 git clone https://github.com/frank99-owl/go-daily.git
 cd go-daily
@@ -42,18 +44,21 @@ npm install
 ```
 
 ### 3. 로컬 실행
+
 ```bash
 npm run dev
 ```
+
 `http://localhost:3000`을 엽니다. 미들웨어가 브라우저 설정에 맞춰 최적의 언어로 리다이렉트합니다.
 
 ---
 
 ## 🛠️ 기술 스택
-*   **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
-*   **Backend**: Supabase (Auth/Postgres), Upstash (Redis를 통한 속도 제한).
-*   **AI**: DeepSeek Chat API.
-*   **Business**: Stripe 어댑티브 프라이싱, Resend 이메일 시스템.
+
+- **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
+- **Backend**: Supabase (Auth/Postgres), Upstash (Redis를 통한 속도 제한).
+- **AI**: DeepSeek Chat API.
+- **Business**: Stripe 어댑티브 프라이싱, Resend 이메일 시스템.
 
 ---
 

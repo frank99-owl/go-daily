@@ -29,11 +29,13 @@
 ## 🚀 快速上手
 
 ### 1. 环境要求
-*   Node.js 20+
-*   DeepSeek 或兼容 OpenAI 接口的 API Key。
-*   Supabase 项目（可选，匿名模式下无需配置）。
+
+- Node.js 20+
+- DeepSeek 或兼容 OpenAI 接口的 API Key。
+- Supabase 项目（可选，匿名模式下无需配置）。
 
 ### 2. 安装
+
 ```bash
 git clone https://github.com/frank99-owl/go-daily.git
 cd go-daily
@@ -42,18 +44,21 @@ npm install
 ```
 
 ### 3. 本地运行
+
 ```bash
 npm run dev
 ```
+
 访问 `http://localhost:3000`。中间件会自动根据浏览器偏好重定向到对应的语言路径。
 
 ---
 
 ## 🛠️ 技术栈
-*   **前端**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
-*   **后端**: Supabase (Auth/Postgres), Upstash (Redis 限流).
-*   **AI**: DeepSeek Chat API.
-*   **商业**: Stripe 动态定价, Resend 邮件系统.
+
+- **前端**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion.
+- **后端**: Supabase (Auth/Postgres), Upstash (Redis 限流).
+- **AI**: DeepSeek Chat API.
+- **商业**: Stripe 动态定价, Resend 邮件系统.
 
 ---
 
