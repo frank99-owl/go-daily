@@ -7,7 +7,7 @@ import { LocalizedLink } from "@/components/LocalizedLink";
 import { useLocale } from "@/lib/i18n";
 import { localePath } from "@/lib/localePath";
 import { pickRandomPuzzle } from "@/lib/random";
-import { loadAttempts } from "@/lib/storage";
+import { loadAttempts } from "@/lib/storage/storage";
 
 import { LanguageToggle } from "./LanguageToggle";
 import { UserMenu } from "./UserMenu";

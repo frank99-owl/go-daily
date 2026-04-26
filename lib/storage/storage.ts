@@ -1,6 +1,6 @@
 import type { AttemptRecord, Coord } from "@/types";
 
-import { todayLocalKey } from "./dateUtils";
+import { todayLocalKey } from "@/lib/dateUtils";
 import { loadWithIntegrity, migratePlainData, saveWithIntegrity } from "./storageIntegrity";
 
 export const ATTEMPTS_STORAGE_KEY = "go-daily.attempts";

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { exportUserData, importUserData, validateImport } from "@/lib/exportData";
-import { ATTEMPTS_STORAGE_KEY, loadAttempts, replaceAttempts } from "@/lib/storage";
-import { getRecoveryKey } from "@/lib/storageIntegrity";
+import { exportUserData, importUserData, validateImport } from "@/lib/storage/exportData";
+import { ATTEMPTS_STORAGE_KEY, loadAttempts, replaceAttempts } from "@/lib/storage/storage";
+import { getRecoveryKey } from "@/lib/storage/storageIntegrity";
 
 function createStorage() {
   return {

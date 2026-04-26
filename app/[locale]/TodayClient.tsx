@@ -9,8 +9,8 @@ import { useCurrentUser } from "@/lib/auth";
 import { useLocale } from "@/lib/i18n";
 import { judgeMove } from "@/lib/judge";
 import { localePath } from "@/lib/localePath";
-import { createAttemptRecord, saveAttempt } from "@/lib/storage";
-import { createSyncStorage } from "@/lib/syncStorage";
+import { createAttemptRecord, saveAttempt } from "@/lib/storage/storage";
+import { createSyncStorage } from "@/lib/storage/syncStorage";
 import type { Coord, Puzzle } from "@/types";
 
 export function TodayClient({ puzzle, metaLabel }: { puzzle: Puzzle; metaLabel?: string }) {

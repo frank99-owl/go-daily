@@ -13,7 +13,7 @@ import { getCoachAccess } from "@/lib/coach/coachAccess";
 import { useLocale } from "@/lib/i18n";
 import { localePath } from "@/lib/localePath";
 import { localized } from "@/lib/localized";
-import { getAttemptFor, getAttemptsFor } from "@/lib/storage";
+import { getAttemptFor, getAttemptsFor } from "@/lib/storage/storage";
 import type { AttemptRecord, Puzzle, Stone } from "@/types";
 
 export function ResultClient({

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ClientInit } from "@/components/ClientInit";
 import { useCurrentUser } from "@/lib/auth";
 import { initGlobalErrorHandlers } from "@/lib/errorReporting";
-import { createSyncStorage, flushSyncQueue } from "@/lib/syncStorage";
+import { createSyncStorage, flushSyncQueue } from "@/lib/storage/syncStorage";
 
 vi.mock("@/lib/auth", () => ({
   useCurrentUser: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock("@/lib/errorReporting", () => ({
 
 const sync = vi.fn(async () => ({ pushed: 0, pulled: 0 }));
 
-vi.mock("@/lib/syncStorage", () => ({
+vi.mock("@/lib/storage/syncStorage", () => ({
   createSyncStorage: vi.fn(() => ({ sync })),
   flushSyncQueue: vi.fn(async () => 0),
 }));

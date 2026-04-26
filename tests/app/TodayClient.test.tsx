@@ -5,7 +5,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { TodayClient } from "@/app/[locale]/TodayClient";
 import { useCurrentUser } from "@/lib/auth";
 import { LocaleProvider } from "@/lib/i18n";
-import { createSyncStorage } from "@/lib/syncStorage";
+import { createSyncStorage } from "@/lib/storage/syncStorage";
 import type { Puzzle } from "@/types";
 
 vi.mock("next/navigation", () => ({
@@ -18,7 +18,7 @@ vi.mock("@/lib/auth", () => ({
 
 const saveAttempt = vi.fn(async () => {});
 
-vi.mock("@/lib/syncStorage", () => ({
+vi.mock("@/lib/storage/syncStorage", () => ({
   createSyncStorage: vi.fn(() => ({
     saveAttempt,
   })),

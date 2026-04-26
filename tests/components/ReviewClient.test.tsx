@@ -3,12 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReviewClient } from "@/app/[locale]/review/ReviewClient";
 import { LocaleProvider } from "@/lib/i18n";
-import { loadAttempts } from "@/lib/storage";
+import { loadAttempts } from "@/lib/storage/storage";
 import type { AttemptRecord, PuzzleSummary } from "@/types";
 
 const trackMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/storage", () => ({
+vi.mock("@/lib/storage/storage", () => ({
   loadAttempts: vi.fn(),
 }));
 

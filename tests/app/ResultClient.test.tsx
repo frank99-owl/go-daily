@@ -4,13 +4,13 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { ResultClient } from "@/app/[locale]/result/ResultClient";
 import { LocaleProvider } from "@/lib/i18n";
-import { getAttemptFor, getAttemptsFor } from "@/lib/storage";
+import { getAttemptFor, getAttemptsFor } from "@/lib/storage/storage";
 
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
-vi.mock("@/lib/storage", () => ({
+vi.mock("@/lib/storage/storage", () => ({
   getAttemptFor: vi.fn(),
   getAttemptsFor: vi.fn(),
 }));

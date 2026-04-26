@@ -8,7 +8,7 @@ import { PuzzleStatusBadge } from "@/components/PuzzleStatusBadge";
 import { useLocale } from "@/lib/i18n";
 import { localized } from "@/lib/localized";
 import { computeStatusTallies, getStatusFor, lastAttemptMsMap } from "@/lib/puzzleStatus";
-import { loadAttempts } from "@/lib/storage";
+import { loadAttempts } from "@/lib/storage/storage";
 import type { AttemptRecord, PuzzleStatus, PuzzleSummary, PuzzleTag } from "@/types";
 
 type SortKey = "default" | "difficulty-asc" | "difficulty-desc" | "recent";

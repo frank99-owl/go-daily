@@ -19,7 +19,7 @@
  */
 import type { AttemptRecord } from "@/types";
 
-import { attemptKey } from "./attemptKey";
+import { attemptKey } from "@/lib/storage/attemptKey";
 
 export type MergeDecision =
   /** Keep every unique record from both sides (default safe path). */

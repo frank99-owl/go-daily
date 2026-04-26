@@ -48,7 +48,7 @@ type SelectHandler = () =>
 let upsertHandler: UpsertHandler = () => ({ error: null });
 let selectHandler: SelectHandler = () => ({ data: [], error: null });
 
-vi.mock("./supabase/client", () => ({
+vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     from: () => ({
       upsert: async (rows: unknown[]) => upsertHandler(rows),

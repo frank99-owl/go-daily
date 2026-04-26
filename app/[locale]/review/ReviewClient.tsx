@@ -10,7 +10,7 @@ import { localized } from "@/lib/localized";
 import { track } from "@/lib/posthog/events";
 import { getStatusFor, lastAttemptMsMap } from "@/lib/puzzleStatus";
 import type { ReviewSrsItem } from "@/lib/reviewSrs";
-import { loadAttempts } from "@/lib/storage";
+import { loadAttempts } from "@/lib/storage/storage";
 import { BOARD_SIZE_LABELS } from "@/types";
 import type { AttemptRecord, PuzzleSummary } from "@/types";
 

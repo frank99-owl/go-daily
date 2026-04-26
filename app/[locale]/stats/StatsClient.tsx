@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Heatmap } from "@/components/Heatmap";
-import { downloadExport, importUserData } from "@/lib/exportData";
+import { downloadExport, importUserData } from "@/lib/storage/exportData";
 import { useLocale } from "@/lib/i18n";
-import { computeAccuracy, computeStreak, loadAttempts } from "@/lib/storage";
+import { computeAccuracy, computeStreak, loadAttempts } from "@/lib/storage/storage";
 import type { AttemptRecord } from "@/types";
 
 export function StatsClient() {

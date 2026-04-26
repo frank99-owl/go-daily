@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { useCurrentUser } from "@/lib/auth";
 import { initGlobalErrorHandlers } from "@/lib/errorReporting";
-import { createSyncStorage, flushSyncQueue } from "@/lib/syncStorage";
+import { createSyncStorage, flushSyncQueue } from "@/lib/storage/syncStorage";
 
 const SW_CLIENT_ONLINE_MESSAGE = "go-daily.client-online";
 const SW_FLUSH_SYNC_QUEUE_MESSAGE = "go-daily.flush-sync-queue";

@@ -5,7 +5,7 @@ import {
   loadWithIntegrity,
   migratePlainData,
   saveWithIntegrity,
-} from "@/lib/storageIntegrity";
+} from "@/lib/storage/storageIntegrity";
 
 function createStorage(): Storage {
   let store: Record<string, string> = {};

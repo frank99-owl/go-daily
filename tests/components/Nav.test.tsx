@@ -5,7 +5,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { Nav } from "@/components/Nav";
 import { pickRandomPuzzle } from "@/lib/random";
-import { loadAttempts } from "@/lib/storage";
+import { loadAttempts } from "@/lib/storage/storage";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -43,7 +43,7 @@ vi.mock("@/components/UserMenu", () => ({
 }));
 
 // Mock storage and random logic
-vi.mock("@/lib/storage", () => ({
+vi.mock("@/lib/storage/storage", () => ({
   loadAttempts: vi.fn(),
 }));
 vi.mock("@/lib/random", () => ({

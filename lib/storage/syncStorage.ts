@@ -14,13 +14,13 @@ import { del, get, set } from "idb-keyval";
 import type { AttemptRecord } from "@/types";
 
 import { attemptKey } from "./attemptKey";
-import { nextSrsCardForAttempt, type SrsCardState } from "./srs";
+import { nextSrsCardForAttempt, type SrsCardState } from "@/lib/srs";
 import {
   loadAttempts as loadLocalAttempts,
   replaceAttempts as replaceLocalAttempts,
   saveAttempt as saveLocalAttempt,
 } from "./storage";
-import { createClient } from "./supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 export interface SyncStorage {
   getAttempts(): Promise<AttemptRecord[]>;
