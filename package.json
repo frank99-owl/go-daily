@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run validate:puzzles",
+    "prebuild": "npm run validate:puzzles && npm run validate:messages",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -16,6 +16,7 @@
     "generate:katago": "tsx scripts/generateKatagoPuzzles.ts",
     "sync:puzzle-index": "tsx scripts/syncPuzzleIndex.ts",
     "validate:puzzles": "tsx scripts/validatePuzzles.ts",
+    "validate:messages": "tsx scripts/validateMessages.ts",
     "preflight:prod": "tsx scripts/productionPreflight.ts",
     "audit:puzzles": "tsx scripts/auditPuzzles.ts",
     "queue:content": "tsx scripts/queueContent.ts",
