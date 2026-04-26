@@ -72,9 +72,7 @@ function main(): void {
     process.exit(1);
   }
 
-  console.log(
-    `✓ Validated ${LOCALES.length} locales × ${union.size} key paths — all consistent.`,
-  );
+  console.log(`✓ Validated ${LOCALES.length} locales × ${union.size} key paths — all consistent.`);
 }
 
 main();
