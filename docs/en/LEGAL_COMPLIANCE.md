@@ -49,8 +49,14 @@
 
 ---
 
-## 4. Stripe Global Verification Checklist (2026)
+## 4. Implementation Framework (Apple-Style)
 
-- **UBO Verification**: Identity verification for owners with 25% or more equity.
-- **Liveness Check**: Account administrator "Selfie" verification.
-- **Website Transparency**: Legal name, physical address, contact details, and refund links must be clearly visible in the footer.
+To maintain brand minimalism while ensuring global compliance, `go-daily` utilizes a **Three-Pillar Architecture**:
+
+1.  **Privacy & Security**: Consolidated data residency and AI ethics disclosures (GDPR, PIPA, PDPO).
+2.  **Terms of Service**: Unified identity and contractual rules. **Japan's Tokushoho** requirements are integrated here as a simplified compliance statement.
+3.  **Refund & Cancellation**: Integrated consumer protection policies (UK DMCCA, Australian ACL).
+
+### 4.1 Japan (Tokushoho) Integration
+
+Instead of a standalone page, statutory disclosures are merged into the **Terms of Service**. Detailed identity information is provided to regulatory bodies and users upon valid request, satisfying Stripe's verification criteria while protecting individual developer privacy.

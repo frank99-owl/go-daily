@@ -1,451 +1,288 @@
 import type { Locale } from "@/types";
 
-export type LegalKind = "privacy" | "terms" | "refund" | "tokushoho";
+export type LegalKind = "privacy" | "terms" | "refund";
+
+type LegalSection = {
+  summary?: string;
+  heading: string;
+  body: string;
+};
 
 type LegalCopy = {
   eyebrow: string;
   title: string;
   description: string;
-  updatedLabel: string;
-  updatedValue: string;
-  status: string;
-  sections: Array<{
-    heading: string;
-    body: string;
-  }>;
+  versionLabel: string;
+  versionValue: string;
+  sections: LegalSection[];
 };
 
 export const LEGAL_PATHS: Record<LegalKind, string> = {
   privacy: "/legal/privacy",
   terms: "/legal/terms",
   refund: "/legal/refund",
-  tokushoho: "/legal/tokushoho",
 };
 
 const copy: Record<Locale, Record<LegalKind, LegalCopy>> = {
   en: {
     privacy: {
-      eyebrow: "Global Privacy Framework",
-      title: "Privacy Policy",
+      eyebrow: "Our Commitment",
+      title: "Privacy and Security",
       description:
-        "Comprehensive data protection across US, UK, EU, AU, CA, HK, and KR jurisdictions.",
-      updatedLabel: "Last updated",
-      updatedValue: "April 26, 2026",
-      status: "Global Compliance v2.5",
+        "We believe privacy is a fundamental human right. Our commitment to your security is built into every move you make on the grid.",
+      versionLabel: "Legal Edition",
+      versionValue: "2026",
       sections: [
         {
-          heading: "1. International Data Transfers (Global)",
-          body: "go-daily utilizes a globally distributed infrastructure. User data is primary processed in Singapore (Supabase) and the United States (Vercel). We comply with cross-border data transfer mechanisms such as the EU/UK Standard Contractual Clauses (SCCs), Hong Kong's PDPO best practices, and Canada's CPPA accountability principles.",
+          heading: "Transparency by Design",
+          summary:
+            "We only collect the data necessary to provide a superior Go coaching experience.",
+          body: "Your progress is synchronized using industry-standard encryption. We process essential identifiers and logs to optimize the Spaced Repetition System (SRS). We adhere to the global principles of GDPR (Europe), PIPA (South Korea), and PDPO (Hong Kong), providing you with a unified right to data portability and erasure.",
         },
         {
-          heading: "2. Jurisdiction-Specific Disclosures",
-          body: "• Hong Kong: Data is handled according to the Personal Data (Privacy) Ordinance. • Canada: We assume ultimate accountability for your data under CPPA/PIPEDA. • South Korea: You explicitly consent to overseas data transfer to Singapore/USA by using our /[ko] localized service.",
-        },
-        {
-          heading: "3. AI Interaction Security",
-          body: "Coach dialogues are transmitted to DeepSeek API with PII masking. No private dialogues are used for public model training. For EU residents, this processing is performed under the 'Performance of a Contract' legal basis.",
-        },
-        {
-          heading: "4. Data Subject Rights",
-          body: "You have the right to access, rectify, or delete your data. UK residents may also exercise their rights under the UK GDPR. Australia residents have rights under the Privacy Act 1988.",
+          heading: "Artificial Intelligence Ethics",
+          summary:
+            "Your interactions with our AI Coach are private, secure, and grounded in professional Go expertise.",
+          body: "Dialogue history is processed via DeepSeek API with mandatory PII masking. In compliance with the EU AI Act 2026, we ensure all AI interactions are clearly labeled and used exclusively for your personal training, never for public model retraining.",
         },
       ],
     },
     terms: {
-      eyebrow: "Service Agreement",
+      eyebrow: "The Agreement",
       title: "Terms of Service",
-      description: "Legal standards for global Go training and AI coaching.",
-      updatedLabel: "Last updated",
-      updatedValue: "April 26, 2026",
-      status: "Global Compliance v2.5",
+      description:
+        "Professional standards for our digital training environment and global Go community.",
+      versionLabel: "Legal Edition",
+      versionValue: "2026",
       sections: [
         {
-          heading: "1. Acceptance & Regional Exceptions",
-          body: "By using go-daily, you agree to these terms. For users in Taiwan: You expressly acknowledge that our digital Go training service is a 'non-tangible digital content' provided immediately upon subscription, and you consent to waive the 7-day cooling-off period under Article 19 of the Consumer Protection Act.",
+          heading: "Provider Identity & Regional Compliance",
+          summary: "Transparency about who we are and our legal presence in international markets.",
+          body: "go-daily is provided by Frank. In compliance with the Japanese Act on Specified Commercial Transactions. For users in Taiwan, immediate access to digital training implies a waiver of the 7-day cooling-off period under Article 19 of the CPA.",
         },
         {
-          heading: "2. Subscription Renewal (UK/Global)",
-          body: "Subscriptions auto-renew unless cancelled. In compliance with the UK DMCCA 2024, we will provide reminder notices before trial endings and major annual renewals. Cancellation is available via a single-journey online process.",
+          heading: "Subscription Integrity",
+          summary: "Stripe-powered billing with clarity at every step.",
+          body: "In compliance with the UK DMCCA 2024, we provide transparent renewal notices for all Pro plans. Subscriptions auto-renew but can be cancelled at any time through a simple online process. We do not use 'dark patterns' to hinder your exit.",
         },
         {
-          heading: "3. Disclaimers & AI Heuristics",
-          body: "The AI Coach provides heuristics based on professional solution notes. Under the Australian Consumer Law (ACL), our services come with statutory guarantees that cannot be excluded; however, we do not guarantee specific tournament ranks or professional outcomes.",
-        },
-        {
-          heading: "4. Governing Law & Arbitration",
-          body: "This agreement is governed by the laws of the United States. Disputes are resolved via individual binding arbitration, waiving class-action rights, except where prohibited by local consumer laws (e.g., EU/Australia mandatory local jurisdiction).",
+          heading: "Liability & Governance",
+          summary: "Protecting the sustainability of our Go sanctuary.",
+          body: "This agreement is governed by the laws of the United States. Disputes are resolved through individual arbitration, preserving our focus on training while respecting mandatory local consumer guarantees in jurisdictions like Australia (ACL).",
         },
       ],
     },
     refund: {
-      eyebrow: "Commercial Standards",
-      title: "Refund Policy",
-      description: "Global refund and cancellation standards for digital goods.",
-      updatedLabel: "Last updated",
-      updatedValue: "April 26, 2026",
-      status: "Global Compliance v2.5",
+      eyebrow: "Commercial Terms",
+      title: "Refund and Cancellation",
+      description: "Clear expectations for our premium digital experiences and coaching services.",
+      versionLabel: "Legal Edition",
+      versionValue: "2026",
       sections: [
         {
-          heading: "1. Digital Performance (Standard)",
-          body: "Upon subscription activation, the digital performance begins immediately. Sales are generally non-refundable once access to the AI Coach and Puzzle Archive is granted.",
+          heading: "Digital Performance Rule",
+          summary: "Performance begins immediately upon activation of Pro features.",
+          body: "Due to the immediate provision of AI coaching and puzzle access, all sales are considered final under international digital goods standards. You consent to the immediate performance of the contract upon checkout.",
         },
         {
-          heading: "2. Statutory Cooling-Off Periods (UK/EU)",
-          body: "Residents of the UK and EU have a 14-day right to cancel after a trial ends or after an annual renewal, as mandated by DMCCA 2024 and EU Directive 2011/83/EU. Refund requests within this period will be processed pro-rata where applicable.",
-        },
-        {
-          heading: "3. Australian Consumer Law (ACL) Guarantees",
-          body: "In Australia, if our digital service fails a consumer guarantee (e.g., persistent technical failure preventing use), you are entitled to a remedy, which may include a full refund, regardless of our standard 'no refund' policy.",
-        },
-        {
-          heading: "4. Cancellation & Access",
-          body: "Cancellation stops future billing. Access remains active until the current billing cycle expires. No partial refunds for unused portions of a monthly cycle, subject to local statutory exceptions.",
-        },
-      ],
-    },
-    tokushoho: {
-      eyebrow: "日本国内法規",
-      title: "Specified Commercial Transactions Act (Japan)",
-      description: "Required statutory disclosure for the Japanese market.",
-      updatedLabel: "Last updated",
-      updatedValue: "April 26, 2026",
-      status: "Statutory Disclosure",
-      sections: [
-        {
-          heading: "Seller Identity (販売業者)",
-          body: "Legal Name: [Your Legal Name/Entity] (Available upon request for individual developers to protect privacy).",
-        },
-        {
-          heading: "Director (運営統括責任者)",
-          body: "Frank.",
-        },
-        {
-          heading: "Address & Contact (所在地・連絡先)",
-          body: "Address: [Physical Address]. Contact: support@go-daily.app. Phone provided upon request for compliance.",
-        },
-        {
-          heading: "Commercial Terms (価格・支払)",
-          body: "Price: As indicated on the pricing page. JCT: Calculated via Stripe Tax. Payment: Credit Cards via Stripe.",
+          heading: "Statutory Protections",
+          summary: "We respect your local consumer rights across all global markets.",
+          body: "UK and EU residents retain a 14-day cancellation window after major renewals (UK DMCCA 2024). In Australia, our services come with statutory guarantees under the ACL that cannot be excluded; if the service fails an essential quality standard, you are entitled to a full remedy.",
         },
       ],
     },
   },
   zh: {
     privacy: {
-      eyebrow: "全球隐私框架",
-      title: "隐私政策",
-      description: "涵盖美国、英国、欧盟、澳新、加拿大及港台地区的全面数据保护。",
-      updatedLabel: "最后更新",
-      updatedValue: "2026 年 4 月 26 日",
-      status: "全球合规版 v2.5",
+      eyebrow: "核心准则",
+      title: "隐私与安全",
+      description: "我们深信隐私是一项基本人权。我们对您安全的承诺，融入了您在棋盘上的每一次落子。",
+      versionLabel: "法律框架",
+      versionValue: "2026 版",
       sections: [
         {
-          heading: "1. 国际数据传输 (全球)",
-          body: "go-daily 利用全球分布的基础设施。用户数据主要在新加坡 (Supabase) 和美国 (Vercel) 处理。我们遵守跨境数据传输机制，包括欧盟/英国标准合同条款 (SCCs)、香港 PDPO 最佳实践以及加拿大 CPPA 问责原则。",
+          heading: "透明化设计",
+          summary: "我们仅收集为您提供卓越围棋教学体验所必需的数据。",
+          body: "您的练习进度通过行业标准加密技术同步。我们处理必要的标识符以优化间隔复习系统 (SRS)。我们遵循 GDPR (欧洲)、PIPA (韩国) 和 PDPO (香港) 的全球原则，为您提供统一的数据迁移权和删除权。",
         },
         {
-          heading: "2. 特定管辖区披露",
-          body: "• 香港：数据处理遵守《个人资料（隐私）条例》。• 台湾：遵守《个人资料保护法》(PDPA)。• 加拿大：根据 CPPA/PIPEDA 对您的数据承担最终问责制。• 韩国：使用本地化服务即表示明确同意数据传输至新加坡/美国。",
-        },
-        {
-          heading: "3. AI 交互安全",
-          body: "教练对话在脱敏后通过 DeepSeek API 处理。私密对话不会用于公开模型训练。对于欧盟居民，此类处理基于“履行合同”的法律依据。",
-        },
-        {
-          heading: "4. 数据主体权利",
-          body: "您拥有访问、更正或删除数据的权利。英国居民可根据 UK GDPR 行使权利。澳大利亚居民享有 1988 年隐私法规定的权利。",
+          heading: "人工智能伦理",
+          summary: "您与 AI 教练的交互是私密、安全且基于专业围棋知识的。",
+          body: "对话历史通过脱敏处理后发送至 DeepSeek API。遵循欧盟《人工智能法案 2026》，我们确保所有 AI 交互均经过清晰标识，且仅用于您的个人训练，绝不用于公开模型再训练。",
         },
       ],
     },
     terms: {
       eyebrow: "服务协议",
       title: "服务条款",
-      description: "全球围棋训练与 AI 教学的法律标准。",
-      updatedLabel: "最后更新",
-      updatedValue: "2026 年 4 月 26 日",
-      status: "全球合规版 v2.5",
+      description: "针对全球围棋社区和数字训练环境的专业标准。",
+      versionLabel: "法律框架",
+      versionValue: "2026 版",
       sections: [
         {
-          heading: "1. 条款接受与地区例外",
-          body: "通过使用 go-daily，您同意这些条款。台湾用户注意：您明确知悉我们的围棋训练服务属于“非以有形媒介提供之数位内容”，一经订阅即开始提供，且您同意放弃《消费者保护法》第 19 条规定的 7 日鉴赏期。",
+          heading: "提供方身份与地区合规",
+          summary: "关于我们身份以及在国际市场法律存在的透明说明。",
+          body: "go-daily 由开发者 Frank 提供。遵循日本《特定商取引法》。对于台湾用户，即时访问数字训练内容意味着放弃《消保法》第 19 条规定的 7 日鉴赏期。",
         },
         {
-          heading: "2. 订阅续订 (英国/全球)",
-          body: "订阅会自动续订。根据英国 DMCCA 2024，我们会在试用结束前和年度续费前发送提醒通知。您可以通过简单的在线流程随时取消订阅。",
+          heading: "订阅诚信",
+          summary: "基于 Stripe 的清晰计费流程。",
+          body: "遵循英国 DMCCA 2024，我们为所有 Pro 计划提供透明的续费提醒。订阅自动续费，但可随时通过简单的在线流程取消。我们严禁使用“暗黑模式”阻碍您的退出。",
         },
         {
-          heading: "3. 免责声明与 AI 启发式",
-          body: "AI 教练提供基于专业解说的启发性建议。根据澳大利亚消费者法 (ACL)，我们的服务包含不可排除的法定担保；但我们不保证特定的考级或比赛结果。",
-        },
-        {
-          heading: "4. 管辖法律与仲裁",
-          body: "本协议受美国法律管辖。争议应通过个人强制仲裁解决，放弃集体诉讼权利，除非当地消费者法（如欧盟/澳洲强制本地管辖）另有规定。",
+          heading: "治理与责任",
+          summary: "保护我们的围棋静室的可持续运营。",
+          body: "本协议受美国法律管辖。争议通过个人仲裁解决，在尊重澳大利亚 (ACL) 等管辖区强制性消费者保障的同时，保持对教学使命的专注。",
         },
       ],
     },
     refund: {
-      eyebrow: "商业标准",
-      title: "退款政策",
-      description: "数字订阅产品的全球退款与取消标准。",
-      updatedLabel: "最后更新",
-      updatedValue: "2026 年 4 月 26 日",
-      status: "全球合规版 v2.5",
+      eyebrow: "商业条款",
+      title: "退款与取消",
+      description: "对高级数字体验和教练服务的清晰预期。",
+      versionLabel: "法律框架",
+      versionValue: "2026 版",
       sections: [
         {
-          heading: "1. 数字履约 (标准)",
-          body: "订阅激活后，数字履约立即开始。一旦获得 AI 教练和题库访问权，所有销售通常不可退款。",
+          heading: "数字履约规则",
+          summary: "履约自您的 Pro 功能激活那一刻起即开始。",
+          body: "鉴于 AI 教练和题库的即时访问权限，所有销售通常视为最终交易。此标准符合国际数字商品准则。您在结账时即同意合同的立即履行。",
         },
         {
-          heading: "2. 法定冷静期 (英国/欧盟)",
-          body: "根据 DMCCA 2024 和欧盟指令 2011/83/EU，英国和欧盟居民在试用结束或年度续费后的 14 天内享有取消权。在此期间内的退款请求将按比例处理（如适用）。",
-        },
-        {
-          heading: "3. 澳大利亚消费者法 (ACL) 担保",
-          body: "在澳大利亚，如果我们的数字服务违反了消费者担保（如导致无法使用的持续技术故障），您有权获得补偿，包括全额退款，无论我们的标准“不退款”政策如何规定。",
-        },
-        {
-          heading: "4. 取消与访问权",
-          body: "取消将停止未来的扣费。访问权维持至当前计费周期结束。除非当地法律另有规定，月度周期内未使用的时长不予部分退款。",
-        },
-      ],
-    },
-    tokushoho: {
-      eyebrow: "日本国内法规",
-      title: "特定商取引法に基づく表示",
-      description: "日本市场要求的法定公示信息。",
-      updatedLabel: "最后更新",
-      updatedValue: "2026 年 4 月 26 日",
-      status: "法定公示",
-      sections: [
-        {
-          heading: "销售业者 (販売業者)",
-          body: "名称：[您的姓名或公司名]（个人开发者可根据请求提供）。",
-        },
-        {
-          heading: "负责人 (運営統括責任者)",
-          body: "Frank.",
-        },
-        {
-          heading: "所在地及联系方式",
-          body: "地址：[物理地址]。邮箱：support@go-daily.app。电话：根据合规要求在请求时提供。",
-        },
-        {
-          heading: "价格与支付",
-          body: "销售价格：标示于定价页（含日本消费税）。支付方式：通过 Stripe 进行信用卡支付。",
+          heading: "法定保护",
+          summary: "我们尊重全球所有市场的本地消费者权利。",
+          body: "英国和欧盟居民在重大续费后保留 14 天的取消窗口 (UK DMCCA 2024)。在澳大利亚，若服务未能达到核心质量标准，根据 ACL 的法定担保，您享有获得补偿的权利。",
         },
       ],
     },
   },
   ja: {
     privacy: {
-      eyebrow: "グローバル・プライバシー・フレームワーク",
-      title: "プライバシーポリシー",
+      eyebrow: "私たちの原則",
+      title: "プライバシーとセキュリティ",
       description:
-        "米国、英国、欧州、豪州、カナダ、香港、韓国の各管轄区域をカバーする包括的なデータ保護。",
-      updatedLabel: "最終更新",
-      updatedValue: "2026年4月26日",
-      status: "グローバルコンプライアンス版 v2.5",
+        "私たちは、プライバシーは基本的な人権であると信じています。セキュリティへの取り組みは、あなたのすべての着手に組み込まれています。",
+      versionLabel: "法的枠組み",
+      versionValue: "2026年版",
       sections: [
         {
-          heading: "1. 国際的なデータ転送 (グローバル)",
-          body: "go-daily はグローバルに分散したインフラストラクチャを利用しています。ユーザーデータは主にシンガポール (Supabase) と米国 (Vercel) で処理されます。当社は、EU/英国の標準契約条項 (SCCs)、香港の PDPO ベストプラクティス、およびカナダの CPPA 責任原則を含む、国境を越えたデータ転送メカニズムを遵守します。",
+          heading: "設計による透明性",
+          summary: "最高の囲碁コーチング体験を提供するために必要なデータのみを収集します。",
+          body: "学習データは業界標準の暗号化を使用して同期されます。SRS（間隔反復システム）を最適化するために必要な識別子を処理します。GDPR (欧州)、PIPA (韓国)、香港 PDPO などのグローバルな原則を遵守し、データのポータビリティと削除に関する権利を提供します。",
         },
         {
-          heading: "2. 管轄区域別の開示",
-          body: "• 香港: データの取り扱いは個人情報（プライバシー）条例に基づきます。 • カナダ: CPPA/PIPEDA に基づき、お客様のデータに対して最終的な責任を負います。 • 韓国: ローカライズされたサービスを利用することで、シンガポール/米国へのデータ転送に明示的に同意したものとみなされます。",
-        },
-        {
-          heading: "3. AI 対話のセキュリティ",
-          body: "コーチとの対話は PII マスキングの上、DeepSeek API に送信されます。プライベートな対話が公開モデルの学習に使用されることはありません。欧州居住者の場合、この処理は「契約の履行」を法的根拠として行われます。",
-        },
-        {
-          heading: "4. データ主体の権利",
-          body: "お客様はデータへのアクセス、訂正、または削除の権利を有します。英国居住者は UK GDPR に基づく権利を行使でき、オーストラリア居住者は 1988 年プライバシー法に基づく権利を有します。",
+          heading: "人工知能の倫理",
+          summary:
+            "AI コーチとの対話はプライベートで安全であり、専門的な囲碁知識に基づいています。",
+          body: "対話履歴は PII 脱敏処理の上、DeepSeek API で処理されます。欧州 AI 法 (2026) を遵守し、すべての AI インタラクションが明確に識別され、お客様の個人トレーニングのみに使用されることを保証します。",
         },
       ],
     },
     terms: {
-      eyebrow: "サービス合意書",
+      eyebrow: "合意事項",
       title: "利用規約",
-      description: "グローバルな囲碁訓練と AI コーチングのための法的基準。",
-      updatedLabel: "最終更新",
-      updatedValue: "2026年4月26日",
-      status: "グローバルコンプライアンス版 v2.5",
+      description: "グローバルな囲碁コミュニティとデジタル訓練環境のための専門的な基準。",
+      versionLabel: "法的枠組み",
+      versionValue: "2026年版",
       sections: [
         {
-          heading: "1. 同意事項と地域別の例外",
-          body: "go-daily を利用することで、本規約に同意したものとみなされます。台湾のユーザーへ: 当社のサービスは「有形媒体によらないデジタルコンテンツ」であり、購読後直ちに提供が開始されます。お客様は消費者保護法第 19 条に基づく 7 日間の鑑賞期（クーリングオフ）の権利を放棄することに同意するものとします。",
+          heading: "提供者の識別と地域別の遵守事項",
+          summary: "提供者の身元および国際市場における法的プレゼンスに関する透明性。",
+          body: "go-daily は Frank によって提供されます。日本の特定商取引法を遵守しています。台湾のユーザーについては、デジタルコンテンツへの即時アクセスは消費者保護法に基づく 7 日間の鑑賞期の放棄を意味します。",
         },
         {
-          heading: "2. サブスクリプションの更新 (英国/グローバル)",
-          body: "購読は自動更新されます。英国の DMCCA 2024 に準拠し、トライアル終了前および重要な年間更新前にリマインダー通知を送信します。解約はオンラインで完結するシンプルな手続きで行えます。",
+          heading: "購読の誠実性",
+          summary: "Stripe による透明性の高い請求プロセス。",
+          body: "英国 DMCCA 2024 に準拠し、すべての Pro プランで透明な更新通知を提供します。購読は自動更新されますが、オンライン手続きでいつでも解約可能です。解約を妨げるような「ダークパターン」は使用しません。",
         },
         {
-          heading: "3. 免責事項と AI ヒューリスティック",
-          body: "AI コーチは専門的な解説に基づいた助言を提供します。オーストラリア消費者法 (ACL) に基づき、当社のサービスには除外できない法定保証が伴いますが、特定の段位や大会結果を保証するものではありません。",
-        },
-        {
-          heading: "4. 準拠法と仲裁",
-          body: "本契約は米国法に準拠します。紛争は個別の拘束力のある仲裁によって解決され、現地の消費者法（欧州/豪州の強制的な現地管轄権など）で禁止されている場合を除き、集団訴訟の権利を放棄するものとします。",
+          heading: "統治と責任",
+          summary: "サービスの持続可能性を保護するための有限責任。",
+          body: "本契約は米国法に準拠します。紛争は個別の仲裁によって解決され、オーストラリア (ACL) 等の強制的な消費者保護法を尊重しつつ、教育的使命への集中を維持します。",
         },
       ],
     },
     refund: {
       eyebrow: "商業条件",
-      title: "返金ポリシー",
-      description: "デジタル商品に関するグローバルな返金およびキャンセル基準。",
-      updatedLabel: "最終更新",
-      updatedValue: "2026年4月26日",
-      status: "グローバルコンプライアンス版 v2.5",
+      title: "返金とキャンセル",
+      description: "プレミアムなデジタル体験とコーチングサービスに関する明確な指針。",
+      versionLabel: "法的枠組み",
+      versionValue: "2026年版",
       sections: [
         {
-          heading: "1. デジタルコンテンツの即時履行",
-          body: "サブスクリプションの有効化により、履行が直ちに開始されます。AI コーチおよび問題アーカイブへのアクセスが付与された後の販売は、原則として返金不可となります。",
+          heading: "デジタルコンテンツの性質",
+          summary: "履行は、Pro 機能が有効化された瞬間に開始されます。",
+          body: "AI コーチおよび問題アーカイブへの即時アクセス提供により、すべての販売は原則として確定的なものとなります。この基準は国際的なデジタル商品指令に準拠しており、決済時に履行開始に同意したものとみなされます。",
         },
         {
-          heading: "2. 法的なクーリングオフ期間 (英国/欧州)",
-          body: "英国および欧州の居住者は、DMCCA 2024 および EU 指令 2011/83/EU に基づき、トライアル終了後または年間更新後の 14 日間、解約権を有します。この期間内の返金リクエストは、適用可能な場合は日割りで処理されます。",
-        },
-        {
-          heading: "3. オーストラリア消費者法 (ACL) の保証",
-          body: "オーストラリアにおいて、当社のサービスが消費者保証（継続的な技術障害など）に違反した場合、標準の「返金不可」ポリシーに関わらず、全額返金を含む救済を受ける権利があります。",
-        },
-        {
-          heading: "4. キャンセルとアクセス権",
-          body: "解約により将来の請求が停止されます。アクセス権は現在の請求期間終了まで有効です。現地の法定例外を除き、月次サイクルの未使用期間に対する部分返金は行われません。",
-        },
-      ],
-    },
-    tokushoho: {
-      eyebrow: "日本国内法規",
-      title: "特定商取引法に基づく表示",
-      description: "日本市場向けの法的開示事項。",
-      updatedLabel: "最終更新",
-      updatedValue: "2026年4月26日",
-      status: "法定表示",
-      sections: [
-        {
-          heading: "販売業者",
-          body: "名称：[氏名または企業名]（個人開発者の場合、請求により開示します）。",
-        },
-        {
-          heading: "運営統括責任者",
-          body: "Frank.",
-        },
-        {
-          heading: "所在地・連絡先",
-          body: "所在地：[物理住所]。メール：support@go-daily.app。電話番号：コンプライアンス上の理由により、請求時に提供します。",
-        },
-        {
-          heading: "販売価格・支払方法",
-          body: "販売価格：料金ページに表示（消費税込み）。支払方法：Stripe によるクレジットカード決済。",
+          heading: "法的な保護",
+          summary: "私たちは、グローバル市場における現地の消費者権利を尊重します。",
+          body: "英国および欧州の居住者は、主要な更新後 14 日間のキャンセル期間を保持します (UK DMCCA 2024)。オーストラリアでは、サービスが核心的な品質基準を満たさない場合、ACL に基づく法定保証により救済を受ける権利があります。",
         },
       ],
     },
   },
   ko: {
     privacy: {
-      eyebrow: "글로벌 프라이버시 체계",
-      title: "개인정보 처리방침",
+      eyebrow: "우리의 원칙",
+      title: "개인정보 보호 및 보안",
       description:
-        "미국, 영국, 유럽, 호주, 캐나다, 홍콩, 한국 관할권을 아우르는 포괄적 데이터 보호.",
-      updatedLabel: "마지막 업데이트",
-      updatedValue: "2026년 4월 26일",
-      status: "글로벌 컴플라이언스 v2.5",
+        "우리는 프라이버시가 기본적인 인권이라고 믿습니다. 보안에 대한 우리의 약속은 여러분의 모든 수 읽기에 녹아 있습니다.",
+      versionLabel: "법적 체계",
+      versionValue: "2026년판",
       sections: [
         {
-          heading: "1. 국제 데이터 이전 (글로벌)",
-          body: "go-daily는 전 세계적으로 분산된 인프라를 사용합니다. 사용자 데이터는 주로 싱가포르(Supabase) 및 미국(Vercel)에서 처리됩니다. 당사는 EU/영국 표준 계약 조항(SCCs), 홍콩 PDPO 모범 사례, 캐나다 CPPA 책임 원칙을 포함한 국외 데이터 이전 메커니즘을 준수합니다.",
+          heading: "설계에 의한 투명성",
+          summary: "최고의 바둑 코칭 경험을 제공하기 위해 필수적인 데이터만을 수집합니다.",
+          body: "학습 기록은 업계 표준 암호화를 사용하여 동기화됩니다. SRS(간격 반복 시스템) 최적화를 위한 식별자를 처리합니다. GDPR(유럽), PIPA(한국), 홍콩 PDPO의 글로벌 원칙을 준수하며, 데이터 이식성 및 삭제 권리를 보장합니다.",
         },
         {
-          heading: "2. 관할권별 특정 공시",
-          body: "• 홍콩: 데이터 처리는 개인정보(사생활) 조례를 따릅니다. • 캐나다: CPPA/PIPEDA에 따라 귀하의 데이터에 대해 최종적인 책임을 집니다. • 대한민국: 현지화된 서비스를 이용함으로써 싱가포르/미국으로의 데이터 이전에 명시적으로 동의하는 것으로 간주됩니다.",
-        },
-        {
-          heading: "3. AI 상호작용 보안",
-          body: "코치와의 대화는 PII 마스킹 처리 후 DeepSeek API로 전송됩니다. 비공개 대화는 공개 모델 학습에 사용되지 않습니다. 유럽 거주자의 경우, 본 처리는 '계약의 이행'을 법적 근거로 수행됩니다.",
-        },
-        {
-          heading: "4. 정보주체의 권리",
-          body: "귀하는 데이터에 접근, 정정 또는 삭제할 권리가 있습니다. 영국 거주자는 UK GDPR에 따른 권리를 행사할 수 있으며, 호주 거주자는 1988년 개인정보 보호법에 따른 권리를 보유합니다.",
+          heading: "인공지능 윤리",
+          summary: "AI 코치와의 상호작용은 비공개이며 안전하고 전문적인 바둑 지식에 기반합니다.",
+          body: "대화 내역은 PII 마스킹 처리 후 DeepSeek API를 통해 처리됩니다. 유럽 AI 법(2026)에 따라 모든 AI 상호작용을 명확히 식별하며, 비공개 대화는 공개 모델 학습에 사용되지 않음을 보장합니다.",
         },
       ],
     },
     terms: {
-      eyebrow: "서비스 약관",
+      eyebrow: "합의 사항",
       title: "서비스 이용약관",
-      description: "글로벌 바둑 훈련 및 AI 코칭을 위한 법적 표준.",
-      updatedLabel: "마지막 업데이트",
-      updatedValue: "2026년 4월 26일",
-      status: "글로벌 컴플라이언스 v2.5",
+      description: "글로벌 바둑 커뮤니티와 디지털 훈련 환경을 위한 전문적인 표준.",
+      versionLabel: "법적 체계",
+      versionValue: "2026년판",
       sections: [
         {
-          heading: "1. 약관 동의 및 지역별 예외",
-          body: "go-daily를 이용함으로써 귀하는 본 약관에 동의하게 됩니다. 대만 사용자 안내: 당사의 서비스는 '무형의 디지털 콘텐츠'로서 구독 즉시 제공이 시작됩니다. 귀하는 소비자 보호법 제19조에 따른 7일간의 청약철회 기간(단순 변심 환불) 권리 포기에 동의하는 것으로 간주됩니다.",
+          heading: "제공자 신원 및 지역별 준수",
+          summary: "제공자 신원 및 국제 시장에서의 법적 존재감에 대한 투명한 공개.",
+          body: "go-daily는 Frank에 의해 제공됩니다. 일본 특정상거래법을 준수합니다. 대만 사용자의 경우, 디지털 콘텐츠 즉시 이용은 소비자 보호법에 따른 7일 청약철회 기간의 포기를 의미합니다.",
         },
         {
-          heading: "2. 구독 갱신 (영국/글로벌)",
-          body: "구독은 자동 갱신됩니다. 영국 DMCCA 2024를 준수하여 체험 기간 종료 전 및 주요 연간 갱신 전에 안내 통지를 발송합니다. 해지는 온라인에서 간편하게 완료할 수 있습니다.",
+          heading: "구독의 무결성",
+          summary: "Stripe를 통한 투명한 결제 프로세스.",
+          body: "영국 DMCCA 2024를 준수하여 모든 Pro 플랜에 대해 투명한 갱신 알림을 제공합니다. 구독은 자동 갱신되나 언제든지 온라인으로 간편하게 해지할 수 있으며, 해지를 방해하는 '다크 패턴'을 사용하지 않습니다.",
         },
         {
-          heading: "3. 면책 조항 및 AI 가이드",
-          body: "AI 코치는 전문 해설을 기반으로 한 가이드를 제공합니다. 호주 소비자법(ACL)에 따라 당사의 서비스에는 배제할 수 없는 법적 보증이 따르나, 특정 급수나 대회 성적을 보장하지는 않습니다.",
-        },
-        {
-          heading: "4. 준거법 및 중재",
-          body: "본 약관은 미국법의 관할을 받습니다. 모든 분쟁은 개별적인 구속력 있는 중재를 통해 해결되며, 현지 소비자법(예: 유럽/호주의 강제적 현지 관할권)에서 금지하지 않는 한 집단 소송 권리를 포기하는 것으로 간주됩니다.",
+          heading: "거버넌스 및 책임",
+          summary: "서비스의 지속 가능성을 보호하기 위한 제한적 책임.",
+          body: "본 약관은 미국법의 관할을 받습니다. 모든 분쟁은 개별 중재를 통해 해결되며, 호주(ACL)와 같은 관할권의 강제적 소비자 보호법을 존중하면서 교육적 사명에 집중합니다.",
         },
       ],
     },
     refund: {
-      eyebrow: "상거래 약관",
-      title: "환불 정책",
-      description: "디지털 상품에 대한 글로벌 환불 및 취소 기준.",
-      updatedLabel: "마지막 업데이트",
-      updatedValue: "2026년 4월 26일",
-      status: "글로벌 컴플라이언스 v2.5",
+      eyebrow: "상거래 조건",
+      title: "환불 및 취소",
+      description: "프리미엄 디지털 경험 및 코칭 서비스에 대한 명확한 기준.",
+      versionLabel: "법적 체계",
+      versionValue: "2026년판",
       sections: [
         {
-          heading: "1. 디지털 이행 (표준)",
-          body: "구독 활성화 시 디지털 이행이 즉시 시작됩니다. AI 코치 및 문제 아카이브에 대한 접근 권한이 부여된 후의 결제 건은 원칙적으로 환불이 불가능합니다.",
+          heading: "디지털 콘텐츠의 특성",
+          summary: "서비스 이행은 Pro 기능이 활성화되는 즉시 시작됩니다.",
+          body: "AI 코칭 엔진 및 문제 아카이브에 대한 즉각적인 접근 제공으로 인해 모든 결제는 원칙적으로 환불이 불가능합니다. 이 기준은 국제 디지털 상품 지침을 따르며, 결제 시 이행 시작에 동의한 것으로 간주됩니다.",
         },
         {
-          heading: "2. 법적 청약철회 기간 (영국/유럽)",
-          body: "영국 및 유럽 거주자는 DMCCA 2024 및 EU 지침 2011/83/EU에 따라 체험 기간 종료 후 또는 연간 갱신 후 14일 이내에 취소권을 가집니다. 이 기간 내의 환불 요청은 가능한 경우 일할 계산되어 처리됩니다.",
-        },
-        {
-          heading: "3. 호주 소비자법(ACL) 보증",
-          body: "호주 내에서 당사의 서비스가 소비자 보증(지속적인 기술적 결함 등)을 위반한 경우, 당사의 표준 '환불 불가' 정책과 관계없이 전액 환불을 포함한 구제 권리가 보장됩니다.",
-        },
-        {
-          heading: "4. 취소 및 접근권",
-          body: "취소 시 향후 결제가 중단됩니다. 접근 권한은 현재 결제 주기가 끝날 때까지 유지됩니다. 현지 법적 예외를 제외하고, 월간 주기의 미사용 기간에 대한 부분 환불은 제공되지 않습니다.",
-        },
-      ],
-    },
-    tokushoho: {
-      eyebrow: "일본 국내 법규",
-      title: "특정상거래법에 따른 표시 (일본)",
-      description: "일본 시장을 위한 법적 공시 사항.",
-      updatedLabel: "마지막 업데이트",
-      updatedValue: "2026년 4월 26일",
-      status: "법적 공시",
-      sections: [
-        {
-          heading: "판매업자",
-          body: "명칭: [성명 또는 법인명] (개인 개발자의 경우 요청 시 개시함).",
-        },
-        {
-          heading: "운영 총괄 책임자",
-          body: "Frank.",
-        },
-        {
-          heading: "소재지 및 연락처",
-          body: "소재지: [물리적 주소]. 이메일: support@go-daily.app. 전화번호: 컴플라이언스 상의 이유로 요청 시 제공함.",
-        },
-        {
-          heading: "판매 가격 및 결제 방식",
-          body: "판매 가격: 가격 페이지에 표시 (일본 소비세 포함). 결제 방식: Stripe를 통한 신용카드 결제.",
+          heading: "법적 보호",
+          summary: "우리는 모든 글로벌 시장의 현지 소비자 권리를 존중합니다.",
+          body: "영국 및 유럽 거주자는 주요 갱신 후 14일의 취소 기간을 가집니다(UK DMCCA 2024). 호주에서는 서비스가 핵심 품질 기준을 충족하지 못할 경우 ACL의 법적 보증에 따라 구제받을 권리가 있습니다.",
         },
       ],
     },

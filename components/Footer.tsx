@@ -23,7 +23,7 @@ export function Footer() {
             </p>
           </div>
 
-          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[10px] uppercase tracking-[0.2em] text-white/40">
+          <nav className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-[10px] uppercase tracking-[0.2em] text-white/40">
             <LocalizedLink href="/legal/privacy" className={linkClass}>
               {t.nav.footer.privacy}
             </LocalizedLink>
@@ -32,9 +32,6 @@ export function Footer() {
             </LocalizedLink>
             <LocalizedLink href="/legal/refund" className={linkClass}>
               {t.nav.footer.refund}
-            </LocalizedLink>
-            <LocalizedLink href="/legal/tokushoho" className={linkClass}>
-              {t.nav.footer.legal}
             </LocalizedLink>
           </nav>
         </div>

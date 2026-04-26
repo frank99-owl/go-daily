@@ -36,10 +36,11 @@ We implement a modified SuperMemo-2 (SM-2) algorithm.
 
 ## 5. Legal & Compliance Display Logic
 
-The system utilizes a "Content-First" legal delivery mechanism.
+The system utilizes an Apple-style "Unified Pillar" legal delivery mechanism.
 
-- **Dynamic Legal Footer**: The footer links to `/legal/[kind]` based on the active locale.
-- **Jurisdiction-Specific Routes**:
-  - `/ja/legal/tokushoho`: Strictly mandatory for the Japanese market to satisfy the "Act on Specified Commercial Transactions".
-  - **Korea PIPA Bridge (Planned)**: A blocking modal for KR-locale users to obtain explicit consent for data residency in Singapore and the USA.
-- **Terms Acceptance**: Registration implies consent to the Terms of Service and Privacy Policy. The "Checkout" process includes a secondary confirmation of the Refund Policy for digital goods.
+- **Dynamic Legal Footer**: The footer links to three core pillars: `/legal/privacy`, `/legal/terms`, and `/legal/refund`.
+- **Integrated Disclosures**:
+  - **Japan Tokushoho**: Integrated directly into the Terms of Service.
+  - **Taiwan CPA**: Integrated directly into the Terms of Service.
+  - **UK/EU DMCCA**: Integrated into the Refund Policy.
+- **Content Delivery**: All legal texts are content-driven from `app/[locale]/legal/_content.ts`.

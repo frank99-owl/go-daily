@@ -48,7 +48,9 @@ The system operates on a tiered synchronization model:
 Legal requirements are treated as **Content Assets** rather than hardcoded logic, allowing for rapid jurisdictional adjustments.
 
 - **Source of Truth**: `app/[locale]/legal/_content.ts` centralizes all multilingual legal texts.
-- **Dynamic Disclosure**: The system is architected to render specific components (like Japan's Tokushoho or Korea's PIPA consent) based on the user's active locale.
+- **Dynamic Disclosure**: The system is architected to render components based on the user's active locale and unified pillar structure.
+- **Regional Integration**: Regional requirements (like Japan's Tokushoho or Korea's PIPA) are integrated as unified content blocks within the three pillars.
+
 - **Data Residency Strategy**: Documentation explicitly maps data flow to Singapore (Supabase) and the USA (Vercel) to satisfy cross-border disclosure laws (PIPA/GDPR).
 
 ## 5. Security & Infrastructure
