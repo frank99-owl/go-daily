@@ -28,7 +28,7 @@ The system operates on a tiered synchronization model:
 ### `lib/coach/` (AI Intelligence)
 
 - **Prompting**: Centralized in `coachPrompt.ts` to ensure consistency in Socratic tutoring across different puzzles.
-- **Budgeting**: `coachBudget.ts` enforces a hard monthly token limit at the application layer (upstream of DeepSeek billing) to prevent runaway costs.
+- **Budgeting**: `coachQuota.ts` enforces a hard monthly token limit at the application layer (upstream of DeepSeek billing) to prevent runaway costs.
 
 ### `lib/i18n/` (Global Presence)
 
@@ -43,7 +43,16 @@ The system operates on a tiered synchronization model:
 4.  **Sync**: `syncStorage` attempts to batch-insert into the Supabase `attempts` table.
 5.  **Entitlement Update**: Successful attempts trigger a re-calculation of the user's streak and SRS schedule.
 
-## 4. Security & Compliance
+## 4. Legal & Compliance Domain
+
+Legal requirements are treated as **Content Assets** rather than hardcoded logic, allowing for rapid jurisdictional adjustments.
+
+- **Source of Truth**: `app/[locale]/legal/_content.ts` centralizes all multilingual legal texts.
+- **Dynamic Disclosure**: The system is architected to render specific components (like Japan's Tokushoho or Korea's PIPA consent) based on the user's active locale.
+- **Data Residency Strategy**: Documentation explicitly maps data flow to Singapore (Supabase) and the USA (Vercel) to satisfy cross-border disclosure laws (PIPA/GDPR).
+
+## 5. Security & Infrastructure
 
 - **RLS (Row Level Security)**: Every Postgres table has a mandatory `auth.uid() = user_id` policy. Even if an API is exposed, the database layer ensures no data leakage.
 - **PII Masking**: Sentry and PostHog are configured with `beforeSend` filters to redact user messages from AI coach dialogues before they leave the client.
+- **Service Isolation**: The `proxy.ts` middleware ensures that only authenticated and authorized requests reach the heavy-duty API routes (Stripe/Coach).

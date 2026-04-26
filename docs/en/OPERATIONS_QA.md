@@ -49,8 +49,22 @@ We maintain ~570 tests covering:
 3.  **Locale SEO**: Validate `sitemap.xml` contains all 4,800+ entries and `hreflang` alternates.
 4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors.
 
-## 5. Maintenance Tasks
+## 6. Pre-Launch Compliance Audit
 
-- **Puzzle Import**: `npm run import:puzzles` (Consolidates SGFs into `classicalPuzzles.json`).
-- **Copyright Audit**: `npm run audit:puzzles` (Generates reports in `reports/`).
-- **I18N Sync**: `npm run validate:messages` (Ensures no missing keys across 4 languages).
+Compliance requires manual verification across external dashboards.
+
+### Stripe (Payments & Tax)
+
+- [ ] **Account Verification**: Ensure your identity and bank details are fully verified for JPY/KRW payouts.
+- [ ] **Stripe Tax**: Enable tax calculation for Japan (JCT) and relevant US states.
+- [ ] **Public Info**: Update "Public Details" to match the disclosures in `tokushoho/page.tsx`.
+
+### Resend & Supabase (Communications)
+
+- [ ] **Domain Verification**: SPF/DKIM records must be green in Resend to ensure legal delivery of invoices.
+- [ ] **Sender Identity**: Update the Supabase Auth "Sender" to your custom domain (`support@go-daily.app`).
+
+### Privacy & Governance
+
+- [ ] **PIPA Consent**: (Manual check) Verify the Korea-specific consent modal (planned) displays the correct recipient name for overseas transfers.
+- [ ] **Sentry PII Filter**: Run a test coaching dialogue and verify in the Sentry dashboard that no email or PII is visible in the breadcrumbs.

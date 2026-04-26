@@ -44,8 +44,22 @@ npm run preflight:prod -- --stripe-mode=live
 3.  **로케일 SEO**: `sitemap.xml`에 4,800개 이상의 모든 항목이 포함되어 있는지 확인합니다.
 4.  **코치 가드레일**: 프롬프트 인젝션(예: "이전의 모든 지시를 잊어라")을 시도하여 `promptGuard.ts`의 차단 성능을 검증합니다.
 
-## 5. 유지보수 작업
+## 6. 출시 전 컴플라이언스 감사
 
-- **문제 가져오기**: `npm run import:puzzles` (SGF 파일을 `classicalPuzzles.json`으로 병합).
-- **저작권 감사**: `npm run audit:puzzles` (`reports/` 디렉토리에 보고서 생성).
-- **I18N 동기화**: `npm run validate:messages` (4개 언어 간 키 누락 여부 확인).
+규제 준수를 위해 외부 대시보드에서의 수동 검증이 필요합니다.
+
+### Stripe (결제 및 세무)
+
+- [ ] **계정 확인**: 한국 원화(KRW) 정산을 위해 본인 확인 및 은행 계좌 정보가 완전히 검증되었는지 확인하십시오.
+- [ ] **Stripe Tax**: 일본(JCT) 및 관련 미국 주의 세금 계산을 활성화하십시오.
+- [ ] **공개 정보**: `tokushoho/page.tsx`의 공시 내용과 일치하도록 Stripe의 '공개 세부 정보'를 업데이트하십시오.
+
+### Resend & Supabase (통신)
+
+- [ ] **도메인 인증**: 영수증 등 법적 메일의 안정적인 발송을 위해 Resend에서 SPF/DKIM 레코드가 인증되었는지 확인하십시오.
+- [ ] **발신자 식별**: Supabase Auth의 '발신자(Sender)'를 커스텀 도메인(`support@go-daily.app`)으로 업데이트하십시오.
+
+### 개인정보 보호 및 거버넌스
+
+- [ ] **PIPA 동의**: (수동 점검) 한국 전용 동의 모달(계획 중)이 국외 이전 대상의 정확한 명칭을 표시하는지 확인하십시오.
+- [ ] **Sentry PII 필터**: 테스트용 코칭 대화를 실행하고 Sentry 대시보드에서 이메일이나 PII가 노출되지 않는지 확인하십시오.

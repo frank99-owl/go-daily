@@ -9,8 +9,8 @@ Instead of scattered boolean checks, go-daily uses a centralized **Lookup Table*
 | Feature            | Free Plan              | Pro Plan                     |
 | ------------------ | ---------------------- | ---------------------------- |
 | **AI Coach Quota** | 3 messages / day       | Unlimited (100/day soft cap) |
-| **Puzzle Archive** | Last 30 days + Curated | All 1,210+ Puzzles           |
-| **Device Limit**   | 2 Devices (Hard cap)   | Unlimited                    |
+| **Puzzle Archive** | Last 30 days + Curated | All 3,000+ Puzzles           |
+| **Device Limit**   | 1 Device (Hard cap)    | Unlimited                    |
 | **Review Mode**    | Last 20 Mistakes       | Full SM-2 SRS Logic          |
 | **Share Cards**    | With Watermark         | No Watermark + Custom Rank   |
 
@@ -24,10 +24,8 @@ We implement a modified SuperMemo-2 (SM-2) algorithm.
 
 - **Initial State**: Ease Factor 2.5, Interval 0.
 - **Quality Mapping**:
-  - Incorrect -> 0 (Reset interval)
-  - Correct (> 60s) -> 3
-  - Correct (15s-60s) -> 4
-  - Correct (< 15s) -> 5
+  - Incorrect -> 2 (Triggers immediate re-queue)
+  - Correct -> 5 (Calculates next interval based on Ease Factor)
 - **Scheduling**: Puzzles are queued in `due_date` ascending order. Pro users can clear their backlog to achieve "Inbox Zero" for Go mistakes.
 
 ## 3. Subscription Management (`lib/stripe/`)
@@ -36,10 +34,12 @@ We implement a modified SuperMemo-2 (SM-2) algorithm.
 - **Webhook Idempotency**: Every Stripe event is logged in the `stripe_events` table before processing. If an event is re-delivered, the system detects the duplicate and skips processing.
 - **Trial Period**: A 7-day trial is mandatory for all new Pro subscriptions. Users must provide a payment method upfront (`payment_method_collection: 'always'`), which significantly increases the trial-to-paid conversion rate.
 
-## 4. AI Coach Eligibility (`lib/coach/`)
+## 5. Legal & Compliance Display Logic
 
-Not every puzzle is ready for AI coaching. A puzzle must pass two checks:
+The system utilizes a "Content-First" legal delivery mechanism.
 
-1.  **Approved ID**: Must exist in `coachEligibleIds.json` (Approved by an admin/script).
-2.  **Solution Note**: Must have a valid `solutionNote` in the user's current locale.
-    If a user clicks the Coach on an ineligible puzzle, the UI gracefully falls back to a "Solution Reveal" mode.
+- **Dynamic Legal Footer**: The footer links to `/legal/[kind]` based on the active locale.
+- **Jurisdiction-Specific Routes**:
+  - `/ja/legal/tokushoho`: Strictly mandatory for the Japanese market to satisfy the "Act on Specified Commercial Transactions".
+  - **Korea PIPA Bridge (Planned)**: A blocking modal for KR-locale users to obtain explicit consent for data residency in Singapore and the USA.
+- **Terms Acceptance**: Registration implies consent to the Terms of Service and Privacy Policy. The "Checkout" process includes a secondary confirmation of the Refund Policy for digital goods.

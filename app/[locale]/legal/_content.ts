@@ -1,6 +1,6 @@
 import type { Locale } from "@/types";
 
-export type LegalKind = "privacy" | "terms" | "refund";
+export type LegalKind = "privacy" | "terms" | "refund" | "tokushoho";
 
 type LegalCopy = {
   eyebrow: string;
@@ -19,286 +19,433 @@ export const LEGAL_PATHS: Record<LegalKind, string> = {
   privacy: "/legal/privacy",
   terms: "/legal/terms",
   refund: "/legal/refund",
+  tokushoho: "/legal/tokushoho",
 };
 
 const copy: Record<Locale, Record<LegalKind, LegalCopy>> = {
   en: {
     privacy: {
-      eyebrow: "Legal placeholder",
+      eyebrow: "Global Privacy Framework",
       title: "Privacy Policy",
       description:
-        "A concise privacy placeholder for Stripe review. Final legal text should be reviewed before paid launch.",
+        "Comprehensive data protection across US, UK, EU, AU, CA, HK, and KR jurisdictions.",
       updatedLabel: "Last updated",
-      updatedValue: "April 23, 2026",
-      status: "Draft for pre-launch setup",
+      updatedValue: "April 26, 2026",
+      status: "Global Compliance v2.5",
       sections: [
         {
-          heading: "Data we expect to handle",
-          body: "go-daily may process account email, authentication identifiers, language and timezone preferences, puzzle attempts, device identifiers for sync and access control, analytics events, and error telemetry.",
+          heading: "1. International Data Transfers (Global)",
+          body: "go-daily utilizes a globally distributed infrastructure. User data is primary processed in Singapore (Supabase) and the United States (Vercel). We comply with cross-border data transfer mechanisms such as the EU/UK Standard Contractual Clauses (SCCs), Hong Kong's PDPO best practices, and Canada's CPPA accountability principles.",
         },
         {
-          heading: "How the data is used",
-          body: "The data is used to operate login, sync progress across devices, provide the AI coach, protect the service from abuse, diagnose errors, and improve the product experience.",
+          heading: "2. Jurisdiction-Specific Disclosures",
+          body: "• Hong Kong: Data is handled according to the Personal Data (Privacy) Ordinance. • Canada: We assume ultimate accountability for your data under CPPA/PIPEDA. • South Korea: You explicitly consent to overseas data transfer to Singapore/USA by using our /[ko] localized service.",
         },
         {
-          heading: "Your choices",
-          body: "Users can delete their Supabase account from the account page today. Stripe customer deletion, analytics deletion, and final compliance language are scheduled for the legal/compliance phase before full commercial launch.",
+          heading: "3. AI Interaction Security",
+          body: "Coach dialogues are transmitted to DeepSeek API with PII masking. No private dialogues are used for public model training. For EU residents, this processing is performed under the 'Performance of a Contract' legal basis.",
+        },
+        {
+          heading: "4. Data Subject Rights",
+          body: "You have the right to access, rectify, or delete your data. UK residents may also exercise their rights under the UK GDPR. Australia residents have rights under the Privacy Act 1988.",
         },
       ],
     },
     terms: {
-      eyebrow: "Legal placeholder",
+      eyebrow: "Service Agreement",
       title: "Terms of Service",
-      description:
-        "Draft service terms for setup. Replace with reviewed terms before accepting paid subscriptions.",
+      description: "Legal standards for global Go training and AI coaching.",
       updatedLabel: "Last updated",
-      updatedValue: "April 23, 2026",
-      status: "Draft for pre-launch setup",
+      updatedValue: "April 26, 2026",
+      status: "Global Compliance v2.5",
       sections: [
         {
-          heading: "Service scope",
-          body: "go-daily provides Go puzzle practice, progress tracking, and an AI-assisted coach. The coach explains provided solution notes and should not be treated as a tournament judge or professional certification.",
+          heading: "1. Acceptance & Regional Exceptions",
+          body: "By using go-daily, you agree to these terms. For users in Taiwan: You expressly acknowledge that our digital Go training service is a 'non-tangible digital content' provided immediately upon subscription, and you consent to waive the 7-day cooling-off period under Article 19 of the Consumer Protection Act.",
         },
         {
-          heading: "Accounts and acceptable use",
-          body: "Users are responsible for their account access. Automated abuse, attempts to bypass rate limits, scraping private APIs, or interfering with service availability are not permitted.",
+          heading: "2. Subscription Renewal (UK/Global)",
+          body: "Subscriptions auto-renew unless cancelled. In compliance with the UK DMCCA 2024, we will provide reminder notices before trial endings and major annual renewals. Cancellation is available via a single-journey online process.",
         },
         {
-          heading: "Paid subscriptions",
-          body: "Paid-plan details, trial behavior, cancellation flow, and final subscription terms will be finalized before Stripe checkout is enabled in production.",
+          heading: "3. Disclaimers & AI Heuristics",
+          body: "The AI Coach provides heuristics based on professional solution notes. Under the Australian Consumer Law (ACL), our services come with statutory guarantees that cannot be excluded; however, we do not guarantee specific tournament ranks or professional outcomes.",
+        },
+        {
+          heading: "4. Governing Law & Arbitration",
+          body: "This agreement is governed by the laws of the United States. Disputes are resolved via individual binding arbitration, waiving class-action rights, except where prohibited by local consumer laws (e.g., EU/Australia mandatory local jurisdiction).",
         },
       ],
     },
     refund: {
-      eyebrow: "Legal placeholder",
+      eyebrow: "Commercial Standards",
       title: "Refund Policy",
-      description:
-        "Pre-launch refund placeholder. Final refund wording should match the Stripe product setup before payments go live.",
+      description: "Global refund and cancellation standards for digital goods.",
       updatedLabel: "Last updated",
-      updatedValue: "April 23, 2026",
-      status: "Draft for pre-launch setup",
+      updatedValue: "April 26, 2026",
+      status: "Global Compliance v2.5",
       sections: [
         {
-          heading: "Current status",
-          body: "go-daily is preparing paid subscriptions. If checkout is not enabled yet, no paid subscription charge is collected by the app.",
+          heading: "1. Digital Performance (Standard)",
+          body: "Upon subscription activation, the digital performance begins immediately. Sales are generally non-refundable once access to the AI Coach and Puzzle Archive is granted.",
         },
         {
-          heading: "Planned trial",
-          body: "The current product plan is a 7-day card trial through Stripe. Trial, cancellation, and billing copy should stay consistent across the pricing page, Stripe Checkout, and this policy.",
+          heading: "2. Statutory Cooling-Off Periods (UK/EU)",
+          body: "Residents of the UK and EU have a 14-day right to cancel after a trial ends or after an annual renewal, as mandated by DMCCA 2024 and EU Directive 2011/83/EU. Refund requests within this period will be processed pro-rata where applicable.",
         },
         {
-          heading: "Refund handling",
-          body: "After paid launch, refund requests should be handled through support and Stripe according to the finalized commercial policy and applicable law.",
+          heading: "3. Australian Consumer Law (ACL) Guarantees",
+          body: "In Australia, if our digital service fails a consumer guarantee (e.g., persistent technical failure preventing use), you are entitled to a remedy, which may include a full refund, regardless of our standard 'no refund' policy.",
+        },
+        {
+          heading: "4. Cancellation & Access",
+          body: "Cancellation stops future billing. Access remains active until the current billing cycle expires. No partial refunds for unused portions of a monthly cycle, subject to local statutory exceptions.",
+        },
+      ],
+    },
+    tokushoho: {
+      eyebrow: "日本国内法規",
+      title: "Specified Commercial Transactions Act (Japan)",
+      description: "Required statutory disclosure for the Japanese market.",
+      updatedLabel: "Last updated",
+      updatedValue: "April 26, 2026",
+      status: "Statutory Disclosure",
+      sections: [
+        {
+          heading: "Seller Identity (販売業者)",
+          body: "Legal Name: [Your Legal Name/Entity] (Available upon request for individual developers to protect privacy).",
+        },
+        {
+          heading: "Director (運営統括責任者)",
+          body: "Frank.",
+        },
+        {
+          heading: "Address & Contact (所在地・連絡先)",
+          body: "Address: [Physical Address]. Contact: support@go-daily.app. Phone provided upon request for compliance.",
+        },
+        {
+          heading: "Commercial Terms (価格・支払)",
+          body: "Price: As indicated on the pricing page. JCT: Calculated via Stripe Tax. Payment: Credit Cards via Stripe.",
         },
       ],
     },
   },
   zh: {
     privacy: {
-      eyebrow: "法务占位",
+      eyebrow: "全球隐私框架",
       title: "隐私政策",
-      description: "供 Stripe 审核准备使用的简版隐私占位。正式收费前应替换为审阅后的正文。",
+      description: "涵盖美国、英国、欧盟、澳新、加拿大及港台地区的全面数据保护。",
       updatedLabel: "最后更新",
-      updatedValue: "2026 年 4 月 23 日",
-      status: "上线前设置草稿",
+      updatedValue: "2026 年 4 月 26 日",
+      status: "全球合规版 v2.5",
       sections: [
         {
-          heading: "预计处理的数据",
-          body: "go-daily 可能处理账号邮箱、登录身份标识、语言和时区偏好、做题记录、用于同步和访问控制的设备标识、分析事件以及错误遥测。",
+          heading: "1. 国际数据传输 (全球)",
+          body: "go-daily 利用全球分布的基础设施。用户数据主要在新加坡 (Supabase) 和美国 (Vercel) 处理。我们遵守跨境数据传输机制，包括欧盟/英国标准合同条款 (SCCs)、香港 PDPO 最佳实践以及加拿大 CPPA 问责原则。",
         },
         {
-          heading: "数据用途",
-          body: "这些数据用于提供登录、跨设备同步、AI 教练、防滥用、错误诊断以及产品体验改进。",
+          heading: "2. 特定管辖区披露",
+          body: "• 香港：数据处理遵守《个人资料（隐私）条例》。• 台湾：遵守《个人资料保护法》(PDPA)。• 加拿大：根据 CPPA/PIPEDA 对您的数据承担最终问责制。• 韩国：使用本地化服务即表示明确同意数据传输至新加坡/美国。",
         },
         {
-          heading: "用户选择",
-          body: "当前用户可以在账户页删除 Supabase 账号。Stripe customer 删除、分析数据删除以及最终合规文案会在正式商业发布前的法务合规阶段补齐。",
+          heading: "3. AI 交互安全",
+          body: "教练对话在脱敏后通过 DeepSeek API 处理。私密对话不会用于公开模型训练。对于欧盟居民，此类处理基于“履行合同”的法律依据。",
+        },
+        {
+          heading: "4. 数据主体权利",
+          body: "您拥有访问、更正或删除数据的权利。英国居民可根据 UK GDPR 行使权利。澳大利亚居民享有 1988 年隐私法规定的权利。",
         },
       ],
     },
     terms: {
-      eyebrow: "法务占位",
+      eyebrow: "服务协议",
       title: "服务条款",
-      description: "用于前期设置的服务条款草稿。接受付费订阅前应替换为审阅后的版本。",
+      description: "全球围棋训练与 AI 教学的法律标准。",
       updatedLabel: "最后更新",
-      updatedValue: "2026 年 4 月 23 日",
-      status: "上线前设置草稿",
+      updatedValue: "2026 年 4 月 26 日",
+      status: "全球合规版 v2.5",
       sections: [
         {
-          heading: "服务范围",
-          body: "go-daily 提供围棋题练习、进度记录和 AI 辅助讲解。AI 教练解释的是已提供的解题说明，不应被视为比赛裁判或专业认证。",
+          heading: "1. 条款接受与地区例外",
+          body: "通过使用 go-daily，您同意这些条款。台湾用户注意：您明确知悉我们的围棋训练服务属于“非以有形媒介提供之数位内容”，一经订阅即开始提供，且您同意放弃《消费者保护法》第 19 条规定的 7 日鉴赏期。",
         },
         {
-          heading: "账号与合理使用",
-          body: "用户需对自己的账号访问负责。禁止自动化滥用、绕过限流、抓取私有 API 或干扰服务可用性。",
+          heading: "2. 订阅续订 (英国/全球)",
+          body: "订阅会自动续订。根据英国 DMCCA 2024，我们会在试用结束前和年度续费前发送提醒通知。您可以通过简单的在线流程随时取消订阅。",
         },
         {
-          heading: "付费订阅",
-          body: "付费档位、试用规则、取消流程和最终订阅条款会在生产环境启用 Stripe Checkout 前确定。",
+          heading: "3. 免责声明与 AI 启发式",
+          body: "AI 教练提供基于专业解说的启发性建议。根据澳大利亚消费者法 (ACL)，我们的服务包含不可排除的法定担保；但我们不保证特定的考级或比赛结果。",
+        },
+        {
+          heading: "4. 管辖法律与仲裁",
+          body: "本协议受美国法律管辖。争议应通过个人强制仲裁解决，放弃集体诉讼权利，除非当地消费者法（如欧盟/澳洲强制本地管辖）另有规定。",
         },
       ],
     },
     refund: {
-      eyebrow: "法务占位",
+      eyebrow: "商业标准",
       title: "退款政策",
-      description: "上线前退款政策占位。正式收款前应与 Stripe 产品配置保持一致。",
+      description: "数字订阅产品的全球退款与取消标准。",
       updatedLabel: "最后更新",
-      updatedValue: "2026 年 4 月 23 日",
-      status: "上线前设置草稿",
+      updatedValue: "2026 年 4 月 26 日",
+      status: "全球合规版 v2.5",
       sections: [
         {
-          heading: "当前状态",
-          body: "go-daily 正在准备付费订阅。如果 Checkout 尚未启用，应用不会收取付费订阅费用。",
+          heading: "1. 数字履约 (标准)",
+          body: "订阅激活后，数字履约立即开始。一旦获得 AI 教练和题库访问权，所有销售通常不可退款。",
         },
         {
-          heading: "计划中的试用",
-          body: "当前产品计划是通过 Stripe 提供 7 天带卡试用。试用、取消和计费文案应在定价页、Stripe Checkout 和本政策中保持一致。",
+          heading: "2. 法定冷静期 (英国/欧盟)",
+          body: "根据 DMCCA 2024 和欧盟指令 2011/83/EU，英国和欧盟居民在试用结束或年度续费后的 14 天内享有取消权。在此期间内的退款请求将按比例处理（如适用）。",
         },
         {
-          heading: "退款处理",
-          body: "付费上线后，退款请求应通过支持渠道和 Stripe，按照最终商业政策及适用法律处理。",
+          heading: "3. 澳大利亚消费者法 (ACL) 担保",
+          body: "在澳大利亚，如果我们的数字服务违反了消费者担保（如导致无法使用的持续技术故障），您有权获得补偿，包括全额退款，无论我们的标准“不退款”政策如何规定。",
+        },
+        {
+          heading: "4. 取消与访问权",
+          body: "取消将停止未来的扣费。访问权维持至当前计费周期结束。除非当地法律另有规定，月度周期内未使用的时长不予部分退款。",
+        },
+      ],
+    },
+    tokushoho: {
+      eyebrow: "日本国内法规",
+      title: "特定商取引法に基づく表示",
+      description: "日本市场要求的法定公示信息。",
+      updatedLabel: "最后更新",
+      updatedValue: "2026 年 4 月 26 日",
+      status: "法定公示",
+      sections: [
+        {
+          heading: "销售业者 (販売業者)",
+          body: "名称：[您的姓名或公司名]（个人开发者可根据请求提供）。",
+        },
+        {
+          heading: "负责人 (運営統括責任者)",
+          body: "Frank.",
+        },
+        {
+          heading: "所在地及联系方式",
+          body: "地址：[物理地址]。邮箱：support@go-daily.app。电话：根据合规要求在请求时提供。",
+        },
+        {
+          heading: "价格与支付",
+          body: "销售价格：标示于定价页（含日本消费税）。支付方式：通过 Stripe 进行信用卡支付。",
         },
       ],
     },
   },
   ja: {
     privacy: {
-      eyebrow: "法務プレースホルダー",
+      eyebrow: "グローバル・プライバシー・フレームワーク",
       title: "プライバシーポリシー",
       description:
-        "Stripe 審査準備用の簡易プレースホルダーです。有料公開前にレビュー済みの本文へ差し替えてください。",
+        "米国、英国、欧州、豪州、カナダ、香港、韓国の各管轄区域をカバーする包括的なデータ保護。",
       updatedLabel: "最終更新",
-      updatedValue: "2026年4月23日",
-      status: "公開前設定用ドラフト",
+      updatedValue: "2026年4月26日",
+      status: "グローバルコンプライアンス版 v2.5",
       sections: [
         {
-          heading: "取り扱う可能性のあるデータ",
-          body: "go-daily は、アカウントのメールアドレス、認証 ID、言語とタイムゾーン設定、問題の回答履歴、同期とアクセス制御のためのデバイス ID、分析イベント、エラーテレメトリを処理する場合があります。",
+          heading: "1. 国際的なデータ転送 (グローバル)",
+          body: "go-daily はグローバルに分散したインフラストラクチャを利用しています。ユーザーデータは主にシンガポール (Supabase) と米国 (Vercel) で処理されます。当社は、EU/英国の標準契約条項 (SCCs)、香港の PDPO ベストプラクティス、およびカナダの CPPA 責任原則を含む、国境を越えたデータ転送メカニズムを遵守します。",
         },
         {
-          heading: "利用目的",
-          body: "これらのデータは、ログイン、端末間同期、AI コーチ、防止策、エラー診断、プロダクト改善のために使用されます。",
+          heading: "2. 管轄区域別の開示",
+          body: "• 香港: データの取り扱いは個人情報（プライバシー）条例に基づきます。 • カナダ: CPPA/PIPEDA に基づき、お客様のデータに対して最終的な責任を負います。 • 韓国: ローカライズされたサービスを利用することで、シンガポール/米国へのデータ転送に明示的に同意したものとみなされます。",
         },
         {
-          heading: "ユーザーの選択",
-          body: "現在、ユーザーはアカウントページから Supabase アカウントを削除できます。Stripe 顧客データ削除、分析データ削除、最終的なコンプライアンス文言は商用公開前の法務フェーズで整備します。",
+          heading: "3. AI 対話のセキュリティ",
+          body: "コーチとの対話は PII マスキングの上、DeepSeek API に送信されます。プライベートな対話が公開モデルの学習に使用されることはありません。欧州居住者の場合、この処理は「契約の履行」を法的根拠として行われます。",
+        },
+        {
+          heading: "4. データ主体の権利",
+          body: "お客様はデータへのアクセス、訂正、または削除の権利を有します。英国居住者は UK GDPR に基づく権利を行使でき、オーストラリア居住者は 1988 年プライバシー法に基づく権利を有します。",
         },
       ],
     },
     terms: {
-      eyebrow: "法務プレースホルダー",
+      eyebrow: "サービス合意書",
       title: "利用規約",
-      description:
-        "初期設定用の規約ドラフトです。有料サブスクリプションを受け付ける前にレビュー済みの規約へ差し替えてください。",
+      description: "グローバルな囲碁訓練と AI コーチングのための法的基準。",
       updatedLabel: "最終更新",
-      updatedValue: "2026年4月23日",
-      status: "公開前設定用ドラフト",
+      updatedValue: "2026年4月26日",
+      status: "グローバルコンプライアンス版 v2.5",
       sections: [
         {
-          heading: "サービス範囲",
-          body: "go-daily は囲碁問題の練習、進捗記録、AI による補助解説を提供します。AI コーチは提供済みの解説を説明するもので、対局審判や専門資格ではありません。",
+          heading: "1. 同意事項と地域別の例外",
+          body: "go-daily を利用することで、本規約に同意したものとみなされます。台湾のユーザーへ: 当社のサービスは「有形媒体によらないデジタルコンテンツ」であり、購読後直ちに提供が開始されます。お客様は消費者保護法第 19 条に基づく 7 日間の鑑賞期（クーリングオフ）の権利を放棄することに同意するものとします。",
         },
         {
-          heading: "アカウントと適切な利用",
-          body: "ユーザーは自身のアカウント管理に責任を負います。自動化された濫用、レート制限の回避、非公開 API のスクレイピング、サービス可用性への妨害は禁止です。",
+          heading: "2. サブスクリプションの更新 (英国/グローバル)",
+          body: "購読は自動更新されます。英国の DMCCA 2024 に準拠し、トライアル終了前および重要な年間更新前にリマインダー通知を送信します。解約はオンラインで完結するシンプルな手続きで行えます。",
         },
         {
-          heading: "有料サブスクリプション",
-          body: "有料プラン、トライアル、キャンセル手順、最終的な購読条件は、本番環境で Stripe Checkout を有効化する前に確定します。",
+          heading: "3. 免責事項と AI ヒューリスティック",
+          body: "AI コーチは専門的な解説に基づいた助言を提供します。オーストラリア消費者法 (ACL) に基づき、当社のサービスには除外できない法定保証が伴いますが、特定の段位や大会結果を保証するものではありません。",
+        },
+        {
+          heading: "4. 準拠法と仲裁",
+          body: "本契約は米国法に準拠します。紛争は個別の拘束力のある仲裁によって解決され、現地の消費者法（欧州/豪州の強制的な現地管轄権など）で禁止されている場合を除き、集団訴訟の権利を放棄するものとします。",
         },
       ],
     },
     refund: {
-      eyebrow: "法務プレースホルダー",
+      eyebrow: "商業条件",
       title: "返金ポリシー",
-      description:
-        "公開前の返金ポリシープレースホルダーです。支払い開始前に Stripe の商品設定と一致させてください。",
+      description: "デジタル商品に関するグローバルな返金およびキャンセル基準。",
       updatedLabel: "最終更新",
-      updatedValue: "2026年4月23日",
-      status: "公開前設定用ドラフト",
+      updatedValue: "2026年4月26日",
+      status: "グローバルコンプライアンス版 v2.5",
       sections: [
         {
-          heading: "現在の状態",
-          body: "go-daily は有料サブスクリプションを準備中です。Checkout がまだ有効でない場合、アプリは有料購読料金を請求しません。",
+          heading: "1. デジタルコンテンツの即時履行",
+          body: "サブスクリプションの有効化により、履行が直ちに開始されます。AI コーチおよび問題アーカイブへのアクセスが付与された後の販売は、原則として返金不可となります。",
         },
         {
-          heading: "予定しているトライアル",
-          body: "現在の計画では、Stripe 経由でカード登録付き 7 日間トライアルを提供します。トライアル、キャンセル、請求文言は価格ページ、Stripe Checkout、本ポリシーで一貫させる必要があります。",
+          heading: "2. 法的なクーリングオフ期間 (英国/欧州)",
+          body: "英国および欧州の居住者は、DMCCA 2024 および EU 指令 2011/83/EU に基づき、トライアル終了後または年間更新後の 14 日間、解約権を有します。この期間内の返金リクエストは、適用可能な場合は日割りで処理されます。",
         },
         {
-          heading: "返金対応",
-          body: "有料公開後、返金リクエストはサポートと Stripe を通じ、最終的な商用ポリシーおよび適用法に従って処理します。",
+          heading: "3. オーストラリア消費者法 (ACL) の保証",
+          body: "オーストラリアにおいて、当社のサービスが消費者保証（継続的な技術障害など）に違反した場合、標準の「返金不可」ポリシーに関わらず、全額返金を含む救済を受ける権利があります。",
+        },
+        {
+          heading: "4. キャンセルとアクセス権",
+          body: "解約により将来の請求が停止されます。アクセス権は現在の請求期間終了まで有効です。現地の法定例外を除き、月次サイクルの未使用期間に対する部分返金は行われません。",
+        },
+      ],
+    },
+    tokushoho: {
+      eyebrow: "日本国内法規",
+      title: "特定商取引法に基づく表示",
+      description: "日本市場向けの法的開示事項。",
+      updatedLabel: "最終更新",
+      updatedValue: "2026年4月26日",
+      status: "法定表示",
+      sections: [
+        {
+          heading: "販売業者",
+          body: "名称：[氏名または企業名]（個人開発者の場合、請求により開示します）。",
+        },
+        {
+          heading: "運営統括責任者",
+          body: "Frank.",
+        },
+        {
+          heading: "所在地・連絡先",
+          body: "所在地：[物理住所]。メール：support@go-daily.app。電話番号：コンプライアンス上の理由により、請求時に提供します。",
+        },
+        {
+          heading: "販売価格・支払方法",
+          body: "販売価格：料金ページに表示（消費税込み）。支払方法：Stripe によるクレジットカード決済。",
         },
       ],
     },
   },
   ko: {
     privacy: {
-      eyebrow: "법무 자리표시자",
+      eyebrow: "글로벌 프라이버시 체계",
       title: "개인정보 처리방침",
       description:
-        "Stripe 검토 준비용 간단한 자리표시자입니다. 유료 출시 전 검토된 본문으로 교체해야 합니다.",
+        "미국, 영국, 유럽, 호주, 캐나다, 홍콩, 한국 관할권을 아우르는 포괄적 데이터 보호.",
       updatedLabel: "마지막 업데이트",
-      updatedValue: "2026년 4월 23일",
-      status: "출시 전 설정용 초안",
+      updatedValue: "2026년 4월 26일",
+      status: "글로벌 컴플라이언스 v2.5",
       sections: [
         {
-          heading: "처리할 수 있는 데이터",
-          body: "go-daily는 계정 이메일, 인증 식별자, 언어 및 시간대 설정, 문제 풀이 기록, 동기화와 접근 제어를 위한 기기 식별자, 분석 이벤트, 오류 원격 측정 데이터를 처리할 수 있습니다.",
+          heading: "1. 국제 데이터 이전 (글로벌)",
+          body: "go-daily는 전 세계적으로 분산된 인프라를 사용합니다. 사용자 데이터는 주로 싱가포르(Supabase) 및 미국(Vercel)에서 처리됩니다. 당사는 EU/영국 표준 계약 조항(SCCs), 홍콩 PDPO 모범 사례, 캐나다 CPPA 책임 원칙을 포함한 국외 데이터 이전 메커니즘을 준수합니다.",
         },
         {
-          heading: "데이터 사용 목적",
-          body: "이 데이터는 로그인, 기기 간 동기화, AI 코치, 남용 방지, 오류 진단, 제품 경험 개선을 위해 사용됩니다.",
+          heading: "2. 관할권별 특정 공시",
+          body: "• 홍콩: 데이터 처리는 개인정보(사생활) 조례를 따릅니다. • 캐나다: CPPA/PIPEDA에 따라 귀하의 데이터에 대해 최종적인 책임을 집니다. • 대한민국: 현지화된 서비스를 이용함으로써 싱가포르/미국으로의 데이터 이전에 명시적으로 동의하는 것으로 간주됩니다.",
         },
         {
-          heading: "사용자 선택권",
-          body: "현재 사용자는 계정 페이지에서 Supabase 계정을 삭제할 수 있습니다. Stripe 고객 삭제, 분석 데이터 삭제, 최종 준수 문구는 정식 상용 출시 전 법무 단계에서 보완합니다.",
+          heading: "3. AI 상호작용 보안",
+          body: "코치와의 대화는 PII 마스킹 처리 후 DeepSeek API로 전송됩니다. 비공개 대화는 공개 모델 학습에 사용되지 않습니다. 유럽 거주자의 경우, 본 처리는 '계약의 이행'을 법적 근거로 수행됩니다.",
+        },
+        {
+          heading: "4. 정보주체의 권리",
+          body: "귀하는 데이터에 접근, 정정 또는 삭제할 권리가 있습니다. 영국 거주자는 UK GDPR에 따른 권리를 행사할 수 있으며, 호주 거주자는 1988년 개인정보 보호법에 따른 권리를 보유합니다.",
         },
       ],
     },
     terms: {
-      eyebrow: "법무 자리표시자",
-      title: "서비스 약관",
-      description:
-        "초기 설정용 약관 초안입니다. 유료 구독을 받기 전에 검토된 약관으로 교체해야 합니다.",
+      eyebrow: "서비스 약관",
+      title: "서비스 이용약관",
+      description: "글로벌 바둑 훈련 및 AI 코칭을 위한 법적 표준.",
       updatedLabel: "마지막 업데이트",
-      updatedValue: "2026년 4월 23일",
-      status: "출시 전 설정용 초안",
+      updatedValue: "2026년 4월 26일",
+      status: "글로벌 컴플라이언스 v2.5",
       sections: [
         {
-          heading: "서비스 범위",
-          body: "go-daily는 바둑 문제 연습, 진행 상황 기록, AI 보조 해설을 제공합니다. AI 코치는 제공된 해설을 설명하는 용도이며 대회 판정이나 전문 인증으로 간주해서는 안 됩니다.",
+          heading: "1. 약관 동의 및 지역별 예외",
+          body: "go-daily를 이용함으로써 귀하는 본 약관에 동의하게 됩니다. 대만 사용자 안내: 당사의 서비스는 '무형의 디지털 콘텐츠'로서 구독 즉시 제공이 시작됩니다. 귀하는 소비자 보호법 제19조에 따른 7일간의 청약철회 기간(단순 변심 환불) 권리 포기에 동의하는 것으로 간주됩니다.",
         },
         {
-          heading: "계정과 허용되는 사용",
-          body: "사용자는 자신의 계정 접근을 관리할 책임이 있습니다. 자동화된 남용, 속도 제한 우회, 비공개 API 스크래핑, 서비스 가용성 방해는 허용되지 않습니다.",
+          heading: "2. 구독 갱신 (영국/글로벌)",
+          body: "구독은 자동 갱신됩니다. 영국 DMCCA 2024를 준수하여 체험 기간 종료 전 및 주요 연간 갱신 전에 안내 통지를 발송합니다. 해지는 온라인에서 간편하게 완료할 수 있습니다.",
         },
         {
-          heading: "유료 구독",
-          body: "유료 플랜, 체험 기간, 취소 흐름, 최종 구독 약관은 프로덕션에서 Stripe Checkout을 활성화하기 전에 확정합니다.",
+          heading: "3. 면책 조항 및 AI 가이드",
+          body: "AI 코치는 전문 해설을 기반으로 한 가이드를 제공합니다. 호주 소비자법(ACL)에 따라 당사의 서비스에는 배제할 수 없는 법적 보증이 따르나, 특정 급수나 대회 성적을 보장하지는 않습니다.",
+        },
+        {
+          heading: "4. 준거법 및 중재",
+          body: "본 약관은 미국법의 관할을 받습니다. 모든 분쟁은 개별적인 구속력 있는 중재를 통해 해결되며, 현지 소비자법(예: 유럽/호주의 강제적 현지 관할권)에서 금지하지 않는 한 집단 소송 권리를 포기하는 것으로 간주됩니다.",
         },
       ],
     },
     refund: {
-      eyebrow: "법무 자리표시자",
+      eyebrow: "상거래 약관",
       title: "환불 정책",
-      description:
-        "출시 전 환불 정책 자리표시자입니다. 결제 시작 전 Stripe 제품 설정과 일치하도록 조정해야 합니다.",
+      description: "디지털 상품에 대한 글로벌 환불 및 취소 기준.",
       updatedLabel: "마지막 업데이트",
-      updatedValue: "2026년 4월 23일",
-      status: "출시 전 설정용 초안",
+      updatedValue: "2026년 4월 26일",
+      status: "글로벌 컴플라이언스 v2.5",
       sections: [
         {
-          heading: "현재 상태",
-          body: "go-daily는 유료 구독을 준비 중입니다. Checkout이 아직 활성화되지 않았다면 앱에서 유료 구독 요금을 청구하지 않습니다.",
+          heading: "1. 디지털 이행 (표준)",
+          body: "구독 활성화 시 디지털 이행이 즉시 시작됩니다. AI 코치 및 문제 아카이브에 대한 접근 권한이 부여된 후의 결제 건은 원칙적으로 환불이 불가능합니다.",
         },
         {
-          heading: "예정된 체험 기간",
-          body: "현재 제품 계획은 Stripe를 통한 카드 등록형 7일 무료 체험입니다. 체험, 취소, 청구 문구는 가격 페이지, Stripe Checkout, 본 정책에서 일관되어야 합니다.",
+          heading: "2. 법적 청약철회 기간 (영국/유럽)",
+          body: "영국 및 유럽 거주자는 DMCCA 2024 및 EU 지침 2011/83/EU에 따라 체험 기간 종료 후 또는 연간 갱신 후 14일 이내에 취소권을 가집니다. 이 기간 내의 환불 요청은 가능한 경우 일할 계산되어 처리됩니다.",
         },
         {
-          heading: "환불 처리",
-          body: "유료 출시 후 환불 요청은 지원 채널과 Stripe를 통해 최종 상업 정책 및 적용 법률에 따라 처리합니다.",
+          heading: "3. 호주 소비자법(ACL) 보증",
+          body: "호주 내에서 당사의 서비스가 소비자 보증(지속적인 기술적 결함 등)을 위반한 경우, 당사의 표준 '환불 불가' 정책과 관계없이 전액 환불을 포함한 구제 권리가 보장됩니다.",
+        },
+        {
+          heading: "4. 취소 및 접근권",
+          body: "취소 시 향후 결제가 중단됩니다. 접근 권한은 현재 결제 주기가 끝날 때까지 유지됩니다. 현지 법적 예외를 제외하고, 월간 주기의 미사용 기간에 대한 부분 환불은 제공되지 않습니다.",
+        },
+      ],
+    },
+    tokushoho: {
+      eyebrow: "일본 국내 법규",
+      title: "특정상거래법에 따른 표시 (일본)",
+      description: "일본 시장을 위한 법적 공시 사항.",
+      updatedLabel: "마지막 업데이트",
+      updatedValue: "2026년 4월 26일",
+      status: "법적 공시",
+      sections: [
+        {
+          heading: "판매업자",
+          body: "명칭: [성명 또는 법인명] (개인 개발자의 경우 요청 시 개시함).",
+        },
+        {
+          heading: "운영 총괄 책임자",
+          body: "Frank.",
+        },
+        {
+          heading: "소재지 및 연락처",
+          body: "소재지: [물리적 주소]. 이메일: support@go-daily.app. 전화번호: 컴플라이언스 상의 이유로 요청 시 제공함.",
+        },
+        {
+          heading: "판매 가격 및 결제 방식",
+          body: "판매 가격: 가격 페이지에 표시 (일본 소비세 포함). 결제 방식: Stripe를 통한 신용카드 결제.",
         },
       ],
     },

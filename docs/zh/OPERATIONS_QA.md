@@ -44,8 +44,22 @@ npm run preflight:prod -- --stripe-mode=live
 3.  **SEO 验证**：验证 `sitemap.xml` 包含所有 4,800+ 条目。
 4.  **教练防护**：尝试提示词注入（如“忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。
 
-## 5. 日常维护
+## 6. 上线前合规自检 (Compliance Audit)
 
-- **题目导入**: `npm run import:puzzles` (合并 SGF 至 `classicalPuzzles.json`)。
-- **版权审计**: `npm run audit:puzzles` (生成报告至 `reports/`)。
-- **I18N 同步**: `npm run validate:messages` (确保四语 Key 对齐)。
+合规性需要通过外部控制台进行手动验证。
+
+### Stripe (支付与税务)
+
+- [ ] **账户验证**: 确保您的身份和银行详细信息已通过验证，可以接收日元/韩元结算。
+- [ ] **Stripe Tax**: 为日本 (JCT) 和相关的美国州启用税费计算。
+- [ ] **公开信息**: 更新“公开信息”以匹配 `tokushoho/page.tsx` 中的法定公示内容。
+
+### Resend & Supabase (通讯)
+
+- [ ] **域名验证**: Resend 中的 SPF/DKIM 记录必须显示为绿色，以确保发票邮件的合法送达。
+- [ ] **发送者身份**: 将 Supabase Auth 的“发送者”更新为您的自定义域名 (`support@go-daily.app`)。
+
+### 隐私与治理
+
+- [ ] **PIPA 同意**: (手动检查) 验证韩国特定的同意弹窗（计划中）是否显示了正确的境外传输接收方名称。
+- [ ] **Sentry PII 过滤器**: 运行测试教练对话，并在 Sentry 控制台中验证面包屑中没有显示任何电子邮件或 PII。

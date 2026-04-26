@@ -28,7 +28,7 @@
 ### `lib/coach/` (AI 智能)
 
 - **提示词工程**：集中在 `coachPrompt.ts`，确保不同题目间的“苏格拉底式教学”风格一致。
-- **预算控制**：`coachBudget.ts` 在应用层（DeepSeek 计费上游）执行硬性的月度 Token 限制，防止意外的成本激增。
+- **预算控制**：`coachQuota.ts` 在应用层（DeepSeek 计费上游）执行硬性的月度 Token 限制，防止意外的成本激增。
 
 ### `lib/i18n/` (全球化呈现)
 
@@ -43,7 +43,16 @@
 4.  **同步**：`syncStorage` 尝试批量插入 Supabase 的 `attempts` 表。
 5.  **权益更新**：同步成功后触发用户连胜 (Streak) 和 SRS 排期的重新计算。
 
-## 4. 安全与合规
+## 4. 法律与合规域 (Legal & Compliance)
+
+法律要求被视为**内容资产 (Content Assets)** 而非硬编码逻辑，这使得我们能够根据不同管辖区的要求进行快速调整。
+
+- **唯一事实源**: `app/[locale]/legal/_content.ts` 集中管理所有多语言法律文本。
+- **动态公示**: 系统架构支持根据用户的当前语言环境渲染特定组件（如日本的特商法公示或韩国的 PIPA 同意书）。
+- **数据驻留策略**: 文档明确记录了数据流向新加坡 (Supabase) 和美国 (Vercel)，以满足跨境披露法律（如 PIPA/GDPR）的要求。
+
+## 5. 安全与基础设施
 
 - **行级安全 (RLS)**：所有 Postgres 表都强制执行 `auth.uid() = user_id` 策略，从数据库层面杜绝数据泄露。
 - **隐私脱敏**：Sentry 和 PostHog 配置了 `beforeSend` 过滤器，在 AI 对话离开客户端前对用户敏感信息进行脱敏处理。
+- **服务隔离**: `proxy.ts` 中间件确保只有经过身份验证和授权的请求才能到达核心 API 路由（如 Stripe/Coach）。
