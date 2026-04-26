@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock i18n
-vi.mock("@/lib/i18n", () => ({
+vi.mock("@/lib/i18n/i18n", () => ({
   useLocale: () => ({
     locale: "en",
     setLocale: vi.fn(),

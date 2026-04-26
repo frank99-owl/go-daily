@@ -7,7 +7,7 @@ import { headers } from "next/headers";
 import "./globals.css";
 import { GlobalCursor } from "@/components/GlobalCursor";
 import { PostHogProvider } from "@/components/PostHogProvider";
-import { DEFAULT_LOCALE, isLocale } from "@/lib/localePath";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/localePath";
 import { getSiteUrl } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 

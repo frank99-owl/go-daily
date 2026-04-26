@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { deleteAccount, signOut } from "@/lib/auth/auth";
-import { useLocale } from "@/lib/i18n";
-import { localePath } from "@/lib/localePath";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
 import { track } from "@/lib/posthog/events";
 
 type DeleteState =

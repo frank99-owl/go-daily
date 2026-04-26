@@ -1,6 +1,6 @@
 import { createApiResponse } from "@/lib/apiHeaders";
 import { sendDailyPuzzleEmail } from "@/lib/email";
-import { isLocale } from "@/lib/localePath";
+import { isLocale } from "@/lib/i18n/localePath";
 import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzleOfTheDay";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { Locale } from "@/types";

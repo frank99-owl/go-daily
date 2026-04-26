@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 
-import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/localePath";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/localePath";
 import type { Locale } from "@/types";
 
 export default async function NotFound() {

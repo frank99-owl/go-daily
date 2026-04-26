@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { createApiResponse } from "@/lib/apiHeaders";
-import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/localePath";
+import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/i18n/localePath";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import {
   getProPriceId,

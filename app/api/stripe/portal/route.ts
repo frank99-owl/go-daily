@@ -1,5 +1,5 @@
 import { createApiResponse } from "@/lib/apiHeaders";
-import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/localePath";
+import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/i18n/localePath";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { getStripeClient } from "@/lib/stripe/server";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";

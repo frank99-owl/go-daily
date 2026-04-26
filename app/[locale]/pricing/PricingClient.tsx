@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
 import type { ViewerPlan } from "@/lib/entitlements";
-import { useLocale } from "@/lib/i18n";
-import { localePath } from "@/lib/localePath";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
 import { track } from "@/lib/posthog/events";
 import type { Locale } from "@/types";
 

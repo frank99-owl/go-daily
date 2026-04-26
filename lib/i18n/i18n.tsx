@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { DICTS } from "@/lib/metadata";
+import { DICTS } from "@/lib/i18n/metadata";
 import type { Locale } from "@/types";
 
 type Messages = (typeof DICTS)["en"];

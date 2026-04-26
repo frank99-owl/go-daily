@@ -2,8 +2,8 @@ import { Metadata } from "next";
 
 import { getAllSummaries } from "@/content/puzzles";
 import { serializeJsonLd } from "@/lib/jsonLd";
-import { localePath } from "@/lib/localePath";
-import { getMessages } from "@/lib/metadata";
+import { localePath } from "@/lib/i18n/localePath";
+import { getMessages } from "@/lib/i18n/metadata";
 import { absoluteUrl } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 

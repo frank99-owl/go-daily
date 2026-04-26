@@ -8,7 +8,7 @@ import {
   localePath,
   negotiateLocaleFromHeader,
   stripLocalePrefix,
-} from "@/lib/localePath";
+} from "@/lib/i18n/localePath";
 import { refreshSupabaseSession } from "@/lib/supabase/middleware";
 import type { Locale } from "@/types";
 

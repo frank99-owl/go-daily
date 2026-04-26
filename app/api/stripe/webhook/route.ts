@@ -2,7 +2,7 @@ import type Stripe from "stripe";
 
 import { createApiResponse } from "@/lib/apiHeaders";
 import { sendPaymentFailedEmail } from "@/lib/email";
-import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/localePath";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/localePath";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { getStripeClient, inferPlanFromPriceId } from "@/lib/stripe/server";

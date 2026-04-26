@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { localePath } from "@/lib/localePath";
+import { localePath } from "@/lib/i18n/localePath";
 import type { Locale } from "@/types";
 
 import { getLegalCopy, LEGAL_PATHS, type LegalKind } from "./_content";

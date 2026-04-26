@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-import { SUPPORTED_LOCALES } from "@/lib/localePath";
+import { SUPPORTED_LOCALES } from "@/lib/i18n/localePath";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 export default function robots(): MetadataRoute.Robots {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { isLikelyEmail, signInWithEmail, signInWithGoogle } from "@/lib/auth/auth";
-import { useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n/i18n";
 
 const EMAIL_LOGIN_ENABLED = process.env.NEXT_PUBLIC_ENABLE_EMAIL_LOGIN === "true";
 

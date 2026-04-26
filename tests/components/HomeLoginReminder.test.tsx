@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HomeLoginReminder } from "@/components/HomeLoginReminder";
 import { useCurrentUser } from "@/lib/auth/auth";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 
 const STORAGE_KEY = "go-daily.home-login-reminder.dismissed.v1";
 

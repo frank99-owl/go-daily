@@ -10,9 +10,9 @@ import { GoBoard } from "@/components/GoBoard";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { ShareCard } from "@/components/ShareCard";
 import { getCoachAccess } from "@/lib/coach/coachAccess";
-import { useLocale } from "@/lib/i18n";
-import { localePath } from "@/lib/localePath";
-import { localized } from "@/lib/localized";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
+import { localized } from "@/lib/i18n/localized";
 import { getAttemptFor, getAttemptsFor } from "@/lib/storage/storage";
 import type { AttemptRecord, Puzzle, Stone } from "@/types";
 

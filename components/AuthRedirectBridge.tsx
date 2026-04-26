@@ -8,8 +8,8 @@ import {
   parsePendingAuthRedirect,
   readCookieValue,
 } from "@/lib/auth/authRedirect";
-import { useLocale } from "@/lib/i18n";
-import { localePath } from "@/lib/localePath";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
 
 const AUTH_PARAM_KEYS = ["code", "error", "error_description"] as const;
 

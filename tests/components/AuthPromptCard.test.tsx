@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthPromptCard } from "@/components/AuthPromptCard";
 import { signInWithEmail, signInWithGoogle } from "@/lib/auth/auth";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 
 const pushMock = vi.hoisted(() => vi.fn());
 

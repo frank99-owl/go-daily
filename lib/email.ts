@@ -1,4 +1,4 @@
-import { localePath } from "@/lib/localePath";
+import { localePath } from "@/lib/i18n/localePath";
 import { absoluteUrl } from "@/lib/siteUrl";
 import type { Locale, Puzzle } from "@/types";
 

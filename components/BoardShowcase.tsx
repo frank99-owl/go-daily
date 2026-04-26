@@ -5,7 +5,7 @@ import { useRef, useState, useCallback } from "react";
 
 import { LEE_ALPHAGO_G4_SGF, LEE_ALPHAGO_G4_META } from "@/content/games/leeAlphagoG4";
 import { buildSnapshots } from "@/lib/gameSnapshots";
-import { useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n/i18n";
 import { parseSgfMoves } from "@/lib/board/sgf";
 
 import { DemoGameBoard, type DemoPhase } from "./DemoGameBoard";

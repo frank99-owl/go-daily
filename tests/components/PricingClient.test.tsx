@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PricingClient } from "@/app/[locale]/pricing/PricingClient";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 
 const trackMock = vi.hoisted(() => vi.fn());
 const pushMock = vi.hoisted(() => vi.fn());

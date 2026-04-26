@@ -16,7 +16,7 @@ vi.mock("@/lib/supabase/middleware", () => ({
   refreshSupabaseSession: supabaseMocks.refreshSupabaseSession,
 }));
 
-import { LOCALE_COOKIE } from "@/lib/localePath";
+import { LOCALE_COOKIE } from "@/lib/i18n/localePath";
 import { config, proxy } from "@/proxy";
 
 function request(path: string, init: { headers?: Record<string, string> } = {}) {

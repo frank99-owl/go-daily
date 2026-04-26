@@ -3,8 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
-import { useLocale } from "@/lib/i18n";
-import { localePath } from "@/lib/localePath";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
 import type { Locale } from "@/types";
 
 const LABELS: Record<Locale, string> = {

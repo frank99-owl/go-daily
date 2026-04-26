@@ -2,7 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 
-import { useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n/i18n";
 
 export default function AboutPage() {
   const { t, locale } = useLocale();

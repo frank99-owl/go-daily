@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReviewClient } from "@/app/[locale]/review/ReviewClient";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 import { loadAttempts } from "@/lib/storage/storage";
 import type { AttemptRecord, PuzzleSummary } from "@/types";
 

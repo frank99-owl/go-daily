@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Heatmap } from "@/components/Heatmap";
 import { downloadExport, importUserData } from "@/lib/storage/exportData";
-import { useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n/i18n";
 import { computeAccuracy, computeStreak, loadAttempts } from "@/lib/storage/storage";
 import type { AttemptRecord } from "@/types";
 

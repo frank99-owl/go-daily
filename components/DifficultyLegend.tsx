@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n/i18n";
 
 export function DifficultyLegend() {
   const { t } = useLocale();

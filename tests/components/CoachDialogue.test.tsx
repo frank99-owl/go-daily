@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { CoachDialogue } from "@/components/CoachDialogue";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 
 const trackMock = vi.hoisted(() => vi.fn());
 

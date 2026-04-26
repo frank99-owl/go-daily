@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, beforeEach } from "vitest";
 
 import { StatsClient } from "@/app/[locale]/stats/StatsClient";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 
 function createStorage() {
   return {

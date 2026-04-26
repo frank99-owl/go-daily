@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { type CoachErrorCode, isCoachErrorCode } from "@/lib/coach/coachErrorCodes";
-import { useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n/i18n";
 import { track } from "@/lib/posthog/events";
 import type { CoachMessage, Coord, Locale } from "@/types";
 

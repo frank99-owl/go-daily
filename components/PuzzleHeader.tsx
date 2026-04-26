@@ -1,8 +1,8 @@
 "use client";
 
 import { isLocalBoardDisplay } from "@/lib/board/boardDisplay";
-import { useLocale } from "@/lib/i18n";
-import { localized } from "@/lib/localized";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localized } from "@/lib/i18n/localized";
 import type { Puzzle } from "@/types";
 
 export function PuzzleHeader({ puzzle, metaLabel }: { puzzle: Puzzle; metaLabel?: string }) {

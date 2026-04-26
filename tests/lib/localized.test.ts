@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 
-import { localized } from "@/lib/localized";
+import { localized } from "@/lib/i18n/localized";
 
 describe("localized", () => {
   const text = {

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Heatmap } from "@/components/Heatmap";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 import type { AttemptRecord, Locale } from "@/types";
 
 const attempts: AttemptRecord[] = [

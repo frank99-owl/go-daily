@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
 
-import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/localePath";
-import { DICTS } from "@/lib/metadata";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/localePath";
+import { DICTS } from "@/lib/i18n/metadata";
 import type { Locale } from "@/types";
 
 /**

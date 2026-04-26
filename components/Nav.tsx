@@ -4,8 +4,8 @@ import { Shuffle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { useLocale } from "@/lib/i18n";
-import { localePath } from "@/lib/localePath";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
 import { pickRandomPuzzle } from "@/lib/random";
 import { loadAttempts } from "@/lib/storage/storage";
 

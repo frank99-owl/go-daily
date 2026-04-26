@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 import { serializeJsonLd } from "@/lib/jsonLd";
-import { localePath } from "@/lib/localePath";
-import { getMessages } from "@/lib/metadata";
+import { localePath } from "@/lib/i18n/localePath";
+import { getMessages } from "@/lib/i18n/metadata";
 import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzleOfTheDay";
 import { absoluteUrl } from "@/lib/siteUrl";
 import type { Locale } from "@/types";

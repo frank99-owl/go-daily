@@ -4,7 +4,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { TodayClient } from "@/app/[locale]/TodayClient";
 import { useCurrentUser } from "@/lib/auth/auth";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 import { createSyncStorage } from "@/lib/storage/syncStorage";
 import type { Puzzle } from "@/types";
 

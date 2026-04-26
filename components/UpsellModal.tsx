@@ -4,8 +4,8 @@ import { Check, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 
-import { useLocale } from "@/lib/i18n";
-import { localePath } from "@/lib/localePath";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
 import { track } from "@/lib/posthog/events";
 
 import { ModalShell } from "./ModalShell";

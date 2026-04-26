@@ -5,8 +5,8 @@ import { AuthRedirectBridge } from "@/components/AuthRedirectBridge";
 import { ClientInit } from "@/components/ClientInit";
 import { Nav } from "@/components/Nav";
 import { getAllSummaries } from "@/content/puzzles";
-import { LocaleProvider } from "@/lib/i18n";
-import { isLocale, SUPPORTED_LOCALES } from "@/lib/localePath";
+import { LocaleProvider } from "@/lib/i18n/i18n";
+import { isLocale, SUPPORTED_LOCALES } from "@/lib/i18n/localePath";
 import type { Locale } from "@/types";
 
 export function generateStaticParams() {

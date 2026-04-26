@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRef } from "react";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n/i18n";
 
 export function HeroSection() {
   const { t, locale } = useLocale();

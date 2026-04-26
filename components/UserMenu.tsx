@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { nextForLocale, signOut, useCurrentUser } from "@/lib/auth/auth";
-import { useLocale } from "@/lib/i18n";
-import { localePath } from "@/lib/localePath";
+import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
 
 /**
  * Nav slot that renders either a "Sign in" link (anonymous) or an avatar

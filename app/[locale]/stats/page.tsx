@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
-import { localePath } from "@/lib/localePath";
-import { getMessages } from "@/lib/metadata";
+import { localePath } from "@/lib/i18n/localePath";
+import { getMessages } from "@/lib/i18n/metadata";
 import type { Locale } from "@/types";
 
 import { StatsClient } from "./StatsClient";

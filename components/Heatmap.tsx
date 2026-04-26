@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { useLocale } from "@/lib/i18n";
+import { useLocale } from "@/lib/i18n/i18n";
 import type { AttemptRecord, Locale } from "@/types";
 
 // Number of calendar weeks to show. 26 ≈ last 6 months, which fits mobile nicely

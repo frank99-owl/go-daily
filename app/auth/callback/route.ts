@@ -14,7 +14,7 @@ import {
   negotiateLocaleFromHeader,
   stripLocalePrefix,
   SUPPORTED_LOCALES,
-} from "@/lib/localePath";
+} from "@/lib/i18n/localePath";
 import { createClient } from "@/lib/supabase/server";
 import type { Locale } from "@/types";
 

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { ResultClient } from "@/app/[locale]/result/ResultClient";
-import { LocaleProvider } from "@/lib/i18n";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 import { getAttemptFor, getAttemptsFor } from "@/lib/storage/storage";
 
 vi.mock("next/navigation", () => ({
