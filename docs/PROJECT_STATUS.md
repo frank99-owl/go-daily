@@ -1,7 +1,7 @@
 ---
 title: Project status & roadmap pointer
 description: Single entry for humans and AI agents — read this before large changes.
-updated: 2026-04-25
+updated: 2026-04-26
 ---
 
 # go-daily — project status（agent / 协作者入口）
@@ -29,12 +29,12 @@ updated: 2026-04-25
 | 能力                                       | 位置                                                        |
 | ------------------------------------------ | ----------------------------------------------------------- |
 | Supabase browser/server/service/middleware | `lib/supabase/*`                                            |
-| Auth OAuth / magic link UI                 | `app/[locale]/login/*`, `lib/auth.ts`                       |
+| Auth OAuth / magic link UI                 | `app/[locale]/login/*`, `lib/auth/auth.ts`                       |
 | Auth 回调（**非 locale 前缀**）            | `app/auth/callback/route.ts`                                |
 | 账户 / 删号（Supabase user）               | `app/[locale]/account/*`, `app/api/account/delete/route.ts` |
 | Session refresh + locale 308               | `proxy.ts`, `lib/supabase/middleware.ts`                    |
-| 同步队列与登录后 pull                      | `lib/syncStorage.ts`, `components/ClientInit.tsx`           |
-| Merge 纯逻辑（UI 冲突未全）                | `lib/mergeOnLogin.ts`                                       |
+| 同步队列与登录后 pull                      | `lib/storage/syncStorage.ts`, `components/ClientInit.tsx`           |
+| Merge 纯逻辑（UI 冲突未全）                | `lib/auth/mergeOnLogin.ts`                                       |
 | 动态 manifest                              | `app/manifest.ts`                                           |
 
 ## Phase 2 — 已实现要点（代码锚点）
@@ -46,17 +46,17 @@ updated: 2026-04-25
 | `invoice.payment_failed` 回滚 + 换卡邮件       | `app/api/stripe/webhook/route.ts`, `lib/email.ts`                                                    |
 | subscriptions / email delivery 字段            | `supabase/migrations/0003_subscription_anchor_fields.sql`, `0004_email_delivery_fields.sql`          |
 | Entitlements 层（guest / free / pro）          | `lib/entitlements.ts`                                                                                |
-| Free 自然月 + Pro 账单锚点月窗口               | `lib/coachQuota.ts`, `lib/coachState.ts`                                                             |
+| Free 自然月 + Pro 账单锚点月窗口               | `lib/coach/coachQuota.ts`, `lib/coach/coachState.ts`                                                             |
 | Coach 三层拦截（login / device / day / month） | `app/api/coach/route.ts`                                                                             |
-| Coach Provider 抽象（OpenAI 兼容）             | `lib/coachProvider.ts`                                                                               |
-| 设备限制 + 登录后 merge                        | `lib/deviceRegistry.ts`, `lib/mergeOnLogin.ts`                                                       |
+| Coach Provider 抽象（OpenAI 兼容）             | `lib/coach/coachProvider.ts`                                                                               |
+| 设备限制 + 登录后 merge                        | `lib/auth/deviceRegistry.ts`, `lib/auth/mergeOnLogin.ts`                                                       |
 | 登录卡片复用（Google + Guest；email 受开关）   | `components/AuthPromptCard.tsx`                                                                      |
 | 首页 3s 登录提醒弹窗（同浏览器一次）           | `components/HomeLoginReminder.tsx`                                                                   |
 | 动态 OG / Twitter 分享图                       | `app/opengraph-image.tsx`, `app/twitter-image.tsx`                                                   |
 | `/pricing` 定价页 + Checkout/Portal CTA        | `app/[locale]/pricing/*`                                                                             |
 | Coach upsell CTA + 付费漏斗事件                | `components/CoachDialogue.tsx`, `components/UpsellModal.tsx`, `lib/posthog/*`                        |
 | Resend 邮件基础设施 + 退订 + 每日 cron         | `lib/email.ts`, `app/email/unsubscribe/route.ts`, `app/api/cron/daily-email/route.ts`, `vercel.json` |
-| SRS 错题复习                                   | `lib/srs.ts`, `lib/reviewSrs.ts`, `app/[locale]/review/*`, `lib/syncStorage.ts`                      |
+| SRS 错题复习                                   | `lib/puzzle/srs.ts`, `lib/puzzle/reviewSrs.ts`, `app/[locale]/review/*`, `lib/storage/syncStorage.ts`                      |
 | 账户页订阅管理入口                             | `app/[locale]/account/*`, `app/api/stripe/portal/route.ts`                                           |
 
 ### Phase 2 — 关键约定
@@ -74,8 +74,8 @@ updated: 2026-04-25
 - **回调 URL**：Supabase / Google 配置的是 **`https://<project>.supabase.co/auth/v1/callback`**；应用侧是 **`/auth/callback`**，不是 `/[locale]/auth/callback`。
 - **重定向**：无 locale 的路径由 **`proxy.ts` 308** 处理，不是依赖 `next.config` 里整页 301 矩阵。
 - **`/api/report-error`**：客户端错误上报端点，`lib/errorReporting.ts` 为调用端；服务端会写日志并转发到 Sentry（未配置 DSN 时 no-op）。
-- **Device 付费墙 / `user_devices` 登录拦截**：`lib/deviceRegistry.ts` 已实现单设备评估；Coach API 侧已拦截（`device_limit` 403），`CoachDialogue` 已把 `device_limit` / `daily_limit_reached` / `monthly_limit_reached` 映射到 `/pricing` CTA。
-- **月额度两种窗口**：Free 与 Pro 的月额度**计算方式不同**，修改 Coach 配额逻辑前请先读 `lib/coachQuota.ts` 的 `getNaturalMonthWindow` / `getBillingAnchoredMonthWindow`，不要混为同一窗口。
+- **Device 付费墙 / `user_devices` 登录拦截**：`lib/auth/deviceRegistry.ts` 已实现单设备评估；Coach API 侧已拦截（`device_limit` 403），`CoachDialogue` 已把 `device_limit` / `daily_limit_reached` / `monthly_limit_reached` 映射到 `/pricing` CTA。
+- **月额度两种窗口**：Free 与 Pro 的月额度**计算方式不同**，修改 Coach 配额逻辑前请先读 `lib/coach/coachQuota.ts` 的 `getNaturalMonthWindow` / `getBillingAnchoredMonthWindow`，不要混为同一窗口。
 - **`invoice.paid` 幂等性**：首次写入时 `first_paid_at` 为空才写；trial 阶段不应写入；回填历史 Pro 订阅脚本当前不存在，如有已上线付费用户需单独补。
 - **`invoice.payment_failed` 策略**：webhook 会把本地 `subscriptions.status` 写成 `past_due`，因此 `entitlements` 立即降回 Free；恢复依赖后续 `invoice.paid` / subscription update 事件重新同步。
 - **SRS 同步策略**：浏览器登录态会 best-effort 更新 `srs_cards`；`/review` 的 Pro 服务端路径会从 `attempts` 重建/补写 SRS 状态，避免离线或队列延迟导致卡片永久缺失。Free UI 仍只显示最近 20 条错题并引导 Pro。
@@ -89,7 +89,25 @@ updated: 2026-04-25
 - [x] **Sentry** 主动触发一条测试错误（已接入配置）
 - [x] （可选）浏览器 `online` + SW message fan-out flush sync queue — 见 `components/ClientInit.tsx`、`public/sw.js` 与 `flushSyncQueue`
 
+## 架构卫生（2026-04-26 落地）
+
+Phase 3 之前的一轮扩展性 / 健壮性整理。**所有改动零运行时变化**，574 测试全过：
+
+- **类型从 zod schema 派生**：`types/schemas.ts` 是 single source of truth，`types/index.ts` 用 `z.infer`。顺手修了 `LocalizedText` 用 `z.record` 推导出 `Partial<Record<...>>` 的隐患，改成显式 4-key object schema。
+- **Coach API 错误码常量化**：`lib/coach/coachErrorCodes.ts`（`COACH_ERROR_CODES` const map + `CoachErrorCode` 派生 type + `isCoachErrorCode` guard）。Server / analytics / client 三处统一引用。
+- **`lib/` 6 域分组**：`coach/` / `storage/` / `board/` / `auth/` / `i18n/` / `puzzle/` 各自成子目录。`lib/` 根从 60+ 文件降到 11（非子目录的 utility）。`tests/lib/` 同步镜像。
+- **Entitlements lookup table**：`PLAN_ENTITLEMENTS: Record<ViewerPlan, ...>`。加 plan = 加一行，函数本体不动。
+- **Messages key 一致性 prebuild 校验**：`scripts/validateMessages.ts`。zh/en/ja/ko 4 个 locale JSON 的 deep key path 必须完全一致，drift 即 build fail。
+- **`test:coverage` script**：`@vitest/coverage-v8` 接入。Baseline 67.97% statements / 70.01% lines。Stripe / Supabase / PostHog adapter 单测覆盖率天然低（infrastructure wrapper），不视为缺口。
+
+未做（等具体扩展触发再做，不在生产路径上抢）：
+
+- coach route 抽 application service handler
+- syncStorage 升级 Repository 模式
+- 结构化 logger / 配置中心化 / Service Worker 框架化
+
 ## 维护约定
 
 - 更新进度时：**改本文件 + `docs/phase2-next-steps.md`（若涉及 Phase 2）**；若有桌面 `go-daily-roadmap.md`，人工同步「进度快照」段落，避免长期分叉。
-- CI：`.github/workflows/ci.yml`（format / lint / validate / tsc / test / build）。
+- **`lib/` 按域归类**：新代码进对应子目录（`lib/coach/`、`lib/storage/`、`lib/board/`、`lib/auth/`、`lib/i18n/`、`lib/puzzle/`、`lib/posthog/`、`lib/stripe/`、`lib/supabase/`）。`lib/` 根只放跨域 utility（`apiHeaders` / `clientIp` / `dateUtils` / `entitlements` / `errorReporting` / `jsonLd` / `promptGuard` / `random` / `rateLimit` / `requestSecurity` / `siteUrl`）。Tests 同步镜像到 `tests/lib/{domain}/`。
+- CI：`.github/workflows/ci.yml` 跑 `format:check → lint → validate:puzzles → validate:messages → tsc → test → build`。
