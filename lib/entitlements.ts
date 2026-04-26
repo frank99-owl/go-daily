@@ -16,6 +16,50 @@ export interface Entitlements {
   deviceLimit: number | null;
 }
 
+/**
+ * Per-plan entitlement matrix. Adding a plan (trial / lifetime / team) is
+ * a matter of extending `ViewerPlan` and dropping a row in this table —
+ * `getEntitlements` itself does not need to change.
+ *
+ * The `plan` field on the returned Entitlements is filled in from the
+ * lookup key, so it can never disagree with the row it's stored under.
+ */
+const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> = {
+  guest: {
+    cloudSync: "none",
+    adsEnabled: true,
+    coach: {
+      available: false,
+      requiresLogin: true,
+      dailyLimit: null,
+      monthlyLimit: null,
+    },
+    deviceLimit: null,
+  },
+  free: {
+    cloudSync: "single-device",
+    adsEnabled: true,
+    coach: {
+      available: true,
+      requiresLogin: true,
+      dailyLimit: 3,
+      monthlyLimit: 20,
+    },
+    deviceLimit: 1,
+  },
+  pro: {
+    cloudSync: "multi-device",
+    adsEnabled: false,
+    coach: {
+      available: true,
+      requiresLogin: true,
+      dailyLimit: 10,
+      monthlyLimit: 50,
+    },
+    deviceLimit: null,
+  },
+};
+
 export function isProSubscriptionStatus(status: string | null | undefined): boolean {
   return status === "active" || status === "trialing";
 }
@@ -39,46 +83,5 @@ export function getEntitlements({
   subscriptionStatus: string | null | undefined;
 }): Entitlements {
   const plan = getViewerPlan({ user, subscriptionStatus });
-
-  switch (plan) {
-    case "guest":
-      return {
-        plan,
-        cloudSync: "none",
-        adsEnabled: true,
-        coach: {
-          available: false,
-          requiresLogin: true,
-          dailyLimit: null,
-          monthlyLimit: null,
-        },
-        deviceLimit: null,
-      };
-    case "free":
-      return {
-        plan,
-        cloudSync: "single-device",
-        adsEnabled: true,
-        coach: {
-          available: true,
-          requiresLogin: true,
-          dailyLimit: 3,
-          monthlyLimit: 20,
-        },
-        deviceLimit: 1,
-      };
-    case "pro":
-      return {
-        plan,
-        cloudSync: "multi-device",
-        adsEnabled: false,
-        coach: {
-          available: true,
-          requiresLogin: true,
-          dailyLimit: 10,
-          monthlyLimit: 50,
-        },
-        deviceLimit: null,
-      };
-  }
+  return { plan, ...PLAN_ENTITLEMENTS[plan] };
 }
