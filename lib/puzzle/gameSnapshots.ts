@@ -1,7 +1,6 @@
-import type { Coord, Stone } from "@/types";
-
 import { playMove, type BoardSize } from "@/lib/board/goRules";
 import { Move } from "@/lib/board/sgf";
+import type { Coord, Stone } from "@/types";
 
 export type Snapshot = {
   stones: Stone[];

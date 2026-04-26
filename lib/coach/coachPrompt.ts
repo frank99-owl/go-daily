@@ -1,7 +1,6 @@
-import type { Locale, Puzzle, Stone } from "@/types";
-
 import { computeCropWindow, fullWindow, toWindowCoord } from "@/lib/board/board";
 import { localized } from "@/lib/i18n/localized";
+import type { Locale, Puzzle, Stone } from "@/types";
 
 const coordLabel = (c: { x: number; y: number }) => `(${c.x},${c.y})`;
 

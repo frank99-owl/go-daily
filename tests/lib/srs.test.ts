@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { MIN_EASE_FACTOR, nextEaseFactor, nextSrsCardForAttempt, reviewSrsCard } from "@/lib/puzzle/srs";
+import {
+  MIN_EASE_FACTOR,
+  nextEaseFactor,
+  nextSrsCardForAttempt,
+  reviewSrsCard,
+} from "@/lib/puzzle/srs";
 
 describe("SRS scheduling", () => {
   it("creates an immediately due card for a wrong attempt", () => {

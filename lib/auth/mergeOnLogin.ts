@@ -17,9 +17,8 @@
  * fully unit-testable without touching Supabase. The IO layer (`syncStorage`)
  * consumes the plan and performs the actual reads/writes.
  */
-import type { AttemptRecord } from "@/types";
-
 import { attemptKey } from "@/lib/storage/attemptKey";
+import type { AttemptRecord } from "@/types";
 
 export type MergeDecision =
   /** Keep every unique record from both sides (default safe path). */

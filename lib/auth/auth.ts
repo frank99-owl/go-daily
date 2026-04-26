@@ -17,6 +17,7 @@
 import type { Session, User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
+import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/types";
 
 import {
@@ -24,7 +25,6 @@ import {
   normalizeAuthNext,
   serializePendingAuthRedirect,
 } from "./authRedirect";
-import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

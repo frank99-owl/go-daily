@@ -2,10 +2,10 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { getPuzzle, getAllSummaries } from "@/content/puzzles";
-import { serializeJsonLd } from "@/lib/jsonLd";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
 import { getMessages } from "@/lib/i18n/metadata";
+import { serializeJsonLd } from "@/lib/jsonLd";
 import { BOARD_SIZE_LABELS, type Locale } from "@/types";
 
 import { TodayClient } from "../../TodayClient";

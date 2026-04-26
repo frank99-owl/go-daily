@@ -1,6 +1,5 @@
-import type { Locale } from "@/types";
-
 import { isLocale, localePath, stripLocalePrefix } from "@/lib/i18n/localePath";
+import type { Locale } from "@/types";
 
 const AUTH_REDIRECT_BASE = "https://go-daily.local";
 export const AUTH_REDIRECT_COOKIE = "go-daily.auth-redirect";

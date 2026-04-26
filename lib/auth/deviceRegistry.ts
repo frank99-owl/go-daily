@@ -14,8 +14,9 @@
  * The decision is split into a pure evaluator (trivially unit-testable)
  * and an async IO layer that talks to Supabase.
  */
-import { describeUserAgent, getOrCreateDeviceId } from "./deviceId";
 import { createClient } from "@/lib/supabase/client";
+
+import { describeUserAgent, getOrCreateDeviceId } from "./deviceId";
 
 export type DeviceAccess = "allow-existing" | "allow-new" | "block-free-device-limit";
 

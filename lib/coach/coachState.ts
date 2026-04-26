@@ -1,10 +1,10 @@
+import { evaluateDeviceAccess, type DeviceSeat } from "@/lib/auth/deviceRegistry";
 import {
   formatDateInTimeZone,
   getAnchorDayFromFirstPaidAt,
   getBillingAnchoredMonthWindow,
   getNaturalMonthWindow,
 } from "@/lib/coach/coachQuota";
-import { evaluateDeviceAccess, type DeviceSeat } from "@/lib/auth/deviceRegistry";
 import { getEntitlements } from "@/lib/entitlements";
 import { createServiceClient } from "@/lib/supabase/service";
 

@@ -11,16 +11,16 @@
  */
 import { del, get, set } from "idb-keyval";
 
+import { nextSrsCardForAttempt, type SrsCardState } from "@/lib/puzzle/srs";
+import { createClient } from "@/lib/supabase/client";
 import type { AttemptRecord } from "@/types";
 
 import { attemptKey } from "./attemptKey";
-import { nextSrsCardForAttempt, type SrsCardState } from "@/lib/puzzle/srs";
 import {
   loadAttempts as loadLocalAttempts,
   replaceAttempts as replaceLocalAttempts,
   saveAttempt as saveLocalAttempt,
 } from "./storage";
-import { createClient } from "@/lib/supabase/client";
 
 export interface SyncStorage {
   getAttempts(): Promise<AttemptRecord[]>;

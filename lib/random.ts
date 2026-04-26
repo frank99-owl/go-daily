@@ -1,6 +1,5 @@
-import type { AttemptRecord } from "@/types";
-
 import { getStatusFor } from "@/lib/puzzle/puzzleStatus";
+import type { AttemptRecord } from "@/types";
 
 export type RandomPool = "all" | "unattempted" | "wrong";
 
