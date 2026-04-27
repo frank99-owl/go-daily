@@ -76,20 +76,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ),
   ];
 
-  // Only list hand-curated puzzles in the sitemap. Library puzzles are
-  // still reachable via tag/difficulty collection pages and direct links
-  // (ISR-rendered on demand), but they are low-value from a discovery
-  // standpoint and would push the sitemap toward the 50k-URL ceiling once
-  // we multiply by four locales + hreflang alternates.
-  const puzzleEntries = summaries
-    .filter((p) => p.isCurated)
-    .flatMap((p) =>
-      emit(`/puzzles/${encodeURIComponent(p.id)}`, {
-        lastModified: new Date(p.date),
-        changeFrequency: "monthly",
-        priority: 0.6,
-      }),
-    );
+  const puzzleEntries = summaries.flatMap((p) =>
+    emit(`/puzzles/${encodeURIComponent(p.id)}`, {
+      lastModified: new Date(p.date),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }),
+  );
 
   return [...staticRoutes, ...collectionRoutes, ...puzzleEntries];
 }

@@ -31,24 +31,13 @@ function makePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {
 }
 
 describe("coachAccess", () => {
-  it("always allows curated puzzles", () => {
-    expect(
-      getCoachAccess(
-        makePuzzle({
-          isCurated: true,
-        }),
-      ),
-    ).toEqual({ available: true, reason: "curated" });
-  });
-
-  it("allows approved coach-ready library puzzles", () => {
+  it("allows approved coach-ready puzzles", () => {
     expect(isApprovedCoachId("p-00001")).toBe(true);
 
     expect(
       getCoachAccess(
         makePuzzle({
           id: "p-00001",
-          isCurated: false,
         }),
       ),
     ).toEqual({ available: true, reason: "approved" });
@@ -59,7 +48,6 @@ describe("coachAccess", () => {
       getCoachAccess(
         makePuzzle({
           id: "p-99999",
-          isCurated: false,
         }),
       ),
     ).toEqual({ available: false, reason: "restricted" });

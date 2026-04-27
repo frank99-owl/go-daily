@@ -3,21 +3,15 @@ import path from "path";
 
 import type { Puzzle, PuzzleSummary } from "@/types";
 
-import { CURATED_PUZZLES, CURATED_SOURCE_IDS } from "./curatedPuzzles";
 import { applyEditorialOverride } from "./editorialOverrides";
 
 const DATA_DIR = path.join(process.cwd(), "content/data");
 
-/** Load full puzzle data from JSON files. */
+/** Load full puzzle data from classicalPuzzles.json, applying editorial overrides. */
 function loadPuzzles(): Puzzle[] {
-  const classicalPuzzles = (
+  return (
     JSON.parse(fs.readFileSync(path.join(DATA_DIR, "classicalPuzzles.json"), "utf-8")) as Puzzle[]
   ).map(applyEditorialOverride);
-
-  const curatedSourceIds = new Set<string>(CURATED_SOURCE_IDS);
-  const remainingClassicalPuzzles = classicalPuzzles.filter((p) => !curatedSourceIds.has(p.id));
-
-  return [...CURATED_PUZZLES, ...remainingClassicalPuzzles];
 }
 
 // Cache the full puzzles in memory on the server
@@ -30,7 +24,6 @@ export function toPuzzleSummary(puzzle: Puzzle): PuzzleSummary {
     source: puzzle.source || puzzle.date,
     date: puzzle.date,
     prompt: puzzle.prompt,
-    isCurated: !!puzzle.isCurated,
     boardSize: puzzle.boardSize,
     tag: puzzle.tag,
   };

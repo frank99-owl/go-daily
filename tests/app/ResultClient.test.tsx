@@ -76,7 +76,6 @@ describe("ResultClient keyboard support", () => {
               ja: "急所を占める。",
               ko: "급소를 차지한다.",
             },
-            isCurated: true,
           }}
           todayPuzzleId="cld-999"
         />

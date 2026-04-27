@@ -34,7 +34,6 @@ export interface PuzzleSummary {
   source: string;
   date: string;
   prompt: LocalizedText;
-  isCurated: boolean;
   boardSize: 9 | 13 | 19;
   tag: PuzzleTag;
 }

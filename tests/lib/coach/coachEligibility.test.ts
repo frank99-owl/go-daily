@@ -46,7 +46,6 @@ describe("checkCoachEligibility", () => {
           },
         },
       ],
-      isCurated: true,
     });
 
     expect(checkCoachEligibility(puzzle)).toMatchObject({
@@ -60,7 +59,6 @@ describe("checkCoachEligibility", () => {
   it("rejects imported-style generic notes", () => {
     const puzzle = makeBasePuzzle({
       id: "cho-e-001",
-      isCurated: false,
       solutionNote: {
         zh: "经典死活题。点击「查看正解」可以看到标记出的急所位置。",
         en: "Classical life-and-death problem. Tap 'View solution' to see the vital point highlighted on the board.",
@@ -79,7 +77,6 @@ describe("checkCoachEligibility", () => {
   it("rejects low-quality library notes even when fields exist", () => {
     const puzzle = makeBasePuzzle({
       id: "lib-0001",
-      isCurated: false,
       solutionNote: {
         zh: "先占急所。",
         en: "Take the vital point.",

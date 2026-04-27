@@ -30,7 +30,6 @@ describe("auditPuzzles", () => {
         { x: 1, y: 1, color: "black" },
         { x: 1, y: 2, color: "white" },
       ],
-      isCurated: true,
       source: "Editorial",
     },
     {
@@ -54,7 +53,6 @@ describe("auditPuzzles", () => {
         ja: "古典的な詰碁です。「正解を見る」を押すと盤上に急所が示されます。",
         ko: "고전 사활 문제. '정답 보기'를 누르면 반 위에 급소가 표시됩니다.",
       },
-      isCurated: false,
       source: "Classical Go",
     },
     {
@@ -78,7 +76,6 @@ describe("auditPuzzles", () => {
         ja: "「正解を見る」で急所が盤上に表示されます。",
         ko: "'정답 보기'를 누르면 핵심 점이 표시됩니다.",
       },
-      isCurated: false,
       source: "go-daily",
     } as Puzzle,
   ];
@@ -95,7 +92,6 @@ describe("auditPuzzles", () => {
         ja: "黒先活",
         ko: "흑선활",
       },
-      isCurated: true,
       boardSize: 9,
       tag: "life-death",
     },
@@ -110,7 +106,6 @@ describe("auditPuzzles", () => {
         ja: "黒先、急所を見つけてください",
         ko: "흑선 — 급소를 찾으세요",
       },
-      isCurated: false,
       boardSize: 19,
       tag: "tesuji",
     },
@@ -125,7 +120,6 @@ describe("auditPuzzles", () => {
         ja: "古い",
         ko: "오래됨",
       },
-      isCurated: false,
       boardSize: 19,
       tag: "life-death",
     },
@@ -140,10 +134,8 @@ describe("auditPuzzles", () => {
     expect(result.total).toBe(3);
     expect(result.indexConsistency.staleIndexIds).toEqual(["stale-001"]);
     expect(result.indexConsistency.missingSummaryIds).toEqual(["lib-0999"]);
-    expect(result.curatedRunwayDays).toBe(1);
-
     expect(result.coachEligibleCandidates).toEqual([
-      expect.objectContaining({ id: "cld-001", isCurated: true, reason: "eligible" }),
+      expect.objectContaining({ id: "cld-001", reason: "eligible" }),
     ]);
     expect(result.coachEligibilityReasons).toMatchObject({
       eligible: 1,
@@ -189,7 +181,6 @@ describe("auditPuzzles", () => {
 
     const markdown = generateMarkdownReport(result);
     expect(markdown).toContain("Total Puzzles:** 3");
-    expect(markdown).toContain("Curated Runway Days (from audit date):** 1");
     expect(markdown).toContain("Stale Index IDs:** 1");
     expect(markdown).toContain("Eligible Candidates:** 1");
   });

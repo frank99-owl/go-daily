@@ -30,7 +30,6 @@ function summary(id: string): PuzzleSummary {
       ja: id,
       ko: id,
     },
-    isCurated: true,
     boardSize: 9,
     tag: "life-death",
   };

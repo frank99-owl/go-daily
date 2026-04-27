@@ -47,7 +47,6 @@ interface Puzzle {
   difficulty: 1 | 2 | 3 | 4 | 5;
   prompt: LocalizedText;
   solutionNote: LocalizedText;
-  isCurated?: boolean;
   source?: string;
 }
 
@@ -78,7 +77,6 @@ function generateDummyKatagoPuzzle(index: number): Puzzle {
       ja: "KataGoが発見した実戦の手筋。ここで切るのが黒の唯一の正解です。",
       ko: "KataGo가 발견한 실전 맥. 여기서 끊는 것이 흑의 유일한 정답입니다.",
     },
-    isCurated: false,
     source: "KataGo self-play generated (from PD ancient game)",
   };
 }

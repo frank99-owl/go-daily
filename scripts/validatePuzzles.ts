@@ -118,13 +118,6 @@ function compareSummaryIndex(
         detail: `date mismatch — index=${summary.date}, expected=${canonical.date}`,
       });
     }
-    if (summary.isCurated !== canonical.isCurated) {
-      issues.push({
-        puzzleId: summary.id,
-        rule: "summaryIndex",
-        detail: `isCurated mismatch — index=${summary.isCurated}, expected=${canonical.isCurated}`,
-      });
-    }
     if (summary.boardSize !== canonical.boardSize) {
       issues.push({
         puzzleId: summary.id,
@@ -185,14 +178,6 @@ function validateCoachAllowlist(issues: Issue[]): void {
         detail: "ID exists in coachEligibleIds.json but not in PUZZLES",
       });
       continue;
-    }
-
-    if (puzzle.isCurated) {
-      issues.push({
-        puzzleId: id,
-        rule: "coachAllowlist",
-        detail: "curated puzzles should not also be listed in coachEligibleIds.json",
-      });
     }
 
     const eligibility = checkCoachEligibility(puzzle);
@@ -321,13 +306,10 @@ function validatePuzzle(p: Puzzle, issues: Issue[]): void {
     }
   }
 
-  // 10. solutionNote — 4-language required only for curated puzzles.
-  //     Library imports ship with a generic note (coach is gated off anyway).
-  if (p.isCurated !== false) {
-    for (const lc of LOCALES) {
-      if (!p.solutionNote?.[lc]?.trim()) {
-        push("solutionNote", `solutionNote.${lc} is empty (required when isCurated !== false)`);
-      }
+  // 10. solutionNote — 4-language required.
+  for (const lc of LOCALES) {
+    if (!p.solutionNote?.[lc]?.trim()) {
+      push("solutionNote", `solutionNote.${lc} is empty`);
     }
   }
 }
@@ -368,13 +350,8 @@ function main(): void {
   }
   validateCoachAllowlist(issues);
 
-  const curated = PUZZLES.filter((p) => p.isCurated !== false).length;
-  const library = PUZZLES.length - curated;
-
   if (issues.length === 0) {
-    console.log(
-      `\x1b[32m✓\x1b[0m Validated ${PUZZLES.length} puzzles (${curated} curated, ${library} library)`,
-    );
+    console.log(`\x1b[32m✓\x1b[0m Validated ${PUZZLES.length} puzzles`);
     process.exit(0);
   }
 
@@ -392,7 +369,7 @@ function main(): void {
       console.error(`    · [${iss.rule}] ${iss.detail}`);
     }
   }
-  console.error(`\n${curated} curated · ${library} library · ${issues.length} issue(s)`);
+  console.error(`\n${issues.length} issue(s)`);
   process.exit(1);
 }
 

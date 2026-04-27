@@ -117,7 +117,7 @@ export async function POST(request: Request) {
   if (!coachAccess.available) {
     return createApiResponse(
       {
-        error: "AI coach is only available on curated puzzles and approved coach-ready sets.",
+        error: "AI coach is only available on approved coach-ready puzzles.",
       },
       { status: 403 },
     );

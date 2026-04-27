@@ -45,7 +45,6 @@ const puzzle: Puzzle = {
     ja: "急所を占める。",
     ko: "급소를 차지한다.",
   },
-  isCurated: true,
 };
 
 describe("TodayClient keyboard support", () => {

@@ -28,7 +28,6 @@ function summary(id: string, label: string): PuzzleSummary {
       ja: label,
       ko: label,
     },
-    isCurated: true,
     boardSize: 9,
     tag: "life-death",
   };

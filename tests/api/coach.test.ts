@@ -165,7 +165,7 @@ describe("/api/coach", () => {
     supabaseMocks.createServerClient.mockResolvedValue(buildServerSupabase());
     supabaseMocks.createServiceClient.mockReturnValue(buildAdminClient());
     vi.mocked(getPuzzle).mockResolvedValue({
-      id: "cld-001",
+      id: "p-00001",
       date: "2026-04-21",
       boardSize: 19,
       stones: [],
@@ -180,12 +180,11 @@ describe("/api/coach", () => {
         ko: "흑선활",
       },
       solutionNote: {
-        zh: "在角上抢占急所。",
-        en: "Take the vital point in the corner.",
-        ja: "隅の急所を先に占めます。",
-        ko: "귀의 급소를 먼저 차지합니다.",
+        zh: "黑先抢占角上的急所，因为这一手既能扩大自己的眼位，又能同时限制白棋的做眼空间。如果黑棋先走其他地方，白棋就能先手定型，之后黑棋的眼形会受到威胁。",
+        en: "Black should take the vital point in the corner first because this move expands Black's eye space while limiting White's ability to form eyes. If Black plays elsewhere, White settles the shape first and Black's eye potential is at risk.",
+        ja: "黒は隅の急所を先に占めるべきです。なぜならその一手で黒の眼形を広げつつ、白の眼作りを制限できるからです。もし黒が他から打つと、白に先に形を決められてしまい、黒の眼の可能性が危うくなります。",
+        ko: "흑은 귀의 급소를 먼저 차지해야 합니다. 왜냐하면 그 한 수가 흑의 눈 모양을 넓히고 동시에 백의 눈 만들기를 제한하기 때문입니다. 만약 흑이 다른 곳부터 두면 백이 먼저 형태를 결정하고 흑의 눈 가능성이 위험해집니다.",
       },
-      isCurated: true,
     });
   });
 
@@ -255,7 +254,7 @@ describe("/api/coach", () => {
   it("rejects suspicious prompt-injection content", async () => {
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -281,7 +280,7 @@ describe("/api/coach", () => {
       const response = await POST(
         makeRequest(
           {
-            puzzleId: "cld-001",
+            puzzleId: "p-00001",
             locale: "en",
             userMove: { x: 3, y: 3 },
             isCorrect: false,
@@ -311,7 +310,7 @@ describe("/api/coach", () => {
 
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -331,7 +330,7 @@ describe("/api/coach", () => {
 
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -350,7 +349,7 @@ describe("/api/coach", () => {
 
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -369,7 +368,7 @@ describe("/api/coach", () => {
 
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -388,7 +387,7 @@ describe("/api/coach", () => {
 
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -407,7 +406,7 @@ describe("/api/coach", () => {
 
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -429,7 +428,7 @@ describe("/api/coach", () => {
 
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -451,7 +450,7 @@ describe("/api/coach", () => {
 
     const response = await POST(
       makeRequest({
-        puzzleId: "cld-001",
+        puzzleId: "p-00001",
         locale: "en",
         userMove: { x: 3, y: 3 },
         isCorrect: false,
@@ -479,7 +478,7 @@ describe("/api/coach", () => {
 
       const response = await POST(
         makeRequest({
-          puzzleId: "cld-001",
+          puzzleId: "p-00001",
           locale: "en",
           userMove: { x: 3, y: 3 },
           isCorrect: false,
@@ -507,7 +506,7 @@ describe("/api/coach", () => {
       const response = await POST(
         makeRequest(
           {
-            puzzleId: "cld-001",
+            puzzleId: "p-00001",
             locale: "en",
             userMove: { x: 3, y: 3 },
             isCorrect: false,
@@ -534,7 +533,7 @@ describe("/api/coach", () => {
       const response = await POST(
         makeRequest(
           {
-            puzzleId: "cld-001",
+            puzzleId: "p-00001",
             locale: "en",
             userMove: { x: 3, y: 3 },
             isCorrect: false,
@@ -565,7 +564,7 @@ describe("/api/coach", () => {
       const response = await POST(
         makeRequest(
           {
-            puzzleId: "cld-001",
+            puzzleId: "p-00001",
             locale: "en",
             userMove: { x: 3, y: 3 },
             isCorrect: false,
@@ -596,7 +595,7 @@ describe("/api/coach", () => {
 
       const response = await POST(
         makeRequest({
-          puzzleId: "cld-001",
+          puzzleId: "p-00001",
           locale: "en",
           userMove: { x: 3, y: 3 },
           isCorrect: false,

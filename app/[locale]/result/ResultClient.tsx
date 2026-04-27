@@ -277,9 +277,8 @@ export function ResultClient({
         <ShareCard puzzle={puzzle} correct={correct} />
       </div>
 
-      {/* Solution notes are only shown for curated puzzles — library imports
-          have a generic placeholder note which is not worth the visual space. */}
-      {showAnswer && puzzle.isCurated !== false && (
+      {/* Solution note — shown once the answer is revealed. */}
+      {showAnswer && (
         <section className="rounded-xl border border-white/10 bg-white/5 p-5">
           <div className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-[#00f2ff]/70">
             {t.result.curatedNote}
@@ -290,9 +289,6 @@ export function ResultClient({
         </section>
       )}
 
-      {/* AI coach stays gated: curated puzzles are always allowed, while
-          library/imported puzzles must pass the quality bar and land in the
-          approved allowlist before the coach is shown. */}
       {attempt?.userMove && coachAccess.available && (
         <CoachDialogue puzzleId={puzzle.id} userMove={attempt.userMove} isCorrect={correct} />
       )}

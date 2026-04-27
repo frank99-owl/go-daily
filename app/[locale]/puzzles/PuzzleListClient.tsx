@@ -278,11 +278,6 @@ function PuzzleCard({ puzzle, status }: { puzzle: PuzzleSummary; status: PuzzleS
       <div className="flex items-center gap-2 text-sm text-white/50">
         <span>{"★".repeat(puzzle.difficulty)}</span>
         <span className="text-white/10">{"★".repeat(5 - puzzle.difficulty)}</span>
-        {puzzle.isCurated && (
-          <span className="px-2 py-0.5 rounded-full bg-[#00f2ff]/10 text-[#00f2ff] text-xs font-medium">
-            {t.puzzles.curated}
-          </span>
-        )}
       </div>
     </LocalizedLink>
   );

@@ -37,7 +37,6 @@ interface AuditOptions {
 
 interface AuditCandidate {
   id: string;
-  isCurated: boolean;
   eligible: boolean;
   reason: CoachEligibilityReason;
   qualityTier: CoachQualityTier;
@@ -59,8 +58,6 @@ export interface AuditResult {
   boardSizeDistribution: Record<string, number>;
   difficultyDistribution: Record<string, number>;
   tagDistribution: Record<string, number>;
-  curatedCount: number;
-  nonCuratedCount: number;
   dateRange: { min: string; max: string } | null;
   indexConsistency: {
     computedSummaryCount: number;
@@ -68,7 +65,6 @@ export interface AuditResult {
     staleIndexIds: string[];
     missingSummaryIds: string[];
   };
-  curatedRunwayDays: number;
   coachEligibleCandidates: AuditCandidate[];
   coachEligibilityReasons: Record<CoachEligibilityReason, number>;
   solutionNoteQualityTiers: Record<SolutionNoteQualityTier, number>;
@@ -108,29 +104,6 @@ function emptyQualityTiers(): Record<SolutionNoteQualityTier, number> {
 
 function normalizeTemplate(text: string | undefined): string {
   return (text ?? "").trim();
-}
-
-function addDays(ymd: string, delta: number): string {
-  const [y, m, d] = ymd.split("-").map(Number);
-  const next = new Date(Date.UTC(y, m - 1, d + delta));
-  return next.toISOString().slice(0, 10);
-}
-
-function calculateCuratedRunwayDays(puzzles: Puzzle[], today: string): number {
-  const curatedDates = new Set(
-    puzzles
-      .filter((p) => p.isCurated !== false)
-      .map((p) => p.date)
-      .filter(Boolean),
-  );
-
-  let runwayDays = 0;
-  let cursor = today;
-  while (curatedDates.has(cursor)) {
-    runwayDays++;
-    cursor = addDays(cursor, 1);
-  }
-  return runwayDays;
 }
 
 function classifySolutionNoteQuality(puzzle: Puzzle): SolutionNoteQualityTier {
@@ -183,7 +156,6 @@ function buildImbalanceWarnings(
   boardSizeDistribution: Record<string, number>,
   difficultyDistribution: Record<string, number>,
   tagDistribution: Record<string, number>,
-  curatedCount: number,
 ): string[] {
   const warnings: string[] = [];
 
@@ -212,12 +184,6 @@ function buildImbalanceWarnings(
         `Tag "${tag}" is underrepresented at ${(ratio * 100).toFixed(1)}% of the library.`,
       );
     }
-  }
-
-  if (curatedCount / total < 0.05) {
-    warnings.push(
-      `Coach-ready curated coverage is still thin at ${curatedCount}/${total} (${((curatedCount / total) * 100).toFixed(1)}%).`,
-    );
   }
 
   return warnings;
@@ -257,11 +223,8 @@ export function auditPuzzles(puzzles: Puzzle[], options: AuditOptions = {}): Aud
     boardSizeDistribution: {},
     difficultyDistribution: {},
     tagDistribution: {},
-    curatedCount: 0,
-    nonCuratedCount: 0,
     dateRange: null,
     indexConsistency: compareSummaryIndex(computedSummaries, summaryIndex),
-    curatedRunwayDays: calculateCuratedRunwayDays(puzzles, today),
     coachEligibleCandidates: [],
     coachEligibilityReasons: emptyReasonCounts(),
     solutionNoteQualityTiers: emptyQualityTiers(),
@@ -283,12 +246,6 @@ export function auditPuzzles(puzzles: Puzzle[], options: AuditOptions = {}): Aud
     result.difficultyDistribution[puzzle.difficulty] =
       (result.difficultyDistribution[puzzle.difficulty] || 0) + 1;
     result.tagDistribution[puzzle.tag] = (result.tagDistribution[puzzle.tag] || 0) + 1;
-
-    if (puzzle.isCurated) {
-      result.curatedCount++;
-    } else {
-      result.nonCuratedCount++;
-    }
 
     if (puzzle.date) {
       if (!minDate || puzzle.date < minDate) minDate = puzzle.date;
@@ -336,7 +293,6 @@ export function auditPuzzles(puzzles: Puzzle[], options: AuditOptions = {}): Aud
     if (eligibility.eligible) {
       result.coachEligibleCandidates.push({
         id: puzzle.id,
-        isCurated: !!puzzle.isCurated,
         eligible: eligibility.eligible,
         reason: eligibility.reason,
         qualityTier: eligibility.qualityTier,
@@ -359,7 +315,6 @@ export function auditPuzzles(puzzles: Puzzle[], options: AuditOptions = {}): Aud
     result.boardSizeDistribution,
     result.difficultyDistribution,
     result.tagDistribution,
-    result.curatedCount,
   );
 
   return result;
@@ -384,9 +339,7 @@ export function generateMarkdownReport(result: AuditResult): string {
 ## Summary
 - **Generated At:** ${result.generatedAt}
 - **Total Puzzles:** ${result.total}
-- **Curated / Non-Curated:** ${result.curatedCount} / ${result.nonCuratedCount}
 - **Date Range:** ${result.dateRange ? `${result.dateRange.min} to ${result.dateRange.max}` : "N/A"}
-- **Curated Runway Days (from audit date):** ${result.curatedRunwayDays}
 
 ## Index Consistency
 - **Computed Summaries:** ${result.indexConsistency.computedSummaryCount}

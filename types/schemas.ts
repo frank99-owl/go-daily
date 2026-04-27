@@ -68,7 +68,6 @@ export const PuzzleSchema = z.object({
   correct: z.array(CoordSchema),
   solutionSequence: z.array(StoneSchema).optional(),
   wrongBranches: z.array(WrongBranchSchema).optional(),
-  isCurated: z.boolean().optional(),
   tag: PuzzleTagSchema,
   difficulty: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
   prompt: LocalizedTextSchema,

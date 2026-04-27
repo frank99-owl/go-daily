@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { getPuzzle, getAllSummaries } from "@/content/puzzles";
+import { getPuzzle } from "@/content/puzzles";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
 import { getMessages } from "@/lib/i18n/metadata";
@@ -39,22 +39,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// Pre-render only hand-curated puzzles at build time (≈50×4 locales = 200
-// pages). The ~1150 library puzzles are served via ISR on first hit, then
-// cached until the next build / revalidate window. This keeps cold builds
-// under a minute and avoids ballooning the static bundle.
+// Puzzle pages are served via ISR on first hit, then cached until the next
+// revalidate window. This keeps cold builds fast.
 export async function generateStaticParams() {
-  const summaries = await getAllSummaries();
-  return summaries.filter((p) => p.isCurated).map((p) => ({ id: p.id }));
+  return [];
 }
 
-// Allow on-demand rendering for non-curated puzzles; Next.js caches the
-// response and re-uses it across locales. `notFound()` inside the page
-// still produces a 404 for unknown IDs.
 export const dynamicParams = true;
 
-// Rebuild library puzzle pages at most once per day in the background.
-// Curated pages are regenerated on each deploy via generateStaticParams.
+// Rebuild puzzle pages at most once per day in the background.
 export const revalidate = 86400;
 
 export default async function PuzzleDetailPage({ params }: Props) {

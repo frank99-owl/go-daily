@@ -18,15 +18,12 @@ function parseYmdUTC(ymd: string): number {
 export async function getPuzzleForDate(date: string): Promise<Puzzle> {
   const { PUZZLES } = await import("@/content/puzzles.server");
 
-  const curated = PUZZLES.filter((p) => !!p.isCurated);
-  const pool = curated.length > 0 ? curated : PUZZLES;
-
-  if (pool.length === 0) {
+  if (PUZZLES.length === 0) {
     throw new Error("No puzzles available — did importTsumego.ts run?");
   }
   const diffDays = Math.floor((parseYmdUTC(date) - parseYmdUTC(ROTATION_ANCHOR)) / DAY_MS);
-  const idx = ((diffDays % pool.length) + pool.length) % pool.length;
-  return pool[idx];
+  const idx = ((diffDays % PUZZLES.length) + PUZZLES.length) % PUZZLES.length;
+  return PUZZLES[idx];
 }
 
 export { todayLocalKey };

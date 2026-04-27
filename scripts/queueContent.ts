@@ -18,7 +18,6 @@ export interface QueueCandidate {
   date: string;
   tag: PuzzleTag;
   difficulty: number;
-  isCurated: boolean;
   eligible: boolean;
   qualityTier: CoachQualityTier;
   reason: string;
@@ -32,10 +31,8 @@ export interface QueueCandidate {
 export interface ContentQueueResult {
   generatedAt: string;
   totalPuzzles: number;
-  currentCuratedRunwayDays: number;
   currentApprovedCoachCount: number;
   coachReadyCandidates: QueueCandidate[];
-  curatedRunwayCandidates: QueueCandidate[];
 }
 
 interface QueueOptions {
@@ -78,7 +75,6 @@ function stabilityScore(puzzle: Puzzle, averageNoteLength: number): number {
   let score = Math.min(averageNoteLength / 120, 1.5);
   if ((puzzle.solutionSequence?.length ?? 0) > 0) score += 1;
   if ((puzzle.wrongBranches?.length ?? 0) > 0) score += 1;
-  if (puzzle.isCurated) score += 1;
   return Number(score.toFixed(2));
 }
 
@@ -116,9 +112,7 @@ export function buildContentQueue(
     summaryIndex: options.summaryIndex,
   });
 
-  const nonCurated = puzzles.filter((p) => !p.isCurated);
-
-  const coachReadyCandidates = nonCurated
+  const coachReadyCandidates = puzzles
     .map((puzzle) => {
       const eligibility = checkCoachEligibility(puzzle);
       const scarcityScore =
@@ -131,7 +125,6 @@ export function buildContentQueue(
         date: puzzle.date,
         tag: puzzle.tag,
         difficulty: puzzle.difficulty,
-        isCurated: false,
         eligible: eligibility.eligible,
         qualityTier: eligibility.qualityTier,
         reason: eligibility.reason,
@@ -150,61 +143,16 @@ export function buildContentQueue(
     .filter((candidate) => candidate.qualityTier === "coach-ready")
     .sort(compareCandidates);
 
-  const curatedRunwayCandidates = nonCurated
-    .filter((puzzle) => puzzle.id.startsWith("lib-"))
-    .map((puzzle) => {
-      const eligibility = checkCoachEligibility(puzzle);
-      const scarcityScore =
-        tagScarcityScore(audit.tagDistribution, puzzle.tag) * 1.5 +
-        difficultyScarcityScore(audit.difficultyDistribution, puzzle.difficulty);
-
-      return {
-        id: puzzle.id,
-        source: puzzle.source || puzzle.date,
-        date: puzzle.date,
-        tag: puzzle.tag,
-        difficulty: puzzle.difficulty,
-        isCurated: false,
-        eligible: eligibility.eligible,
-        qualityTier: eligibility.qualityTier,
-        reason: eligibility.reason,
-        averageNoteLength: eligibility.averageNoteLength,
-        stabilityScore:
-          stabilityScore(puzzle, eligibility.averageNoteLength) +
-          qualityWeight(eligibility.qualityTier),
-        scarcityScore: Number(scarcityScore.toFixed(4)),
-        alreadyApproved: approvedIds.has(puzzle.id),
-        rationale: buildRationale(
-          puzzle,
-          scarcityScore,
-          eligibility.averageNoteLength,
-          eligibility.qualityTier,
-        ),
-      } satisfies QueueCandidate;
-    })
-    .filter((candidate) => candidate.qualityTier !== "blocked")
-    .sort(compareCandidates);
-
   return {
     generatedAt: new Date().toISOString(),
     totalPuzzles: puzzles.length,
-    currentCuratedRunwayDays: audit.curatedRunwayDays,
     currentApprovedCoachCount: approvedIds.size,
     coachReadyCandidates,
-    curatedRunwayCandidates,
   };
 }
 
 export function generateContentQueueMarkdown(result: ContentQueueResult): string {
   const topCoach = result.coachReadyCandidates
-    .slice(0, 10)
-    .map(
-      (candidate) =>
-        `- ${candidate.id} · ${candidate.tag} · d${candidate.difficulty} · ${candidate.qualityTier} · approved=${candidate.alreadyApproved}`,
-    )
-    .join("\n");
-
-  const topRunway = result.curatedRunwayCandidates
     .slice(0, 10)
     .map(
       (candidate) =>
@@ -218,16 +166,11 @@ export function generateContentQueueMarkdown(result: ContentQueueResult): string
 ## Summary
 - **Generated At:** ${result.generatedAt}
 - **Total Puzzles:** ${result.totalPuzzles}
-- **Current Curated Runway Days:** ${result.currentCuratedRunwayDays}
 - **Current Approved Coach Count:** ${result.currentApprovedCoachCount}
 - **Coach-ready Candidates:** ${result.coachReadyCandidates.length}
-- **Curated-runway Candidates:** ${result.curatedRunwayCandidates.length}
 
 ## Top Coach-ready Candidates
 ${topCoach || "- None"}
-
-## Top Curated-runway Candidates
-${topRunway || "- None"}
 `.trim();
 }
 
