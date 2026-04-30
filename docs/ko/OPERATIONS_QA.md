@@ -31,7 +31,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 자동화 테스트 (Vitest)
 
-우리는 다음을 포함하여 약 570개의 테스트 케이스를 유지하고 있습니다:
+57개의 테스트 파일, 약 366개의 테스트 케이스를 유지하고 있습니다:
 
 - **로직**: `lib/srs.test.ts`, `lib/entitlements.test.ts`.
 - **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`.

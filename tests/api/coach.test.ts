@@ -492,6 +492,34 @@ describe("/api/coach", () => {
     );
   });
 
+  it("recomputes correctness from the private puzzle instead of trusting the client", async () => {
+    createCompletionMock.mockResolvedValue({
+      choices: [{ message: { content: "Coach reply" } }],
+    });
+
+    const response = await POST(
+      makeRequest({
+        puzzleId: "p-00001",
+        locale: "en",
+        userMove: { x: 18, y: 0 },
+        isCorrect: false,
+        history: [{ role: "user", content: "Why?", ts: 1 }],
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(createCompletionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: expect.arrayContaining([
+          expect.objectContaining({
+            role: "system",
+            content: expect.stringContaining("— CORRECT."),
+          }),
+        ]),
+      }),
+    );
+  });
+
   describe("free tier device limit", () => {
     it("returns 401 login_required when the request has no session", async () => {
       supabaseMocks.createServerClient.mockResolvedValue(buildServerSupabase(null));

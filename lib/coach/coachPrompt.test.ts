@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { Locale, Puzzle, Stone } from "@/types";
 
 import { buildSystemPrompt } from "./coachPrompt";
+import { DEFAULT_PERSONA } from "./personas";
 
 // Minimal 19×19 puzzle with a local cluster — crops to a small window.
 function make19Puzzle(overrides: Partial<Puzzle> = {}): Puzzle {
@@ -55,26 +56,26 @@ function make9Puzzle(overrides: Partial<Puzzle> = {}): Puzzle {
 
 describe("buildSystemPrompt — always included", () => {
   it("includes the coach role framing and Socratic tone instruction", () => {
-    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true);
+    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
     expect(prompt).toContain("AI coach for go-daily");
     expect(prompt).toContain("Socratic");
   });
 
   it("declares the correct 'CORRECT' / 'INCORRECT' verdict on the student's move", () => {
     const puzzle = make19Puzzle();
-    const correctPrompt = buildSystemPrompt(puzzle, "en", { x: 18, y: 2 }, true);
-    const wrongPrompt = buildSystemPrompt(puzzle, "en", { x: 0, y: 0 }, false);
+    const correctPrompt = buildSystemPrompt(puzzle, "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
+    const wrongPrompt = buildSystemPrompt(puzzle, "en", { x: 0, y: 0 }, false, DEFAULT_PERSONA);
     expect(correctPrompt).toMatch(/— CORRECT\./);
     expect(wrongPrompt).toMatch(/— INCORRECT\./);
   });
 
   it("includes the localized solution note as ground truth", () => {
-    const prompt = buildSystemPrompt(make19Puzzle(), "zh", { x: 18, y: 2 }, true);
+    const prompt = buildSystemPrompt(make19Puzzle(), "zh", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
     expect(prompt).toContain("占角上急所。");
   });
 
   it("mentions tag and difficulty", () => {
-    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true);
+    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
     expect(prompt).toContain("Tag: life-death");
     expect(prompt).toContain("Difficulty: 3/5");
   });
@@ -82,14 +83,14 @@ describe("buildSystemPrompt — always included", () => {
 
 describe("buildSystemPrompt — 19×19 cropped window", () => {
   it("describes a cropped local window (not the full board)", () => {
-    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true);
+    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
     expect(prompt).toMatch(/cropped \d+x\d+ local board window/);
     expect(prompt).toContain("Underlying board size: 19x19");
   });
 
   it("uses window-local (0-indexed) coordinates, not absolute", () => {
     // Stones are all in the top-right corner; the crop should yield small numbers.
-    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true);
+    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
     // The absolute coord (16,2) should NOT appear as the coach's reference.
     // Instead, small cropped coords should.
     expect(prompt).not.toMatch(/\(16,2\)/);
@@ -101,7 +102,7 @@ describe("buildSystemPrompt — 19×19 cropped window", () => {
 
 describe("buildSystemPrompt — 9×9 full window", () => {
   it("uses full-board framing, not a cropped-window banner", () => {
-    const prompt = buildSystemPrompt(make9Puzzle(), "en", { x: 3, y: 3 }, true);
+    const prompt = buildSystemPrompt(make9Puzzle(), "en", { x: 3, y: 3 }, true, DEFAULT_PERSONA);
     expect(prompt).toContain("Board size: 9x9");
     // The "cropped NxN local board window" banner is only emitted for 19×19;
     // the word "cropped" also appears in the always-on preamble, so match the
@@ -111,7 +112,7 @@ describe("buildSystemPrompt — 9×9 full window", () => {
   });
 
   it("uses absolute coordinates for 9×9 (no remapping)", () => {
-    const prompt = buildSystemPrompt(make9Puzzle(), "en", { x: 3, y: 3 }, true);
+    const prompt = buildSystemPrompt(make9Puzzle(), "en", { x: 3, y: 3 }, true, DEFAULT_PERSONA);
     // White stone at absolute (4,4) should render as (4,4).
     expect(prompt).toContain("(4,4)");
     // Student's move at (3,3) should render as (3,3).
@@ -127,7 +128,7 @@ describe("buildSystemPrompt — stones & solution listing", () => {
         { x: 2, y: 2, color: "black" },
       ],
     });
-    const prompt = buildSystemPrompt(puzzle, "en", { x: 3, y: 3 }, false);
+    const prompt = buildSystemPrompt(puzzle, "en", { x: 3, y: 3 }, false, DEFAULT_PERSONA);
     expect(prompt).toMatch(/Black stones on board: \(1,1\), \(2,2\)\./);
     expect(prompt).toContain("White stones on board: (none).");
   });
@@ -139,13 +140,19 @@ describe("buildSystemPrompt — stones & solution listing", () => {
         { x: 5, y: 5 },
       ],
     });
-    const prompt = buildSystemPrompt(puzzle, "en", { x: 0, y: 0 }, false);
+    const prompt = buildSystemPrompt(puzzle, "en", { x: 0, y: 0 }, false, DEFAULT_PERSONA);
     expect(prompt).toMatch(/Accepted correct point\(s\): \(3,3\), \(5,5\)\./);
   });
 
   it("declares the side to play", () => {
     expect(
-      buildSystemPrompt(make9Puzzle({ toPlay: "white" }), "en", { x: 0, y: 0 }, false),
+      buildSystemPrompt(
+        make9Puzzle({ toPlay: "white" }),
+        "en",
+        { x: 0, y: 0 },
+        false,
+        DEFAULT_PERSONA,
+      ),
     ).toContain("To play: white.");
   });
 });
@@ -162,6 +169,7 @@ describe("buildSystemPrompt — optional blocks", () => {
       "en",
       { x: 3, y: 3 },
       true,
+      DEFAULT_PERSONA,
     );
     expect(prompt).toContain("SOLUTION SEQUENCE (ground truth)");
     expect(prompt).toContain("Step 1: black (3,3)");
@@ -170,7 +178,7 @@ describe("buildSystemPrompt — optional blocks", () => {
   });
 
   it("omits the SOLUTION SEQUENCE block when absent", () => {
-    const prompt = buildSystemPrompt(make9Puzzle(), "en", { x: 3, y: 3 }, true);
+    const prompt = buildSystemPrompt(make9Puzzle(), "en", { x: 3, y: 3 }, true, DEFAULT_PERSONA);
     expect(prompt).not.toContain("SOLUTION SEQUENCE");
   });
 
@@ -191,6 +199,7 @@ describe("buildSystemPrompt — optional blocks", () => {
       "en",
       { x: 5, y: 5 },
       false,
+      DEFAULT_PERSONA,
     );
     expect(prompt).toContain("COMMON WRONG BRANCHES");
     expect(prompt).toContain("If student plays (5,5)");
@@ -198,7 +207,7 @@ describe("buildSystemPrompt — optional blocks", () => {
   });
 
   it("omits the WRONG BRANCHES block when absent", () => {
-    const prompt = buildSystemPrompt(make9Puzzle(), "en", { x: 3, y: 3 }, true);
+    const prompt = buildSystemPrompt(make9Puzzle(), "en", { x: 3, y: 3 }, true, DEFAULT_PERSONA);
     expect(prompt).not.toContain("WRONG BRANCHES");
   });
 });
@@ -213,15 +222,33 @@ describe("buildSystemPrompt — locale-specific style footer", () => {
 
   for (const [locale, fingerprint] of Object.entries(localeFingerprints) as [Locale, string][]) {
     it(`injects the ${locale} style block`, () => {
-      const prompt = buildSystemPrompt(make9Puzzle(), locale, { x: 3, y: 3 }, true);
+      const prompt = buildSystemPrompt(
+        make9Puzzle(),
+        locale,
+        { x: 3, y: 3 },
+        true,
+        DEFAULT_PERSONA,
+      );
       expect(prompt).toContain("--- STYLE ---");
       expect(prompt).toContain(fingerprint);
     });
   }
 
   it("injects the locale-matched solution note (zh example)", () => {
-    const zhPrompt = buildSystemPrompt(make19Puzzle(), "zh", { x: 18, y: 2 }, true);
-    const enPrompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true);
+    const zhPrompt = buildSystemPrompt(
+      make19Puzzle(),
+      "zh",
+      { x: 18, y: 2 },
+      true,
+      DEFAULT_PERSONA,
+    );
+    const enPrompt = buildSystemPrompt(
+      make19Puzzle(),
+      "en",
+      { x: 18, y: 2 },
+      true,
+      DEFAULT_PERSONA,
+    );
     expect(zhPrompt).toContain("占角上急所。");
     expect(zhPrompt).not.toContain("Take the vital point in the corner.");
     expect(enPrompt).toContain("Take the vital point in the corner.");

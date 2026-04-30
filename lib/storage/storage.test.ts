@@ -48,4 +48,17 @@ describe("createAttemptRecord", () => {
     expect(record.date).toBe("2026-04-21");
     expect(record.solvedAtMs).toBe(123);
   });
+
+  it("stores the reveal token when the attempt API returns one", () => {
+    const record = createAttemptRecord({
+      puzzleId: "cld-003",
+      userMove: { x: 4, y: 4 },
+      correct: true,
+      date: "2026-04-21",
+      solvedAtMs: 456,
+      revealToken: "token",
+    });
+
+    expect(record.revealToken).toBe("token");
+  });
 });

@@ -21,8 +21,10 @@
 1.  **[프로젝트 철학 및 전략](docs/ko/CONCEPT.md)**: 왜 go-daily인가? 시장 포지셔닝, 상업적 철학 및 "린(Lean)" 운영에 대하여.
 2.  **[기술 아키텍처 상세 분석](docs/ko/ARCHITECTURE.md)**: `proxy.ts` 요청 생명주기, 3단계 영속성 엔진 및 6개 도메인 분리 리팩토링의 심층 이해.
 3.  **[제품 사양 및 기능 로직](docs/ko/PRODUCT_SPECS.md)**: SM-2 알고리즘 파라미터 매핑, 구독 권한 엔진 및 AI 코치 자격 판정 로직 상세 설명.
-4.  **[운영 및 품질 보증](docs/ko/OPERATIONS_QA.md)**: 운영 환경 배포 가이드, 47가지 배포 전 사전 점검 리스트 및 570개 이상의 테스트 스위트 전략.
-5.  **[실시간 프로젝트 간판](docs/en/PROJECT_STATUS.md)** (영어): 현재 스프린트 진행 상황 및 운영 환경 준비 상태 확인.
+4.  **[운영 및 품질 보증](docs/ko/OPERATIONS_QA.md)**: 운영 환경 배포 가이드, 47가지 배포 전 사전 점검 리스트 및 테스트 스위트 전략.
+5.  **[실시간 프로젝트 간판](docs/ko/PROJECT_STATUS.md)**: 현재 스프린트 진행 상황 및 운영 환경 준비 상태 확인.
+6.  **[API 레퍼런스](docs/en/API_REFERENCE.md)**: 전체 API 라우트 카탈로그 (요청/응답 스키마).
+7.  **[데이터베이스 스키마](docs/en/DATABASE_SCHEMA.md)**: Supabase 테이블 정의, 인덱스, RLS 정책.
 
 ---
 

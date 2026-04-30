@@ -76,6 +76,7 @@ describe("SyncStorage Queue & Backoff Mechanism", () => {
     userMove: { x: 1, y: 1 },
     correct: true,
     solvedAtMs: 1696118400000,
+    revealToken: "local-reveal-token",
   };
 
   it("queues attempt and flushes on success", async () => {
@@ -86,6 +87,7 @@ describe("SyncStorage Queue & Backoff Mechanism", () => {
     const queue = await idb.get(SYNC_QUEUE_KEY);
     expect(queue).toHaveLength(1);
     expect(queue[0].puzzleId).toBe("p1");
+    expect(queue[0]).not.toHaveProperty("revealToken");
 
     await vi.runAllTimersAsync();
 

@@ -3,9 +3,9 @@
 import { isLocalBoardDisplay } from "@/lib/board/boardDisplay";
 import { useLocale } from "@/lib/i18n/i18n";
 import { localized } from "@/lib/i18n/localized";
-import type { Puzzle } from "@/types";
+import type { PublicPuzzle } from "@/types";
 
-export function PuzzleHeader({ puzzle, metaLabel }: { puzzle: Puzzle; metaLabel?: string }) {
+export function PuzzleHeader({ puzzle, metaLabel }: { puzzle: PublicPuzzle; metaLabel?: string }) {
   const { t, locale } = useLocale();
   const toPlayLabel = puzzle.toPlay === "black" ? t.home.toPlayBlack : t.home.toPlayWhite;
   const primaryMeta = metaLabel ?? puzzle.source ?? puzzle.date;

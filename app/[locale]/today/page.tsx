@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
+import { toPublicPuzzle } from "@/lib/puzzle/publicPuzzle";
 import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzle/puzzleOfTheDay";
 import { absoluteUrl } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
@@ -32,7 +33,7 @@ export async function generateMetadata({
 export default async function TodayPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   const today = todayLocalKey();
-  const puzzle = await getPuzzleForDate(today);
+  const puzzle = toPublicPuzzle(await getPuzzleForDate(today));
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",

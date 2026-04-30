@@ -1,11 +1,85 @@
-# Repository guide for AI coding agents
+# Repository Guide for AI Coding Agents
 
-**Start here:** [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) — current phase, done vs pending, common pitfalls, key file paths.
+## Quick Orientation
 
-**Next phase (Stripe / paywall):** [`docs/phase2-next-steps.md`](docs/phase2-next-steps.md)
+**What**: go-daily — a daily Go (围棋) puzzle platform with Socratic AI coaching, 4-language i18n (zh/en/ja/ko), and Stripe subscriptions.
 
-**Architecture & i18n:** [`docs/en/ARCHITECTURE.md`](docs/en/ARCHITECTURE.md), [`docs/en/I18N_SEO.md`](docs/en/I18N_SEO.md)
+**Stack**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Supabase (Auth + Postgres), Stripe, DeepSeek AI, Vitest.
 
-**CI:** `.github/workflows/ci.yml` — run `npm run format:check && npm run lint && npm run test && npm run build` before large merges.
+**Key entry points**:
 
-Do not commit `.env.local` or secrets. Follow existing patterns in `lib/` and `components/`; locale-aware routes live under `app/[locale]/`.
+- `proxy.ts` — global middleware (auth refresh, locale negotiation, route guarding)
+- `app/[locale]/` — all user-facing pages (locale-prefixed)
+- `app/api/` — API route handlers
+- `lib/` — core business logic (six domains)
+- `content/` — puzzle data and i18n messages
+- `types/schemas.ts` — Zod schemas (single source of truth for shared types)
+
+## Architecture: Six Domains
+
+All core logic lives in `lib/` organized by domain:
+
+| Domain  | Path                         | Responsibility                                               |
+| ------- | ---------------------------- | ------------------------------------------------------------ |
+| Auth    | `lib/auth/`, `lib/supabase/` | Session management, device registry, RLS bypass              |
+| Board   | `lib/board/`                 | Go rules, move validation, SGF parsing, board display        |
+| Coach   | `lib/coach/`                 | AI prompting, quota management, persona system, eligibility  |
+| i18n    | `lib/i18n/`                  | Locale negotiation, path helpers, message validation         |
+| Puzzle  | `lib/puzzle/`                | Puzzle loading, SRS scheduling, collections, reveal tokens   |
+| Storage | `lib/storage/`               | Three-tier persistence (LocalStorage → IndexedDB → Supabase) |
+
+## Critical Rules
+
+1. **Never import server-only modules from client code.** `lib/stripe/server.ts`, `lib/coach/coachState.ts`, and `lib/supabase/service.ts` throw at runtime if imported in browser context.
+
+2. **Zod schemas are the source of truth.** Shared data structures derive from `types/schemas.ts`. Use `z.infer<typeof Schema>` in `types/index.ts`.
+
+3. **Locale-aware routing is mandatory.** Every user-facing page lives under `app/[locale]/`. Use `localePath()` from `lib/i18n/localePath.ts` to build URLs.
+
+4. **RLS is on for every table.** Client-side Supabase queries are scoped to `auth.uid() = user_id`. Use `lib/supabase/service.ts` (service_role) only for background tasks.
+
+5. **Attempt dedup key**: `puzzleId-solvedAtMs` is the global anchor for data sync across devices. Never modify this contract.
+
+## Testing
+
+```bash
+npm run test          # Run all (57 files, ~366 cases)
+npm run test:watch    # Watch mode
+npm run test:coverage # Coverage report (target: 70%+)
+```
+
+Tests mirror source under `tests/`: `tests/lib/`, `tests/components/`, `tests/api/`, `tests/app/`, `tests/scripts/`.
+
+All logic changes require unit tests. UI changes should have component tests for critical paths.
+
+## Build & CI
+
+```bash
+npm run prebuild      # Validates puzzles + i18n message keys
+npm run build         # Production build
+npm run lint          # ESLint
+npm run format:check  # Prettier check
+```
+
+CI pipeline (`.github/workflows/ci.yml`): format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → test → build.
+
+## Common Pitfalls
+
+- **i18n key drift**: Always run `npm run validate:messages` before committing. Keys must match across all 4 locale files in `content/messages/`.
+- **Coach eligibility**: Not all puzzles support coaching. Check `content/data/coachEligibleIds.json` and `lib/coach/coachEligibility.ts`.
+- **Stripe webhook idempotency**: Events are logged in `stripe_events` before processing. Never bypass this.
+- **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
+- **Environment variables**: See `.env.example` for the full list. Never commit `.env.local`. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.
+
+## Documentation
+
+| Document                            | Description                                                 |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `docs/{locale}/CONCEPT.md`          | Project mission, strategic phases, engineering philosophy   |
+| `docs/{locale}/ARCHITECTURE.md`     | Request lifecycle, six-domain modules, data flow            |
+| `docs/{locale}/PRODUCT_SPECS.md`    | Entitlements, SRS algorithm, subscription logic, compliance |
+| `docs/{locale}/OPERATIONS_QA.md`    | Deployment, preflight checks, test strategy                 |
+| `docs/{locale}/PROJECT_STATUS.md`   | Current phase, recent progress, next steps                  |
+| `docs/{locale}/API_REFERENCE.md`    | All API routes with request/response schemas                |
+| `docs/{locale}/DATABASE_SCHEMA.md`  | Supabase table definitions and RLS policies                 |
+| `docs/{locale}/LEGAL_COMPLIANCE.md` | Multi-jurisdiction legal strategy                           |

@@ -14,6 +14,7 @@ const checks: Check[] = [];
 
 const REQUIRED_ENV = [
   ["DEEPSEEK_API_KEY", "AI Coach provider key"],
+  ["PUZZLE_REVEAL_SECRET", "puzzle reveal token signing secret"],
   ["NEXT_PUBLIC_SITE_URL", "canonical production URL"],
   ["NEXT_PUBLIC_SUPABASE_URL", "Supabase project URL"],
   ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "Supabase browser publishable key"],
@@ -39,6 +40,7 @@ const OPTIONAL_DEFAULTS = [
 
 const SERVER_ONLY_ENV = [
   "DEEPSEEK_API_KEY",
+  "PUZZLE_REVEAL_SECRET",
   "SUPABASE_SERVICE_ROLE_KEY",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
@@ -262,6 +264,14 @@ function validateEnvironment(stripeMode: string): void {
   if (isFilled("CRON_SECRET")) {
     if (env("CRON_SECRET").length >= 24) pass("CRON_SECRET length is reasonable");
     else warn("CRON_SECRET should be at least 24 characters");
+  }
+
+  if (isFilled("PUZZLE_REVEAL_SECRET")) {
+    if (env("PUZZLE_REVEAL_SECRET").length >= 32) {
+      pass("PUZZLE_REVEAL_SECRET length is reasonable");
+    } else {
+      fail("PUZZLE_REVEAL_SECRET length is at least 32 characters");
+    }
   }
 
   const trialDays = env("STRIPE_TRIAL_DAYS");

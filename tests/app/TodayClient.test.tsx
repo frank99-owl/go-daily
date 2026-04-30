@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
@@ -6,7 +6,7 @@ import { TodayClient } from "@/app/[locale]/TodayClient";
 import { useCurrentUser } from "@/lib/auth/auth";
 import { LocaleProvider } from "@/lib/i18n/i18n";
 import { createSyncStorage } from "@/lib/storage/syncStorage";
-import type { Puzzle } from "@/types";
+import type { PublicPuzzle } from "@/types";
 
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
@@ -24,13 +24,12 @@ vi.mock("@/lib/storage/syncStorage", () => ({
   })),
 }));
 
-const puzzle: Puzzle = {
+const puzzle: PublicPuzzle = {
   id: "cld-001",
   date: "2026-04-21",
   boardSize: 9,
   stones: [],
   toPlay: "black",
-  correct: [{ x: 4, y: 4 }],
   tag: "life-death",
   difficulty: 1,
   prompt: {
@@ -39,12 +38,8 @@ const puzzle: Puzzle = {
     ja: "黒先活",
     ko: "흑선활",
   },
-  solutionNote: {
-    zh: "占住急所。",
-    en: "Take the vital point.",
-    ja: "急所を占める。",
-    ko: "급소를 차지한다.",
-  },
+  source: "2026-04-21",
+  coachAvailable: false,
 };
 
 describe("TodayClient keyboard support", () => {
@@ -54,6 +49,17 @@ describe("TodayClient keyboard support", () => {
     vi.clearAllMocks();
     vi.mocked(useRouter).mockReturnValue({ push } as unknown as ReturnType<typeof useRouter>);
     vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false, error: null });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          puzzleId: "cld-001",
+          userMove: { x: 4, y: 4 },
+          correct: true,
+          revealToken: "reveal-token",
+        }),
+      ),
+    );
   });
 
   it("lets the board select a move with Enter and clears it with R", async () => {
@@ -84,12 +90,21 @@ describe("TodayClient keyboard support", () => {
     fireEvent.keyDown(boardWrapper!, { key: "Enter" });
     fireEvent.click(screen.getByRole("button", { name: "Confirm move" }));
 
+    await waitFor(() => expect(saveAttempt).toHaveBeenCalledTimes(1));
     expect(createSyncStorage).toHaveBeenCalledWith(null);
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/puzzle/attempt",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ puzzleId: "cld-001", userMove: { x: 4, y: 4 } }),
+      }),
+    );
     expect(saveAttempt).toHaveBeenCalledWith(
       expect.objectContaining({
         puzzleId: "cld-001",
         userMove: { x: 4, y: 4 },
         correct: true,
+        revealToken: "reveal-token",
       }),
     );
     expect(push).toHaveBeenCalledWith("/en/result?id=cld-001");
@@ -112,7 +127,7 @@ describe("TodayClient keyboard support", () => {
     fireEvent.keyDown(boardWrapper!, { key: "Enter" });
     fireEvent.click(screen.getByRole("button", { name: "Confirm move" }));
 
+    await waitFor(() => expect(saveAttempt).toHaveBeenCalledTimes(1));
     expect(createSyncStorage).toHaveBeenCalledWith("user-123");
-    expect(saveAttempt).toHaveBeenCalledTimes(1);
   });
 });

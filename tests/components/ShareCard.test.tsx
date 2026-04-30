@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ShareCard } from "@/components/ShareCard";
 import { LocaleProvider } from "@/lib/i18n/i18n";
-import type { Puzzle } from "@/types";
+import type { PublicPuzzle } from "@/types";
 
-const puzzle: Puzzle = {
+const puzzle: PublicPuzzle = {
   id: "share-001",
   date: "2026-04-24",
   boardSize: 9,
@@ -14,7 +14,6 @@ const puzzle: Puzzle = {
     { x: 4, y: 4, color: "white" },
   ],
   toPlay: "black",
-  correct: [{ x: 2, y: 2 }],
   tag: "life-death",
   difficulty: 2,
   prompt: {
@@ -23,12 +22,8 @@ const puzzle: Puzzle = {
     ja: "黒先活",
     ko: "흑선활",
   },
-  solutionNote: {
-    zh: "占住急所。",
-    en: "Take the vital point.",
-    ja: "急所を占める。",
-    ko: "급소를 차지한다.",
-  },
+  source: "2026-04-24",
+  coachAvailable: false,
 };
 
 function renderShareCard() {
