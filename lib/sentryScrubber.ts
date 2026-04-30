@@ -15,7 +15,13 @@ function scrubUrl(url: string): string {
 }
 
 function scrubValue(value: unknown): unknown {
-  if (typeof value === "string") return scrubString(value);
+  if (typeof value === "string") {
+    const scrubbed = scrubString(value);
+    if (scrubbed.startsWith("http://") || scrubbed.startsWith("https://")) {
+      return scrubUrl(scrubbed);
+    }
+    return scrubbed;
+  }
   if (Array.isArray(value)) return value.map(scrubValue);
   if (value && typeof value === "object") {
     return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, scrubValue(v)]));
@@ -57,6 +63,18 @@ export function scrubSentryEvent(event: any): any {
         event.contexts[key] = scrubValue(event.contexts[key]) as Record<string, unknown>;
       }
     }
+  }
+
+  if (event.user) {
+    event.user = scrubValue(event.user) as Record<string, unknown>;
+  }
+
+  if (event.extra) {
+    event.extra = scrubValue(event.extra) as Record<string, unknown>;
+  }
+
+  if (event.tags) {
+    event.tags = scrubValue(event.tags) as Record<string, unknown>;
   }
 
   return event;

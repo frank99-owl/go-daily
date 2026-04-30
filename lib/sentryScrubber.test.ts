@@ -58,4 +58,42 @@ describe("scrubSentryEvent", () => {
     expect(result!.message).toBe("Normal error");
     expect(result!.exception!.values[0].value).toBe("TypeError: x is undefined");
   });
+
+  it("scrubs email from event.user", () => {
+    const event = {
+      user: { email: "alice@example.com", id: "user-123" },
+    };
+    const result = scrubSentryEvent(event);
+    expect(result!.user!.email).toBe("[redacted-email]");
+    expect(result!.user!.id).toBe("user-123");
+  });
+
+  it("strips query and hash from URLs in event.extra", () => {
+    const event = {
+      extra: { url: "https://go-daily.app/page?token=secret#section" },
+    };
+    const result = scrubSentryEvent(event);
+    expect(result!.extra!.url).toBe("https://go-daily.app/page");
+  });
+
+  it("scrubs sensitive values in event.tags", () => {
+    const event = {
+      tags: { user_email: "bob@test.org", env: "production" },
+    };
+    const result = scrubSentryEvent(event);
+    expect(result!.tags!.user_email).toBe("[redacted-email]");
+    expect(result!.tags!.env).toBe("production");
+  });
+
+  it("scrubs URLs, emails, and tokens in nested objects and arrays", () => {
+    const event = {
+      extra: {
+        links: ["https://app.com/callback?code=abc", "http://other.org/path#frag"],
+        users: [{ email: "nested@user.com", note: "token_abcdefghij" }],
+      },
+    };
+    const result = scrubSentryEvent(event);
+    expect(result!.extra!.links).toEqual(["https://app.com/callback", "http://other.org/path"]);
+    expect(result!.extra!.users[0].email).toBe("[redacted-email]");
+  });
 });
