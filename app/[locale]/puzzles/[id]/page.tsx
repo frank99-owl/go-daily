@@ -39,16 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// Puzzle pages are served via ISR on first hit, then cached until the next
-// revalidate window. This keeps cold builds fast.
-export async function generateStaticParams() {
-  return [];
-}
-
-export const dynamicParams = true;
-
-// Rebuild puzzle pages at most once per day in the background.
-export const revalidate = 86400;
+// RootLayout reads request headers to set <html lang>, so puzzle detail pages
+// must render dynamically in production instead of ISR/SSG.
+export const dynamic = "force-dynamic";
 
 export default async function PuzzleDetailPage({ params }: Props) {
   const { id } = await params;
