@@ -1,7 +1,7 @@
 import type { Puzzle } from "@/types";
 
 import coachEligibleIds from "./data/coachEligibleIds.json";
-import { buildEditorialPrompt, buildEditorialSolutionNote } from "./editorialTemplates";
+import { buildEditorialPrompt } from "./editorialTemplates";
 
 const EDITORIAL_OVERRIDE_IDS = new Set<string>(coachEligibleIds as string[]);
 
@@ -17,6 +17,5 @@ export function applyEditorialOverride(puzzle: Puzzle): Puzzle {
   return {
     ...puzzle,
     prompt: buildEditorialPrompt(puzzle),
-    solutionNote: buildEditorialSolutionNote(puzzle),
   };
 }

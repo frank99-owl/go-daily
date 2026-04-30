@@ -4,6 +4,7 @@
     "today": "Today's Puzzle",
     "stats": "Stats",
     "home": "Home",
+    "mentors": "Mentors",
     "puzzles": "Puzzles",
     "review": "Review",
     "about": "About",
@@ -65,6 +66,10 @@
     "backToToday": "Back to today",
     "backToHome": "Back to home",
     "coachTitle": "AI Coach",
+    "selectMentor": "Select Your Mentor",
+    "coachStatAggression": "Aggression",
+    "coachStatPatience": "Patience",
+    "coachStatLogic": "Logic",
     "coachEmpty": "Ask anything — e.g. \"Why is this the vital point?\" or \"What happens if White hanes?\"",
     "coachPlaceholder": "Ask the coach…",
     "send": "Send",
@@ -156,6 +161,12 @@
     "collectionTagDescription": "Browse {{count}} puzzles in {{tag}}.",
     "collectionDifficultyDescription": "Browse {{count}} puzzles at difficulty {{level}}.",
     "backToLibrary": "Back to library"
+  },
+  "mentors": {
+    "title": "Meet Your Mentors",
+    "eyebrow": "AI Coach Roster",
+    "description": "Every Go puzzle on go-daily is analyzed by top-tier Go engines. Our AI Mentors interpret this logic through their unique historical personas and coaching styles.",
+    "footer": "All mentors are powered by high-precision Go AI reasoning."
   },
   "review": {
     "title": "Review",

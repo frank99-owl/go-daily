@@ -4,6 +4,7 @@
     "today": "오늘의 문제",
     "stats": "기록",
     "home": "홈",
+    "mentors": "멘토",
     "puzzles": "문제집",
     "review": "오답노트",
     "about": "프로젝트 소개",
@@ -65,7 +66,11 @@
     "retry": "다시 풀기",
     "backToToday": "오늘로 돌아가기",
     "backToHome": "홈으로 돌아가기",
-    "coachTitle": "AI 코치",
+    "coachTitle": "AI 멘토",
+    "selectMentor": "멘토 선택",
+    "coachStatAggression": "공격성",
+    "coachStatPatience": "인내력",
+    "coachStatLogic": "논리력",
     "coachEmpty": "무엇이든 물어보세요 — 예: \"왜 이곳이 급소인가요?\" / \"백이 젖히면 어떻게 되나요?\"",
     "coachPlaceholder": "코치에게 물어보기…",
     "send": "보내기",
@@ -157,6 +162,12 @@
     "collectionTagDescription": "{{tag}} 문제 {{count}}개를 한 번에 둘러보세요.",
     "collectionDifficultyDescription": "난이도 {{level}} 문제 {{count}}개를 한 번에 둘러보세요.",
     "backToLibrary": "문제집으로 돌아가기"
+  },
+  "mentors": {
+    "title": "멘토를 만나보세요",
+    "eyebrow": "AI 멘토 라인업",
+    "description": "go-daily의 모든 문제는 최고 수준의 바둑 엔진으로 분석됩니다. AI 멘토들이 각자의 고유한 기풍과 성격에 맞춰 수읽기를 설명해 드립니다.",
+    "footer": "모든 멘토는 고정밀 바둑 AI 추론을 기반으로 작동합니다."
   },
   "review": {
     "title": "오답노트",

@@ -4,6 +4,7 @@
     "today": "今日の問題",
     "stats": "戦績",
     "home": "ホーム",
+    "mentors": "メンター",
     "puzzles": "問題集",
     "review": "復習",
     "about": "プロジェクト紹介",
@@ -65,7 +66,11 @@
     "retry": "もう一度解く",
     "backToToday": "今日に戻る",
     "backToHome": "ホームへ戻る",
-    "coachTitle": "AI コーチ",
+    "coachTitle": "AI メンター",
+    "selectMentor": "メンターを選択",
+    "coachStatAggression": "攻撃性",
+    "coachStatPatience": "忍耐力",
+    "coachStatLogic": "論理性",
     "coachEmpty": "気になることを何でもどうぞ——「なぜここが急所？」「白がハネたらどうなる？」",
     "coachPlaceholder": "コーチに質問…",
     "send": "送信",
@@ -156,7 +161,13 @@
     "collectionDifficultyEyebrow": "難易度コレクション",
     "collectionTagDescription": "{{tag}} の問題を {{count}} 問まとめて見られます。",
     "collectionDifficultyDescription": "難易度 {{level}} の問題を {{count}} 問まとめて見られます。",
-    "backToLibrary": "問題一覧へ戻る"
+    "backToLibrary": "問題集に戻る"
+  },
+  "mentors": {
+    "title": "メンター紹介",
+    "eyebrow": "AI メンター陣",
+    "description": "go-daily のすべての問題は、トップクラスの囲碁エンジンによって分析されています。AI メンターがそれぞれの棋風や性格に合わせて、ロジックを解説します。",
+    "footer": "すべてのメンターは高精度な囲碁 AI 推理によって駆動されています。"
   },
   "review": {
     "title": "復習ノート",

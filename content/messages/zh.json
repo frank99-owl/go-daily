@@ -4,6 +4,7 @@
     "today": "今日题目",
     "stats": "战绩",
     "home": "首页",
+    "mentors": "导师",
     "puzzles": "题库",
     "review": "错题本",
     "about": "项目介绍",
@@ -66,6 +67,10 @@
     "backToToday": "返回今日",
     "backToHome": "返回首页",
     "coachTitle": "AI 教练",
+    "selectMentor": "选择你的导师",
+    "coachStatAggression": "攻击性",
+    "coachStatPatience": "耐心值",
+    "coachStatLogic": "逻辑性",
     "coachEmpty": "想到什么随时问——比如「为什么这一手是急所？」「如果白去扑会怎么样？」",
     "coachPlaceholder": "向 AI 提问…",
     "send": "发送",
@@ -157,6 +162,12 @@
     "collectionTagDescription": "浏览 {{tag}} 分类下的 {{count}} 道题。",
     "collectionDifficultyDescription": "浏览难度 {{level}} 下的 {{count}} 道题。",
     "backToLibrary": "返回题库"
+  },
+  "mentors": {
+    "title": "遇见你的导师",
+    "eyebrow": "AI 导师阵容",
+    "description": "go-daily 的每一道题目都经过顶级围棋引擎分析。我们的 AI 导师会根据他们独特的棋风和性格，为你拆解这些棋理。",
+    "footer": "所有导师均由高精度围棋 AI 推理驱动。"
   },
   "review": {
     "title": "错题本",
