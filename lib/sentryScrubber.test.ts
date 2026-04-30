@@ -96,4 +96,50 @@ describe("scrubSentryEvent", () => {
     expect(result!.extra!.links).toEqual(["https://app.com/callback", "http://other.org/path"]);
     expect(result!.extra!.users[0].email).toBe("[redacted-email]");
   });
+
+  it("scrubs stack frame string fields", () => {
+    const event = {
+      exception: {
+        values: [
+          {
+            value: "Failed for alice@example.com",
+            stacktrace: {
+              frames: [
+                {
+                  filename: "https://go-daily.app/page?token=abc123456789abcdef#frag",
+                  abs_path: "https://go-daily.app/source?email=alice@example.com",
+                  function: "load alice@example.com",
+                  module: "/callback?token=secret#frag",
+                  vars: { redirect: "https://go-daily.app/next?code=abc#section" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+
+    const result = scrubSentryEvent(event);
+    const frame = result!.exception!.values[0].stacktrace.frames[0];
+    expect(frame.filename).toBe("https://go-daily.app/page");
+    expect(frame.abs_path).toBe("https://go-daily.app/source");
+    expect(frame.function).toBe("load [redacted-email]");
+    expect(frame.module).toBe("/callback");
+    expect(frame.vars.redirect).toBe("https://go-daily.app/next");
+  });
+
+  it("strips query and hash from relative and embedded URLs", () => {
+    const event = {
+      extra: {
+        relative: "/callback?token=secret#frag",
+        embedded: "see https://go-daily.app/a?token=secret#x.",
+        safePath: "/plain/path",
+      },
+    };
+
+    const result = scrubSentryEvent(event);
+    expect(result!.extra!.relative).toBe("/callback");
+    expect(result!.extra!.embedded).toBe("see https://go-daily.app/a.");
+    expect(result!.extra!.safePath).toBe("/plain/path");
+  });
 });

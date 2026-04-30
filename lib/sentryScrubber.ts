@@ -1,8 +1,11 @@
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const TOKEN_RE = /\b(?:reveal|token|unsubscribe)[_-]?[A-Za-z0-9_-]{8,}\b/gi;
+const ABSOLUTE_URL_RE = /\bhttps?:\/\/[^\s<>"'`]+/gi;
+const RELATIVE_URL_RE = /(^|[\s([{"'=])\/(?!\/)[^\s<>"'`)]*/g;
+const TRAILING_URL_PUNCT_RE = /[)\].,;!?]+$/;
 
 export function redactString(value: string): string {
-  return value.replace(EMAIL_RE, "[redacted-email]").replace(TOKEN_RE, "[redacted-token]");
+  return redactSensitiveText(redactUrlsInString(value));
 }
 
 export function stripUrlQueryAndHash(url: string): string {
@@ -10,13 +13,41 @@ export function stripUrlQueryAndHash(url: string): string {
     const parsed = new URL(url);
     return parsed.origin + parsed.pathname;
   } catch {
+    if (url.startsWith("/") && !url.startsWith("//")) {
+      try {
+        const parsed = new URL(url, "https://telemetry.local");
+        return parsed.pathname;
+      } catch {
+        return url;
+      }
+    }
     return url;
   }
 }
 
+function redactSensitiveText(value: string): string {
+  return value.replace(EMAIL_RE, "[redacted-email]").replace(TOKEN_RE, "[redacted-token]");
+}
+
+function stripMatchedUrl(rawUrl: string): string {
+  const trailing = rawUrl.match(TRAILING_URL_PUNCT_RE)?.[0] ?? "";
+  const url = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+  return stripUrlQueryAndHash(url) + trailing;
+}
+
+function redactUrlsInString(value: string): string {
+  return value
+    .replace(ABSOLUTE_URL_RE, (url) => stripMatchedUrl(url))
+    .replace(RELATIVE_URL_RE, (match, prefix: string) => {
+      const url = match.slice(prefix.length);
+      if (!url.includes("?") && !url.includes("#")) return match;
+      return prefix + stripMatchedUrl(url);
+    });
+}
+
 // Internal aliases for backward compatibility within this module
 const scrubString = redactString;
-const scrubUrl = stripUrlQueryAndHash;
+const scrubUrl = (url: string) => redactSensitiveText(stripUrlQueryAndHash(url));
 
 function scrubValue(value: unknown): unknown {
   if (typeof value === "string") {
@@ -44,7 +75,7 @@ export function scrubSentryEvent(event: any): any {
       if (ex.value) ex.value = scrubString(ex.value);
       if (ex.stacktrace?.frames) {
         for (const frame of ex.stacktrace.frames) {
-          if (frame.vars) frame.vars = scrubValue(frame.vars) as Record<string, unknown>;
+          Object.assign(frame, scrubValue(frame) as Record<string, unknown>);
         }
       }
     }
