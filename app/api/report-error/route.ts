@@ -4,6 +4,7 @@ import { createApiResponse } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { createRateLimiter } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
+import { redactString, stripUrlQueryAndHash } from "@/lib/sentryScrubber";
 import { ClientErrorReportSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
@@ -11,22 +12,21 @@ export const runtime = "nodejs";
 const MAX_BODY_BYTES = 4 * 1024;
 const rateLimiter = createRateLimiter();
 
-const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-const TOKEN_RE = /\b[A-Za-z0-9_-]{20,}\b/g;
+const BROAD_TOKEN_RE = /\b[A-Za-z0-9_-]{20,}\b/g;
 
 type ClientErrorReport = ReturnType<typeof ClientErrorReportSchema.parse>;
 
 function sanitizeMessage(msg: string): string {
-  return msg.replace(EMAIL_RE, "[redacted-email]").replace(TOKEN_RE, "[redacted-token]");
+  return redactString(msg).replace(BROAD_TOKEN_RE, "[redacted-token]");
 }
 
 function sanitizeUrl(url: string): string {
   try {
-    const parsed = new URL(url);
-    return parsed.origin + parsed.pathname;
+    new URL(url);
   } catch {
     return "[invalid-url]";
   }
+  return stripUrlQueryAndHash(url);
 }
 
 function sanitizeStack(stack: string | undefined): string | undefined {

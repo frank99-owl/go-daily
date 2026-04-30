@@ -1,11 +1,11 @@
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const TOKEN_RE = /\b(?:reveal|token|unsubscribe)[_-]?[A-Za-z0-9_-]{8,}\b/gi;
 
-function scrubString(value: string): string {
+export function redactString(value: string): string {
   return value.replace(EMAIL_RE, "[redacted-email]").replace(TOKEN_RE, "[redacted-token]");
 }
 
-function scrubUrl(url: string): string {
+export function stripUrlQueryAndHash(url: string): string {
   try {
     const parsed = new URL(url);
     return parsed.origin + parsed.pathname;
@@ -13,6 +13,10 @@ function scrubUrl(url: string): string {
     return url;
   }
 }
+
+// Internal aliases for backward compatibility within this module
+const scrubString = redactString;
+const scrubUrl = stripUrlQueryAndHash;
 
 function scrubValue(value: unknown): unknown {
   if (typeof value === "string") {
