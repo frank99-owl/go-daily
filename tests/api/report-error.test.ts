@@ -42,6 +42,27 @@ describe("/api/report-error", () => {
     sentryMocks.withScope.mockClear();
   });
 
+  it("rejects cross-origin POST with 403", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/report-error", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "https://evil.example",
+        },
+        body: JSON.stringify({
+          message: "test",
+          url: "https://go-daily.app/page",
+          timestamp: Date.now(),
+          userAgent: "Vitest",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "forbidden" });
+  });
+
   it("rejects non-JSON content types", async () => {
     const response = await POST(
       new Request("http://localhost/api/report-error", {
@@ -116,14 +137,46 @@ describe("/api/report-error", () => {
     expect(sentryMocks.scope.setContext).toHaveBeenCalledWith(
       "client_error",
       expect.objectContaining({
-        url: "https://go-daily.app/result?id=cld-001",
-        userAgent: "Vitest",
+        url: "https://go-daily.app/result",
         locale: "en",
         puzzleId: "cld-001",
       }),
     );
     expect(sentryMocks.captureException).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Client exploded" }),
+    );
+  });
+
+  it("strips query and hash from URL before reporting to Sentry", async () => {
+    const response = await POST(
+      makeRequest({
+        message: "Broken",
+        url: "https://go-daily.app/page?token=secret&utm_source=email#section",
+        timestamp: Date.now(),
+        userAgent: "Vitest",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(sentryMocks.scope.setContext).toHaveBeenCalledWith(
+      "client_error",
+      expect.objectContaining({ url: "https://go-daily.app/page" }),
+    );
+  });
+
+  it("redacts email addresses from error messages", async () => {
+    const response = await POST(
+      makeRequest({
+        message: "Failed for user alice@example.com",
+        url: "https://go-daily.app/page",
+        timestamp: Date.now(),
+        userAgent: "Vitest",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(sentryMocks.captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Failed for user [redacted-email]" }),
     );
   });
 

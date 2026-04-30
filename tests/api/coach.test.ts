@@ -192,6 +192,26 @@ describe("/api/coach", () => {
     process.env = originalEnv;
   });
 
+  it("rejects cross-origin POST with 403", async () => {
+    const request = new Request("http://localhost/api/coach", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://evil.example",
+      },
+      body: JSON.stringify({
+        puzzleId: "p-00001",
+        locale: "en",
+        userMove: { x: 18, y: 0 },
+        history: [],
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "forbidden" });
+  });
+
   it("rejects non-JSON content types", async () => {
     const request = new Request("http://localhost/api/coach", {
       method: "POST",
