@@ -14,6 +14,7 @@ import {
 } from "@/lib/coach/coachState";
 import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { createRateLimiter } from "@/lib/rateLimit";
+import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { CoachMessage } from "@/types";
@@ -53,6 +54,10 @@ function maskKey(key: string): string {
 
 export async function POST(request: Request) {
   const startTime = Date.now();
+
+  if (!isSameOriginMutationRequest(request)) {
+    return createApiResponse({ error: "forbidden" }, { status: 403 });
+  }
 
   // Content-Type validation
   const contentType = request.headers.get("content-type");

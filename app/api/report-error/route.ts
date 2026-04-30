@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/nextjs";
 import { createApiResponse } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { createRateLimiter } from "@/lib/rateLimit";
+import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { ClientErrorReportSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
@@ -10,9 +11,31 @@ export const runtime = "nodejs";
 const MAX_BODY_BYTES = 4 * 1024;
 const rateLimiter = createRateLimiter();
 
+const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+const TOKEN_RE = /\b[A-Za-z0-9_-]{20,}\b/g;
+
 type ClientErrorReport = ReturnType<typeof ClientErrorReportSchema.parse>;
 
-function captureClientErrorReport(report: ClientErrorReport, ip: string): void {
+function sanitizeMessage(msg: string): string {
+  return msg.replace(EMAIL_RE, "[redacted-email]").replace(TOKEN_RE, "[redacted-token]");
+}
+
+function sanitizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return parsed.origin + parsed.pathname;
+  } catch {
+    return "[invalid-url]";
+  }
+}
+
+function sanitizeStack(stack: string | undefined): string | undefined {
+  if (!stack) return undefined;
+  const firstLines = stack.split("\n").slice(0, 3).join("\n");
+  return firstLines.length > 500 ? firstLines.slice(0, 500) : firstLines;
+}
+
+function captureClientErrorReport(report: ClientErrorReport): void {
   Sentry.withScope((scope) => {
     scope.setTag("source", "client-error-report");
     scope.setTag("client_locale", report.locale ?? "unknown");
@@ -20,23 +43,26 @@ function captureClientErrorReport(report: ClientErrorReport, ip: string): void {
       scope.setTag("puzzle_id", report.puzzleId);
     }
     scope.setContext("client_error", {
-      ip,
-      url: report.url,
+      url: sanitizeUrl(report.url),
       timestamp: report.timestamp,
-      userAgent: report.userAgent,
       locale: report.locale,
       puzzleId: report.puzzleId,
     });
 
-    const error = new Error(report.message);
-    if (report.stack) {
-      error.stack = report.stack;
+    const error = new Error(sanitizeMessage(report.message));
+    const sanitizedStack = sanitizeStack(report.stack);
+    if (sanitizedStack) {
+      error.stack = sanitizedStack;
     }
     Sentry.captureException(error);
   });
 }
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutationRequest(request)) {
+    return createApiResponse({ error: "forbidden" }, { status: 403 });
+  }
+
   const contentType = request.headers.get("content-type");
   if (!contentType?.includes("application/json")) {
     return createApiResponse({ error: "Content-Type must be application/json." }, { status: 400 });
@@ -80,16 +106,13 @@ export async function POST(request: Request) {
   const report = parsed.data;
 
   console.error("[client-error]", {
-    ip,
-    message: report.message,
-    stack: report.stack,
-    url: report.url,
+    message: sanitizeMessage(report.message),
+    url: sanitizeUrl(report.url),
     timestamp: report.timestamp,
-    userAgent: report.userAgent,
     locale: report.locale,
     puzzleId: report.puzzleId,
   });
-  captureClientErrorReport(report, ip);
+  captureClientErrorReport(report);
 
   return createApiResponse({ ok: true });
 }

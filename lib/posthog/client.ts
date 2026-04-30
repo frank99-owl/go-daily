@@ -18,7 +18,7 @@ export function initPostHog() {
       person_profiles: "identified_only",
       capture_pageview: false, // we fire manually to include locale
       capture_pageleave: true,
-      autocapture: true,
+      autocapture: false,
       persistence: "localStorage+cookie",
     });
     initReady = true;
