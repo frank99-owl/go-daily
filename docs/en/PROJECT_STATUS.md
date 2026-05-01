@@ -21,7 +21,7 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **Coach Expansion**: Removed curated distinction; expanded coach-ready puzzles to 1,269 (`ae8ecce`).
 - **Core Flow Hardening**: Fixed high-risk vulnerabilities and added core flow tests (`690a9a3`).
 - **Auth Refactor**: Integrated Korea PIPA consent into sequential login flow (`6f135b7`).
-- **Test Suite**: 57 test files, ~366 test cases covering logic, UI, and API layers.
+- **Test Suite**: 81 test files, ~631 test cases covering logic, UI, and API layers.
 
 ## 4. Immediate Next Steps (Phase 3)
 

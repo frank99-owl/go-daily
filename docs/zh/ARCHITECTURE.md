@@ -1,14 +1,15 @@
 # 技术架构与核心模块 (ARCHITECTURE)
 
-本文件描述了 go-daily 的内部结构，反映了 `lib/` 目录的“六域分域”重构以及集中式中间件逻辑。
+本文件描述了 go-daily 的内部结构，反映了 `lib/` 目录的”九域分域”重构以及集中式中间件逻辑。
 
 ## 1. 全局请求生命周期 (`proxy.ts`)
 
-所有用户侧请求都会经过 `proxy.ts` 中间件。它在单次传递中处理三个关键任务：
+所有用户侧请求都会经过 `proxy.ts` 中间件。它在单次传递中处理四个关键任务：
 
-1.  **身份刷新 (Auth Refresh)**：利用 `@supabase/ssr` 在每次导航时刷新 Session Cookie，确保服务端组件 (RSC) 始终持有最新的用户信息。
-2.  **国际化协商 (Locale Negotiation)**：处理 308 (永久) 重定向矩阵，确保所有路径都带有语言前缀 (`/{zh|en|ja|ko}/...`)。
-3.  **路由守卫 (Route Guarding)**：拦截受保护路径（如 `/account`, `/pricing/checkout`），并将未登录用户引导至登录页。
+1.  **Manifest 特殊处理**：拦截 PWA Manifest 请求并返回对应的版本。
+2.  **豁免路径放行**：允许特定路径（静态资源、API Webhook 等）跳过所有中间件逻辑。
+3.  **身份刷新与认证重定向 (Auth Refresh & Redirect)**：利用 `@supabase/ssr` 在每次导航时刷新 Session Cookie，确保服务端组件 (RSC) 始终持有最新的用户状态。已加前缀路径（如 `/en/account` 等）在此进行守卫——未登录用户访问 `/account` 会被重定向至 `/login?next=...`，已登录用户访问 `/login` 会被重定向至 `/account`。
+4.  **国际化协商 (Locale Negotiation)**：对于未加前缀的路径，处理 308 (永久) 重定向矩阵，确保所有路径都带有语言前缀 (`/{zh|en|ja|ko}/...`)。
 
 ## 2. 核心领域模块 (`lib/`)
 
@@ -19,11 +20,11 @@
 
 ### `lib/storage/` (持久化引擎)
 
-系统采用分层同步模型：
+系统采用三态同步模型：
 
-1.  **匿名层 (LocalStorage)**：非登录用户的首要存储。
-2.  **队列层 (IndexedDB)**：待处理的练习记录存入持久化的 IndexedDB 队列。即使在同步完成前关闭标签页，数据也不会丢失。
-3.  **云端层 (Supabase)**：数据的最终事实来源。`syncStorage.ts` 编排由 `online` 事件或页面加载触发的“冲刷 (Flush)”逻辑。
+1.  **`anon`（仅 LocalStorage）**：非登录用户的首要存储，不发起任何网络请求。
+2.  **`logged-in-online`（LocalStorage + IndexedDB 队列 + Supabase）**：已登录且有网络连接的用户。写入操作首先存入 LocalStorage 以获得即时反馈，同时入队 IndexedDB 作为持久缓冲，并通过 `syncStorage.ts` 立即批量刷新至 Supabase。
+3.  **`logged-in-offline`（LocalStorage + IndexedDB 队列）**：已登录但失去网络连接的用户。写入操作仍存入 LocalStorage 和 IndexedDB，但 Supabase 刷新会被推迟。重试机制会在 `online` 事件触发或下次页面加载时发起同步。
 
 ### `lib/coach/` (AI 智能)
 
@@ -33,7 +34,26 @@
 ### `lib/i18n/` (全球化呈现)
 
 - **路径优先**：我们倾向于使用 URL 参数而非 Cookie 来存储语言状态，确保搜索引擎可以独立抓取 4,800+ 个本地化页面。
-- **零飘移校验**：`validateMessages.ts` 确保 `zh`, `en`, `ja`, `ko` 之间的翻译 Key 在构建时永远保持对齐。
+- **零飘移校验**：`scripts/validateMessages.ts` 确保 `zh`, `en`, `ja`, `ko` 之间的翻译 Key 在构建时永远保持对齐。
+
+### `lib/board/` (棋盘逻辑)
+
+- **核心引擎**：落子、规则判定（气、提子、打劫）以及棋盘显示，分布在 6 个源文件中。
+- **SGF 解析**：支持完整的 SGF（Smart Game Format）导入/导出，用于棋谱记录和题目定义。
+
+### `lib/puzzle/` (题目引擎)
+
+- **SRS 调度**：间隔重复算法驱动每日复习队列，8 个源文件涵盖题集、每日选题、复习流程和揭示令牌 (Reveal Token)。
+- **权益管理**：跟踪题目访问权限和连胜状态，与用户的订阅层级挂钩。
+
+### `lib/stripe/` (支付)
+
+- **服务端 SDK 封装**：单一 `server.ts` 文件，封装 Stripe Node SDK，用于服务端结账、订阅管理和 Webhook 验证。
+
+### `lib/posthog/` (数据分析)
+
+- **服务端追踪**：从服务端进行 PostHog 事件追踪，使用类型化的事件定义确保分析一致性。
+- **隐私保护**：事件在离开服务端前通过 `beforeSend` 钩子过滤，剥离敏感用户数据。
 
 ## 3. 数据流：练习记录的生命周期
 

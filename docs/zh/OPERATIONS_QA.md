@@ -31,7 +31,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自动化覆盖 (Vitest)
 
-我们维护 57 个测试文件，约 366 个测试用例，涵盖：
+我们维护 81 个测试文件，约 631 个测试用例，涵盖：
 
 - **逻辑**: `lib/srs.test.ts`, `lib/entitlements.test.ts`。
 - **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`。
@@ -59,9 +59,29 @@ npm run preflight:prod -- --stripe-mode=live
 运行测试：
 
 ```bash
-npm run test          # 运行全部
-npm run test:watch    # 监听模式
-npm run test:coverage # 带覆盖率报告（目标：70%+）
+npm run dev               # 本地开发服务器
+npm run build             # 生产构建
+npm run start             # 启动生产服务器
+npm run lint              # ESLint 检查
+npm run test              # 运行全部测试
+npm run test:watch        # 监听模式
+npm run test:coverage     # 带覆盖率报告（目标：70%+）
+npm run format            # Prettier 格式化
+npm run format:check      # 检查格式
+npm run import:puzzles    # 导入题库
+npm run generate:katago   # 生成 KataGo 分析
+npm run sync:puzzle-index # 同步题库索引
+npm run validate:puzzles  # 校验题库
+npm run validate:messages # 校验消息文件
+npm run preflight:prod    # 生产环境预检
+npm run audit:puzzles     # 审计题库
+npm run report:duplicates # 报告重复题目
+npm run report:quality    # 报告题库质量
+npm run queue:content     # 内容队列管理
+npm run gemini:solutions  # Gemini 解题方案
+npm run mimo:solutions    # MiMo 解题方案
+npm run supabase:health   # Supabase 健康检查
+npm run email:smoketest   # 邮件烟感测试
 ```
 
 ## 6. 上线前合规自检 (Compliance Audit)

@@ -16,6 +16,8 @@
 
 ## 📚 Documentation
 
+> Full documentation index: [docs/README.md](docs/README.md) | Changelog: [CHANGELOG.md](CHANGELOG.md)
+
 Our documentation is structured around core logical pillars to ensure deep understanding and maintainability:
 
 1.  **[Project Concept & Strategy](docs/en/CONCEPT.md)**: The "why" behind the geographic focus, monetization model, and lean engineering philosophy.

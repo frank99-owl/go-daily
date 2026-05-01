@@ -10,20 +10,20 @@
 
 用户注册时通过 `handle_new_user()` 触发器自动创建。
 
-| 列名                       | 类型          | 约束                                                     | 说明                     |
-| -------------------------- | ------------- | -------------------------------------------------------- | ------------------------ |
-| `user_id`                  | `uuid`        | PK, FK → `auth.users(id)` ON DELETE CASCADE              | Supabase Auth 用户 ID    |
-| `locale`                   | `text`        | NOT NULL, DEFAULT `'en'`, CHECK IN (`zh`,`en`,`ja`,`ko`) | 首选语言                 |
-| `timezone`                 | `text`        | NOT NULL, DEFAULT `'UTC'`                                | IANA 时区，用于日期计算  |
-| `kyu_rank`                 | `integer`     | 可空                                                     | 自报围棋段位             |
-| `display_name`             | `text`        | 可空                                                     | 公开显示名               |
-| `email_opt_out`            | `boolean`     | NOT NULL, DEFAULT `false`                                | 退订所有邮件             |
-| `deleted_at`               | `timestamptz` | 可空                                                     | 软删除时间戳             |
-| `welcome_email_sent_at`    | `timestamptz` | 可空                                                     | 欢迎邮件发送时间         |
-| `daily_email_last_sent_on` | `date`        | 可空                                                     | 最近一次每日题目邮件日期 |
-| `email_unsubscribe_token`  | `text`        | NOT NULL, UNIQUE, DEFAULT `gen_random_uuid()`            | 一键退订令牌             |
-| `created_at`               | `timestamptz` | NOT NULL, DEFAULT `now()`                                | —                        |
-| `updated_at`               | `timestamptz` | NOT NULL, DEFAULT `now()`                                | —                        |
+| 列名                       | 类型          | 约束                                                                                                               | 说明                     |
+| -------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| `user_id`                  | `uuid`        | PK, FK → `auth.users(id)` ON DELETE CASCADE                                                                        | Supabase Auth 用户 ID    |
+| `locale`                   | `text`        | NOT NULL, DEFAULT `'en'`, CHECK IN (`zh`,`en`,`ja`,`ko`)                                                           | 首选语言                 |
+| `timezone`                 | `text`        | NOT NULL, DEFAULT `'UTC'`                                                                                          | IANA 时区，用于日期计算  |
+| `kyu_rank`                 | `integer`     | 可空                                                                                                               | 自报围棋段位             |
+| `display_name`             | `text`        | 可空                                                                                                               | 公开显示名               |
+| `email_opt_out`            | `boolean`     | NOT NULL, DEFAULT `false`                                                                                          | 退订所有邮件             |
+| `deleted_at`               | `timestamptz` | 可空                                                                                                               | 软删除时间戳             |
+| `welcome_email_sent_at`    | `timestamptz` | 可空                                                                                                               | 欢迎邮件发送时间         |
+| `daily_email_last_sent_on` | `date`        | 可空                                                                                                               | 最近一次每日题目邮件日期 |
+| `email_unsubscribe_token`  | `text`        | NOT NULL, DEFAULT `replace(gen_random_uuid()::text, '-', '')`, UNIQUE INDEX `profiles_email_unsubscribe_token_idx` | 一键退订令牌             |
+| `created_at`               | `timestamptz` | NOT NULL, DEFAULT `now()`                                                                                          | —                        |
+| `updated_at`               | `timestamptz` | NOT NULL, DEFAULT `now()`                                                                                          | —                        |
 
 **RLS**: 用户仅可读写自己的行 (`auth.uid() = user_id`)。
 

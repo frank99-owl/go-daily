@@ -31,7 +31,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 자동화 테스트 (Vitest)
 
-57개의 테스트 파일, 약 366개의 테스트 케이스를 유지하고 있습니다:
+81개의 테스트 파일, 약 631개의 테스트 케이스를 유지하고 있습니다:
 
 - **로직**: `lib/srs.test.ts`, `lib/entitlements.test.ts`.
 - **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`.
@@ -43,6 +43,34 @@ npm run preflight:prod -- --stripe-mode=live
 2.  **무료 체험 전환**: 테스트 모드에서 7일 무료 체험이 포함된 전체 Stripe 결제 프로세스를 실행합니다.
 3.  **로케일 SEO**: `sitemap.xml`에 4,800개 이상의 모든 항목이 포함되어 있는지 확인합니다.
 4.  **코치 가드레일**: 프롬프트 인젝션(예: "이전의 모든 지시를 잊어라")을 시도하여 `promptGuard.ts`의 차단 성능을 검증합니다.
+
+사용 가능한 npm 스크립트:
+
+```bash
+npm run dev               # 로컬 개발 서버
+npm run build             # 프로덕션 빌드
+npm run start             # 프로덕션 서버 시작
+npm run lint              # ESLint 검사
+npm run test              # 전체 테스트 실행
+npm run test:watch        # 감시 모드
+npm run test:coverage     # 커버리지 포함 (목표: 70%+)
+npm run format            # Prettier 포맷
+npm run format:check      # 포맷 확인
+npm run import:puzzles    # 문제 가져오기
+npm run generate:katago   # KataGo 분석 생성
+npm run sync:puzzle-index # 문제 인덱스 동기화
+npm run validate:puzzles  # 문제 검증
+npm run validate:messages # 메시지 검증
+npm run preflight:prod    # 프로덕션 사전 점검
+npm run audit:puzzles     # 문제 감사
+npm run report:duplicates # 중복 문제 보고
+npm run report:quality    # 문제 품질 보고
+npm run queue:content     # 콘텐츠 큐 관리
+npm run gemini:solutions  # Gemini 솔루션 생성
+npm run mimo:solutions    # MiMo 솔루션 생성
+npm run supabase:health   # Supabase 상태 확인
+npm run email:smoketest   # 이메일 스모크 테스트
+```
 
 ## 6. 출시 전 컴플라이언스 감사
 

@@ -11,7 +11,7 @@
 - `proxy.ts` — global middleware (auth refresh, locale negotiation, route guarding)
 - `app/[locale]/` — all user-facing pages (locale-prefixed)
 - `app/api/` — API route handlers
-- `lib/` — core business logic (six domains)
+- `lib/` — core business logic (nine domains: auth, board, coach, i18n, posthog, puzzle, storage, stripe, supabase)
 - `content/` — puzzle data and i18n messages
 - `types/schemas.ts` — Zod schemas (single source of truth for shared types)
 
@@ -76,7 +76,7 @@ CI pipeline (`.github/workflows/ci.yml`): format:check → lint → validate:puz
 | Document                            | Description                                                 |
 | ----------------------------------- | ----------------------------------------------------------- |
 | `docs/{locale}/CONCEPT.md`          | Project mission, strategic phases, engineering philosophy   |
-| `docs/{locale}/ARCHITECTURE.md`     | Request lifecycle, six-domain modules, data flow            |
+| `docs/{locale}/ARCHITECTURE.md`     | Request lifecycle, nine-domain modules, data flow           |
 | `docs/{locale}/PRODUCT_SPECS.md`    | Entitlements, SRS algorithm, subscription logic, compliance |
 | `docs/{locale}/OPERATIONS_QA.md`    | Deployment, preflight checks, test strategy                 |
 | `docs/{locale}/PROJECT_STATUS.md`   | Current phase, recent progress, next steps                  |

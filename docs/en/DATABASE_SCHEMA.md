@@ -10,20 +10,20 @@ This document describes the Supabase (Postgres) schema for go-daily, derived fro
 
 User profile, auto-created on signup via `handle_new_user()` trigger.
 
-| Column                     | Type          | Constraints                                              | Description                         |
-| -------------------------- | ------------- | -------------------------------------------------------- | ----------------------------------- |
-| `user_id`                  | `uuid`        | PK, FK → `auth.users(id)` ON DELETE CASCADE              | Supabase Auth user ID               |
-| `locale`                   | `text`        | NOT NULL, DEFAULT `'en'`, CHECK IN (`zh`,`en`,`ja`,`ko`) | Preferred language                  |
-| `timezone`                 | `text`        | NOT NULL, DEFAULT `'UTC'`                                | IANA timezone for date calculations |
-| `kyu_rank`                 | `integer`     | nullable                                                 | Self-reported Go rank               |
-| `display_name`             | `text`        | nullable                                                 | Public display name                 |
-| `email_opt_out`            | `boolean`     | NOT NULL, DEFAULT `false`                                | Opt out of all emails               |
-| `deleted_at`               | `timestamptz` | nullable                                                 | Soft-delete timestamp               |
-| `welcome_email_sent_at`    | `timestamptz` | nullable                                                 | When welcome email was sent         |
-| `daily_email_last_sent_on` | `date`        | nullable                                                 | Last daily puzzle email date        |
-| `email_unsubscribe_token`  | `text`        | NOT NULL, UNIQUE, DEFAULT `gen_random_uuid()`            | One-click unsubscribe token         |
-| `created_at`               | `timestamptz` | NOT NULL, DEFAULT `now()`                                | —                                   |
-| `updated_at`               | `timestamptz` | NOT NULL, DEFAULT `now()`                                | —                                   |
+| Column                     | Type          | Constraints                                                                                                        | Description                         |
+| -------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `user_id`                  | `uuid`        | PK, FK → `auth.users(id)` ON DELETE CASCADE                                                                        | Supabase Auth user ID               |
+| `locale`                   | `text`        | NOT NULL, DEFAULT `'en'`, CHECK IN (`zh`,`en`,`ja`,`ko`)                                                           | Preferred language                  |
+| `timezone`                 | `text`        | NOT NULL, DEFAULT `'UTC'`                                                                                          | IANA timezone for date calculations |
+| `kyu_rank`                 | `integer`     | nullable                                                                                                           | Self-reported Go rank               |
+| `display_name`             | `text`        | nullable                                                                                                           | Public display name                 |
+| `email_opt_out`            | `boolean`     | NOT NULL, DEFAULT `false`                                                                                          | Opt out of all emails               |
+| `deleted_at`               | `timestamptz` | nullable                                                                                                           | Soft-delete timestamp               |
+| `welcome_email_sent_at`    | `timestamptz` | nullable                                                                                                           | When welcome email was sent         |
+| `daily_email_last_sent_on` | `date`        | nullable                                                                                                           | Last daily puzzle email date        |
+| `email_unsubscribe_token`  | `text`        | NOT NULL, DEFAULT `replace(gen_random_uuid()::text, '-', '')`, UNIQUE INDEX `profiles_email_unsubscribe_token_idx` | One-click unsubscribe token         |
+| `created_at`               | `timestamptz` | NOT NULL, DEFAULT `now()`                                                                                          | —                                   |
+| `updated_at`               | `timestamptz` | NOT NULL, DEFAULT `now()`                                                                                          | —                                   |
 
 **RLS**: Users can read/write only their own row (`auth.uid() = user_id`).
 

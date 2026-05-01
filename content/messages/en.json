@@ -164,9 +164,9 @@
   },
   "mentors": {
     "title": "Meet Your Mentors",
-    "eyebrow": "AI Coach Roster",
-    "description": "Every Go puzzle on go-daily is analyzed by top-tier Go engines. Our AI Mentors interpret this logic through their unique historical personas and coaching styles.",
-    "footer": "All mentors are powered by high-precision Go AI reasoning."
+    "eyebrow": "AI Coaches",
+    "description": "Every puzzle on go-daily is analyzed by top-tier Go engines. Our AI mentors bring that analysis to life through their unique personas and coaching styles.",
+    "footer": "Powered by high-precision Go AI."
   },
   "review": {
     "title": "Review",

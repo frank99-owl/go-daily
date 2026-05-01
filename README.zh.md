@@ -16,6 +16,8 @@
 
 ## 📚 文档指南
 
+> 完整文档索引：[docs/README.md](docs/README.md) | 更新日志：[CHANGELOG.md](CHANGELOG.md)
+
 我们针对不同语言环境进行了深度本地化。请参阅以下中文文档以了解项目的核心逻辑：
 
 1.  **[项目理念与战略](docs/zh/CONCEPT.md)**：为什么做 go-daily？我们的市场定位、商业哲学与”精益”运营。

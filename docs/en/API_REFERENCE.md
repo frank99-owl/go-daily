@@ -123,13 +123,19 @@ Reveal the full solution for a puzzle using a valid reveal token.
 
 **Response** (`200`): Full puzzle solution including `correct`, `solutionNote`, and `solutionSequence`.
 
-### `GET /api/puzzle/random` (`app/api/puzzle/random/route.ts`)
+### `POST /api/puzzle/random` (`app/api/puzzle/random/route.ts`)
 
 Get a random puzzle for the "Random" page.
 
 **Auth**: Not required.
 
-**Response** (`200`): A `PublicPuzzle` object (no solution data).
+**Response** (`200`):
+
+```json
+{ "puzzleId": "string" }
+```
+
+Returns the ID of a randomly selected puzzle. The client then fetches the full puzzle data separately.
 
 ---
 
@@ -197,7 +203,7 @@ Unsubscribe from daily puzzle emails using a one-time token.
 
 **Query Params**: `token` (from `profiles.email_unsubscribe_token`).
 
-### `POST /api/cron/daily-email` (`app/api/cron/daily-email/route.ts`)
+### `GET /api/cron/daily-email` (`app/api/cron/daily-email/route.ts`)
 
 Vercel Cron handler for sending daily puzzle reminder emails.
 

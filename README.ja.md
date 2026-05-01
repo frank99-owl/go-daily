@@ -16,6 +16,8 @@
 
 ## 📚 ドキュメントガイド
 
+> ドキュメント全体索引：[docs/README.md](docs/README.md) | 変更履歴：[CHANGELOG.md](CHANGELOG.md)
+
 日本のユーザーや開発者向けに、核心的なロジックを日本語で詳しく解説しています。
 
 1.  **[プロジェクト理念と戦略](docs/ja/CONCEPT.md)**：なぜ go-daily なのか？市場ポジショニング、商用哲学、そして「リーン」な運用について。
@@ -23,8 +25,9 @@
 3.  **[製品仕様と機能ロジック](docs/ja/PRODUCT_SPECS.md)**：SM-2 アルゴリズムのパラメータマッピング、サブスクリプション権限エンジン、AI コーチの有効性判定ロジックの詳細。
 4.  **[運用と品質保証](docs/ja/OPERATIONS_QA.md)**：本番環境デプロイガイド、47項目のリリース前チェックリスト、テストスイート戦略。
 5.  **[リアルタイム看板](docs/ja/PROJECT_STATUS.md)**：現在のスプリント進捗と本番環境の準備状況を確認する。
-6.  **[APIリファレンス](docs/en/API_REFERENCE.md)**：全APIルートの完全カタログ（リクエスト/レスポンス）。
-7.  **[データベーススキーマ](docs/en/DATABASE_SCHEMA.md)**：Supabaseテーブル定義、インデックス、RLSポリシー。
+6.  **[APIリファレンス](docs/ja/API_REFERENCE.md)**：全APIルートの完全カタログ（リクエスト/レスポンス）。
+7.  **[データベーススキーマ](docs/ja/DATABASE_SCHEMA.md)**：Supabaseテーブル定義、インデックス、RLSポリシー。
+8.  **[法務とコンプライアンス](docs/ja/LEGAL_COMPLIANCE.md)**：グローバル展開に向けた多司法管轄エリアの法的戦略。
 
 ---
 

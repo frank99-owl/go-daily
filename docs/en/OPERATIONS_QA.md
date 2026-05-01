@@ -36,7 +36,7 @@ This script checks:
 
 ### Automated Coverage (Vitest)
 
-We maintain 57 test files with ~366 test cases covering:
+We maintain 81 test files with ~631 test cases covering:
 
 - **Logic**: `lib/srs.test.ts`, `lib/entitlements.test.ts`.
 - **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`.
@@ -64,9 +64,29 @@ Tests mirror the source tree under `tests/`:
 Run tests with:
 
 ```bash
-npm run test          # Run all
-npm run test:watch    # Watch mode
-npm run test:coverage # With coverage report (target: 70%+)
+npm run dev               # Start dev server
+npm run build             # Production build (includes prebuild validation)
+npm run start             # Start production server
+npm run lint              # Run ESLint
+npm run test              # Run all tests
+npm run test:watch        # Watch mode
+npm run test:coverage     # With coverage report (target: 70%+)
+npm run format            # Format code with Prettier
+npm run format:check      # Check formatting without writing
+npm run import:puzzles    # Import tsumego puzzles
+npm run generate:katago   # Generate KataGo puzzles
+npm run sync:puzzle-index # Sync puzzle index
+npm run validate:puzzles  # Validate puzzle data
+npm run validate:messages # Validate i18n message keys
+npm run preflight:prod    # Run production preflight checks
+npm run audit:puzzles     # Audit puzzle quality
+npm run report:duplicates # Report duplicate puzzles
+npm run report:quality    # Report puzzle quality metrics
+npm run queue:content     # Queue content generation
+npm run gemini:solutions  # Generate solution notes (Gemini)
+npm run mimo:solutions    # Generate solution notes (MiMo)
+npm run supabase:health   # Check Supabase health
+npm run email:smoketest   # Run email smoketest
 ```
 
 ## 6. Pre-Launch Compliance Audit

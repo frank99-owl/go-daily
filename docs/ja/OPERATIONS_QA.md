@@ -31,11 +31,39 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自動化カバレッジ (Vitest)
 
-57 テストファイル、約 366 テストケースを維持しています：
+81 テストファイル、約 631 テストケースを維持しています：
 
 - **ロジック**: `lib/srs.test.ts`, `lib/entitlements.test.ts`。
 - **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`。
 - **API**: `tests/api/stripeWebhook.test.ts`。
+
+利用可能な npm スクリプト：
+
+```bash
+npm run dev               # ローカル開発サーバー
+npm run build             # 本番ビルド
+npm run start             # 本番サーバー起動
+npm run lint              # ESLint チェック
+npm run test              # 全テスト実行
+npm run test:watch        # ウォッチモード
+npm run test:coverage     # カバレッジレポート付き（目標: 70%+）
+npm run format            # Prettier フォーマット
+npm run format:check      # フォーマット確認
+npm run import:puzzles    # 問題インポート
+npm run generate:katago   # KataGo 分析生成
+npm run sync:puzzle-index # 問題インデックス同期
+npm run validate:puzzles  # 問題検証
+npm run validate:messages # メッセージ検証
+npm run preflight:prod    # 本番事前チェック
+npm run audit:puzzles     # 問題監査
+npm run report:duplicates # 重複問題レポート
+npm run report:quality    # 問題品質レポート
+npm run queue:content     # コンテンツキュー管理
+npm run gemini:solutions  # Gemini 解答生成
+npm run mimo:solutions    # MiMo 解答生成
+npm run supabase:health   # Supabase ヘルスチェック
+npm run email:smoketest   # メールスモークテスト
+```
 
 ### 手動受入チェックリスト (重要パス)
 

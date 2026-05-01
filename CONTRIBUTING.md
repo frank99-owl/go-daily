@@ -10,7 +10,7 @@
 
 ## 2. 目录结构规范
 
-添加新功能时，请遵循“六域分域”模式：
+添加新功能时，请遵循”九域分域”模式：
 
 - `lib/auth/`: 身份验证与会话管理。
 - `lib/board/`: Canvas 渲染与棋步校验。
@@ -18,6 +18,9 @@
 - `lib/i18n/`: 国际化文本与路径协商。
 - `lib/puzzle/`: 题目加载、元数据与状态。
 - `lib/storage/`: 分层持久化（LocalStorage, IndexedDB, Supabase）。
+- `lib/posthog/`: 服务端分析事件追踪。
+- `lib/stripe/`: Stripe SDK 封装与计费逻辑。
+- `lib/supabase/`: Supabase 客户端初始化与辅助函数。
 
 ## 3. 工作流
 

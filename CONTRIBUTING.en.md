@@ -10,7 +10,7 @@ Thank you for your interest in contributing to go-daily! We maintain high engine
 
 ## 2. Directory Structure Guidelines
 
-When adding new functionality, follow the six-domain refactoring pattern:
+When adding new functionality, follow the nine-domain refactoring pattern:
 
 - `lib/auth/`: Authentication and session management.
 - `lib/board/`: Canvas rendering and move validation.
@@ -18,6 +18,9 @@ When adding new functionality, follow the six-domain refactoring pattern:
 - `lib/i18n/`: Localized text and path negotiation.
 - `lib/puzzle/`: Puzzle loading, metadata, and state.
 - `lib/storage/`: Tiered persistence (LocalStorage, IndexedDB, Supabase).
+- `lib/posthog/`: Server-side analytics event tracking.
+- `lib/stripe/`: Stripe SDK wrapper and billing logic.
+- `lib/supabase/`: Supabase client initialization and helpers.
 
 ## 3. Workflow
 

@@ -12,7 +12,7 @@ Instead of scattered boolean checks, go-daily uses a centralized **Lookup Table*
 | **Puzzle Archive** | Last 30 days + Curated     | All 3,000+ Puzzles          |
 | **Device Limit**   | 1 Device (Hard cap)        | Unlimited                   |
 | **Review Mode**    | Last 20 Mistakes           | Full SM-2 SRS Logic         |
-| **Share Cards**    | With Watermark             | No Watermark + Custom Rank  |
+| **Share Cards**    | (Planned, not implemented) | (Planned, not implemented)  |
 
 ### Cache Strategy (Next.js 16)
 
