@@ -1,12 +1,19 @@
 "use client";
 
+import { useCurrentUser } from "@/lib/auth/auth";
 import { useLocale } from "@/lib/i18n/i18n";
 
 import { LocalizedLink } from "./LocalizedLink";
 
-export function Footer({ isAdmin = false }: { isAdmin?: boolean }) {
+export function Footer() {
   const { t } = useLocale();
+  const { user } = useCurrentUser();
   const year = new Date().getFullYear();
+
+  const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase());
+  const showAdmin = user?.email && adminEmails.includes(user.email.toLowerCase());
 
   const linkClass = "hover:text-[var(--color-accent)] transition-colors duration-300";
 
@@ -33,7 +40,7 @@ export function Footer({ isAdmin = false }: { isAdmin?: boolean }) {
             <LocalizedLink href="/legal/refund" className={linkClass}>
               {t.nav.footer.refund}
             </LocalizedLink>
-            {isAdmin && (
+            {showAdmin && (
               <LocalizedLink href="/admin" className={linkClass}>
                 Admin
               </LocalizedLink>

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     return createApiResponse({ error: "unauthorized" }, { status: 401 });
   }
 
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+  const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase());
 
