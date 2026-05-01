@@ -1,4 +1,4 @@
-import { getAllSummaries } from "@/content/puzzles";
+import { getAllSummaries } from "@/content/puzzleSummaries";
 import { createApiResponse } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { pickRandomPuzzle } from "@/lib/random";

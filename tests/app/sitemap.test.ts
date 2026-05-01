@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getAllSummaries = vi.fn();
 
-vi.mock("@/content/puzzles", () => ({
+vi.mock("@/content/puzzleSummaries", () => ({
   getAllSummaries,
 }));
 

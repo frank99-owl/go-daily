@@ -14,6 +14,7 @@ import {
   type CoachUsageSummary,
 } from "@/lib/coach/coachState";
 import { getPersona } from "@/lib/coach/personas";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { createRateLimiter } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
@@ -52,6 +53,13 @@ function coachError({
 function maskKey(key: string): string {
   if (key.length <= 8) return "***";
   return key.slice(0, 4) + "..." + key.slice(-4);
+}
+
+function getCoachModelInfo() {
+  return {
+    model: process.env.COACH_MODEL || "deepseek-chat",
+    provider: process.env.COACH_API_URL || "https://api.deepseek.com",
+  };
 }
 
 export async function POST(request: Request) {
@@ -215,13 +223,15 @@ export async function POST(request: Request) {
     openaiMessages.push({ role: m.role, content: m.content });
   }
 
+  const modelInfo = getCoachModelInfo();
+
   try {
     const provider = createManagedCoachProvider({
       apiKey,
       timeout: UPSTREAM_TIMEOUT_MS,
     });
-    const reply = await provider.createReply(openaiMessages);
-    if (!reply) {
+    const result = await provider.createReply(openaiMessages);
+    if (!result.content) {
       console.warn("[coach] Empty reply from model");
       return createApiResponse({ error: "Empty reply from the model." }, { status: 502 });
     }
@@ -240,43 +250,82 @@ export async function POST(request: Request) {
       monthlyRemaining: Math.max(coachState.usage.monthlyRemaining - 1, 0),
     };
 
-    return createApiResponse({ reply, usage: updatedUsage });
+    const durationMs = Date.now() - startTime;
+
+    // Fire-and-forget analytics — never block the response
+    captureServerEvent({
+      distinctId: user.id,
+      event: "coach_request_completed",
+      properties: {
+        puzzleId,
+        locale,
+        personaId: personaId || "default",
+        plan: coachState.usage.plan,
+        model: result.model,
+        provider: result.provider,
+        durationMs,
+        inputTokens: result.usage.inputTokens,
+        outputTokens: result.usage.outputTokens,
+        totalTokens: result.usage.totalTokens,
+        usageAvailable: result.usage.usageAvailable,
+      },
+    }).catch(() => {});
+
+    return createApiResponse({ reply: result.content, usage: updatedUsage });
   } catch (err) {
     const error = err as Error;
-    const duration = Date.now() - startTime;
+    const durationMs = Date.now() - startTime;
 
     // Classify error for better diagnostics
+    let httpStatus = 502;
+    let errorCode = "upstream_error";
+
     if (error.name === "AbortError" || error.message?.includes("timeout")) {
-      console.error(`[coach] upstream timeout puzzle=${puzzleId} duration=${duration}ms`);
-      return createApiResponse(
-        { error: "Coach is taking too long. Please try again." },
-        { status: 504 },
-      );
-    }
-
-    if (error.message?.includes("429") || error.message?.includes("rate limit")) {
+      httpStatus = 504;
+      errorCode = "timeout";
+      console.error(`[coach] upstream timeout puzzle=${puzzleId} duration=${durationMs}ms`);
+    } else if (error.message?.includes("429") || error.message?.includes("rate limit")) {
+      httpStatus = 429;
+      errorCode = "rate_limit";
       console.error(`[coach] upstream rate limit puzzle=${puzzleId}`);
-      return createApiResponse(
-        { error: "Coach is busy. Please try again in a moment." },
-        { status: 429 },
-      );
-    }
-
-    if (error.message?.includes("401") || error.message?.includes("auth")) {
+    } else if (error.message?.includes("401") || error.message?.includes("auth")) {
+      httpStatus = 500;
+      errorCode = "auth_error";
       console.error(`[coach] auth error key=${maskKey(apiKey)}`);
-      return createApiResponse(
-        { error: "Coach authentication failed. Please contact support." },
-        { status: 500 },
+    } else {
+      console.error(
+        `[coach] upstream error puzzle=${puzzleId} duration=${durationMs}ms:`,
+        error.message,
       );
     }
 
-    console.error(
-      `[coach] upstream error puzzle=${puzzleId} duration=${duration}ms:`,
-      error.message,
-    );
+    // Fire-and-forget analytics for failures too
+    captureServerEvent({
+      distinctId: user.id,
+      event: "coach_request_failed",
+      properties: {
+        puzzleId,
+        locale,
+        personaId: personaId || "default",
+        plan: coachState.usage?.plan ?? "free",
+        model: modelInfo.model,
+        provider: modelInfo.provider,
+        durationMs,
+        errorCode,
+        httpStatus,
+      },
+    }).catch(() => {});
+
+    const messages: Record<number, string> = {
+      504: "Coach is taking too long. Please try again.",
+      429: "Coach is busy. Please try again in a moment.",
+      500: "Coach authentication failed. Please contact support.",
+    };
     return createApiResponse(
-      { error: "Coach is temporarily unavailable. Please try again later." },
-      { status: 502 },
+      {
+        error: messages[httpStatus] ?? "Coach is temporarily unavailable. Please try again later.",
+      },
+      { status: httpStatus },
     );
   }
 }

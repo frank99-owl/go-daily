@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-import { getAllSummaries } from "@/content/puzzles";
+import { getAllSummaries } from "@/content/puzzleSummaries";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, localePath } from "@/lib/i18n/localePath";
 import {
   getAvailableDifficulties,

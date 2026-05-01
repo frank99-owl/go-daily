@@ -5,13 +5,28 @@ export interface CoachProviderMessage {
   content: string;
 }
 
+export interface CoachProviderUsage {
+  inputTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+  usageAvailable: boolean;
+}
+
+export interface CoachProviderResult {
+  content: string;
+  usage: CoachProviderUsage;
+  model: string;
+  provider: string;
+}
+
 export interface CoachProvider {
-  createReply(messages: CoachProviderMessage[]): Promise<string>;
+  createReply(messages: CoachProviderMessage[]): Promise<CoachProviderResult>;
 }
 
 export class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
   private readonly client: OpenAI;
   private readonly model: string;
+  private readonly baseURL: string;
 
   constructor({
     apiKey,
@@ -31,16 +46,33 @@ export class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
       maxRetries: 1,
     });
     this.model = model;
+    this.baseURL = baseURL;
   }
 
-  async createReply(messages: CoachProviderMessage[]): Promise<string> {
+  async createReply(messages: CoachProviderMessage[]): Promise<CoachProviderResult> {
     const completion = await this.client.chat.completions.create({
       model: this.model,
       messages,
       temperature: 0.6,
       max_tokens: 400,
     });
-    return completion.choices[0]?.message?.content?.trim() ?? "";
+
+    const content = completion.choices[0]?.message?.content?.trim() ?? "";
+    const raw = completion.usage;
+
+    const usage: CoachProviderUsage = {
+      inputTokens: raw?.prompt_tokens ?? null,
+      outputTokens: raw?.completion_tokens ?? null,
+      totalTokens: raw?.total_tokens ?? null,
+      usageAvailable: raw != null,
+    };
+
+    return {
+      content,
+      usage,
+      model: completion.model ?? this.model,
+      provider: this.baseURL,
+    };
   }
 }
 
@@ -51,7 +83,7 @@ export class FallbackCoachProvider implements CoachProvider {
     }
   }
 
-  async createReply(messages: CoachProviderMessage[]): Promise<string> {
+  async createReply(messages: CoachProviderMessage[]): Promise<CoachProviderResult> {
     let lastError: unknown;
     for (const provider of this.providers) {
       try {

@@ -152,12 +152,10 @@ async function main() {
     return;
   }
 
+  enforceCostGuard(selected, options);
+
   if (options.dryRun) {
-    console.log(
-      `Dry run selected ${selected.length} puzzle(s): ${selected.map((p) => p.id).join(", ")}`,
-    );
-    console.log("\n--- Prompt preview for first selected puzzle ---\n");
-    console.log(buildPrompt(selected[0]));
+    printDryRunEstimate(selected, options);
     return;
   }
 
@@ -185,6 +183,7 @@ function parseArgs(argv) {
     restoreBaseline: false,
     applyBatch: null,
     help: false,
+    confirmCostlyRun: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -194,6 +193,7 @@ function parseArgs(argv) {
     else if (arg === "--retry-failed") options.retryFailed = true;
     else if (arg === "--force") options.force = true;
     else if (arg === "--restore-baseline") options.restoreBaseline = true;
+    else if (arg === "--confirm-costly-run") options.confirmCostlyRun = true;
     else if (arg === "--help" || arg === "-h") options.help = true;
     else if (arg === "--limit") options.limit = numberArg(argv[++i], "--limit");
     else if (arg.startsWith("--limit="))
@@ -219,6 +219,83 @@ function parseArgs(argv) {
   }
 
   return options;
+}
+
+/**
+ * Enforce cost guardrails to prevent accidental large-scale runs.
+ *
+ * Rules:
+ *   --ids                  -> always allowed (explicit selection)
+ *   --limit <= 10          -> allowed
+ *   --limit > 10           -> requires --confirm-costly-run
+ *   --batch-size > 10      -> requires --confirm-costly-run
+ *   --force                -> requires --confirm-costly-run
+ *   --concurrency > 4      -> requires --confirm-costly-run
+ */
+function enforceCostGuard(selected, options) {
+  if (options.confirmCostlyRun) return;
+
+  const reasons = [];
+
+  // --ids with small count is always safe
+  if (options.ids?.length) {
+    if (options.force) reasons.push("--force requires --confirm-costly-run");
+    if (options.concurrency > 4)
+      reasons.push(`--concurrency ${options.concurrency} > 4 requires --confirm-costly-run`);
+    if (reasons.length) abortWithCostReasons(reasons);
+    return;
+  }
+
+  if (options.limit !== null && options.limit > 10) {
+    reasons.push(`--limit ${options.limit} > 10 requires --confirm-costly-run`);
+  }
+  if (options.batchSize > 10) {
+    reasons.push(`--batch-size ${options.batchSize} > 10 requires --confirm-costly-run`);
+  }
+  if (options.force) {
+    reasons.push("--force requires --confirm-costly-run");
+  }
+  if (options.concurrency > 4) {
+    reasons.push(`--concurrency ${options.concurrency} > 4 requires --confirm-costly-run`);
+  }
+
+  if (reasons.length) abortWithCostReasons(reasons);
+}
+
+function abortWithCostReasons(reasons) {
+  console.error("\n\x1b[31m[blocked] Run blocked by cost guard.\x1b[0m\n");
+  for (const r of reasons) {
+    console.error(`  - ${r}`);
+  }
+  console.error("\nAdd \x1b[33m--confirm-costly-run\x1b[0m to acknowledge the cost and proceed.");
+  console.error("Use \x1b[33m--dry-run\x1b[0m first to preview what would be processed.\n");
+  process.exit(1);
+}
+
+/**
+ * Print a detailed dry-run cost estimate instead of just the prompt preview.
+ */
+function printDryRunEstimate(selected, options) {
+  const samplePrompt = buildPrompt(selected[0]);
+  const avgInputChars = Math.round(
+    selected.reduce((sum, p) => sum + buildPrompt(p).length, 0) / selected.length,
+  );
+  const estimatedInputTokens = Math.round((avgInputChars / 3.5) * selected.length);
+  const estimatedOutputTokens = selected.length * API_MAX_TOKENS;
+
+  console.log("\n\x1b[36m=== Dry Run Estimate ===\x1b[0m\n");
+  console.log(`  Puzzles to process : ${selected.length}`);
+  console.log(`  Provider           : ${PROVIDER}`);
+  console.log(`  Model              : ${MODEL}`);
+  console.log(`  Concurrency        : ${options.concurrency}`);
+  console.log(`  Max output tokens  : ${API_MAX_TOKENS} per puzzle`);
+  console.log(`  Avg input chars    : ~${avgInputChars} per puzzle`);
+  console.log(`  Est. input tokens  : ~${estimatedInputTokens.toLocaleString()} total`);
+  console.log(`  Est. output tokens : up to ~${estimatedOutputTokens.toLocaleString()} total`);
+  console.log(`\n  Selected IDs       : ${selected.map((p) => p.id).join(", ")}`);
+  console.log(`\n\x1b[36m=== Prompt Preview (first puzzle) ===\x1b[0m\n`);
+  console.log(samplePrompt);
+  console.log();
 }
 
 function concurrencyArg(value) {
@@ -257,16 +334,23 @@ function printHelp() {
   npm run mimo:solutions -- --restore-baseline
 
 Options:
-  --dry-run            Preview selected IDs and prompt without calling the provider.
-  --limit N            Process at most N puzzles.
-  --batch-size N       Process N queued puzzles when --limit is omitted (default 45).
-  --concurrency N      Run up to N provider calls at once (default 1, max ${MAX_CONCURRENCY}).
-  --resume             Continue queued work. This is the default behavior.
-  --retry-failed       Select failed/needs_review puzzles instead of queued puzzles.
-  --ids A,B            Process specific puzzle IDs.
-  --force              Reprocess selected IDs even if they are already accepted/applied.
-  --apply-batch N      Re-apply accepted/applied results, optionally scoped to one batch.
-  --restore-baseline   Restore puzzle JSON and coach allowlist from origin/main.
+  --dry-run              Preview selected IDs, cost estimate, and prompt without calling the provider.
+  --limit N              Process at most N puzzles.
+  --batch-size N         Process N queued puzzles when --limit is omitted (default 45).
+  --concurrency N        Run up to N provider calls at once (default 1, max ${MAX_CONCURRENCY}).
+  --resume               Continue queued work. This is the default behavior.
+  --retry-failed         Select failed/needs_review puzzles instead of queued puzzles.
+  --ids A,B              Process specific puzzle IDs (always allowed, no cost guard).
+  --force                Reprocess selected IDs even if they are already accepted/applied.
+  --apply-batch N        Re-apply accepted/applied results, optionally scoped to one batch.
+  --restore-baseline     Restore puzzle JSON and coach allowlist from origin/main.
+  --confirm-costly-run   Acknowledge cost and bypass guardrails for large batches.
+
+Cost guardrails (require --confirm-costly-run):
+  --limit > 10           More than 10 puzzles without explicit IDs.
+  --batch-size > 10      Batch size exceeding 10.
+  --force                Reprocessing already-accepted puzzles.
+  --concurrency > 4      High parallelism.
 `);
 }
 
