@@ -11,7 +11,7 @@ import type { Locale } from "@/types";
 
 export default function MentorsPage() {
   const { locale } = useLocale();
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const titleStyle: CSSProperties =
     locale === "zh"
@@ -28,7 +28,7 @@ export default function MentorsPage() {
   const yuta = PERSONAS.find((p) => p.id === "iyama-yuta")!;
   const jinseo = PERSONAS.find((p) => p.id === "shin-jinseo")!;
 
-  const hoveredPersona = PERSONAS.find((p) => p.id === hoveredId);
+  const activePersona = PERSONAS.find((p) => p.id === activeId);
 
   // Cinematic slow transition for the reading mode
   const cinematicTransition: Transition = {
@@ -37,7 +37,14 @@ export default function MentorsPage() {
   };
 
   return (
-    <main className="h-screen w-screen bg-[#020505] text-white/90 selection:bg-[color:var(--color-accent)]/20 relative overflow-hidden flex items-center justify-center p-0 m-0">
+    <main
+      className="h-screen w-screen bg-[#020505] text-white/90 selection:bg-[color:var(--color-accent)]/20 relative overflow-hidden flex items-center justify-center p-0 m-0"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setActiveId(null);
+        }
+      }}
+    >
       {/* Background Atmosphere */}
       <div className="absolute inset-0 bg-black pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.03)_0%,transparent_70%)] pointer-events-none" />
@@ -45,7 +52,7 @@ export default function MentorsPage() {
 
       {/* Backdrop Blur Overlay - Lower z-index to stay below navbar (z-50) */}
       <AnimatePresence>
-        {hoveredId && (
+        {activeId && (
           <motion.div
             initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
             animate={{ opacity: 1, backdropFilter: "blur(40px)" }}
@@ -58,7 +65,7 @@ export default function MentorsPage() {
 
       {/* The Expanded "Frosted Glass" View - Fixed Z-index and Positioning */}
       <AnimatePresence>
-        {hoveredPersona && (
+        {activePersona && (
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -76,20 +83,20 @@ export default function MentorsPage() {
                       className="text-6xl md:text-8xl font-medium text-white tracking-tighter"
                       style={titleStyle}
                     >
-                      {hoveredPersona.name[locale] || hoveredPersona.name["en"]}
+                      {activePersona.name[locale] || activePersona.name["en"]}
                     </h2>
-                    <span className="text-6xl">{hoveredPersona.flag}</span>
+                    <span className="text-6xl">{activePersona.flag}</span>
                   </div>
                   <div className="h-px w-20 bg-[color:var(--color-accent)]/40" />
                 </div>
 
                 <div className="flex flex-col gap-10">
                   <span className="text-2xl md:text-3xl uppercase tracking-[0.4em] text-[color:var(--color-accent)] font-bold opacity-80 leading-tight">
-                    {hoveredPersona.title[locale] || hoveredPersona.title["en"]}
+                    {activePersona.title[locale] || activePersona.title["en"]}
                   </span>
 
                   <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-4">
-                    {(hoveredPersona.tags[locale] || hoveredPersona.tags["en"]).map((tag) => (
+                    {(activePersona.tags[locale] || activePersona.tags["en"]).map((tag) => (
                       <span
                         key={tag}
                         className="text-[11px] px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/40 uppercase font-medium tracking-widest whitespace-nowrap"
@@ -104,10 +111,10 @@ export default function MentorsPage() {
               {/* Right: Narrative - Flexible */}
               <div className="flex-1 flex flex-col justify-center gap-12 overflow-hidden">
                 <blockquote className="text-3xl md:text-5xl font-light italic leading-relaxed text-white/95 border-l-4 border-[color:var(--color-accent)]/20 pl-10 py-2">
-                  {hoveredPersona.description[locale] || hoveredPersona.description["en"]}
+                  {activePersona.description[locale] || activePersona.description["en"]}
                 </blockquote>
                 <p className="text-lg md:text-2xl text-white/50 font-light leading-relaxed whitespace-pre-wrap overflow-y-auto scrollbar-hide pr-4">
-                  {hoveredPersona.bio[locale] || hoveredPersona.bio["en"]}
+                  {activePersona.bio[locale] || activePersona.bio["en"]}
                 </p>
               </div>
             </div>
@@ -121,22 +128,26 @@ export default function MentorsPage() {
         <MentorBaseCard
           persona={sedol}
           posStyle={{ top: "15%", left: "0%" }}
-          onHover={() => setHoveredId(sedol.id)}
-          onLeave={() => setHoveredId(null)}
+          onShow={() => setActiveId(sedol.id)}
+          onHide={() => setActiveId(null)}
+          onActivate={() => setActiveId(sedol.id)}
           locale={locale}
           titleStyle={titleStyle}
-          isDimmed={hoveredId !== null && hoveredId !== sedol.id}
+          isActive={activeId === sedol.id}
+          isDimmed={activeId !== null && activeId !== sedol.id}
         />
 
         {/* Top Right: Go Seigen */}
         <MentorBaseCard
           persona={seigen}
           posStyle={{ top: "15%", right: "0%" }}
-          onHover={() => setHoveredId(seigen.id)}
-          onLeave={() => setHoveredId(null)}
+          onShow={() => setActiveId(seigen.id)}
+          onHide={() => setActiveId(null)}
+          onActivate={() => setActiveId(seigen.id)}
           locale={locale}
           titleStyle={titleStyle}
-          isDimmed={hoveredId !== null && hoveredId !== seigen.id}
+          isActive={activeId === seigen.id}
+          isDimmed={activeId !== null && activeId !== seigen.id}
         />
 
         {/* CENTER: Ke Jie */}
@@ -144,11 +155,13 @@ export default function MentorsPage() {
           <MentorBaseCard
             persona={kejie}
             posStyle={{ position: "relative" }}
-            onHover={() => setHoveredId(kejie.id)}
-            onLeave={() => setHoveredId(null)}
+            onShow={() => setActiveId(kejie.id)}
+            onHide={() => setActiveId(null)}
+            onActivate={() => setActiveId(kejie.id)}
             locale={locale}
             titleStyle={titleStyle}
-            isDimmed={hoveredId !== null && hoveredId !== kejie.id}
+            isActive={activeId === kejie.id}
+            isDimmed={activeId !== null && activeId !== kejie.id}
             isCenter
           />
         </div>
@@ -157,22 +170,26 @@ export default function MentorsPage() {
         <MentorBaseCard
           persona={yuta}
           posStyle={{ bottom: "15%", left: "0%" }}
-          onHover={() => setHoveredId(yuta.id)}
-          onLeave={() => setHoveredId(null)}
+          onShow={() => setActiveId(yuta.id)}
+          onHide={() => setActiveId(null)}
+          onActivate={() => setActiveId(yuta.id)}
           locale={locale}
           titleStyle={titleStyle}
-          isDimmed={hoveredId !== null && hoveredId !== yuta.id}
+          isActive={activeId === yuta.id}
+          isDimmed={activeId !== null && activeId !== yuta.id}
         />
 
         {/* Bottom Right: Shin Jinseo */}
         <MentorBaseCard
           persona={jinseo}
           posStyle={{ bottom: "15%", right: "0%" }}
-          onHover={() => setHoveredId(jinseo.id)}
-          onLeave={() => setHoveredId(null)}
+          onShow={() => setActiveId(jinseo.id)}
+          onHide={() => setActiveId(null)}
+          onActivate={() => setActiveId(jinseo.id)}
           locale={locale}
           titleStyle={titleStyle}
-          isDimmed={hoveredId !== null && hoveredId !== jinseo.id}
+          isActive={activeId === jinseo.id}
+          isDimmed={activeId !== null && activeId !== jinseo.id}
         />
       </div>
     </main>
@@ -182,24 +199,34 @@ export default function MentorsPage() {
 function MentorBaseCard({
   persona,
   posStyle,
-  onHover,
-  onLeave,
+  onShow,
+  onHide,
+  onActivate,
   locale,
   titleStyle,
+  isActive,
   isDimmed,
   isCenter = false,
 }: {
   persona: Persona;
   posStyle: CSSProperties;
-  onHover: () => void;
-  onLeave: () => void;
+  onShow: () => void;
+  onHide: () => void;
+  onActivate: () => void;
   locale: Locale;
   titleStyle: CSSProperties;
+  isActive: boolean;
   isDimmed: boolean;
   isCenter?: boolean;
 }) {
+  const name = persona.name[locale] || persona.name["en"];
+  const title = persona.title[locale] || persona.title["en"];
+
   return (
-    <motion.div
+    <motion.button
+      type="button"
+      aria-expanded={isActive}
+      aria-label={`${name}: ${title}`}
       animate={{
         opacity: isDimmed ? 0.15 : 1,
         scale: isDimmed ? 0.95 : 1,
@@ -207,26 +234,29 @@ function MentorBaseCard({
       }}
       transition={{ duration: 0.8 }}
       style={posStyle}
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      className={`${!isCenter ? "absolute" : ""} w-[300px] p-8 rounded-3xl bg-white/[0.03] border border-white/5 hover:border-[color:var(--color-accent)]/20 transition-all duration-700 cursor-help backdrop-blur-sm group`}
+      onMouseEnter={onShow}
+      onMouseLeave={onHide}
+      onFocus={onShow}
+      onBlur={onHide}
+      onClick={onActivate}
+      className={`${!isCenter ? "absolute" : ""} w-[300px] p-8 rounded-3xl bg-white/[0.03] border border-white/5 text-left hover:border-[color:var(--color-accent)]/20 focus-visible:border-[color:var(--color-accent)]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]/40 transition-all duration-700 cursor-pointer backdrop-blur-sm group`}
     >
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-medium text-white/90" style={titleStyle}>
-            {persona.name[locale] || persona.name["en"]}
+            {name}
           </h2>
           <span className="text-xl opacity-60 grayscale-[0.2] group-hover:grayscale-0 transition-all">
             {persona.flag}
           </span>
         </div>
         <span className="text-[9px] uppercase tracking-[0.3em] text-[color:var(--color-accent)] font-bold opacity-50">
-          {persona.title[locale] || persona.title["en"]}
+          {title}
         </span>
       </div>
       <p className="mt-6 text-[12px] text-white/40 font-light leading-relaxed line-clamp-2 italic border-l border-white/10 pl-4">
         {persona.description[locale] || persona.description["en"]}
       </p>
-    </motion.div>
+    </motion.button>
   );
 }

@@ -191,4 +191,90 @@ describe("ResultClient keyboard support", () => {
       expect(screen.getByRole("button", { name: "Play solution" })).toBeInTheDocument();
     });
   });
+
+  it("refreshes an expired reveal token and then shows the solution", async () => {
+    const expiredAttempt = {
+      puzzleId: "cld-001",
+      date: "2026-04-21",
+      userMove: { x: 4, y: 4 },
+      correct: false,
+      solvedAtMs: 123,
+      revealToken: "expired-reveal-token",
+    };
+    vi.mocked(getAttemptFor).mockReturnValue(expiredAttempt);
+    vi.mocked(getAttemptsFor).mockReturnValue([expiredAttempt]);
+    vi.mocked(loadAttempts).mockReturnValue([expiredAttempt]);
+
+    const revealBody = {
+      correct: [{ x: 4, y: 4 }],
+      solutionSequence: [{ x: 4, y: 4, color: "black" }],
+      solutionNote: {
+        zh: "占住急所。",
+        en: "Take the vital point.",
+        ja: "急所を占める。",
+        ko: "급소를 차지한다.",
+      },
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ error: "Invalid reveal token." }, { status: 401 }))
+      .mockResolvedValueOnce(
+        Response.json({
+          correct: true,
+          revealToken: "fresh-reveal-token",
+        }),
+      )
+      .mockResolvedValueOnce(Response.json(revealBody))
+      .mockResolvedValue(Response.json(revealBody));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ResultClient
+          initialPuzzle={{
+            id: "cld-001",
+            date: "2026-04-21",
+            boardSize: 9,
+            stones: [],
+            toPlay: "black",
+            tag: "life-death",
+            difficulty: 1,
+            prompt: {
+              zh: "黑先活",
+              en: "Black to live",
+              ja: "黒先活",
+              ko: "흑선활",
+            },
+            source: "2026-04-21",
+            coachAvailable: false,
+          }}
+          todayPuzzleId="cld-999"
+        />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(replaceAttempts).toHaveBeenCalledWith([
+        expect.objectContaining({
+          puzzleId: "cld-001",
+          correct: true,
+          revealToken: "fresh-reveal-token",
+        }),
+      ]);
+    });
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Play solution" })).toBeInTheDocument();
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/puzzle/attempt",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          puzzleId: "cld-001",
+          userMove: { x: 4, y: 4 },
+        }),
+      }),
+    );
+  });
 });

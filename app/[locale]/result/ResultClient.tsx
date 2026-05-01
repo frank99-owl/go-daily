@@ -31,6 +31,18 @@ type PuzzleAttemptResponse = {
   error?: string;
 };
 
+function normalizeReveal(data: PuzzleRevealResponse): PuzzleReveal {
+  if (!Array.isArray(data.correct) || !data.solutionNote) {
+    throw new Error("Invalid reveal response.");
+  }
+
+  return {
+    correct: data.correct,
+    solutionNote: data.solutionNote,
+    ...(data.solutionSequence ? { solutionSequence: data.solutionSequence } : {}),
+  };
+}
+
 export function ResultClient({
   initialPuzzle,
   todayPuzzleId,
@@ -67,14 +79,14 @@ export function ResultClient({
 
     let cancelled = false;
 
-    async function upgradeLegacyAttempt() {
+    async function refreshAttemptToken(attemptToRefresh: AttemptRecord): Promise<AttemptRecord> {
       try {
         const response = await fetch("/api/puzzle/attempt", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             puzzleId: puzzle.id,
-            userMove: attemptToUpgrade.userMove,
+            userMove: attemptToRefresh.userMove,
           }),
         });
         const data = (await response.json()) as PuzzleAttemptResponse;
@@ -86,14 +98,23 @@ export function ResultClient({
         }
 
         const upgraded: AttemptRecord = {
-          ...attemptToUpgrade,
+          ...attemptToRefresh,
           correct: data.correct,
           revealToken: data.revealToken,
         };
-        const key = attemptKey(attemptToUpgrade);
+        const key = attemptKey(attemptToRefresh);
         const all = loadAttempts();
         replaceAttempts(all.map((item) => (attemptKey(item) === key ? upgraded : item)));
+        return upgraded;
+      } catch (err) {
+        console.error("[puzzle] failed to refresh attempt token", err);
+        throw err;
+      }
+    }
 
+    async function upgradeLegacyAttempt() {
+      try {
+        const upgraded = await refreshAttemptToken(attemptToUpgrade);
         if (!cancelled) {
           setAttempt(upgraded);
           setHistory(getAttemptsFor(puzzle.id));
@@ -118,31 +139,74 @@ export function ResultClient({
     }
 
     let cancelled = false;
+    const attemptToReveal = attempt;
     const revealToken = attempt.revealToken;
+
+    async function revealWithToken(token: string): Promise<PuzzleReveal> {
+      const response = await fetch("/api/puzzle/reveal", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          puzzleId: puzzle.id,
+          revealToken: token,
+        }),
+      });
+      const data = (await response.json()) as PuzzleRevealResponse;
+      if (!response.ok) {
+        throw new Error(data.error ?? `Request failed (${response.status})`);
+      }
+      return normalizeReveal(data);
+    }
+
+    async function refreshAttemptToken(attemptToRefresh: AttemptRecord): Promise<AttemptRecord> {
+      if (!attemptToRefresh.userMove) {
+        throw new Error("Cannot refresh reveal token without a recorded move.");
+      }
+
+      const response = await fetch("/api/puzzle/attempt", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          puzzleId: puzzle.id,
+          userMove: attemptToRefresh.userMove,
+        }),
+      });
+      const data = (await response.json()) as PuzzleAttemptResponse;
+      if (!response.ok) {
+        throw new Error(data.error ?? `Request failed (${response.status})`);
+      }
+      if (typeof data.correct !== "boolean" || !data.revealToken) {
+        throw new Error("Invalid attempt response.");
+      }
+
+      const refreshed: AttemptRecord = {
+        ...attemptToRefresh,
+        correct: data.correct,
+        revealToken: data.revealToken,
+      };
+      const key = attemptKey(attemptToRefresh);
+      const all = loadAttempts();
+      replaceAttempts(all.map((item) => (attemptKey(item) === key ? refreshed : item)));
+      return refreshed;
+    }
 
     async function loadReveal() {
       try {
-        const response = await fetch("/api/puzzle/reveal", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            puzzleId: puzzle.id,
-            revealToken,
-          }),
-        });
-        const data = (await response.json()) as PuzzleRevealResponse;
-        if (!response.ok) {
-          throw new Error(data.error ?? `Request failed (${response.status})`);
+        let nextReveal: PuzzleReveal;
+        try {
+          nextReveal = await revealWithToken(revealToken);
+        } catch (err) {
+          if (!attemptToReveal.userMove) throw err;
+          const refreshedAttempt = await refreshAttemptToken(attemptToReveal);
+          nextReveal = await revealWithToken(refreshedAttempt.revealToken as string);
+          if (!cancelled) {
+            setAttempt(refreshedAttempt);
+            setHistory(getAttemptsFor(puzzle.id));
+          }
         }
-        if (!Array.isArray(data.correct) || !data.solutionNote) {
-          throw new Error("Invalid reveal response.");
-        }
+
         if (!cancelled) {
-          setReveal({
-            correct: data.correct,
-            solutionNote: data.solutionNote,
-            ...(data.solutionSequence ? { solutionSequence: data.solutionSequence } : {}),
-          });
+          setReveal(nextReveal);
         }
       } catch (err) {
         console.error("[puzzle] failed to reveal solution", err);
@@ -160,7 +224,7 @@ export function ResultClient({
     return () => {
       cancelled = true;
     };
-  }, [attempt?.revealToken, puzzle.id]);
+  }, [attempt, puzzle.id]);
 
   useEffect(() => {
     containerRef.current?.focus();
