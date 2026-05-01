@@ -1,4 +1,6 @@
-import type { Puzzle, PuzzleSummary } from "@/types";
+import type { Puzzle } from "@/types";
+
+export { getAllSummaries } from "./puzzleSummaries";
 
 // This file serves as the main entry point for puzzles.
 // It will branch between server-side full data and client-side summary data.
@@ -17,19 +19,4 @@ export async function getPuzzle(id: string): Promise<Puzzle | undefined> {
   // Client-side fallback or error
   console.warn("getPuzzle() called on client. Ensure data is passed via props.");
   return undefined;
-}
-
-/**
- * Get all puzzle summaries.
- * Safe to call on both server and client.
- */
-export async function getAllSummaries(): Promise<PuzzleSummary[]> {
-  if (typeof window === "undefined") {
-    const { getAllSummaries: getServerSummaries } = await import("./puzzles.server");
-    return getServerSummaries();
-  } else {
-    // On the client, we'll import the pre-generated index
-    const index = await import("./data/puzzleIndex.json");
-    return (index.default || index) as PuzzleSummary[];
-  }
 }

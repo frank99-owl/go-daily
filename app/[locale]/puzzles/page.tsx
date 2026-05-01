@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { getAllSummaries } from "@/content/puzzles";
+import { getAllSummaries } from "@/content/puzzleSummaries";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";

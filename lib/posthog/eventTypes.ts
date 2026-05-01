@@ -22,6 +22,30 @@ export type EventMap = {
   coach_limit_hit: {
     code: CoachErrorCode;
   };
+  coach_request_completed: {
+    puzzleId: string;
+    locale: string;
+    personaId: string;
+    plan: string;
+    model: string;
+    provider: string;
+    durationMs: number;
+    inputTokens: number | null;
+    outputTokens: number | null;
+    totalTokens: number | null;
+    usageAvailable: boolean;
+  };
+  coach_request_failed: {
+    puzzleId: string;
+    locale: string;
+    personaId: string;
+    plan: string;
+    model: string | null;
+    provider: string | null;
+    durationMs: number;
+    errorCode: string;
+    httpStatus: number;
+  };
   trial_started: SubscriptionAnalyticsProps & {
     trialEnd: string | null;
   };

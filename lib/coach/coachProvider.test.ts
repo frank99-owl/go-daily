@@ -153,37 +153,39 @@ describe("createReply — response normalization", () => {
   it("returns the trimmed assistant content from the first choice", async () => {
     createCompletionMock.mockResolvedValue({
       choices: [{ message: { content: "  Take the corner.  \n" } }],
+      model: "test-model",
     });
 
-    const reply = await createManagedCoachProvider({ apiKey: "k", timeout: 1000 }).createReply([]);
+    const result = await createManagedCoachProvider({ apiKey: "k", timeout: 1000 }).createReply([]);
 
-    expect(reply).toBe("Take the corner.");
+    expect(result.content).toBe("Take the corner.");
   });
 
   it("returns '' when the first choice has no message content", async () => {
     createCompletionMock.mockResolvedValue({
       choices: [{ message: { content: null } }],
+      model: "test-model",
     });
 
-    const reply = await createManagedCoachProvider({ apiKey: "k", timeout: 1000 }).createReply([]);
+    const result = await createManagedCoachProvider({ apiKey: "k", timeout: 1000 }).createReply([]);
 
-    expect(reply).toBe("");
+    expect(result.content).toBe("");
   });
 
   it("returns '' when the first choice has no message at all", async () => {
-    createCompletionMock.mockResolvedValue({ choices: [{}] });
+    createCompletionMock.mockResolvedValue({ choices: [{}], model: "test-model" });
 
-    const reply = await createManagedCoachProvider({ apiKey: "k", timeout: 1000 }).createReply([]);
+    const result = await createManagedCoachProvider({ apiKey: "k", timeout: 1000 }).createReply([]);
 
-    expect(reply).toBe("");
+    expect(result.content).toBe("");
   });
 
   it("returns '' when the choices array is empty (e.g. content filter)", async () => {
-    createCompletionMock.mockResolvedValue({ choices: [] });
+    createCompletionMock.mockResolvedValue({ choices: [], model: "test-model" });
 
-    const reply = await createManagedCoachProvider({ apiKey: "k", timeout: 1000 }).createReply([]);
+    const result = await createManagedCoachProvider({ apiKey: "k", timeout: 1000 }).createReply([]);
 
-    expect(reply).toBe("");
+    expect(result.content).toBe("");
   });
 });
 

@@ -8,7 +8,7 @@ import type { PuzzleSummary } from "@/types";
 
 const getAllSummariesMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/content/puzzles", () => ({
+vi.mock("@/content/puzzleSummaries", () => ({
   getAllSummaries: getAllSummariesMock,
 }));
 

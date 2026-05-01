@@ -20,6 +20,8 @@
     "validate:messages": "tsx scripts/validateMessages.ts",
     "preflight:prod": "tsx scripts/productionPreflight.ts",
     "audit:puzzles": "tsx scripts/auditPuzzles.ts",
+    "report:duplicates": "tsx scripts/reportDuplicates.ts",
+    "report:quality": "tsx scripts/reportQuality.ts",
     "queue:content": "tsx scripts/queueContent.ts",
     "gemini:solutions": "node scripts/geminiSolutionNotes.js",
     "mimo:solutions": "node scripts/geminiSolutionNotes.js",

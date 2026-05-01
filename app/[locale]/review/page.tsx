@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { getAllSummaries } from "@/content/puzzles";
+import { getAllSummaries } from "@/content/puzzleSummaries";
 import { getViewerPlan, type ViewerPlan } from "@/lib/entitlements";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
