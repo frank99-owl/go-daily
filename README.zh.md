@@ -67,4 +67,4 @@ npm run dev
 
 ---
 
-(C) 2026 Frank. 本项目采用 MIT 协议。
+(C) 2026 Frank. 保留所有权利。

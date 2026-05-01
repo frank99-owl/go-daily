@@ -36,7 +36,33 @@ export function UserMenu() {
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (!menuRef.current) return;
+      const items = Array.from(menuRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+      if (items.length === 0) return;
+      const idx = items.indexOf(document.activeElement as HTMLElement);
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          items[(idx + 1) % items.length].focus();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          items[(idx - 1 + items.length) % items.length].focus();
+          break;
+        case "Home":
+          e.preventDefault();
+          items[0].focus();
+          break;
+        case "End":
+          e.preventDefault();
+          items[items.length - 1].focus();
+          break;
+      }
     };
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKey);
@@ -53,6 +79,13 @@ export function UserMenu() {
   }, [pathname]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  // Focus first menu item when the menu opens.
+  useEffect(() => {
+    if (!open) return;
+    const first = menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]');
+    first?.focus();
+  }, [open]);
+
   if (loading) {
     return <div aria-hidden className="h-9 w-9 rounded-full bg-white/5" />;
   }
@@ -64,7 +97,7 @@ export function UserMenu() {
     return (
       <LocalizedLink
         href={href}
-        className={`whitespace-nowrap text-xs uppercase ${isCjk ? "tracking-[0.14em]" : "tracking-[0.3em]"} text-white/60 transition-colors hover:text-[#00f2ff]`}
+        className={`whitespace-nowrap text-xs uppercase ${isCjk ? "tracking-[0.14em]" : "tracking-[0.3em]"} text-white/60 transition-colors hover:text-[var(--color-accent)]`}
       >
         {t.nav.signIn}
       </LocalizedLink>
@@ -88,7 +121,7 @@ export function UserMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm font-medium text-white transition-colors hover:border-[#00f2ff]/60 hover:text-[#00f2ff]"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm font-medium text-white transition-colors hover:border-[color:var(--color-accent)]/60 hover:text-[var(--color-accent)]"
       >
         {initial}
       </button>

@@ -4,7 +4,7 @@ import { getAllSummaries } from "@/content/puzzleSummaries";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
-import { absoluteUrl } from "@/lib/siteUrl";
+import { absoluteUrl, buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
 import { PuzzleListClient } from "./PuzzleListClient";
@@ -20,7 +20,7 @@ export async function generateMetadata({
   return {
     title: t.metadata.puzzles.title,
     description: t.metadata.puzzles.description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: buildHreflangAlternates("/puzzles") },
     openGraph: {
       title: t.metadata.puzzles.title,
       description: t.metadata.puzzles.description,

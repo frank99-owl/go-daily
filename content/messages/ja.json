@@ -341,6 +341,16 @@
       "authError": "ログインに失敗しました：{{message}}"
     }
   },
+  "errors": {
+    "somethingWentWrong": "問題が発生しました",
+    "boardMistake": "盤面の読みに誤りがありました。調査中です。",
+    "tryAgain": "再読み込み",
+    "criticalError": "重大なエラー",
+    "gobanCollapsed": "碁盤全体に問題が発生しました。ページを再読み込みしてください。",
+    "notFound": "404",
+    "notFoundDescription": "トッププレイヤーでさえ、道に迷うことがあります。",
+    "returnHome": "盤面に戻る"
+  },
   "pipa": {
     "title": "",
     "subtitle": "",

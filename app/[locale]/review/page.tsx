@@ -8,6 +8,7 @@ import { sanitizeTimeZone, syncAndReadDueSrsItems } from "@/lib/puzzle/reviewSrs
 import type { ReviewSrsItem } from "@/lib/puzzle/reviewSrs";
 import { isAuthSessionMissingError } from "@/lib/supabase/authErrors";
 import { createClient } from "@/lib/supabase/server";
+import { buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale, PuzzleSummary } from "@/types";
 
 import { ReviewClient } from "./ReviewClient";
@@ -27,7 +28,7 @@ export async function generateMetadata({
   return {
     title: t.metadata.review.title,
     description: t.metadata.review.description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: buildHreflangAlternates("/review") },
     openGraph: {
       title: t.metadata.review.title,
       description: t.metadata.review.description,

@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
+import { useLocale } from "@/lib/i18n/i18n";
 import { reportError } from "@/lib/errorReporting";
 
 export default function Error({
@@ -12,6 +13,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useLocale();
+
   useEffect(() => {
     Sentry.captureException(error);
     reportError(error);
@@ -20,15 +23,15 @@ export default function Error({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-      <h2 className="text-3xl font-headline mb-4 font-bold text-ink">Something went wrong</h2>
-      <p className="text-lg text-ink/70 mb-8 max-w-md italic">
-        A mistake in reading the board. We&apos;re looking into it.
-      </p>
+      <h2 className="text-3xl font-headline mb-4 font-bold text-ink">
+        {t.errors.somethingWentWrong}
+      </h2>
+      <p className="text-lg text-ink/70 mb-8 max-w-md italic">{t.errors.boardMistake}</p>
       <button
         onClick={() => reset()}
         className="px-6 py-2 border border-ink/20 hover:border-ink hover:bg-ink hover:text-paper transition-colors duration-200 font-medium"
       >
-        Try Again
+        {t.errors.tryAgain}
       </button>
     </div>
   );

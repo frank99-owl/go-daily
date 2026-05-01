@@ -57,7 +57,7 @@ export function UpsellModal({
 
       <div className="flex flex-col gap-4">
         <header className="flex flex-col gap-2">
-          <span className="text-[11px] uppercase tracking-[0.35em] text-[#00f2ff]/70">
+          <span className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--color-accent)]/70">
             go-daily Pro
           </span>
           <h2 className="font-[family-name:var(--font-display)] text-2xl text-white sm:text-3xl">
@@ -69,7 +69,7 @@ export function UpsellModal({
         <ul className="mt-2 flex flex-col gap-2.5 rounded-xl border border-white/10 bg-white/[0.02] p-4">
           {features.map((feature) => (
             <li key={feature} className="flex items-start gap-2.5 text-sm text-white/75">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#00f2ff]" />
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent)]" />
               <span>{feature}</span>
             </li>
           ))}
@@ -79,7 +79,7 @@ export function UpsellModal({
           <button
             type="button"
             onClick={goToPricing}
-            className="flex-1 rounded-full bg-[#00f2ff] px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+            className="flex-1 rounded-full bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
           >
             {t.pricing.seePlans}
           </button>

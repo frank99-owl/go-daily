@@ -341,6 +341,16 @@
       "authError": "登录失败：{{message}}"
     }
   },
+  "errors": {
+    "somethingWentWrong": "出了点问题",
+    "boardMistake": "读盘失误，我们正在排查。",
+    "tryAgain": "再试一次",
+    "criticalError": "严重错误",
+    "gobanCollapsed": "棋盘崩了，请尝试刷新页面。",
+    "notFound": "404",
+    "notFoundDescription": "即便是顶尖棋手，也有迷路的时候。",
+    "returnHome": "回到棋盘"
+  },
   "pipa": {
     "title": "",
     "subtitle": "",

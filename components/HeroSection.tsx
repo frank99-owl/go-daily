@@ -40,10 +40,7 @@ export function HeroSection() {
     requestAnimationFrame(step);
   };
 
-  const titleFont =
-    locale === "zh"
-      ? "font-[family-name:var(--font-headline)]"
-      : "font-[family-name:var(--font-headline)]";
+  const titleFont = "font-[family-name:var(--font-headline)]";
   const titleStyle =
     locale === "zh"
       ? { fontFamily: '"Zhi Mang Xing", cursive', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }

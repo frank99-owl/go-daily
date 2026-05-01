@@ -224,7 +224,7 @@ function CoachLimitCard({ kind, pathname }: { kind: CoachErrorCode; pathname: st
       <p className="text-sm leading-relaxed text-white/80">{body}</p>
       <LocalizedLink
         href={href}
-        className="self-start rounded-full bg-[#00f2ff] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
+        className="self-start rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
       >
         {cta}
       </LocalizedLink>

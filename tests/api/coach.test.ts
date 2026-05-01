@@ -27,6 +27,18 @@ vi.mock("@/content/puzzles", () => ({
   getPuzzle: vi.fn(),
 }));
 
+vi.mock("@/lib/env", () => ({
+  getCoachEnv: () => {
+    const key = process.env.DEEPSEEK_API_KEY;
+    if (!key) throw new Error("DEEPSEEK_API_KEY is not set.");
+    return {
+      DEEPSEEK_API_KEY: key,
+      COACH_MODEL: process.env.COACH_MODEL || "deepseek-chat",
+      COACH_API_URL: process.env.COACH_API_URL || "https://api.deepseek.com",
+    };
+  },
+}));
+
 vi.mock("openai", () => {
   const OpenAIMock = vi.fn(
     class {

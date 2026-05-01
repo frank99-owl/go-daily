@@ -109,7 +109,7 @@ export function PuzzleListClient({
         : t.puzzles.total.replace("{{count}}", String(summaries.length));
 
   const selectBase =
-    "rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 focus:outline-none focus:border-[#00f2ff]";
+    "rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 focus:outline-none focus:border-[var(--color-accent)]";
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,7 +118,7 @@ export function PuzzleListClient({
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
             {collectionEyebrow && (
-              <span className="text-xs font-medium uppercase tracking-[0.2em] text-[#00f2ff]/70">
+              <span className="text-xs font-medium uppercase tracking-[0.2em] text-[color:var(--color-accent)]/70">
                 {collectionEyebrow}
               </span>
             )}
@@ -127,7 +127,10 @@ export function PuzzleListClient({
             </h1>
             <p className="text-sm text-white/50">{collectionDescription}</p>
             {collection.kind !== "all" && (
-              <LocalizedLink href="/puzzles" className="text-sm text-[#00f2ff] hover:opacity-80">
+              <LocalizedLink
+                href="/puzzles"
+                className="text-sm text-[var(--color-accent)] hover:opacity-80"
+              >
                 {t.puzzles.backToLibrary}
               </LocalizedLink>
             )}
@@ -258,7 +261,7 @@ function PuzzleCard({ puzzle, status }: { puzzle: PuzzleSummary; status: PuzzleS
   return (
     <LocalizedLink
       href={`/puzzles/${encodeURIComponent(puzzle.id)}`}
-      className="group relative rounded-xl border border-white/10 bg-white/5 p-4 hover:border-[#00f2ff]/30 hover:bg-white/10 transition-all"
+      className="group relative rounded-xl border border-white/10 bg-white/5 p-4 hover:border-[color:var(--color-accent)]/30 hover:bg-white/10 transition-all"
     >
       {/* Status badge pinned top-right */}
       <div className="absolute top-3 right-3">

@@ -340,6 +340,16 @@
       "authError": "Sign-in failed: {{message}}"
     }
   },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "boardMistake": "A mistake in reading the board. We're looking into it.",
+    "tryAgain": "Try Again",
+    "criticalError": "Critical Error",
+    "gobanCollapsed": "The entire goban has collapsed. Please try reloading the session.",
+    "notFound": "404",
+    "notFoundDescription": "Even the best players lose their way sometimes.",
+    "returnHome": "Return to the Board"
+  },
   "pipa": {
     "title": "",
     "subtitle": "",

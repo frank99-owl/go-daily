@@ -34,6 +34,14 @@ vi.mock("openai", () => {
   return { default: FakeOpenAI };
 });
 
+vi.mock("@/lib/env", () => ({
+  getCoachEnv: () => ({
+    DEEPSEEK_API_KEY: "test-key",
+    COACH_MODEL: process.env.COACH_MODEL || "deepseek-chat",
+    COACH_API_URL: process.env.COACH_API_URL || "https://api.deepseek.com",
+  }),
+}));
+
 import { createManagedCoachProvider } from "@/lib/coach/coachProvider";
 
 describe("createManagedCoachProvider — constructor wiring", () => {

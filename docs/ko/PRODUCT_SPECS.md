@@ -44,3 +44,10 @@ go-daily는 분산된 불리언(boolean) 체크 대신 중앙 집중식 **조회
   - **대만 소비자 보호법**: 서비스 이용약관에 직접 통합되었습니다.
   - **영국/유럽 DMCCA**: 환불 정책에 통합되었습니다.
 - **콘텐츠 제공**: 모든 법적 텍스트는 `app/[locale]/legal/_content.ts`에 의해 구동됩니다.
+
+## 6. 접근성 및 라우트 바운더리
+
+- **Heatmap ARIA**: 활동 히트맵은 컨테이너에 `role="grid"`와 `aria-label`, 각 날짜 셀에 `role="gridcell"`과 설명적 `aria-label`을 사용.
+- **UserMenu 키보드 내비게이션**: 드롭다운 메뉴는 ArrowUp/Down으로 항목 순환, Home/End로 처음/마지막 이동, Escape로 닫기, 열 때 첫 번째 항목에 자동 포커스.
+- **라우트 로딩/오류 상태**: 주요 라우트(today, result, review, puzzles)에 `loading.tsx`(스켈레톤 UI)와 `error.tsx`(현지화된 오류 바운더리+재시도) 배치. 공유 컴포넌트: `PageSkeleton`과 `PageError`.
+- **CSS 변수 테마**: 모든 강조 색상이 하드코딩된 16진수 값 대신 `var(--color-accent)`(`globals.css`에서 정의)를 참조하여 향후 테마 사용자 정의 가능.

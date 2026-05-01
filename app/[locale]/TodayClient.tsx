@@ -141,7 +141,7 @@ export function TodayClient({ puzzle, metaLabel }: { puzzle: PublicPuzzle; metaL
             void submit();
           }}
           disabled={!pending || submitting}
-          className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium disabled:opacity-40 hover:bg-[#00f2ff] hover:text-black transition-colors"
+          className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium disabled:opacity-40 hover:bg-[var(--color-accent)] hover:text-black transition-colors"
         >
           {t.home.submit}
         </button>

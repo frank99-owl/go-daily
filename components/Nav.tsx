@@ -43,7 +43,7 @@ export function Nav() {
   };
 
   const linkBase = [
-    "whitespace-nowrap hover:text-[#00f2ff] transition-colors duration-500",
+    "whitespace-nowrap hover:text-[var(--color-accent)] transition-colors duration-500",
     isCjk ? "tracking-[0.14em]" : "tracking-[0.3em]",
   ].join(" ");
 

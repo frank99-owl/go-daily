@@ -5,6 +5,7 @@ import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { isAuthSessionMissingError } from "@/lib/supabase/authErrors";
 import { createClient } from "@/lib/supabase/server";
+import { buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
 import { PricingClient } from "./PricingClient";
@@ -24,7 +25,7 @@ export async function generateMetadata({
   return {
     title: t.metadata.pricing.title,
     description: t.metadata.pricing.description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: buildHreflangAlternates("/pricing") },
     openGraph: {
       title: t.metadata.pricing.title,
       description: t.metadata.pricing.description,

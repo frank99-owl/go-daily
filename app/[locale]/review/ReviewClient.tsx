@@ -113,7 +113,7 @@ export function ReviewClient({
       </div>
 
       {hiddenFreeCount > 0 ? (
-        <div className="flex flex-col gap-3 rounded-xl border border-[#00f2ff]/20 bg-[#00f2ff]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-white/65">
             {t.review.freeLimitNotice
               .replace("{{limit}}", String(freeLimit))
@@ -121,7 +121,7 @@ export function ReviewClient({
           </p>
           <LocalizedLink
             href="/pricing"
-            className="self-start rounded-full bg-[#00f2ff] px-4 py-2 text-xs font-semibold text-black transition-opacity hover:opacity-90 sm:self-auto"
+            className="self-start rounded-full bg-[var(--color-accent)] px-4 py-2 text-xs font-semibold text-black transition-opacity hover:opacity-90 sm:self-auto"
           >
             {t.review.freeLimitCta}
           </LocalizedLink>
@@ -180,7 +180,7 @@ function ReviewCard({
   return (
     <LocalizedLink
       href={`/puzzles/${encodeURIComponent(puzzle.id)}`}
-      className="group relative rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-[#00f2ff]/30 hover:bg-white/10"
+      className="group relative rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-[color:var(--color-accent)]/30 hover:bg-white/10"
     >
       <div className="absolute right-3 top-3">
         <PuzzleStatusBadge status="attempted" size="sm" title={statusTitle} />

@@ -1,8 +1,8 @@
 # go-daily 프로젝트 상태 및 향후 로드맵
 
-**생성일**: 2026-04-26
-**저장소 HEAD**: `a741dbd`
-**상태**: v2.5 글로벌 컴플라이언스 에디션
+**생성일**: 2026-05-01
+**저장소 HEAD**: `ae8ecce`
+**상태**: v2.7 코드베이스 최적화 에디션
 
 ---
 
@@ -16,11 +16,16 @@
 - **경로 수정**: 전역 **푸터(Footer)** 및 다중 관할권 법적 라우트를 구현하여 404 오류 가능성을 제거했습니다.
 - **UI 로직**: 수직 여백(`pb-24`) 최적화를 통해 `Today` 및 `Random` 페이지의 레이아웃 가림 현상을 수정했습니다.
 
-## 3. 향후 즉시 과제 (3단계)
+## 3. 최근 진행 (v2.7)
 
-1. **운영 환경 스모크 테스트**: DNS/SMTP 및 Stripe 실제 웹훅 검증.
-2. **AI 코치 승인 확장**: Pro 사용자를 위해 3,000개 이상의 문제를 일괄 승인.
-3. **UI 강화**: 로그인 절차에 한국 PIPA 동의를 위한 순차적 카드 도입 완료.
+- **환경 변수 중앙 검증**: `lib/env.ts` — Zod 기반 지연 싱글턴이 분산된 `process.env` 읽기를 대체.
+- **오류 페이지 다국어화**: 모든 오류 바운더리(`error.tsx`, `global-error.tsx`, `not-found.tsx`)가 4개 언어를 지원.
+- **테마 색상 중앙화**: 53곳의 하드코딩된 `#00f2ff`를 `var(--color-accent)` CSS 변수로 대체.
+- **코드 분할**: `CoachDialogue`, `ShareCard`, `BoardShowcase`를 `next/dynamic`으로 지연 로딩.
+- **SEO hreflang**: `buildHreflangAlternates()` 헬퍼가 모든 페이지 라우트에 `alternates.languages`를 추가.
+- **접근성**: Heatmap ARIA 시맨틱(`role="grid"`, `aria-label`), UserMenu 키보드 내비게이션(방향키, Home/End).
+- **라우트 바운더리**: today, result, review, puzzles 라우트에 `loading.tsx` + `error.tsx` 추가.
+- **테스트 스위트**: 81개 테스트 파일, 약 631개 테스트 케이스.
 
 ---
 

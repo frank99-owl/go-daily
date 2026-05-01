@@ -8,11 +8,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ## [Unreleased]
 
+### Added
+
+- **Centralized env validation**: `lib/env.ts` with Zod-based lazy singletons for Coach, Stripe, Supabase, and Reveal env vars.
+- **Error page i18n**: `app/error.tsx`, `app/global-error.tsx`, and `app/not-found.tsx` now support all four locales.
+- **Route loading/error boundaries**: `loading.tsx` + `error.tsx` for today, result, review, and puzzles routes, with shared `PageSkeleton` and `PageError` components.
+- **Heatmap accessibility**: Added `role="grid"`, `aria-label`, and `role="gridcell"` to the activity heatmap.
+- **UserMenu keyboard navigation**: ArrowUp/Down, Home/End key support with auto-focus on open.
+
 ### Changed
 
 - Documentation structure reorganized into formal project-level architecture.
 - Improved multilingual content: natural Japanese/Korean translations replacing mechanical translations.
 - Mentoring page content optimized across all four locales.
+- **Theme color centralized**: Replaced 53 hardcoded `#00f2ff` occurrences with `var(--color-accent)` CSS variable across 16+ component files.
+- **Code splitting**: Lazy-loaded `CoachDialogue`, `ShareCard`, and `BoardShowcase` via `next/dynamic`.
+- **SEO hreflang**: Added `buildHreflangAlternates()` helper and `alternates.languages` to all 7 page routes for proper cross-locale SEO.
+- **OG locale mapping**: Dynamic Open Graph locale in root layout (`zh→zh_CN`, `en→en_US`, `ja→ja_JP`, `ko→ko_KR`).
+- **Font loading**: Added `<link rel="preconnect">` for Google Fonts domains.
+- **Static asset caching**: `/avatars/*` now served with `Cache-Control: immutable` for versioned assets.
+- **robots.txt**: Removed `/about/` from disallow list; only `/api/` remains blocked.
 
 ---
 

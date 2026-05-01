@@ -5,10 +5,20 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { CoachDialogue } from "@/components/CoachDialogue";
+import dynamic from "next/dynamic";
+
 import { GoBoard } from "@/components/GoBoard";
 import { LocalizedLink } from "@/components/LocalizedLink";
-import { ShareCard } from "@/components/ShareCard";
+
+const CoachDialogue = dynamic(
+  () => import("@/components/CoachDialogue").then((m) => m.CoachDialogue),
+  {
+    loading: () => <div className="h-48 animate-pulse rounded-lg bg-ink/5" />,
+  },
+);
+const ShareCard = dynamic(() => import("@/components/ShareCard").then((m) => m.ShareCard), {
+  loading: () => <div className="h-64 animate-pulse rounded-lg bg-ink/5" />,
+});
 import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
@@ -250,7 +260,7 @@ export function ResultClient({
     return (
       <p className="text-white/50">
         Puzzle not found.{" "}
-        <LocalizedLink href="/" className="underline text-[#00f2ff]">
+        <LocalizedLink href="/" className="underline text-[var(--color-accent)]">
           {t.result.backToToday}
         </LocalizedLink>
       </p>
@@ -387,7 +397,7 @@ export function ResultClient({
         {!correct && (
           <LocalizedLink
             href={retryPath}
-            className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[#00f2ff] hover:text-black transition-colors"
+            className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[var(--color-accent)] hover:text-black transition-colors"
           >
             {t.result.retry}
           </LocalizedLink>
@@ -415,7 +425,7 @@ export function ResultClient({
               <button
                 type="button"
                 onClick={handlePlay}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#00f2ff] text-black text-sm font-medium hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--color-accent)] text-black text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 <Play className="h-3.5 w-3.5" />
                 {t.result.playSolution}
@@ -450,7 +460,7 @@ export function ResultClient({
 
         <LocalizedLink
           href="/"
-          className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[#00f2ff] hover:text-black transition-colors"
+          className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[var(--color-accent)] hover:text-black transition-colors"
         >
           {t.result.backToHome}
         </LocalizedLink>
@@ -463,7 +473,7 @@ export function ResultClient({
       {/* Solution note — shown once the answer is revealed. */}
       {showAnswer && reveal && (
         <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-          <div className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-[#00f2ff]/70">
+          <div className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-[color:var(--color-accent)]/70">
             {t.result.curatedNote}
           </div>
           <div className="text-sm leading-relaxed text-white/60">

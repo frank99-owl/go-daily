@@ -81,7 +81,7 @@ export function AccountClient({
   return (
     <div className="flex flex-col gap-10">
       <header className="flex flex-col gap-2">
-        <span className="text-[11px] uppercase tracking-[0.4em] text-[#00f2ff]/70">
+        <span className="text-[11px] uppercase tracking-[0.4em] text-[color:var(--color-accent)]/70">
           {t.nav.account}
         </span>
         <h1 className="font-[family-name:var(--font-display)] text-3xl text-white">{copy.title}</h1>

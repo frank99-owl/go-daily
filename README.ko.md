@@ -67,4 +67,4 @@ npm run dev
 
 ---
 
-(C) 2026 Frank. MIT 라이선스.
+(C) 2026 Frank. All rights reserved.

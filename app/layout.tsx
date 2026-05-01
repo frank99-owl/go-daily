@@ -18,36 +18,45 @@ const playfair = Playfair_Display({
   style: ["normal", "italic"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(getSiteUrl()),
-  title: "go-daily — Daily Go Puzzle with AI Coach",
-  description:
-    "One Go problem a day, with a Socratic AI coach. Switch between Chinese, English, Japanese, and Korean.",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: getSiteUrl(),
-    siteName: "go-daily",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    title: "go-daily",
-    statusBarStyle: "black-translucent",
-  },
-  other: {
-    "theme-color": "#0a0a0a",
-  },
+const OG_LOCALE_MAP: Record<Locale, string> = {
+  zh: "zh_CN",
+  en: "en_US",
+  ja: "ja_JP",
+  ko: "ko_KR",
 };
 
+export async function generateMetadata(): Promise<Metadata> {
+  const h = await headers();
+  const rawLocale = h.get("x-locale");
+  const locale: Locale = isLocale(rawLocale) ? rawLocale : DEFAULT_LOCALE;
+
+  return {
+    metadataBase: new URL(getSiteUrl()),
+    title: "go-daily — Daily Go Puzzle with AI Coach",
+    description:
+      "One Go problem a day, with a Socratic AI coach. Switch between Chinese, English, Japanese, and Korean.",
+    openGraph: {
+      type: "website",
+      locale: OG_LOCALE_MAP[locale],
+      url: getSiteUrl(),
+      siteName: "go-daily",
+    },
+    twitter: {
+      card: "summary_large_image",
+    },
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      title: "go-daily",
+      statusBarStyle: "black-translucent",
+    },
+    other: {
+      "theme-color": "#0a0a0a",
+    },
+  };
+}
+
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // The root layout wraps every route — including unprefixed routes like
-  // /sitemap.xml, /auth/callback, and the `/` redirect page. Proxy.ts sets
-  // x-locale from the URL segment when one is present; otherwise we fall
-  // back to the negotiated default so the <html lang> attribute is sane.
   const h = await headers();
   const rawLocale = h.get("x-locale");
   const locale: Locale = isLocale(rawLocale) ? rawLocale : DEFAULT_LOCALE;
@@ -61,6 +70,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-full flex flex-col bg-paper text-ink cursor-none">
         <PostHogProvider>{children}</PostHogProvider>

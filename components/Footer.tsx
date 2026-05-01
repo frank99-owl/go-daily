@@ -8,7 +8,7 @@ export function Footer() {
   const { t } = useLocale();
   const year = new Date().getFullYear();
 
-  const linkClass = "hover:text-[#00f2ff] transition-colors duration-300";
+  const linkClass = "hover:text-[var(--color-accent)] transition-colors duration-300";
 
   return (
     <footer className="mt-auto border-t border-white/5 bg-black/20 pb-12 pt-8 backdrop-blur-sm">

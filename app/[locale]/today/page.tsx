@@ -5,7 +5,7 @@ import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { toPublicPuzzle } from "@/lib/puzzle/publicPuzzle";
 import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzle/puzzleOfTheDay";
-import { absoluteUrl } from "@/lib/siteUrl";
+import { absoluteUrl, buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
 import { TodayClient } from "../TodayClient";
@@ -21,7 +21,7 @@ export async function generateMetadata({
   return {
     title: t.metadata.today.title,
     description: t.metadata.today.description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: buildHreflangAlternates("/today") },
     openGraph: {
       title: t.metadata.today.title,
       description: t.metadata.today.description,

@@ -67,4 +67,4 @@ Open `http://localhost:3000`.
 
 ---
 
-(C) 2026 Frank. Distributed under the MIT License.
+(C) 2026 Frank. All rights reserved.

@@ -2,6 +2,7 @@ import { Metadata } from "next";
 
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
+import { buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
 import { StatsClient } from "./StatsClient";
@@ -17,7 +18,7 @@ export async function generateMetadata({
   return {
     title: t.metadata.stats.title,
     description: t.metadata.stats.description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: buildHreflangAlternates("/stats") },
     openGraph: {
       title: t.metadata.stats.title,
       description: t.metadata.stats.description,

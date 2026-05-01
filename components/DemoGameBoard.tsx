@@ -143,7 +143,7 @@ export function DemoGameBoard({
         boardStyle="dark"
         moveNumbers={moveNumbers}
         highlight={highlightCoord ? [highlightCoord] : undefined}
-        highlightColor="#00f2ff"
+        highlightColor="var(--color-accent)"
         disabled
         maxPx={560}
       />

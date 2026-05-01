@@ -52,3 +52,10 @@ The system utilizes an Apple-style "Unified Pillar" legal delivery mechanism.
   - **Taiwan CPA**: Integrated directly into the Terms of Service.
   - **UK/EU DMCCA**: Integrated into the Refund Policy.
 - **Content Delivery**: All legal texts are content-driven from `app/[locale]/legal/_content.ts`.
+
+## 6. Accessibility & Route Boundaries
+
+- **Heatmap ARIA**: The activity heatmap uses `role="grid"` with `aria-label` on the container and `role="gridcell"` with descriptive `aria-label` on each day cell.
+- **UserMenu Keyboard Navigation**: The dropdown menu supports ArrowUp/Down to cycle items, Home/End to jump to first/last, Escape to close, and auto-focuses the first item on open.
+- **Route Loading/Error States**: Key routes (today, result, review, puzzles) have `loading.tsx` (skeleton UI) and `error.tsx` (localized error boundary with retry) files. Shared components: `PageSkeleton` and `PageError`.
+- **Theme via CSS Variable**: All accent color usage references `var(--color-accent)` (defined in `globals.css`) instead of hardcoded hex values, enabling future theme customization.

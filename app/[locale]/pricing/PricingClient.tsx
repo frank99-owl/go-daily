@@ -80,11 +80,11 @@ export function PricingClient({ viewerPlan, locale }: { viewerPlan: ViewerPlan; 
 
   return (
     <article className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.025] p-6 shadow-2xl shadow-black/30 backdrop-blur sm:p-10">
-      <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-[#00f2ff]/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-[color:var(--color-accent)]/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 left-8 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
 
       <header className="relative flex flex-col gap-3">
-        <span className="text-[11px] uppercase tracking-[0.35em] text-[#00f2ff]/70">
+        <span className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--color-accent)]/70">
           go-daily Pro
         </span>
         <h1 className="font-[family-name:var(--font-display)] text-4xl text-white sm:text-5xl">
@@ -109,14 +109,14 @@ export function PricingClient({ viewerPlan, locale }: { viewerPlan: ViewerPlan; 
       <section className="relative mt-6 rounded-2xl border border-white/10 bg-black/30 p-6 sm:p-8">
         <div className="flex flex-wrap items-baseline gap-3">
           <h2 className="text-xl font-semibold text-white">{planName}</h2>
-          <span className="text-2xl text-[#00f2ff]">{price}</span>
+          <span className="text-2xl text-[var(--color-accent)]">{price}</span>
         </div>
         <p className="mt-1 text-xs text-white/45">{copy.trial}</p>
 
         <ul className="mt-5 flex flex-col gap-2.5">
           {features.map((feature) => (
             <li key={feature} className="flex items-start gap-2.5 text-sm text-white/75">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#00f2ff]" />
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent)]" />
               <span>{feature}</span>
             </li>
           ))}
@@ -160,7 +160,7 @@ function IntervalButton({
       className={
         "rounded-full border px-4 py-1.5 text-xs transition-colors " +
         (active
-          ? "border-[#00f2ff]/50 bg-[#00f2ff]/10 text-[#00f2ff]"
+          ? "border-[color:var(--color-accent)]/50 bg-[color:var(--color-accent)]/10 text-[var(--color-accent)]"
           : "border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white")
       }
     >
@@ -181,7 +181,7 @@ function GuestCta({
       <p className="text-sm text-white/60">{copy.signInRequired}</p>
       <LocalizedLink
         href={`/login?next=${encodeURIComponent(localePath(locale, "/pricing"))}`}
-        className="self-start rounded-full bg-[#00f2ff] px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+        className="self-start rounded-full bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
       >
         {copy.signInCta}
       </LocalizedLink>
@@ -208,7 +208,7 @@ function FreeCta({
         type="button"
         onClick={onStart}
         disabled={disabled}
-        className="self-start rounded-full bg-[#00f2ff] px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="self-start rounded-full bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {state.kind === "redirecting" ? copy.processing : cta}
       </button>
@@ -234,8 +234,8 @@ function ProBlock({
 }) {
   return (
     <>
-      <div className="rounded-xl border border-[#00f2ff]/20 bg-[#00f2ff]/5 p-4">
-        <p className="text-sm font-semibold text-[#00f2ff]">{copy.alreadyPro}</p>
+      <div className="rounded-xl border border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/5 p-4">
+        <p className="text-sm font-semibold text-[var(--color-accent)]">{copy.alreadyPro}</p>
         <p className="mt-1 text-sm text-white/65">{copy.alreadyProBody}</p>
       </div>
       <button

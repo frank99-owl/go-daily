@@ -13,6 +13,10 @@
 
 ## 2. コアドメイン・モジュール (`lib/`)
 
+### `lib/env.ts` (環境変数検証)
+
+Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Stripe、Supabase、Reveal）に独自のスキーマと遅延検証シングルトンアクセサ（`getCoachEnv()`、`getStripeEnv()` など）を持つ。欠落変数はルートハンドラ深部でのサイレント 500 ではなく、初回使用時に明確なスタートアップスタイルエラーとして表面化する。ブラウザ側 Supabase ファイル（`client.ts`、`middleware.ts`）は `lib/env.ts` がサーバー専用のため、各自のインライン検証を維持する。
+
 ### `lib/auth/` & `lib/supabase/`
 
 - **デュアルクライアント戦略**：ブラウザ環境向けには `client.ts` を、App Router の非同期サーバーコンポーネント向けには `server.ts` を使用します。

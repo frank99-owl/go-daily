@@ -7,6 +7,7 @@ import { localized } from "@/lib/i18n/localized";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { toPublicPuzzle } from "@/lib/puzzle/publicPuzzle";
+import { buildHreflangAlternates } from "@/lib/siteUrl";
 import { BOARD_SIZE_LABELS, type Locale } from "@/types";
 
 import { TodayClient } from "../../TodayClient";
@@ -35,7 +36,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: {
+      canonical: path,
+      languages: buildHreflangAlternates(`/puzzles/${encodeURIComponent(puzzle.id)}`),
+    },
     openGraph: { title, description, url: path },
   };
 }

@@ -13,6 +13,10 @@
 
 ## 2. 核心领域模块 (`lib/`)
 
+### `lib/env.ts` (环境变量校验)
+
+集中式 Zod 环境变量校验器。每个领域（Coach、Stripe、Supabase、Reveal）都有独立的 Schema 和惰性单例访问器（`getCoachEnv()`、`getStripeEnv()` 等）。缺失的变量会在首次使用时抛出清晰的启动级错误，而非在路由深处产生静默 500。浏览器端 Supabase 文件（`client.ts`、`middleware.ts`）保留各自的 inline 校验，因为 `lib/env.ts` 仅限服务端使用。
+
 ### `lib/auth/` & `lib/supabase/`
 
 - **双客户端策略**：针对浏览器环境使用 `client.ts`，针对 App Router 的异步服务端组件使用 `server.ts`。

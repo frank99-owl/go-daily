@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 
+import { getCoachEnv } from "@/lib/env";
+
 export interface CoachProviderMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -107,8 +109,9 @@ export function createManagedCoachProvider({
   apiKey: string;
   timeout: number;
 }): CoachProvider {
-  const model = process.env.COACH_MODEL || "deepseek-chat";
-  const primaryUrl = process.env.COACH_API_URL || "https://api.deepseek.com";
+  const env = getCoachEnv();
+  const model = env.COACH_MODEL;
+  const primaryUrl = env.COACH_API_URL;
   const fallbackUrl = process.env.COACH_FALLBACK_API_URL;
   const fallbackApiKey = process.env.COACH_FALLBACK_API_KEY || apiKey;
   const fallbackModel = process.env.COACH_FALLBACK_MODEL || model;

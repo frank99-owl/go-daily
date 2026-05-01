@@ -327,7 +327,7 @@ export function GoBoard({
       const cx = px_(activeKeyboardCursor.x);
       const cy = py_(activeKeyboardCursor.y);
       ctx.save();
-      ctx.strokeStyle = "#00f2ff";
+      ctx.strokeStyle = accent === "var(--color-accent)" ? "#00f2ff" : accent;
       ctx.lineWidth = Math.max(2, px / 220);
       ctx.setLineDash([6, 4]);
       ctx.beginPath();
@@ -492,10 +492,7 @@ export function GoBoard({
         onPointerMove={handleMove}
         onPointerLeave={handleLeave}
         onPointerDown={handleClick}
-        className={
-          "rounded-md shadow-sm touch-none select-none " +
-          (disabled ? "cursor-none" : "cursor-none")
-        }
+        className="rounded-md shadow-sm touch-none select-none cursor-none"
         aria-hidden={keyboardEnabled || undefined}
         aria-label={`Go board, ${size} by ${size}`}
         role="img"

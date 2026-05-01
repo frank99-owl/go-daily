@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
@@ -9,6 +10,14 @@ import {
 // We'll capture the mock implementations dynamically
 const primaryMock = vi.fn();
 const secondaryMock = vi.fn();
+
+vi.mock("@/lib/env", () => ({
+  getCoachEnv: () => ({
+    DEEPSEEK_API_KEY: "test-key",
+    COACH_MODEL: process.env.COACH_MODEL || "deepseek-chat",
+    COACH_API_URL: process.env.COACH_API_URL || "https://api.deepseek.com",
+  }),
+}));
 
 vi.mock("openai", () => {
   return {
@@ -45,6 +54,7 @@ describe("CoachProvider Fallback Mechanism", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.DEEPSEEK_API_KEY = "test-key";
     delete process.env.COACH_API_URL;
     delete process.env.COACH_FALLBACK_API_URL;
     delete process.env.COACH_FALLBACK_API_KEY;

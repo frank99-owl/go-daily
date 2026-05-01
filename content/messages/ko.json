@@ -341,6 +341,16 @@
       "authError": "로그인에 실패했습니다: {{message}}"
     }
   },
+  "errors": {
+    "somethingWentWrong": "문제가 발생했습니다",
+    "boardMistake": "판독에 오류가 있었습니다. 확인 중입니다.",
+    "tryAgain": "다시 시도",
+    "criticalError": "심각한 오류",
+    "gobanCollapsed": "바둑판 전체에 문제가 발생했습니다. 페이지를 새로고침해 주세요.",
+    "notFound": "404",
+    "notFoundDescription": "최고의 기사조차도 길을 잃을 때가 있습니다.",
+    "returnHome": "바둑판으로 돌아가기"
+  },
   "pipa": {
     "title": "개인정보 국외 이전 동의",
     "subtitle": "안전한 서비스 제공을 위한 안내",

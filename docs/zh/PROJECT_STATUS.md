@@ -1,8 +1,8 @@
 # go-daily 项目状态与下一步路线图
 
-**生成日期**: 2026-04-30
+**生成日期**: 2026-05-01
 **仓库 HEAD**: `ae8ecce`
-**版本状态**: v2.6 教练扩展版
+**版本状态**: v2.7 代码库优化版
 
 ---
 
@@ -16,11 +16,15 @@
 - **路径修复**：实现了全局 **页脚 (Footer)** 及多管辖区法律路由，修复了 404 隐患。
 - **UI 逻辑**：通过优化垂直呼吸感 (`pb-24`)，修复了 `Today` 和 `Random` 页面的布局遮挡问题。
 
-## 三、近期进展 (v2.6)
+## 三、近期进展 (v2.7)
 
-- **教练扩展**：移除 curated 分类，教练可用题目扩展至 1,269 道 (`ae8ecce`)。
-- **核心流程加固**：修复高风险漏洞并补充核心流程测试 (`690a9a3`)。
-- **认证重构**：将韩国 PIPA 同意流程整合至线性登录流 (`6f135b7`)。
+- **环境变量集中校验**：`lib/env.ts` 基于 Zod 的惰性单例替代分散的 `process.env` 读取。
+- **错误页面国际化**：所有错误边界（`error.tsx`、`global-error.tsx`、`not-found.tsx`）支持 4 种语言。
+- **主题色集中化**：53 处硬编码 `#00f2ff` 颜色替换为 `var(--color-accent)` CSS 变量。
+- **代码分块**：`CoachDialogue`、`ShareCard`、`BoardShowcase` 通过 `next/dynamic` 懒加载。
+- **SEO hreflang**：`buildHreflangAlternates()` 辅助函数为所有页面路由添加 `alternates.languages`。
+- **无障碍**：Heatmap ARIA 语义（`role="grid"`、`aria-label`），UserMenu 键盘导航（方向键、Home/End）。
+- **路由边界**：today、result、review、puzzles 路由添加 `loading.tsx` + `error.tsx`。
 - **测试套件**：81 个测试文件，约 631 个测试用例，覆盖逻辑、UI 和 API 层。
 
 ## 四、后续即时步骤 (Phase 3)

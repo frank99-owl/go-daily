@@ -178,7 +178,7 @@ function BackupPanel({
           <button
             type="button"
             onClick={onExport}
-            className="px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[#00f2ff] hover:text-black transition-colors"
+            className="px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[var(--color-accent)] hover:text-black transition-colors"
           >
             {exportLabel}
           </button>

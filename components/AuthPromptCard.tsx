@@ -79,7 +79,7 @@ export function AuthPromptCard({
     return (
       <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur">
         <div className="flex items-center justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#00f2ff]/40 bg-[#00f2ff]/10 text-[#00f2ff]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--color-accent)]/40 bg-[color:var(--color-accent)]/10 text-[var(--color-accent)]">
             <Mail className="h-5 w-5" />
           </div>
         </div>
@@ -94,7 +94,7 @@ export function AuthPromptCard({
         <button
           type="button"
           onClick={() => setView({ kind: "idle" })}
-          className="mt-2 text-xs uppercase tracking-[0.3em] text-white/50 transition-colors hover:text-[#00f2ff]"
+          className="mt-2 text-xs uppercase tracking-[0.3em] text-white/50 transition-colors hover:text-[var(--color-accent)]"
         >
           {copy.resend}
         </button>
@@ -107,7 +107,7 @@ export function AuthPromptCard({
   return (
     <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur">
       <div className="flex flex-col gap-2 text-center">
-        <span className="text-[11px] uppercase tracking-[0.4em] text-[#00f2ff]/70">
+        <span className="text-[11px] uppercase tracking-[0.4em] text-[color:var(--color-accent)]/70">
           {copy.eyebrow}
         </span>
         <h1 className="font-[family-name:var(--font-display)] text-3xl text-white">{copy.title}</h1>
@@ -138,7 +138,7 @@ export function AuthPromptCard({
           type="button"
           onClick={handleGuestContinue}
           disabled={oauthLoading || isSending}
-          className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/75 transition-colors hover:border-[#00f2ff]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/75 transition-colors hover:border-[color:var(--color-accent)]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {copy.continueAsGuest}
         </button>
@@ -166,13 +166,13 @@ export function AuthPromptCard({
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 disabled={isSending}
-                className="rounded-lg border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition-colors focus:border-[#00f2ff]/60 disabled:opacity-60"
+                className="rounded-lg border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition-colors focus:border-[color:var(--color-accent)]/60 disabled:opacity-60"
               />
             </label>
             <button
               type="submit"
               disabled={isSending || oauthLoading || email.length === 0}
-              className="rounded-lg border border-[#00f2ff]/40 bg-[#00f2ff]/10 px-4 py-3 text-sm font-medium text-[#00f2ff] transition-colors hover:bg-[#00f2ff]/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg border border-[color:var(--color-accent)]/40 bg-[color:var(--color-accent)]/10 px-4 py-3 text-sm font-medium text-[var(--color-accent)] transition-colors hover:bg-[color:var(--color-accent)]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSending ? copy.sending : copy.magicLink}
             </button>

@@ -15,12 +15,12 @@ export function LegalPage({ locale, kind }: { locale: Locale; kind: LegalKind })
     <div className="mx-auto max-w-5xl px-6 pb-32 pt-32 sm:pt-40 lg:px-8">
       <div className="relative">
         {/* Apple-style background accents */}
-        <div className="pointer-events-none absolute -left-40 -top-40 h-80 w-80 rounded-full bg-[#00f2ff]/5 blur-[120px]" />
+        <div className="pointer-events-none absolute -left-40 -top-40 h-80 w-80 rounded-full bg-[color:var(--color-accent)]/5 blur-[120px]" />
         <div className="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-white/[0.02] blur-[100px]" />
 
         <header className="relative flex flex-col gap-8 text-center sm:text-left">
           <div className="flex flex-col items-center gap-4 sm:items-start">
-            <div className="rounded-full border border-[#00f2ff]/20 bg-[#00f2ff]/5 px-4 py-1 text-[10px] font-medium uppercase tracking-[0.3em] text-[#00f2ff]">
+            <div className="rounded-full border border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/5 px-4 py-1 text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--color-accent)]">
               {copy.eyebrow}
             </div>
             <h1 className="font-[family-name:var(--font-headline)] text-5xl tracking-tight text-white sm:text-6xl lg:text-7xl">
@@ -47,7 +47,7 @@ export function LegalPage({ locale, kind }: { locale: Locale; kind: LegalKind })
                     {section.heading}
                   </h2>
                   {section.summary && (
-                    <p className="text-base font-normal leading-relaxed text-[#00f2ff]/80">
+                    <p className="text-base font-normal leading-relaxed text-[color:var(--color-accent)]/80">
                       {section.summary}
                     </p>
                   )}
@@ -74,7 +74,7 @@ export function LegalPage({ locale, kind }: { locale: Locale; kind: LegalKind })
                   className={
                     "rounded-full border px-6 py-2.5 text-xs font-medium transition-all duration-500 " +
                     (active
-                      ? "border-[#00f2ff]/50 bg-[#00f2ff]/10 text-[#00f2ff] shadow-[0_0_20px_rgba(0,242,255,0.1)]"
+                      ? "border-[color:var(--color-accent)]/50 bg-[color:var(--color-accent)]/10 text-[var(--color-accent)] shadow-[0_0_20px_rgba(0,242,255,0.1)]"
                       : "border-white/5 bg-white/[0.02] text-white/40 hover:border-white/20 hover:bg-white/5 hover:text-white")
                   }
                 >
@@ -86,7 +86,7 @@ export function LegalPage({ locale, kind }: { locale: Locale; kind: LegalKind })
 
           <LocalizedLink
             href="/"
-            className="mt-8 text-xs font-light text-white/30 transition-colors hover:text-[#00f2ff]"
+            className="mt-8 text-xs font-light text-white/30 transition-colors hover:text-[var(--color-accent)]"
           >
             Back to Home
           </LocalizedLink>

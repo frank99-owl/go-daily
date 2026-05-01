@@ -1,12 +1,16 @@
 import { Metadata } from "next";
+import dynamic from "next/dynamic";
 
-import { BoardShowcase } from "@/components/BoardShowcase";
 import { HeroSection } from "@/components/HeroSection";
 import { HomeLoginReminder } from "@/components/HomeLoginReminder";
+
+const BoardShowcase = dynamic(() =>
+  import("@/components/BoardShowcase").then((m) => m.BoardShowcase),
+);
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
-import { absoluteUrl } from "@/lib/siteUrl";
+import { absoluteUrl, buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
 export async function generateMetadata({
@@ -20,7 +24,7 @@ export async function generateMetadata({
   return {
     title: t.metadata.home.title,
     description: t.metadata.home.description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: buildHreflangAlternates("/") },
     openGraph: {
       title: t.metadata.home.title,
       description: t.metadata.home.description,

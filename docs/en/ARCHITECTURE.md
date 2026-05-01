@@ -13,6 +13,10 @@ Everything user-facing passes through the `proxy.ts` middleware. It handles four
 
 ## 2. Core Domain Modules (`lib/`)
 
+### `lib/env.ts` (Environment Validation)
+
+A centralized, Zod-based environment variable validator. Each domain (Coach, Stripe, Supabase, Reveal) has its own schema and a lazy-validated singleton accessor (`getCoachEnv()`, `getStripeEnv()`, etc.). Missing variables surface as clear startup-style errors at first use rather than silent 500s deep in a route handler. Browser-side Supabase files (`client.ts`, `middleware.ts`) maintain their own inline validation since `lib/env.ts` is server-only.
+
 ### `lib/auth/` & `lib/supabase/`
 
 - **The Bridge**: We use a dual-client strategy. `client.ts` for browser-side hooks and `server.ts` for App Router async server components.

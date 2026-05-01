@@ -1,8 +1,8 @@
 # go-daily Project Status & Roadmap
 
-**Generated At**: April 30, 2026
+**Generated At**: May 1, 2026
 **Repository HEAD**: `ae8ecce`
-**Status**: v2.6 Coach Expansion Edition
+**Status**: v2.7 Codebase Optimization Edition
 
 ---
 
@@ -16,11 +16,15 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **Paths**: Implemented a global **Footer** with multi-jurisdiction legal routes, resolving the 404 gap.
 - **UI Logic**: Fixed layout overlap issues on `Today` and `Random` pages by optimizing the vertical breathing room (`pb-24`).
 
-## 3. Recent Progress (v2.6)
+## 3. Recent Progress (v2.7)
 
-- **Coach Expansion**: Removed curated distinction; expanded coach-ready puzzles to 1,269 (`ae8ecce`).
-- **Core Flow Hardening**: Fixed high-risk vulnerabilities and added core flow tests (`690a9a3`).
-- **Auth Refactor**: Integrated Korea PIPA consent into sequential login flow (`6f135b7`).
+- **Centralized Env Validation**: `lib/env.ts` with Zod-based lazy singletons replacing scattered `process.env` reads.
+- **Error Page i18n**: All error boundaries (`error.tsx`, `global-error.tsx`, `not-found.tsx`) now support 4 locales.
+- **Theme Centralization**: 53 hardcoded `#00f2ff` color references replaced with `var(--color-accent)` CSS variable.
+- **Code Splitting**: `CoachDialogue`, `ShareCard`, `BoardShowcase` lazy-loaded via `next/dynamic`.
+- **SEO Hreflang**: `buildHreflangAlternates()` helper with `alternates.languages` on all page routes.
+- **Accessibility**: Heatmap ARIA semantics (`role="grid"`, `aria-label`), UserMenu keyboard navigation (Arrow keys, Home/End).
+- **Route Boundaries**: `loading.tsx` + `error.tsx` for today, result, review, and puzzles routes.
 - **Test Suite**: 81 test files, ~631 test cases covering logic, UI, and API layers.
 
 ## 4. Immediate Next Steps (Phase 3)

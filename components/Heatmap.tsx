@@ -38,10 +38,10 @@ function bucketFor(count: number): 0 | 1 | 2 | 3 | 4 {
 
 const BUCKET_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
   0: "bg-white/5 border border-white/10",
-  1: "bg-[#00f2ff]/20",
-  2: "bg-[#00f2ff]/40",
-  3: "bg-[#00f2ff]/65",
-  4: "bg-[#00f2ff]",
+  1: "bg-[color:var(--color-accent)]/20",
+  2: "bg-[color:var(--color-accent)]/40",
+  3: "bg-[color:var(--color-accent)]/65",
+  4: "bg-[var(--color-accent)]",
 };
 
 export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
@@ -154,7 +154,12 @@ export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
     <section className="rounded-xl border border-white/10 bg-white/5 p-4 sm:p-5">
       <h2 className="text-sm font-medium text-white mb-3">{t.stats.heatmapTitle}</h2>
 
-      <div className="grid gap-[3px] w-full" style={{ gridTemplateColumns }}>
+      <div
+        role="grid"
+        aria-label={t.stats.heatmapTitle}
+        className="grid gap-[3px] w-full"
+        style={{ gridTemplateColumns }}
+      >
         {/* Row 1: top-left gutter + month labels. Each label is placed at the
             exact grid column matching its starting week. We let it overflow
             its single-column track horizontally (min-width:0 on the track via
@@ -198,6 +203,8 @@ export function Heatmap({ attempts }: { attempts: AttemptRecord[] }) {
             return (
               <div
                 key={day.key}
+                role="gridcell"
+                aria-label={tooltipFor(day)}
                 title={tooltipFor(day)}
                 style={common}
                 className={`aspect-square rounded-[2px] ${BUCKET_CLASS[b]}`}

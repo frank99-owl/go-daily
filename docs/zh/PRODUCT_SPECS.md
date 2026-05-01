@@ -44,7 +44,7 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 ## 5. 法律与合规呈现逻辑
 
-系统采用 Apple 风格的“统一支柱”法律递送机制。
+系统采用 Apple 风格的”统一支柱”法律递送机制。
 
 - **动态法律页脚**: 页脚链接至三大核心支柱：`/legal/privacy` (隐私)、`/legal/terms` (条款) 和 `/legal/refund` (退款)。
 - **集成公示**:
@@ -52,3 +52,10 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
   - **台湾消保法**: 直接集成于服务条款中。
   - **英国/欧盟 DMCCA**: 集成于退款政策中。
 - **内容交付**: 所有法律文本均由 `app/[locale]/legal/_content.ts` 驱动。
+
+## 6. 无障碍与路由边界
+
+- **Heatmap ARIA**: 活动热力图使用 `role=”grid”` 容器加 `aria-label`，每个日期单元格使用 `role=”gridcell”` 加描述性 `aria-label`。
+- **UserMenu 键盘导航**: 下拉菜单支持 ArrowUp/Down 循环切换、Home/End 跳转首尾、Escape 关闭，打开时自动聚焦第一项。
+- **路由加载/错误状态**: 关键路由（today、result、review、puzzles）配备 `loading.tsx`（骨架屏）和 `error.tsx`（本地化错误边界含重试）。共享组件：`PageSkeleton` 和 `PageError`。
+- **CSS 变量主题**: 所有主题色引用 `var(--color-accent)`（定义于 `globals.css`）而非硬编码十六进制值，支持未来主题定制。

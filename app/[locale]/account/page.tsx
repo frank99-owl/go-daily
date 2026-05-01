@@ -78,7 +78,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
       <div className="mx-auto max-w-2xl px-4 sm:px-6 pt-24 pb-12 sm:pt-32 sm:pb-16 text-center">
         <a
           href={`${localePath(locale, "/login")}?next=${next}`}
-          className="text-sm uppercase tracking-[0.3em] text-white/60 transition-colors hover:text-[#00f2ff]"
+          className="text-sm uppercase tracking-[0.3em] text-white/60 transition-colors hover:text-[var(--color-accent)]"
         >
           {t.nav.signIn}
         </a>

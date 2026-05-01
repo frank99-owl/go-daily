@@ -71,7 +71,7 @@ export default async function LoginPage({
       <div className="mx-auto max-w-md px-4 sm:px-6 pt-24 pb-12 sm:pt-32 sm:pb-16 text-center">
         <a
           href={next}
-          className="text-sm uppercase tracking-[0.3em] text-white/60 transition-colors hover:text-[#00f2ff]"
+          className="text-sm uppercase tracking-[0.3em] text-white/60 transition-colors hover:text-[var(--color-accent)]"
         >
           {getMessages(locale).auth.login.alreadySignedIn}
         </a>

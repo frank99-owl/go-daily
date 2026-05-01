@@ -13,6 +13,10 @@
 
 ## 2. 핵심 도메인 모듈 (`lib/`)
 
+### `lib/env.ts` (환경 변수 검증)
+
+Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe, Supabase, Reveal)에 고유한 스키마와 지연 검증 싱글턴 접근자(`getCoachEnv()`, `getStripeEnv()` 등)를 보유한다. 누락된 변수는 라우트 핸들러 깊숙이 조용한 500 에러를 발생시키는 대신, 첫 사용 시 명확한 시작 스타일 오류로 표면화된다. 브라우저 측 Supabase 파일(`client.ts`, `middleware.ts`)은 `lib/env.ts`가 전용 서버이므로各自的 인라인 검증을 유지한다.
+
 ### `lib/auth/` & `lib/supabase/`
 
 - **이중 클라이언트 전략**: 브라우저 환경을 위한 `client.ts`와 App Router의 비동기 서버 컴포넌트를 위한 `server.ts`를 별도로 운용합니다.

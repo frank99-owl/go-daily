@@ -17,6 +17,7 @@ import { getPersona } from "@/lib/coach/personas";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { createRateLimiter } from "@/lib/rateLimit";
+import { getCoachEnv } from "@/lib/env";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -56,9 +57,10 @@ function maskKey(key: string): string {
 }
 
 function getCoachModelInfo() {
+  const env = getCoachEnv();
   return {
-    model: process.env.COACH_MODEL || "deepseek-chat",
-    provider: process.env.COACH_API_URL || "https://api.deepseek.com",
+    model: env.COACH_MODEL,
+    provider: env.COACH_API_URL,
   };
 }
 
@@ -184,8 +186,10 @@ export async function POST(request: Request) {
     });
   }
 
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) {
+  let apiKey: string;
+  try {
+    apiKey = getCoachEnv().DEEPSEEK_API_KEY;
+  } catch {
     console.error("[coach] Missing DEEPSEEK_API_KEY");
     return createApiResponse(
       {
