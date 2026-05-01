@@ -24,40 +24,40 @@ type EmailCopy = {
   footer: string;
 };
 
-const DEFAULT_FROM = "go-daily <hello@go-daily.app>";
+const DEFAULT_FROM = "go-daily Team <hello@go-daily.app>";
 
 const WELCOME_COPY: Record<Locale, EmailCopy> = {
   zh: {
     subject: "欢迎来到 go-daily",
     preheader: "今天的围棋题已经准备好了。",
     heading: "欢迎来到 go-daily",
-    body: "每天一题，稳稳推进。今天的题已经准备好，你可以从今日题目开始。",
+    body: "你好，\n\n欢迎加入 go-daily。\n\n在这里，我们每天只做一件事：认真算一步棋。\n\n没有广告轰炸，没有功能堆砌，只有一道精选的死活题，和一个陪你思考的 AI 教练——它不会直接告诉你答案，而是在你犹豫时推你一把，引导你通过自己的计算找到那手棋。\n\n棋道漫漫，我们都是求道者。\n\n从今天的题目开始吧。",
     cta: "开始今日题目",
-    footer: "你收到这封邮件，是因为你刚刚登录或注册了 go-daily。",
+    footer: "你收到这封邮件，是因为你刚刚注册了 go-daily。",
   },
   en: {
     subject: "Welcome to go-daily",
     preheader: "Today's Go puzzle is ready.",
     heading: "Welcome to go-daily",
-    body: "One Go puzzle a day, with steady practice over time. Today's puzzle is ready when you are.",
+    body: "Welcome to go-daily.\n\nOne puzzle a day. That's all we ask.\n\nNo clutter, no distractions — just a carefully chosen tsumego and an AI coach that thinks alongside you. It won't hand you the answer. It will nudge you when you hesitate, ask the right questions, and let the insight be yours.\n\nThe board is 19 by 19, but the depth is infinite.\n\nStart with today's puzzle.",
     cta: "Start today's puzzle",
-    footer: "You received this because you just signed in or signed up for go-daily.",
+    footer: "You received this because you just signed up for go-daily.",
   },
   ja: {
     subject: "go-daily へようこそ",
     preheader: "今日の囲碁問題を用意しました。",
     heading: "go-daily へようこそ",
-    body: "毎日一題、少しずつ積み上げましょう。今日の問題から始められます。",
+    body: "go-daily へようこそ。\n\n毎日一題。それだけ。\n\n余計な装飾も広告も取り払って、厳選された詰碁と、あなたと考えを共にする AI コーチだけを残しました。正解を教えるのではなく、迷ったときにそっと背中を押す。答えは、あなた自身の読みで見つけてほしい。\n\n十九路の盤上に、無限の深さがある。\n\n今日の一題から、はじめましょう。",
     cta: "今日の問題を解く",
-    footer: "このメールは、go-daily にログインまたは登録したため送信されています。",
+    footer: "このメールは、go-daily に登録したため送信されています。",
   },
   ko: {
     subject: "go-daily에 오신 것을 환영합니다",
     preheader: "오늘의 바둑 문제가 준비되었습니다.",
     heading: "go-daily에 오신 것을 환영합니다",
-    body: "하루 한 문제씩 차분히 쌓아가세요. 오늘의 문제가 준비되어 있습니다.",
+    body: "go-daily에 오신 것을 환영합니다.\n\n하루 한 문제. 그게 전부입니다.\n\n불필요한 장식도, 광고도 걷어내고 엄선된 죽수와 함께 생각하는 AI 코치만 남겼습니다. 정답을 알려주는 대신, 망설일 때 곁에서 방향을 제시합니다. 답은 당신의 수읽기에서 찾으세요.\n\n열아홉 줄의 판 위에 무한한 깊이가 있습니다.\n\n오늘의 한 문제부터 시작해 보세요.",
     cta: "오늘의 문제 풀기",
-    footer: "go-daily에 로그인하거나 가입했기 때문에 이 메일을 보냈습니다.",
+    footer: "이 메일은 go-daily에 가입하여 보내졌습니다.",
   },
 };
 
