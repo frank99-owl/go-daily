@@ -133,6 +133,7 @@ function buildAdminClient({
 function makeRequest(url = "http://localhost/api/cron/daily-email", init?: RequestInit): Request {
   return new Request(url, {
     method: "GET",
+    headers: { authorization: "Bearer test-secret" },
     ...init,
   });
 }
@@ -170,7 +171,9 @@ describe("/api/cron/daily-email — auth", () => {
   });
 
   it("returns 401 when CRON_SECRET is set but Authorization is missing", async () => {
-    const response = await GET(makeRequest());
+    const response = await GET(
+      makeRequest("http://localhost/api/cron/daily-email", { headers: {} }),
+    );
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({ error: "unauthorized" });
@@ -188,22 +191,14 @@ describe("/api/cron/daily-email — auth", () => {
     expect(emailMocks.sendDailyPuzzleEmail).not.toHaveBeenCalled();
   });
 
-  it("returns 401 in production when CRON_SECRET is unset (refuses to fail-open)", async () => {
+  it("returns 401 when CRON_SECRET is unset", async () => {
     delete process.env.CRON_SECRET;
 
-    const response = await GET(makeRequest());
+    const response = await GET(
+      makeRequest("http://localhost/api/cron/daily-email", { headers: {} }),
+    );
 
     expect(response.status).toBe(401);
-  });
-
-  it("allows the request in non-production when CRON_SECRET is unset (local dev)", async () => {
-    delete process.env.CRON_SECRET;
-    vi.stubEnv("NODE_ENV", "development");
-
-    const response = await GET(makeRequest());
-
-    expect(response.status).toBe(200);
-    vi.unstubAllEnvs();
   });
 
   it("accepts the request when the bearer matches CRON_SECRET", async () => {
@@ -237,7 +232,7 @@ describe("/api/cron/daily-email — locale filter & batch size", () => {
     emailMocks.sendDailyPuzzleEmail.mockReset();
     puzzleMocks.getPuzzleForDate.mockResolvedValue(samplePuzzle);
     puzzleMocks.todayLocalKey.mockReturnValue("2026-04-25");
-    process.env = { ...originalEnv, NODE_ENV: "development" };
+    process.env = { ...originalEnv, NODE_ENV: "development", CRON_SECRET: "test-secret" };
   });
 
   afterEach(() => {
@@ -330,7 +325,7 @@ describe("/api/cron/daily-email — send pipeline", () => {
     emailMocks.sendDailyPuzzleEmail.mockReset();
     puzzleMocks.getPuzzleForDate.mockResolvedValue(samplePuzzle);
     puzzleMocks.todayLocalKey.mockReturnValue("2026-04-25");
-    process.env = { ...originalEnv, NODE_ENV: "development" };
+    process.env = { ...originalEnv, NODE_ENV: "development", CRON_SECRET: "test-secret" };
   });
 
   afterEach(() => {
