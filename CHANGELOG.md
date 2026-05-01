@@ -10,11 +10,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Added
 
+- **Upstash Redis rate limiting**: Production now uses Upstash Redis for cross-instance rate limiting on coach, puzzle, and error-report endpoints. Falls back to in-memory limiter when env vars are absent.
+- **PWA icons**: Added 192×192 and 512×512 PNG icons for proper Android/Chrome install prompts. Run `npm run generate:icons` to regenerate from `public/icon.svg`.
+- **Localized OG/Twitter images**: Social share images now render in the viewer's locale (zh/en/ja/ko) instead of always English.
 - **Centralized env validation**: `lib/env.ts` with Zod-based lazy singletons for Coach, Stripe, Supabase, and Reveal env vars.
 - **Error page i18n**: `app/error.tsx`, `app/global-error.tsx`, and `app/not-found.tsx` now support all four locales.
 - **Route loading/error boundaries**: `loading.tsx` + `error.tsx` for today, result, review, and puzzles routes, with shared `PageSkeleton` and `PageError` components.
 - **Heatmap accessibility**: Added `role="grid"`, `aria-label`, and `role="gridcell"` to the activity heatmap.
 - **UserMenu keyboard navigation**: ArrowUp/Down, Home/End key support with auto-focus on open.
+
+### Fixed
+
+- **ja.json translation contamination**: Removed Korean and Chinese characters that had leaked into three Japanese UI strings.
 
 ### Changed
 

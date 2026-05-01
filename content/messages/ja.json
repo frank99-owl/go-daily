@@ -263,7 +263,7 @@
     },
     "tagCollection": {
       "title": "{{tag}} の囲碁問題 — go-daily",
-      "description": "go-daily の問題集で {{tag}} 分類の問題を閲覧し、专项练习に取り組む。"
+      "description": "go-daily の問題集で {{tag}} 分類の問題を閲覧し、重点的に練習に取り組む。"
     },
     "login": {
       "title": "ログイン — go-daily",
@@ -303,7 +303,7 @@
     },
     "session": {
       "syncing": "データを同期しています…",
-      "deviceLimitTitle": "この無料アカウント은 別のデバイスですでに利用中です",
+      "deviceLimitTitle": "この無料アカウントは 別のデバイスですでに利用中です",
       "deviceLimitBody": "Pro にアップグレードすると複数端末同期が使えます。もしくはサインアウトしてこのブラウザではゲストとして続行できます。",
       "upgradeCta": "Pro にアップグレード",
       "signOutGuestCta": "サインアウトしてゲストとして続ける",
@@ -337,7 +337,7 @@
       "deleteConfirmButton": "削除する",
       "deleteCancel": "キャンセル",
       "deleteInProgress": "削除中…",
-      "deleteFailed": "削除に失敗しました。时间をおいて再試行するか、サポートにお問い合わせください。",
+      "deleteFailed": "削除に失敗しました。時間を置いて再試行するか、サポートにお問い合わせください。",
       "deleteSucceeded": "アカウントを削除しました。"
     },
     "callback": {

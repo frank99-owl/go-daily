@@ -82,6 +82,7 @@ Legal requirements are treated as **Content Assets** rather than hardcoded logic
 - **RLS (Row Level Security)**: Every Postgres table has a mandatory `auth.uid() = user_id` policy. Even if an API is exposed, the database layer ensures no data leakage.
 - **PII Masking**: Sentry and PostHog are configured with `beforeSend` filters to redact user messages from AI coach dialogues before they leave the client.
 - **Service Isolation**: The `proxy.ts` middleware ensures that only authenticated and authorized requests reach the heavy-duty API routes (Stripe/Coach).
+- **Rate Limiting**: `lib/rateLimit.ts` provides two implementations — `MemoryRateLimiter` (dev/single-instance) and `UpstashRateLimiter` (production, Redis-backed). The factory auto-selects based on `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` env vars.
 
 ---
 

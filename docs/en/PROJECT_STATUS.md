@@ -16,8 +16,12 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **Paths**: Implemented a global **Footer** with multi-jurisdiction legal routes, resolving the 404 gap.
 - **UI Logic**: Fixed layout overlap issues on `Today` and `Random` pages by optimizing the vertical breathing room (`pb-24`).
 
-## 3. Recent Progress (v2.7)
+## 3. Recent Progress (v2.8)
 
+- **Upstash Redis Rate Limiting**: Production uses Upstash Redis for cross-instance rate limiting. Falls back to in-memory when env vars are absent.
+- **PWA Icons**: 192×192 and 512×512 PNG icons added for Android/Chrome install prompts.
+- **Localized OG Images**: Social share images now render in the viewer's locale (zh/en/ja/ko).
+- **ja.json Translation Fix**: Removed Korean/Chinese character contamination from 3 Japanese UI strings.
 - **Centralized Env Validation**: `lib/env.ts` with Zod-based lazy singletons replacing scattered `process.env` reads.
 - **Error Page i18n**: All error boundaries (`error.tsx`, `global-error.tsx`, `not-found.tsx`) now support 4 locales.
 - **Theme Centralization**: 53 hardcoded `#00f2ff` color references replaced with `var(--color-accent)` CSS variable.

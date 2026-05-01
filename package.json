@@ -26,7 +26,8 @@
     "gemini:solutions": "node scripts/geminiSolutionNotes.js",
     "mimo:solutions": "node scripts/geminiSolutionNotes.js",
     "supabase:health": "tsx scripts/supabaseHealthcheck.ts",
-    "email:smoketest": "tsx scripts/emailSmoketest.ts"
+    "email:smoketest": "tsx scripts/emailSmoketest.ts",
+    "generate:icons": "tsx scripts/generateIcons.ts"
   },
   "dependencies": {
     "@sabaki/sgf": "^3.4.7",
@@ -61,6 +62,7 @@
     "eslint-config-next": "16.2.4",
     "jsdom": "^29.0.2",
     "prettier": "^3.8.3",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "tsx": "^4.19.2",
     "typescript": "^5",

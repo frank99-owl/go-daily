@@ -6,6 +6,7 @@ This document describes the production lifecycle of go-daily, from environment c
 
 - **Hosting**: Vercel (Region: `iad1` - US East)
 - **Database**: Supabase (Region: `ap-southeast-1` - Singapore)
+- **Rate Limiting**: Upstash Redis (Region: `ap-southeast-1` - Singapore)
 - **DNS & CDN**: Cloudflare (Proxy enabled)
 - **Observability**: Sentry (Errors) + PostHog (Events) + Vercel Speed Insights
 
@@ -16,6 +17,7 @@ Configuration is managed via Vercel Environment Variables. The most critical tog
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Set to `true` to enable Stripe elements and the `/pricing` page.
 - `COACH_MODEL`: Defaults to `deepseek-chat`. Can be swapped to `deepseek-reasoner` for higher accuracy.
 - `COACH_MONTHLY_TOKEN_BUDGET`: Hard application-level limit to prevent billing spikes.
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: Enables cross-instance rate limiting via Upstash Redis. Without these, the app falls back to per-process in-memory limiting (ineffective on serverless).
 
 ## 3. Deployment Preflight (`scripts/productionPreflight.ts`)
 
@@ -87,6 +89,7 @@ npm run gemini:solutions  # Generate solution notes (Gemini)
 npm run mimo:solutions    # Generate solution notes (MiMo)
 npm run supabase:health   # Check Supabase health
 npm run email:smoketest   # Run email smoketest
+npm run generate:icons    # Regenerate PWA icons from public/icon.svg
 ```
 
 ## 6. Pre-Launch Compliance Audit

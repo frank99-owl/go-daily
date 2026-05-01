@@ -82,6 +82,7 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 - **행 수준 보안 (RLS)**: 모든 Postgres 테이블에서 `auth.uid() = user_id` 정책을 강제하여 데이터베이스 계층에서의 데이터 유출을 원천 차단합니다.
 - **PII 마스킹**: Sentry 및 PostHog는 `beforeSend` 필터로 구성되어 있으며, AI 코치와의 대화 내용이 클라이언트를 떠나기 전에 개인정보를 비식별화합니다.
 - **서비스 격리**: `proxy.ts` 미들웨어를 통해 인증 및 권한이 부여된 요청만이 핵심 API 라우트(Stripe/Coach)에 도달하도록 보장합니다.
+- **속도 제한**: `lib/rateLimit.ts`는 `MemoryRateLimiter`(개발/단일 인스턴스)와 `UpstashRateLimiter`(프로덕션, Redis 기반) 두 가지 구현을 제공합니다. 환경 변수 `UPSTASH_REDIS_REST_URL`과 `UPSTASH_REDIS_REST_TOKEN`의 유무에 따라 자동 선택됩니다.
 
 ---
 

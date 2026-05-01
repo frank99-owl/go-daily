@@ -6,6 +6,7 @@
 
 - **호스팅**: Vercel (Region: `iad1` - 미국 동부)
 - **데이터베이스**: Supabase (Region: `ap-southeast-1` - 싱가포르)
+- **속도 제한**: Upstash Redis (Region: `ap-southeast-1` - 싱가포르)
 - **DNS & CDN**: Cloudflare (Proxy 활성화)
 - **관측성**: Sentry (에러) + PostHog (이벤트) + Vercel Speed Insights
 

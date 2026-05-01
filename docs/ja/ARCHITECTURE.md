@@ -82,6 +82,7 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 - **行レベルセキュリティ (RLS)**：すべての Postgres テーブルで `auth.uid() = user_id` ポリシーを強制し、データベース層でのデータ漏洩を防止します。
 - **PII マスキング**：Sentry と PostHog は `beforeSend` フィルタで構成されており、AI コーチとの対話がクライアントを離れる前に個人情報を匿名化します。
 - **サービス分離**: `proxy.ts` ミドルウェアにより、認証・認可されたリクエストのみが重要な API ルート (Stripe/Coach) に到達することを保証します。
+- **レート制限**: `lib/rateLimit.ts` は `MemoryRateLimiter`（開発用/単一インスタンス）と `UpstashRateLimiter`（本番環境、Redis ベース）の 2 つの実装を提供。環境変数 `UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の有無で自動選択されます。
 
 ---
 

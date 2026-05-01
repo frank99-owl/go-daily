@@ -6,6 +6,7 @@
 
 - **托管**: Vercel (Region: `iad1` - 美国东部)
 - **数据库**: Supabase (Region: `ap-southeast-1` - 新加坡)
+- **限流**: Upstash Redis (Region: `ap-southeast-1` - 新加坡)
 - **DNS & CDN**: Cloudflare (开启 Proxy)
 - **观测**: Sentry (错误) + PostHog (事件) + Vercel Speed Insights
 
