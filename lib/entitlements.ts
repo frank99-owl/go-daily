@@ -29,10 +29,10 @@ const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> = {
     cloudSync: "none",
     adsEnabled: true,
     coach: {
-      available: false,
-      requiresLogin: true,
-      dailyLimit: null,
-      monthlyLimit: null,
+      available: true,
+      requiresLogin: false,
+      dailyLimit: 3,
+      monthlyLimit: 5,
     },
     deviceLimit: null,
   },
@@ -42,10 +42,10 @@ const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> = {
     coach: {
       available: true,
       requiresLogin: true,
-      dailyLimit: 3,
-      monthlyLimit: 20,
+      dailyLimit: 10,
+      monthlyLimit: 30,
     },
-    deviceLimit: 1,
+    deviceLimit: 2,
   },
   pro: {
     cloudSync: "multi-device",
@@ -53,10 +53,10 @@ const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> = {
     coach: {
       available: true,
       requiresLogin: true,
-      dailyLimit: 10,
-      monthlyLimit: 50,
+      dailyLimit: 51,
+      monthlyLimit: 1001,
     },
-    deviceLimit: null,
+    deviceLimit: 3,
   },
 };
 

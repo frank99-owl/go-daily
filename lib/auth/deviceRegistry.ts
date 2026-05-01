@@ -21,11 +21,11 @@ import { describeUserAgent, getOrCreateDeviceId } from "./deviceId";
 export type DeviceAccess = "allow-existing" | "allow-new" | "block-free-device-limit";
 
 /**
- * Free-plan cap: exactly 1 active device. A "device" is a row in
- * user_devices. We count by distinct device_id so a re-seen current device
- * does not count as an extra seat.
+ * Device caps per plan. A "device" is a row in user_devices. We count by
+ * distinct device_id so a re-seen current device does not count as an extra seat.
  */
-export const FREE_TIER_DEVICE_LIMIT = 1;
+export const FREE_TIER_DEVICE_LIMIT = 2;
+export const PRO_TIER_DEVICE_LIMIT = 3;
 
 export interface DeviceSeat {
   device_id: string;
@@ -43,8 +43,8 @@ export function evaluateDeviceAccess({
 }): DeviceAccess {
   const known = existingDevices.some((d) => d.device_id === currentDeviceId);
   if (known) return "allow-existing";
-  if (isPaid) return "allow-new";
-  if (existingDevices.length >= FREE_TIER_DEVICE_LIMIT) {
+  const limit = isPaid ? PRO_TIER_DEVICE_LIMIT : FREE_TIER_DEVICE_LIMIT;
+  if (existingDevices.length >= limit) {
     return "block-free-device-limit";
   }
   return "allow-new";

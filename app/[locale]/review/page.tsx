@@ -6,9 +6,9 @@ import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { sanitizeTimeZone, syncAndReadDueSrsItems } from "@/lib/puzzle/reviewSrs";
 import type { ReviewSrsItem } from "@/lib/puzzle/reviewSrs";
+import { buildHreflangAlternates } from "@/lib/siteUrl";
 import { isAuthSessionMissingError } from "@/lib/supabase/authErrors";
 import { createClient } from "@/lib/supabase/server";
-import { buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale, PuzzleSummary } from "@/types";
 
 import { ReviewClient } from "./ReviewClient";

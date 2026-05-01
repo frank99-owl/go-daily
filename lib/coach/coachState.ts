@@ -162,7 +162,7 @@ export async function getCoachState({
   });
 
   let deviceLimited = false;
-  if (entitlements.deviceLimit === 1 && deviceId) {
+  if (entitlements.deviceLimit !== null && deviceId) {
     const { data: devicesData, error: devicesError } = await admin
       .from("user_devices")
       .select("device_id, last_seen")

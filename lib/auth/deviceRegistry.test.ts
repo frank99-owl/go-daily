@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   evaluateDeviceAccess,
   FREE_TIER_DEVICE_LIMIT,
+  PRO_TIER_DEVICE_LIMIT,
   formatDeviceLabel,
   isPaidSubscription,
 } from "./deviceRegistry";
@@ -39,8 +40,8 @@ describe("evaluateDeviceAccess", () => {
     expect(access).toBe("block-free-device-limit");
   });
 
-  it("allows unlimited devices for paid users", () => {
-    const seats = Array.from({ length: FREE_TIER_DEVICE_LIMIT + 5 }, (_, i) => ({
+  it("allows paid users up to the pro device limit", () => {
+    const seats = Array.from({ length: PRO_TIER_DEVICE_LIMIT - 1 }, (_, i) => ({
       device_id: `d-${i}`,
       last_seen: null,
     }));
@@ -50,6 +51,19 @@ describe("evaluateDeviceAccess", () => {
       isPaid: true,
     });
     expect(access).toBe("allow-new");
+  });
+
+  it("blocks paid users at the pro device limit", () => {
+    const seats = Array.from({ length: PRO_TIER_DEVICE_LIMIT }, (_, i) => ({
+      device_id: `d-${i}`,
+      last_seen: null,
+    }));
+    const access = evaluateDeviceAccess({
+      existingDevices: seats,
+      currentDeviceId: "d-brand-new",
+      isPaid: true,
+    });
+    expect(access).toBe("block-free-device-limit");
   });
 });
 

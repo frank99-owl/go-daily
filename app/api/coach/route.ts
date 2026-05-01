@@ -13,16 +13,25 @@ import {
   incrementCoachUsage,
   type CoachUsageSummary,
 } from "@/lib/coach/coachState";
+import {
+  checkIpLimit,
+  getGuestUsage,
+  incrementGuestUsage,
+  incrementIpCounter,
+  type GuestUsageSummary,
+} from "@/lib/coach/guestCoachUsage";
 import { getPersona } from "@/lib/coach/personas";
+import { getCoachEnv } from "@/lib/env";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { createRateLimiter } from "@/lib/rateLimit";
-import { getCoachEnv } from "@/lib/env";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { CoachMessage } from "@/types";
 import { CoachRequestSchema } from "@/types/schemas";
+
+const GUEST_DEVICE_ID_HEADER = "x-go-daily-guest-device-id";
 
 export const runtime = "nodejs";
 
@@ -46,7 +55,7 @@ function coachError({
   status: number;
   code: string;
   error: string;
-  usage?: CoachUsageSummary | null;
+  usage?: CoachUsageSummary | GuestUsageSummary | null;
 }) {
   return createApiResponse({ error, code, usage: usage ?? null }, { status });
 }
@@ -92,9 +101,12 @@ export async function POST(request: Request) {
   const supabase = await createServerSupabase();
   const {
     data: { user },
-    error: userError,
   } = await supabase.auth.getUser();
-  if (userError || !user) {
+
+  const guestDeviceId = request.headers.get(GUEST_DEVICE_ID_HEADER);
+  const isGuest = !user && !!guestDeviceId;
+
+  if (!user && !guestDeviceId) {
     return coachError({
       status: 401,
       code: COACH_ERROR_CODES.LOGIN_REQUIRED,
@@ -110,6 +122,19 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.warn("[coach] rate limiter failed open", { ip, error });
+  }
+
+  // IP rate limit for guests — prevents abuse via repeated incognito sessions
+  if (isGuest) {
+    const ipCheck = checkIpLimit(ip);
+    if (!ipCheck.allowed) {
+      return coachError({
+        status: 429,
+        code: COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
+        error: "Daily limit reached. Sign up for more.",
+        usage: null,
+      });
+    }
   }
 
   // Parse
@@ -142,48 +167,76 @@ export async function POST(request: Request) {
     );
   }
 
-  const admin = createServiceClient();
-  const now = new Date();
-  const coachState = await getCoachState({
-    admin,
-    userId: user.id,
-    deviceId: request.headers.get(COACH_DEVICE_ID_HEADER),
-    now,
-  });
+  // Guest usage check
+  let guestUsage: GuestUsageSummary | null = null;
+  if (isGuest) {
+    guestUsage = await getGuestUsage(guestDeviceId!);
 
-  if (coachState.deviceLimited) {
-    return coachError({
-      status: 403,
-      code: COACH_ERROR_CODES.DEVICE_LIMIT,
-      error: "Free account device limit reached.",
-      usage: coachState.usage,
-    });
+    if (guestUsage.dailyRemaining <= 0) {
+      return coachError({
+        status: 429,
+        code: COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
+        error: "Daily AI coach limit reached.",
+        usage: guestUsage,
+      });
+    }
+
+    if (guestUsage.monthlyRemaining <= 0) {
+      return coachError({
+        status: 429,
+        code: COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED,
+        error: "Monthly AI coach limit reached.",
+        usage: guestUsage,
+      });
+    }
   }
 
-  if (!coachState.usage) {
-    return coachError({
-      status: 401,
-      code: COACH_ERROR_CODES.LOGIN_REQUIRED,
-      error: "Sign in required.",
+  // Authenticated user usage check
+  let coachState: Awaited<ReturnType<typeof getCoachState>> | null = null;
+  if (!isGuest) {
+    const admin = createServiceClient();
+    const now = new Date();
+    coachState = await getCoachState({
+      admin,
+      userId: user!.id,
+      deviceId: request.headers.get(COACH_DEVICE_ID_HEADER),
+      now,
     });
-  }
 
-  if (coachState.usage.dailyRemaining <= 0) {
-    return coachError({
-      status: 429,
-      code: COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
-      error: "Daily AI coach limit reached.",
-      usage: coachState.usage,
-    });
-  }
+    if (coachState.deviceLimited) {
+      return coachError({
+        status: 403,
+        code: COACH_ERROR_CODES.DEVICE_LIMIT,
+        error: "Free account device limit reached.",
+        usage: coachState.usage,
+      });
+    }
 
-  if (coachState.usage.monthlyRemaining <= 0) {
-    return coachError({
-      status: 429,
-      code: COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED,
-      error: "Monthly AI coach limit reached.",
-      usage: coachState.usage,
-    });
+    if (!coachState.usage) {
+      return coachError({
+        status: 401,
+        code: COACH_ERROR_CODES.LOGIN_REQUIRED,
+        error: "Sign in required.",
+      });
+    }
+
+    if (coachState.usage.dailyRemaining <= 0) {
+      return coachError({
+        status: 429,
+        code: COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
+        error: "Daily AI coach limit reached.",
+        usage: coachState.usage,
+      });
+    }
+
+    if (coachState.usage.monthlyRemaining <= 0) {
+      return coachError({
+        status: 429,
+        code: COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED,
+        error: "Monthly AI coach limit reached.",
+        usage: coachState.usage,
+      });
+    }
   }
 
   let apiKey: string;
@@ -240,31 +293,66 @@ export async function POST(request: Request) {
       return createApiResponse({ error: "Empty reply from the model." }, { status: 502 });
     }
 
+    if (isGuest) {
+      await incrementGuestUsage(guestDeviceId!);
+      incrementIpCounter(ip);
+
+      const updatedGuestUsage = {
+        dailyLimit: guestUsage!.dailyLimit,
+        monthlyLimit: guestUsage!.monthlyLimit,
+        dailyUsed: guestUsage!.dailyUsed + 1,
+        monthlyUsed: guestUsage!.monthlyUsed + 1,
+        dailyRemaining: Math.max(guestUsage!.dailyRemaining - 1, 0),
+        monthlyRemaining: Math.max(guestUsage!.monthlyRemaining - 1, 0),
+      };
+
+      const durationMs = Date.now() - startTime;
+      captureServerEvent({
+        distinctId: guestDeviceId!,
+        event: "coach_request_completed",
+        properties: {
+          puzzleId,
+          locale,
+          personaId: personaId || "default",
+          plan: "guest",
+          model: result.model,
+          provider: result.provider,
+          durationMs,
+          inputTokens: result.usage.inputTokens,
+          outputTokens: result.usage.outputTokens,
+          totalTokens: result.usage.totalTokens,
+          usageAvailable: result.usage.usageAvailable,
+        },
+      }).catch(() => {});
+
+      return createApiResponse({ reply: result.content, usage: updatedGuestUsage });
+    }
+
+    // Authenticated user — existing flow
+    const admin = createServiceClient();
     await incrementCoachUsage({
       admin,
-      userId: user.id,
-      day: formatDateInTimeZone(now, coachState.usage.timeZone),
+      userId: user!.id,
+      day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
     });
 
     const updatedUsage: CoachUsageSummary = {
-      ...coachState.usage,
-      dailyUsed: coachState.usage.dailyUsed + 1,
-      monthlyUsed: coachState.usage.monthlyUsed + 1,
-      dailyRemaining: Math.max(coachState.usage.dailyRemaining - 1, 0),
-      monthlyRemaining: Math.max(coachState.usage.monthlyRemaining - 1, 0),
+      ...coachState!.usage!,
+      dailyUsed: coachState!.usage!.dailyUsed + 1,
+      monthlyUsed: coachState!.usage!.monthlyUsed + 1,
+      dailyRemaining: Math.max(coachState!.usage!.dailyRemaining - 1, 0),
+      monthlyRemaining: Math.max(coachState!.usage!.monthlyRemaining - 1, 0),
     };
 
     const durationMs = Date.now() - startTime;
-
-    // Fire-and-forget analytics — never block the response
     captureServerEvent({
-      distinctId: user.id,
+      distinctId: user!.id,
       event: "coach_request_completed",
       properties: {
         puzzleId,
         locale,
         personaId: personaId || "default",
-        plan: coachState.usage.plan,
+        plan: coachState!.usage!.plan,
         model: result.model,
         provider: result.provider,
         durationMs,
@@ -305,13 +393,13 @@ export async function POST(request: Request) {
 
     // Fire-and-forget analytics for failures too
     captureServerEvent({
-      distinctId: user.id,
+      distinctId: isGuest ? guestDeviceId! : (user?.id ?? "unknown"),
       event: "coach_request_failed",
       properties: {
         puzzleId,
         locale,
         personaId: personaId || "default",
-        plan: coachState.usage?.plan ?? "free",
+        plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),
         model: modelInfo.model,
         provider: modelInfo.provider,
         durationMs,
@@ -338,9 +426,17 @@ export async function GET(request: Request) {
   const supabase = await createServerSupabase();
   const {
     data: { user },
-    error: userError,
   } = await supabase.auth.getUser();
-  if (userError || !user) {
+
+  const guestDeviceId = request.headers.get(GUEST_DEVICE_ID_HEADER);
+
+  // Guest usage query
+  if (!user && guestDeviceId) {
+    const usage = await getGuestUsage(guestDeviceId);
+    return createApiResponse({ usage });
+  }
+
+  if (!user) {
     return coachError({
       status: 401,
       code: COACH_ERROR_CODES.LOGIN_REQUIRED,

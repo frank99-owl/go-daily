@@ -114,12 +114,12 @@ describe("getCoachState — free plan", () => {
     });
     expect(result.usage).toMatchObject({
       plan: "free",
-      dailyLimit: 3,
-      monthlyLimit: 20,
+      dailyLimit: 10,
+      monthlyLimit: 30,
       dailyUsed: 0,
       monthlyUsed: 0,
-      dailyRemaining: 3,
-      monthlyRemaining: 20,
+      dailyRemaining: 10,
+      monthlyRemaining: 30,
       timeZone: "UTC",
       monthWindowKind: "natural",
       monthWindowStart: "2026-04-01",
@@ -147,8 +147,8 @@ describe("getCoachState — free plan", () => {
     });
     expect(result.usage?.monthlyUsed).toBe(10);
     expect(result.usage?.dailyUsed).toBe(3);
-    expect(result.usage?.dailyRemaining).toBe(0); // free daily limit is 3
-    expect(result.usage?.monthlyRemaining).toBe(10);
+    expect(result.usage?.dailyRemaining).toBe(7); // free daily limit is 10
+    expect(result.usage?.monthlyRemaining).toBe(20);
   });
 
   it("clamps daily/monthly remaining at zero when over-limit", async () => {
@@ -216,18 +216,21 @@ describe("getCoachState — device limit", () => {
     expect(result.deviceLimited).toBe(false);
   });
 
-  it("sets deviceLimited when a free user requests from an unregistered second device", async () => {
+  it("sets deviceLimited when a free user requests beyond the device limit", async () => {
     const admin = buildAdminClient({
       subscription: { data: { status: null } },
       devices: {
-        data: [{ device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" }],
+        data: [
+          { device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" },
+          { device_id: "second-device", last_seen: "2026-04-20T00:00:00Z" },
+        ],
         error: null,
       },
     });
     const result = await getCoachState({
       admin: admin as never,
       userId: "user-1",
-      deviceId: "second-device",
+      deviceId: "third-device",
       now: NOW,
     });
     expect(result.deviceLimited).toBe(true);
@@ -292,8 +295,8 @@ describe("getCoachState — pro plan", () => {
     // day=25 >= anchor=10 → current cycle is 2026-04-10 .. 2026-05-09
     expect(result.usage).toMatchObject({
       plan: "pro",
-      dailyLimit: 10,
-      monthlyLimit: 50,
+      dailyLimit: 51,
+      monthlyLimit: 1001,
       dailyUsed: 2,
       monthlyUsed: 3,
       monthWindowKind: "billing-anchored",

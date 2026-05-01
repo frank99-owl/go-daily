@@ -15,6 +15,14 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
 }));
 
+vi.mock("@/lib/auth/auth", () => ({
+  useCurrentUser: () => ({ user: { id: "test-user" }, loading: false, error: null }),
+}));
+
+vi.mock("@/lib/auth/deviceId", () => ({
+  getOrCreateDeviceId: () => "test-device-id",
+}));
+
 describe("CoachDialogue", () => {
   beforeEach(() => {
     vi.restoreAllMocks();

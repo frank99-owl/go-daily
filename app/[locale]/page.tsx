@@ -3,15 +3,15 @@ import dynamic from "next/dynamic";
 
 import { HeroSection } from "@/components/HeroSection";
 import { HomeLoginReminder } from "@/components/HomeLoginReminder";
-
-const BoardShowcase = dynamic(() =>
-  import("@/components/BoardShowcase").then((m) => m.BoardShowcase),
-);
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { absoluteUrl, buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
+
+const BoardShowcase = dynamic(() =>
+  import("@/components/BoardShowcase").then((m) => m.BoardShowcase),
+);
 
 export async function generateMetadata({
   params,

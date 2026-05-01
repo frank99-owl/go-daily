@@ -49,23 +49,23 @@ describe("getViewerPlan", () => {
 });
 
 describe("getEntitlements", () => {
-  it("shapes guest entitlements: no coach, ads on, no sync, no device cap", () => {
+  it("shapes guest entitlements: coach trial, ads on, no sync, no device cap", () => {
     const entitlements = getEntitlements({ user: null, subscriptionStatus: null });
     expect(entitlements).toEqual({
       plan: "guest",
       cloudSync: "none",
       adsEnabled: true,
       coach: {
-        available: false,
-        requiresLogin: true,
-        dailyLimit: null,
-        monthlyLimit: null,
+        available: true,
+        requiresLogin: false,
+        dailyLimit: 3,
+        monthlyLimit: 5,
       },
       deviceLimit: null,
     });
   });
 
-  it("shapes free entitlements: single-device, ads on, 3/day + 20/month", () => {
+  it("shapes free entitlements: single-device, ads on, 10/day + 30/month", () => {
     const entitlements = getEntitlements({ user: fakeUser, subscriptionStatus: null });
     expect(entitlements).toEqual({
       plan: "free",
@@ -74,14 +74,14 @@ describe("getEntitlements", () => {
       coach: {
         available: true,
         requiresLogin: true,
-        dailyLimit: 3,
-        monthlyLimit: 20,
+        dailyLimit: 10,
+        monthlyLimit: 30,
       },
-      deviceLimit: 1,
+      deviceLimit: 2,
     });
   });
 
-  it("shapes pro entitlements: multi-device, no ads, 10/day + 50/month", () => {
+  it("shapes pro entitlements: multi-device, no ads, 51/day + 1001/month", () => {
     const entitlements = getEntitlements({ user: fakeUser, subscriptionStatus: "active" });
     expect(entitlements).toEqual({
       plan: "pro",
@@ -90,10 +90,10 @@ describe("getEntitlements", () => {
       coach: {
         available: true,
         requiresLogin: true,
-        dailyLimit: 10,
-        monthlyLimit: 50,
+        dailyLimit: 51,
+        monthlyLimit: 1001,
       },
-      deviceLimit: null,
+      deviceLimit: 3,
     });
   });
 

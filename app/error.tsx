@@ -3,8 +3,8 @@
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
-import { useLocale } from "@/lib/i18n/i18n";
 import { reportError } from "@/lib/errorReporting";
+import { useLocale } from "@/lib/i18n/i18n";
 
 export default function Error({
   error,

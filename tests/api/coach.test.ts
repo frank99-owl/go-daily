@@ -582,11 +582,14 @@ describe("/api/coach", () => {
       expect(body.usage).toMatchObject({ plan: "free" });
     });
 
-    it("blocks a free user's second device with 403 device_limit", async () => {
+    it("blocks a free user at the device limit with 403 device_limit", async () => {
       supabaseMocks.createServiceClient.mockReturnValue(
         buildAdminClient({
           subscription: { status: null },
-          devices: [{ device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" }],
+          devices: [
+            { device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" },
+            { device_id: "second-device", last_seen: "2026-04-20T00:00:00Z" },
+          ],
         }),
       );
 
@@ -599,7 +602,7 @@ describe("/api/coach", () => {
             isCorrect: false,
             history: [{ role: "user", content: "Why?", ts: 1 }],
           },
-          { headers: { "x-go-daily-device-id": "second-device" } },
+          { headers: { "x-go-daily-device-id": "third-device" } },
         ),
       );
 
@@ -649,7 +652,7 @@ describe("/api/coach", () => {
       supabaseMocks.createServiceClient.mockReturnValue(
         buildAdminClient({
           subscription: { status: null },
-          usageRows: [{ day: today, count: 3 }],
+          usageRows: [{ day: today, count: 10 }],
         }),
       );
 

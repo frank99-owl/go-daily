@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { getViewerPlan, type ViewerPlan } from "@/lib/entitlements";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
+import { buildHreflangAlternates } from "@/lib/siteUrl";
 import { isAuthSessionMissingError } from "@/lib/supabase/authErrors";
 import { createClient } from "@/lib/supabase/server";
-import { buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
 import { PricingClient } from "./PricingClient";

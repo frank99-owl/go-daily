@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { CoachPersonaSelector } from "@/components/CoachPersonaSelector";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { useCurrentUser } from "@/lib/auth/auth";
+import { getOrCreateDeviceId } from "@/lib/auth/deviceId";
 import { type CoachErrorCode, isCoachErrorCode } from "@/lib/coach/coachErrorCodes";
 import { DEFAULT_PERSONA, type PersonaId } from "@/lib/coach/personas";
 import { useLocale } from "@/lib/i18n/i18n";
@@ -25,6 +27,7 @@ const historyKey = (puzzleId: string, locale: Locale, personaId: string) =>
 export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   const { t, locale } = useLocale();
   const pathname = usePathname();
+  const { user } = useCurrentUser();
   const [personaId, setPersonaId] = useState<string>(DEFAULT_PERSONA.id);
   const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [input, setInput] = useState("");
@@ -75,9 +78,15 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
     setPending(true);
     setError(null);
     try {
+      const headers: Record<string, string> = {
+        "content-type": "application/json",
+      };
+      if (!user) {
+        headers["x-go-daily-guest-device-id"] = getOrCreateDeviceId();
+      }
       const res = await fetch("/api/coach", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers,
         body: JSON.stringify({
           puzzleId,
           locale,
@@ -165,7 +174,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
           </div>
         )}
         {error && error.kind !== "generic" && (
-          <CoachLimitCard kind={error.kind} pathname={pathname} />
+          <CoachLimitCard kind={error.kind} pathname={pathname} isGuest={!user} />
         )}
       </div>
 
@@ -198,7 +207,15 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   );
 }
 
-function CoachLimitCard({ kind, pathname }: { kind: CoachErrorCode; pathname: string | null }) {
+function CoachLimitCard({
+  kind,
+  pathname,
+  isGuest,
+}: {
+  kind: CoachErrorCode;
+  pathname: string | null;
+  isGuest: boolean;
+}) {
   const { t } = useLocale();
 
   const body =
@@ -206,15 +223,25 @@ function CoachLimitCard({ kind, pathname }: { kind: CoachErrorCode; pathname: st
       ? t.result.coachGuestLocked
       : kind === "device_limit"
         ? t.result.coachDeviceLimit
-        : kind === "daily_limit_reached"
-          ? t.result.coachDailyLimitReached
-          : t.result.coachMonthlyLimitReached;
+        : isGuest && kind === "daily_limit_reached"
+          ? t.result.coachGuestDailyLimit
+          : isGuest && kind === "monthly_limit_reached"
+            ? t.result.coachGuestMonthlyLimit
+            : kind === "daily_limit_reached"
+              ? t.result.coachDailyLimitReached
+              : t.result.coachMonthlyLimitReached;
 
+  const showSignup = isGuest && kind !== "login_required";
   const isLogin = kind === "login_required";
-  const cta = isLogin ? t.result.coachSignInCta : t.result.coachUpgradeCta;
-  const href = isLogin
-    ? `/login${pathname ? `?next=${encodeURIComponent(pathname)}` : ""}`
-    : "/pricing";
+  const cta = showSignup
+    ? t.result.coachSignUpCta
+    : isLogin
+      ? t.result.coachSignInCta
+      : t.result.coachUpgradeCta;
+  const href =
+    showSignup || isLogin
+      ? `/login${pathname ? `?next=${encodeURIComponent(pathname)}` : ""}`
+      : "/pricing";
 
   return (
     <div

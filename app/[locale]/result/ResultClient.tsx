@@ -2,23 +2,12 @@
 
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import dynamic from "next/dynamic";
-
 import { GoBoard } from "@/components/GoBoard";
 import { LocalizedLink } from "@/components/LocalizedLink";
-
-const CoachDialogue = dynamic(
-  () => import("@/components/CoachDialogue").then((m) => m.CoachDialogue),
-  {
-    loading: () => <div className="h-48 animate-pulse rounded-lg bg-ink/5" />,
-  },
-);
-const ShareCard = dynamic(() => import("@/components/ShareCard").then((m) => m.ShareCard), {
-  loading: () => <div className="h-64 animate-pulse rounded-lg bg-ink/5" />,
-});
 import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
@@ -30,6 +19,16 @@ import {
   replaceAttempts,
 } from "@/lib/storage/storage";
 import type { AttemptRecord, PublicPuzzle, PuzzleReveal, Stone } from "@/types";
+
+const CoachDialogue = dynamic(
+  () => import("@/components/CoachDialogue").then((m) => m.CoachDialogue),
+  {
+    loading: () => <div className="h-48 animate-pulse rounded-lg bg-ink/5" />,
+  },
+);
+const ShareCard = dynamic(() => import("@/components/ShareCard").then((m) => m.ShareCard), {
+  loading: () => <div className="h-64 animate-pulse rounded-lg bg-ink/5" />,
+});
 
 type PuzzleRevealResponse = Partial<PuzzleReveal> & {
   error?: string;
