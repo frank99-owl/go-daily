@@ -200,6 +200,7 @@ export async function POST(request: Request) {
       admin,
       userId: user!.id,
       deviceId: request.headers.get(COACH_DEVICE_ID_HEADER),
+      email: user!.email,
       now,
     });
 
@@ -448,6 +449,7 @@ export async function GET(request: Request) {
     admin: createServiceClient(),
     userId: user.id,
     deviceId: request.headers.get(COACH_DEVICE_ID_HEADER),
+    email: user.email,
   });
 
   if (coachState.deviceLimited) {

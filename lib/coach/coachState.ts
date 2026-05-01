@@ -5,7 +5,8 @@ import {
   getBillingAnchoredMonthWindow,
   getNaturalMonthWindow,
 } from "@/lib/coach/coachQuota";
-import { getEntitlements } from "@/lib/entitlements";
+import { PLAN_ENTITLEMENTS } from "@/lib/entitlements";
+import { resolveViewerPlan } from "@/lib/entitlementsServer";
 import { createServiceClient } from "@/lib/supabase/service";
 
 if (typeof window !== "undefined") {
@@ -129,11 +130,13 @@ export async function getCoachState({
   admin,
   userId,
   deviceId,
+  email,
   now = new Date(),
 }: {
   admin: AdminClient;
   userId: string;
   deviceId?: string | null;
+  email?: string | null;
   now?: Date;
 }): Promise<CoachState> {
   const [{ data: profileData, error: profileError }, { data: subscriptionData, error: subError }] =
@@ -156,10 +159,12 @@ export async function getCoachState({
   const profile = profileData as ProfileRow | null;
   const subscription = subscriptionData as SubscriptionRow | null;
   const timeZone = sanitizeTimeZone(profile?.timezone);
-  const entitlements = getEntitlements({
+  const plan = await resolveViewerPlan({
     user: { id: userId },
     subscriptionStatus: subscription?.status ?? null,
+    email,
   });
+  const entitlements = { plan, ...PLAN_ENTITLEMENTS[plan] };
 
   let deviceLimited = false;
   if (entitlements.deviceLimit !== null && deviceId) {

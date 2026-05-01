@@ -24,7 +24,7 @@ export interface Entitlements {
  * The `plan` field on the returned Entitlements is filled in from the
  * lookup key, so it can never disagree with the row it's stored under.
  */
-const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> = {
+export const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> = {
   guest: {
     cloudSync: "none",
     adsEnabled: true,
