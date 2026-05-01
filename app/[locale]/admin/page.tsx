@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 
+import { AdminContext } from "@/app/[locale]/layout";
 import { useCurrentUser } from "@/lib/auth/auth";
 
 type Grant = {
@@ -13,6 +14,7 @@ type Grant = {
 
 export default function AdminPage() {
   const { user, loading } = useCurrentUser();
+  const isAdmin = useContext(AdminContext);
   const [pin, setPin] = useState("");
   const [verified, setVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -26,11 +28,6 @@ export default function AdminPage() {
   const [newNote, setNewNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState("");
-
-  const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase());
-  const isAdmin = user?.email && adminEmails.includes(user.email.toLowerCase());
 
   const loadGrants = useCallback(async () => {
     setGrantsLoading(true);
