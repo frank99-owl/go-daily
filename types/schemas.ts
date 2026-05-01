@@ -37,7 +37,18 @@ export const CoachRequestSchema = z.object({
   locale: LocaleSchema,
   userMove: CoordSchema,
   isCorrect: z.boolean(),
+  personaId: z.string().optional(),
   history: z.array(CoachMessageSchema).min(1, "History must contain at least the user's question."),
+});
+
+export const PuzzleAttemptRequestSchema = z.object({
+  puzzleId: z.string().trim().min(1).max(120),
+  userMove: CoordSchema,
+});
+
+export const PuzzleRevealRequestSchema = z.object({
+  puzzleId: z.string().trim().min(1).max(120),
+  revealToken: z.string().trim().min(1).max(2048),
 });
 
 export const ClientErrorReportSchema = z.object({

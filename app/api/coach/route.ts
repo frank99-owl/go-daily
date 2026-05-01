@@ -1,5 +1,6 @@
 import { getPuzzle } from "@/content/puzzles";
 import { createApiResponse } from "@/lib/apiHeaders";
+import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
 import { getCoachAccess } from "@/lib/coach/coachAccess";
 import { COACH_ERROR_CODES } from "@/lib/coach/coachErrorCodes";
@@ -12,6 +13,7 @@ import {
   incrementCoachUsage,
   type CoachUsageSummary,
 } from "@/lib/coach/coachState";
+import { getPersona } from "@/lib/coach/personas";
 import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { createRateLimiter } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
@@ -114,10 +116,12 @@ export async function POST(request: Request) {
     return badRequest(first.message);
   }
 
-  const { puzzleId, locale, userMove, isCorrect, history } = parseResult.data;
+  const { puzzleId, locale, userMove, personaId, history } = parseResult.data;
 
   const puzzle = await getPuzzle(puzzleId);
   if (!puzzle) return badRequest("Unknown puzzleId.", 404);
+  const isCorrect = judgeMove(puzzle, userMove);
+  const persona = getPersona(personaId || "");
   const coachAccess = getCoachAccess(puzzle);
   if (!coachAccess.available) {
     return createApiResponse(
@@ -200,7 +204,7 @@ export async function POST(request: Request) {
     ts: 0,
   }));
 
-  const systemPrompt = buildSystemPrompt(puzzle, locale, userMove, isCorrect);
+  const systemPrompt = buildSystemPrompt(puzzle, locale, userMove, isCorrect, persona);
 
   const openaiMessages: Array<{
     role: "system" | "user" | "assistant";

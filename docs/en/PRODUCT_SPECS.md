@@ -6,13 +6,13 @@ This document defines the behavioral logic of go-daily's core features, synchron
 
 Instead of scattered boolean checks, go-daily uses a centralized **Lookup Table** to manage permissions. This ensures that adding a new tier (e.g., "Lifetime") only requires updating a single constant.
 
-| Feature            | Free Plan              | Pro Plan                     |
-| ------------------ | ---------------------- | ---------------------------- |
-| **AI Coach Quota** | 3 messages / day       | Unlimited (100/day soft cap) |
-| **Puzzle Archive** | Last 30 days + Curated | All 3,000+ Puzzles           |
-| **Device Limit**   | 1 Device (Hard cap)    | Unlimited                    |
-| **Review Mode**    | Last 20 Mistakes       | Full SM-2 SRS Logic          |
-| **Share Cards**    | With Watermark         | No Watermark + Custom Rank   |
+| Feature            | Free Plan                  | Pro Plan                    |
+| ------------------ | -------------------------- | --------------------------- |
+| **AI Coach Quota** | 3 messages / day, 20/month | 10 messages / day, 50/month |
+| **Puzzle Archive** | Last 30 days + Curated     | All 3,000+ Puzzles          |
+| **Device Limit**   | 1 Device (Hard cap)        | Unlimited                   |
+| **Review Mode**    | Last 20 Mistakes           | Full SM-2 SRS Logic         |
+| **Share Cards**    | With Watermark             | No Watermark + Custom Rank  |
 
 ### Cache Strategy (Next.js 16)
 
@@ -33,6 +33,14 @@ We implement a modified SuperMemo-2 (SM-2) algorithm.
 - **Checkout**: We use Stripe Adaptive Pricing to automatically localize $4.9 USD to the appropriate JPY/KRW equivalent based on the user's IP.
 - **Webhook Idempotency**: Every Stripe event is logged in the `stripe_events` table before processing. If an event is re-delivered, the system detects the duplicate and skips processing.
 - **Trial Period**: A 7-day trial is mandatory for all new Pro subscriptions. Users must provide a payment method upfront (`payment_method_collection: 'always'`), which significantly increases the trial-to-paid conversion rate.
+
+## 4. Puzzle Collections & Filtering (`lib/puzzle/puzzleCollections.ts`)
+
+The puzzle library supports tag-based and difficulty-based filtering for browsing:
+
+- **Tags**: `life-death`, `tesuji`, `endgame`, `opening` (defined in `PuzzleTagSchema`).
+- **Difficulties**: 1–5 scale. Each puzzle has a single difficulty rating.
+- **Collection Pages**: `/puzzles/tags/{tag}` and `/puzzles/difficulty/{level}` render filtered views using the `PuzzleListClient` component.
 
 ## 5. Legal & Compliance Display Logic
 

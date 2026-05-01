@@ -28,6 +28,20 @@ export type WrongBranch = z.infer<typeof WrongBranchSchema>;
 export type Puzzle = z.infer<typeof PuzzleSchema>;
 export type CoachMessage = z.infer<typeof CoachMessageSchema>;
 
+export type PublicPuzzle = Pick<
+  Puzzle,
+  "id" | "date" | "boardSize" | "stones" | "toPlay" | "tag" | "difficulty" | "prompt"
+> & {
+  source: string;
+  coachAvailable: boolean;
+};
+
+export type PuzzleReveal = {
+  correct: Coord[];
+  solutionNote: LocalizedText;
+  solutionSequence?: Stone[];
+};
+
 export interface PuzzleSummary {
   id: string;
   difficulty: 1 | 2 | 3 | 4 | 5;
@@ -44,6 +58,7 @@ export interface AttemptRecord {
   userMove: Coord | null;
   correct: boolean;
   solvedAtMs: number; // epoch ms when solved
+  revealToken?: string;
 }
 
 /**

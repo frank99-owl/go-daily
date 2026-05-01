@@ -3,8 +3,10 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { CoachPersonaSelector } from "@/components/CoachPersonaSelector";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { type CoachErrorCode, isCoachErrorCode } from "@/lib/coach/coachErrorCodes";
+import { DEFAULT_PERSONA, type PersonaId } from "@/lib/coach/personas";
 import { useLocale } from "@/lib/i18n/i18n";
 import { track } from "@/lib/posthog/events";
 import type { CoachMessage, Coord, Locale } from "@/types";
@@ -17,11 +19,13 @@ type Props = {
 
 type CoachError = { kind: CoachErrorCode } | { kind: "generic"; message: string };
 
-const historyKey = (puzzleId: string, locale: Locale) => `go-daily.coach.${puzzleId}.${locale}`;
+const historyKey = (puzzleId: string, locale: Locale, personaId: string) =>
+  `go-daily.coach.${puzzleId}.${locale}.${personaId}`;
 
 export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   const { t, locale } = useLocale();
   const pathname = usePathname();
+  const [personaId, setPersonaId] = useState<string>(DEFAULT_PERSONA.id);
   const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
@@ -32,7 +36,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const raw = window.sessionStorage.getItem(historyKey(puzzleId, locale));
+      const raw = window.sessionStorage.getItem(historyKey(puzzleId, locale, personaId));
       if (raw) {
         const parsed = JSON.parse(raw) as CoachMessage[];
         // Hydrating from sessionStorage on mount.
@@ -44,17 +48,20 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
     } catch {
       setMessages([]);
     }
-  }, [puzzleId, locale]);
+  }, [puzzleId, locale, personaId]);
 
   // Persist on change.
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      window.sessionStorage.setItem(historyKey(puzzleId, locale), JSON.stringify(messages));
+      window.sessionStorage.setItem(
+        historyKey(puzzleId, locale, personaId),
+        JSON.stringify(messages),
+      );
     } catch (e) {
       console.warn("[coach] failed to persist history:", e);
     }
-  }, [messages, puzzleId, locale]);
+  }, [messages, puzzleId, locale, personaId]);
 
   // Auto-scroll to the newest message.
   useEffect(() => {
@@ -76,6 +83,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
           locale,
           userMove,
           isCorrect,
+          personaId,
           history: historyForApi,
         }),
       });
@@ -116,10 +124,16 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   };
 
   return (
-    <section className="rounded-xl border border-[color:var(--color-line)] bg-white/5 backdrop-blur-sm overflow-hidden">
-      <header className="px-4 py-3 border-b border-[color:var(--color-line)] flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-[color:var(--color-accent)]" />
-        <h2 className="text-sm font-medium text-white">{t.result.coachTitle}</h2>
+    <section className="rounded-xl border border-[color:var(--color-line)] bg-white/5 backdrop-blur-sm overflow-hidden text-left">
+      <header className="px-4 py-2 border-b border-[color:var(--color-line)] flex items-center justify-between min-h-[56px]">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-[color:var(--color-accent)] animate-pulse" />
+          <h2 className="text-sm font-medium text-white">{t.result.coachTitle}</h2>
+        </div>
+        <CoachPersonaSelector
+          selectedId={personaId}
+          onSelect={(id: PersonaId) => setPersonaId(id)}
+        />
       </header>
 
       <div

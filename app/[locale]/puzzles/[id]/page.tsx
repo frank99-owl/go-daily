@@ -6,6 +6,7 @@ import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
+import { toPublicPuzzle } from "@/lib/puzzle/publicPuzzle";
 import { BOARD_SIZE_LABELS, type Locale } from "@/types";
 
 import { TodayClient } from "../../TodayClient";
@@ -70,7 +71,7 @@ export default async function PuzzleDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <TodayClient puzzle={puzzle} />
+      <TodayClient puzzle={toPublicPuzzle(puzzle)} />
     </div>
   );
 }

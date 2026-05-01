@@ -9,18 +9,45 @@ import { CoachDialogue } from "@/components/CoachDialogue";
 import { GoBoard } from "@/components/GoBoard";
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { ShareCard } from "@/components/ShareCard";
-import { getCoachAccess } from "@/lib/coach/coachAccess";
 import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
-import { getAttemptFor, getAttemptsFor } from "@/lib/storage/storage";
-import type { AttemptRecord, Puzzle, Stone } from "@/types";
+import { attemptKey } from "@/lib/storage/attemptKey";
+import {
+  getAttemptFor,
+  getAttemptsFor,
+  loadAttempts,
+  replaceAttempts,
+} from "@/lib/storage/storage";
+import type { AttemptRecord, PublicPuzzle, PuzzleReveal, Stone } from "@/types";
+
+type PuzzleRevealResponse = Partial<PuzzleReveal> & {
+  error?: string;
+};
+
+type PuzzleAttemptResponse = {
+  correct?: boolean;
+  revealToken?: string;
+  error?: string;
+};
+
+function normalizeReveal(data: PuzzleRevealResponse): PuzzleReveal {
+  if (!Array.isArray(data.correct) || !data.solutionNote) {
+    throw new Error("Invalid reveal response.");
+  }
+
+  return {
+    correct: data.correct,
+    solutionNote: data.solutionNote,
+    ...(data.solutionSequence ? { solutionSequence: data.solutionSequence } : {}),
+  };
+}
 
 export function ResultClient({
   initialPuzzle,
   todayPuzzleId,
 }: {
-  initialPuzzle: Puzzle;
+  initialPuzzle: PublicPuzzle;
   todayPuzzleId: string;
 }) {
   const router = useRouter();
@@ -31,6 +58,7 @@ export function ResultClient({
   const retryHref = localePath(locale, retryPath);
   const [attempt, setAttempt] = useState<AttemptRecord | null>(null);
   const [history, setHistory] = useState<AttemptRecord[]>([]);
+  const [reveal, setReveal] = useState<PuzzleReveal | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [solutionStep, setSolutionStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -45,13 +73,167 @@ export function ResultClient({
   }, [puzzle]);
 
   useEffect(() => {
+    const legacyAttempt = attempt;
+    if (!legacyAttempt || legacyAttempt.revealToken || !legacyAttempt.userMove) return;
+    const attemptToUpgrade = legacyAttempt;
+
+    let cancelled = false;
+
+    async function refreshAttemptToken(attemptToRefresh: AttemptRecord): Promise<AttemptRecord> {
+      try {
+        const response = await fetch("/api/puzzle/attempt", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            puzzleId: puzzle.id,
+            userMove: attemptToRefresh.userMove,
+          }),
+        });
+        const data = (await response.json()) as PuzzleAttemptResponse;
+        if (!response.ok) {
+          throw new Error(data.error ?? `Request failed (${response.status})`);
+        }
+        if (typeof data.correct !== "boolean" || !data.revealToken) {
+          throw new Error("Invalid attempt response.");
+        }
+
+        const upgraded: AttemptRecord = {
+          ...attemptToRefresh,
+          correct: data.correct,
+          revealToken: data.revealToken,
+        };
+        const key = attemptKey(attemptToRefresh);
+        const all = loadAttempts();
+        replaceAttempts(all.map((item) => (attemptKey(item) === key ? upgraded : item)));
+        return upgraded;
+      } catch (err) {
+        console.error("[puzzle] failed to refresh attempt token", err);
+        throw err;
+      }
+    }
+
+    async function upgradeLegacyAttempt() {
+      try {
+        const upgraded = await refreshAttemptToken(attemptToUpgrade);
+        if (!cancelled) {
+          setAttempt(upgraded);
+          setHistory(getAttemptsFor(puzzle.id));
+        }
+      } catch (err) {
+        console.error("[puzzle] failed to upgrade legacy attempt", err);
+      }
+    }
+
+    void upgradeLegacyAttempt();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [attempt, puzzle.id]);
+
+  useEffect(() => {
+    if (!attempt?.revealToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setReveal(null);
+      return;
+    }
+
+    let cancelled = false;
+    const attemptToReveal = attempt;
+    const revealToken = attempt.revealToken;
+
+    async function revealWithToken(token: string): Promise<PuzzleReveal> {
+      const response = await fetch("/api/puzzle/reveal", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          puzzleId: puzzle.id,
+          revealToken: token,
+        }),
+      });
+      const data = (await response.json()) as PuzzleRevealResponse;
+      if (!response.ok) {
+        throw new Error(data.error ?? `Request failed (${response.status})`);
+      }
+      return normalizeReveal(data);
+    }
+
+    async function refreshAttemptToken(attemptToRefresh: AttemptRecord): Promise<AttemptRecord> {
+      if (!attemptToRefresh.userMove) {
+        throw new Error("Cannot refresh reveal token without a recorded move.");
+      }
+
+      const response = await fetch("/api/puzzle/attempt", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          puzzleId: puzzle.id,
+          userMove: attemptToRefresh.userMove,
+        }),
+      });
+      const data = (await response.json()) as PuzzleAttemptResponse;
+      if (!response.ok) {
+        throw new Error(data.error ?? `Request failed (${response.status})`);
+      }
+      if (typeof data.correct !== "boolean" || !data.revealToken) {
+        throw new Error("Invalid attempt response.");
+      }
+
+      const refreshed: AttemptRecord = {
+        ...attemptToRefresh,
+        correct: data.correct,
+        revealToken: data.revealToken,
+      };
+      const key = attemptKey(attemptToRefresh);
+      const all = loadAttempts();
+      replaceAttempts(all.map((item) => (attemptKey(item) === key ? refreshed : item)));
+      return refreshed;
+    }
+
+    async function loadReveal() {
+      try {
+        let nextReveal: PuzzleReveal;
+        try {
+          nextReveal = await revealWithToken(revealToken);
+        } catch (err) {
+          if (!attemptToReveal.userMove) throw err;
+          const refreshedAttempt = await refreshAttemptToken(attemptToReveal);
+          nextReveal = await revealWithToken(refreshedAttempt.revealToken as string);
+          if (!cancelled) {
+            setAttempt(refreshedAttempt);
+            setHistory(getAttemptsFor(puzzle.id));
+          }
+        }
+
+        if (!cancelled) {
+          setReveal(nextReveal);
+        }
+      } catch (err) {
+        console.error("[puzzle] failed to reveal solution", err);
+        if (!cancelled) {
+          setReveal(null);
+          setShowAnswer(false);
+          setSolutionStep(0);
+          setIsPlaying(false);
+        }
+      }
+    }
+
+    void loadReveal();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [attempt, puzzle.id]);
+
+  useEffect(() => {
     containerRef.current?.focus();
   }, []);
 
   // Auto-advance when playing.
   useEffect(() => {
-    if (!isPlaying || !puzzle?.solutionSequence) return;
-    if (solutionStep >= puzzle.solutionSequence.length) {
+    if (!isPlaying || !reveal?.solutionSequence) return;
+    if (solutionStep >= reveal.solutionSequence.length) {
       // Stopping the autoplay when the sequence finishes is a legitimate
       // terminal-state transition, not a cascading render.
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -62,7 +244,7 @@ export function ResultClient({
       setSolutionStep((s) => s + 1);
     }, 1200);
     return () => clearTimeout(timer);
-  }, [isPlaying, solutionStep, puzzle]);
+  }, [isPlaying, solutionStep, reveal]);
 
   if (!puzzle) {
     return (
@@ -76,8 +258,8 @@ export function ResultClient({
   }
 
   const correct = attempt?.correct ?? false;
-  const hasSolution = !!puzzle.solutionSequence?.length;
-  const coachAccess = getCoachAccess(puzzle);
+  const hasReveal = !!reveal;
+  const hasSolution = !!reveal?.solutionSequence?.length;
 
   // History tally across ALL attempts on this puzzle (not just today). Shows
   // the "Attempt N · X correct, Y wrong" banner — LeetCode-style submission count.
@@ -87,17 +269,18 @@ export function ResultClient({
 
   // Build extra stones for the board (solution sequence up to current step).
   const extraStones: Stone[] =
-    showAnswer && hasSolution ? (puzzle.solutionSequence ?? []).slice(0, solutionStep) : [];
+    showAnswer && hasSolution ? (reveal?.solutionSequence ?? []).slice(0, solutionStep) : [];
 
   const handlePlay = () => {
+    if (!reveal?.solutionSequence?.length) return;
     setShowAnswer(true);
     setSolutionStep(1);
     setIsPlaying(true);
   };
 
   const handleStep = (delta: number) => {
-    if (!puzzle.solutionSequence) return;
-    const max = puzzle.solutionSequence.length;
+    if (!reveal?.solutionSequence) return;
+    const max = reveal.solutionSequence.length;
     setSolutionStep((s) => Math.max(0, Math.min(max, s + delta)));
     setIsPlaying(false);
     setShowAnswer(true);
@@ -188,7 +371,7 @@ export function ResultClient({
           stones={puzzle.stones}
           toPlay={puzzle.toPlay}
           userMove={showAnswer ? null : (attempt?.userMove ?? null)}
-          highlight={showAnswer && !hasSolution ? puzzle.correct : undefined}
+          highlight={showAnswer && !hasSolution && reveal ? reveal.correct : undefined}
           extraStones={extraStones}
           disabled
           cropToStones={puzzle.boardSize === 19}
@@ -210,7 +393,7 @@ export function ResultClient({
           </LocalizedLink>
         )}
 
-        {!hasSolution && (
+        {hasReveal && !hasSolution && (
           <button
             type="button"
             onClick={() => {
@@ -226,7 +409,7 @@ export function ResultClient({
           </button>
         )}
 
-        {hasSolution && (
+        {hasReveal && hasSolution && (
           <>
             {!isPlaying && solutionStep === 0 && (
               <button
@@ -250,12 +433,12 @@ export function ResultClient({
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <span className="text-sm text-white/50 px-1 min-w-[3ch] text-center">
-                  {solutionStep} / {puzzle.solutionSequence?.length}
+                  {solutionStep} / {reveal?.solutionSequence?.length}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleStep(1)}
-                  disabled={solutionStep >= (puzzle.solutionSequence?.length ?? 0)}
+                  disabled={solutionStep >= (reveal?.solutionSequence?.length ?? 0)}
                   className="p-1.5 rounded-full hover:bg-white/10 disabled:opacity-30 transition-colors"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -278,22 +461,22 @@ export function ResultClient({
       </div>
 
       {/* Solution note — shown once the answer is revealed. */}
-      {showAnswer && (
+      {showAnswer && reveal && (
         <section className="rounded-xl border border-white/10 bg-white/5 p-5">
           <div className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-[#00f2ff]/70">
             {t.result.curatedNote}
           </div>
           <div className="text-sm leading-relaxed text-white/60">
-            {localized(puzzle.solutionNote, locale)}
+            {localized(reveal.solutionNote, locale)}
           </div>
         </section>
       )}
 
-      {attempt?.userMove && coachAccess.available && (
+      {attempt?.userMove && puzzle.coachAvailable && (
         <CoachDialogue puzzleId={puzzle.id} userMove={attempt.userMove} isCorrect={correct} />
       )}
 
-      {attempt?.userMove && !coachAccess.available && (
+      {attempt?.userMove && !puzzle.coachAvailable && (
         <section className="rounded-xl border border-white/10 bg-white/5 p-5">
           <div className="text-sm leading-relaxed text-white/60">{t.result.coachLimited}</div>
         </section>

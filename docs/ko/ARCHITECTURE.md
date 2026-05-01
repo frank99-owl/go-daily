@@ -58,3 +58,10 @@
 - **행 수준 보안 (RLS)**: 모든 Postgres 테이블에서 `auth.uid() = user_id` 정책을 강제하여 데이터베이스 계층에서의 데이터 유출을 원천 차단합니다.
 - **PII 마스킹**: Sentry 및 PostHog는 `beforeSend` 필터로 구성되어 있으며, AI 코치와의 대화 내용이 클라이언트를 떠나기 전에 개인정보를 비식별화합니다.
 - **서비스 격리**: `proxy.ts` 미들웨어를 통해 인증 및 권한이 부여된 요청만이 핵심 API 라우트(Stripe/Coach)에 도달하도록 보장합니다.
+
+---
+
+**관련 문서**:
+
+- [API 레퍼런스](../en/API_REFERENCE.md) — 전체 API 라우트 카탈로그.
+- [데이터베이스 스키마](../en/DATABASE_SCHEMA.md) — Supabase 테이블 정의, 인덱스, RLS 정책.

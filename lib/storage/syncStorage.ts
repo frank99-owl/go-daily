@@ -140,10 +140,16 @@ async function writeQueue(queue: AttemptRecord[]): Promise<void> {
   }
 }
 
+function withoutRevealToken(record: AttemptRecord): AttemptRecord {
+  const syncable = { ...record };
+  delete syncable.revealToken;
+  return syncable;
+}
+
 export async function queueAttempts(records: AttemptRecord[]): Promise<void> {
   if (records.length === 0) return;
   const queue = await readQueue();
-  const merged = dedupeAttempts([...queue, ...records]);
+  const merged = dedupeAttempts([...queue, ...records.map(withoutRevealToken)]);
   if (merged.length > MAX_QUEUE_SIZE) {
     merged.splice(0, merged.length - MAX_QUEUE_SIZE);
   }

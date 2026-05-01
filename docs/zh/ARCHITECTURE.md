@@ -58,3 +58,10 @@
 - **行级安全 (RLS)**：所有 Postgres 表都强制执行 `auth.uid() = user_id` 策略，从数据库层面杜绝数据泄露。
 - **隐私脱敏**：Sentry 和 PostHog 配置了 `beforeSend` 过滤器，在 AI 对话离开客户端前对用户敏感信息进行脱敏处理。
 - **服务隔离**: `proxy.ts` 中间件确保只有经过身份验证和授权的请求才能到达核心 API 路由（如 Stripe/Coach）。
+
+---
+
+**相关文档**:
+
+- [API 路由参考](API_REFERENCE.md) — 完整路由目录，含请求/响应 Schema。
+- [数据库 Schema](DATABASE_SCHEMA.md) — Supabase 表定义、索引与 RLS 策略。

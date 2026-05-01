@@ -11,6 +11,7 @@ type CreateAttemptRecordInput = {
   correct: boolean;
   date?: string;
   solvedAtMs?: number;
+  revealToken?: string;
 };
 
 export function loadAttempts(): AttemptRecord[] {
@@ -54,6 +55,7 @@ export function createAttemptRecord({
   correct,
   date = todayLocalKey(),
   solvedAtMs = Date.now(),
+  revealToken,
 }: CreateAttemptRecordInput): AttemptRecord {
   return {
     puzzleId,
@@ -61,6 +63,7 @@ export function createAttemptRecord({
     userMove,
     correct,
     solvedAtMs,
+    ...(revealToken ? { revealToken } : {}),
   };
 }
 

@@ -5,10 +5,10 @@ import { useRef, useState } from "react";
 
 import { starPoints } from "@/lib/board/board";
 import { useLocale } from "@/lib/i18n/i18n";
-import type { Locale, Puzzle, Stone } from "@/types";
+import type { Locale, PublicPuzzle, Stone } from "@/types";
 
 type Props = {
-  puzzle: Puzzle;
+  puzzle: PublicPuzzle;
   correct: boolean;
   elapsedSeconds?: number;
 };

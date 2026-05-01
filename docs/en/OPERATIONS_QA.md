@@ -36,7 +36,7 @@ This script checks:
 
 ### Automated Coverage (Vitest)
 
-We maintain ~570 tests covering:
+We maintain 57 test files with ~366 test cases covering:
 
 - **Logic**: `lib/srs.test.ts`, `lib/entitlements.test.ts`.
 - **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`.
@@ -48,6 +48,26 @@ We maintain ~570 tests covering:
 2.  **Trial Conversion**: Run a full Stripe Checkout in test mode with a 7-day trial.
 3.  **Locale SEO**: Validate `sitemap.xml` contains all 4,800+ entries and `hreflang` alternates.
 4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors.
+
+## 5. Test Organization
+
+Tests mirror the source tree under `tests/`:
+
+| Directory           | Scope                  | Examples                                                         |
+| ------------------- | ---------------------- | ---------------------------------------------------------------- |
+| `tests/lib/`        | Core library logic     | `srs.test.ts`, `entitlements.test.ts`, `coachProvider.test.ts`   |
+| `tests/components/` | React components       | `GoBoard.test.tsx`, `Nav.test.tsx`, `ShareCard.test.tsx`         |
+| `tests/api/`        | API route handlers     | `stripeWebhook.test.ts`, `coach.test.ts`, `puzzleRandom.test.ts` |
+| `tests/app/`        | Page-level integration | `TodayClient.test.tsx`, `StatsClient.test.tsx`                   |
+| `tests/scripts/`    | Build/audit scripts    | `auditPuzzles.test.ts`, `queueContent.test.ts`                   |
+
+Run tests with:
+
+```bash
+npm run test          # Run all
+npm run test:watch    # Watch mode
+npm run test:coverage # With coverage report (target: 70%+)
+```
 
 ## 6. Pre-Launch Compliance Audit
 

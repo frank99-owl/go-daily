@@ -1,8 +1,8 @@
 # go-daily Project Status & Roadmap
 
-**Generated At**: April 26, 2026
-**Repository HEAD**: `a741dbd`
-**Status**: v2.5 Global Compliance Edition
+**Generated At**: April 30, 2026
+**Repository HEAD**: `ae8ecce`
+**Status**: v2.6 Coach Expansion Edition
 
 ---
 
@@ -16,11 +16,18 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **Paths**: Implemented a global **Footer** with multi-jurisdiction legal routes, resolving the 404 gap.
 - **UI Logic**: Fixed layout overlap issues on `Today` and `Random` pages by optimizing the vertical breathing room (`pb-24`).
 
-## 3. Immediate Next Steps (Phase 3)
+## 3. Recent Progress (v2.6)
+
+- **Coach Expansion**: Removed curated distinction; expanded coach-ready puzzles to 1,269 (`ae8ecce`).
+- **Core Flow Hardening**: Fixed high-risk vulnerabilities and added core flow tests (`690a9a3`).
+- **Auth Refactor**: Integrated Korea PIPA consent into sequential login flow (`6f135b7`).
+- **Test Suite**: 57 test files, ~366 test cases covering logic, UI, and API layers.
+
+## 4. Immediate Next Steps (Phase 3)
 
 1. **Production Smoke Checks**: Verify DNS/SMTP and Stripe Live Webhooks.
-2. **Coach Approval Expansion**: Bulk-approve 3,000+ puzzles for Pro usage.
-3. **UI Enhancements**: Implemented Korea PIPA sequential consent flow in the login process.
+2. **Full Coach Rollout**: Continue bulk-approving remaining puzzles for Pro usage.
+3. **Content Depth**: Expand beyond 19×19 life-and-death into 9×9/13×13 and opening/endgame categories.
 
 ---
 

@@ -31,7 +31,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自动化覆盖 (Vitest)
 
-我们维持约 570 个测试用例，涵盖：
+我们维护 57 个测试文件，约 366 个测试用例，涵盖：
 
 - **逻辑**: `lib/srs.test.ts`, `lib/entitlements.test.ts`。
 - **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`。
@@ -43,6 +43,26 @@ npm run preflight:prod -- --stripe-mode=live
 2.  **试用转化**：在测试模式下运行完整的 Stripe 结账流程（含7天试用）。
 3.  **SEO 验证**：验证 `sitemap.xml` 包含所有 4,800+ 条目。
 4.  **教练防护**：尝试提示词注入（如“忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。
+
+## 5. 测试组织
+
+测试目录镜像源码结构，位于 `tests/` 下：
+
+| 目录                | 范围          | 示例                                                             |
+| ------------------- | ------------- | ---------------------------------------------------------------- |
+| `tests/lib/`        | 核心库逻辑    | `srs.test.ts`, `entitlements.test.ts`, `coachProvider.test.ts`   |
+| `tests/components/` | React 组件    | `GoBoard.test.tsx`, `Nav.test.tsx`, `ShareCard.test.tsx`         |
+| `tests/api/`        | API 路由处理  | `stripeWebhook.test.ts`, `coach.test.ts`, `puzzleRandom.test.ts` |
+| `tests/app/`        | 页面级集成    | `TodayClient.test.tsx`, `StatsClient.test.tsx`                   |
+| `tests/scripts/`    | 构建/审计脚本 | `auditPuzzles.test.ts`, `queueContent.test.ts`                   |
+
+运行测试：
+
+```bash
+npm run test          # 运行全部
+npm run test:watch    # 监听模式
+npm run test:coverage # 带覆盖率报告（目标：70%+）
+```
 
 ## 6. 上线前合规自检 (Compliance Audit)
 
