@@ -1,6 +1,6 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { LocalizedLink } from "@/components/LocalizedLink";
@@ -72,7 +72,13 @@ export function PricingClient({ viewerPlan, locale }: { viewerPlan: ViewerPlan; 
   };
 
   const redirecting = checkout.kind === "redirecting" || portal.kind === "redirecting";
-  const features = [copy.featureSync, copy.featureCoach, copy.featureNoAds];
+  const features = [
+    copy.featureSync,
+    copy.featureCoach,
+    copy.featureNoAds,
+    copy.featurePriority,
+    copy.featureOffline,
+  ];
 
   const price = interval === "monthly" ? copy.monthlyPrice : copy.yearlyPrice;
   const planName = interval === "monthly" ? copy.monthlyName : copy.yearlyName;
@@ -136,6 +142,65 @@ export function PricingClient({ viewerPlan, locale }: { viewerPlan: ViewerPlan; 
               state={checkout}
             />
           )}
+        </div>
+      </section>
+
+      {/* Free vs Pro comparison table */}
+      <section className="relative mt-8">
+        <h3 className="text-sm font-semibold text-white/80 mb-4">{copy.compareTitle}</h3>
+        <div className="rounded-xl border border-white/10 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.02]">
+                <th className="px-4 py-2.5 text-left font-medium text-white/60">
+                  {copy.compareFeature}
+                </th>
+                <th className="px-4 py-2.5 text-center font-medium text-white/60">
+                  {copy.compareFree}
+                </th>
+                <th className="px-4 py-2.5 text-center font-medium text-[var(--color-accent)]">
+                  {copy.comparePro}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-white/5">
+                <td className="px-4 py-2.5 text-white/60">{copy.compareCoachDaily}</td>
+                <td className="px-4 py-2.5 text-center text-white/50">10</td>
+                <td className="px-4 py-2.5 text-center text-white font-medium">50+</td>
+              </tr>
+              <tr className="border-b border-white/5">
+                <td className="px-4 py-2.5 text-white/60">{copy.compareCoachMonthly}</td>
+                <td className="px-4 py-2.5 text-center text-white/50">30</td>
+                <td className="px-4 py-2.5 text-center text-white font-medium">1,000+</td>
+              </tr>
+              <tr className="border-b border-white/5">
+                <td className="px-4 py-2.5 text-white/60">{copy.compareDeviceSync}</td>
+                <td className="px-4 py-2.5 text-center text-white/50">
+                  <X className="inline h-4 w-4 text-white/20" />
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  <Check className="inline h-4 w-4 text-[var(--color-accent)]" />
+                </td>
+              </tr>
+              <tr className="border-b border-white/5">
+                <td className="px-4 py-2.5 text-white/60">{copy.compareDevices}</td>
+                <td className="px-4 py-2.5 text-center text-white/50">1</td>
+                <td className="px-4 py-2.5 text-center text-white font-medium">
+                  <Check className="inline h-4 w-4 text-[var(--color-accent)]" />
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2.5 text-white/60">{copy.compareAds}</td>
+                <td className="px-4 py-2.5 text-center">
+                  <Check className="inline h-4 w-4 text-white/30" />
+                </td>
+                <td className="px-4 py-2.5 text-center">
+                  <X className="inline h-4 w-4 text-[var(--color-accent)]" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
     </article>

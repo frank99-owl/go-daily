@@ -294,6 +294,9 @@ export async function POST(request: Request) {
       return createApiResponse({ error: "Empty reply from the model." }, { status: 502 });
     }
 
+    // Clean up occasional "system:" prefix leakage from the model
+    const reply = result.content.replace(/^(system|SYSTEM)\s*[:：]\s*/i, "").trim();
+
     if (isGuest) {
       await incrementGuestUsage(guestDeviceId!);
       incrementIpCounter(ip);
@@ -326,7 +329,7 @@ export async function POST(request: Request) {
         },
       }).catch(() => {});
 
-      return createApiResponse({ reply: result.content, usage: updatedGuestUsage });
+      return createApiResponse({ reply, usage: updatedGuestUsage });
     }
 
     // Authenticated user — existing flow
@@ -364,7 +367,7 @@ export async function POST(request: Request) {
       },
     }).catch(() => {});
 
-    return createApiResponse({ reply: result.content, usage: updatedUsage });
+    return createApiResponse({ reply, usage: updatedUsage });
   } catch (err) {
     const error = err as Error;
     const durationMs = Date.now() - startTime;

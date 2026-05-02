@@ -25,7 +25,7 @@ export default async function ResultPage(props: { searchParams: Promise<{ id?: s
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 sm:px-6 pt-20 pb-8 sm:pt-24 sm:pb-12">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 pt-20 pb-8 sm:pt-24 sm:pb-12">
       <Suspense fallback={null}>
         <ResultClient initialPuzzle={toPublicPuzzle(puzzle)} todayPuzzleId={todayPuzzle.id} />
       </Suspense>

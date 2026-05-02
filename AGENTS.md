@@ -15,18 +15,21 @@
 - `content/` — puzzle data and i18n messages
 - `types/schemas.ts` — Zod schemas (single source of truth for shared types)
 
-## Architecture: Six Domains
+## Architecture: Nine Domains
 
 All core logic lives in `lib/` organized by domain:
 
-| Domain  | Path                         | Responsibility                                               |
-| ------- | ---------------------------- | ------------------------------------------------------------ |
-| Auth    | `lib/auth/`, `lib/supabase/` | Session management, device registry, RLS bypass              |
-| Board   | `lib/board/`                 | Go rules, move validation, SGF parsing, board display        |
-| Coach   | `lib/coach/`                 | AI prompting, quota management, persona system, eligibility  |
-| i18n    | `lib/i18n/`                  | Locale negotiation, path helpers, message validation         |
-| Puzzle  | `lib/puzzle/`                | Puzzle loading, SRS scheduling, collections, reveal tokens   |
-| Storage | `lib/storage/`               | Three-tier persistence (LocalStorage → IndexedDB → Supabase) |
+| Domain   | Path            | Responsibility                                               |
+| -------- | --------------- | ------------------------------------------------------------ |
+| Auth     | `lib/auth/`     | Session management, device registry, guest identity          |
+| Board    | `lib/board/`    | Go rules, move validation, SGF parsing, board display        |
+| Coach    | `lib/coach/`    | AI prompting, quota management, persona system, eligibility  |
+| i18n     | `lib/i18n/`     | Locale negotiation, path helpers, message validation         |
+| PostHog  | `lib/posthog/`  | Analytics events, server-side capture, feature flags         |
+| Puzzle   | `lib/puzzle/`   | Puzzle loading, SRS scheduling, collections, reveal tokens   |
+| Storage  | `lib/storage/`  | Three-tier persistence (LocalStorage → IndexedDB → Supabase) |
+| Stripe   | `lib/stripe/`   | Payment processing, subscription management, webhooks        |
+| Supabase | `lib/supabase/` | Auth SSR helpers, service client, RLS bypass for admin ops   |
 
 ## Critical Rules
 
@@ -43,7 +46,7 @@ All core logic lives in `lib/` organized by domain:
 ## Testing
 
 ```bash
-npm run test          # Run all (57 files, ~366 cases)
+npm run test          # Run all (81 files, ~580 cases)
 npm run test:watch    # Watch mode
 npm run test:coverage # Coverage report (target: 70%+)
 ```

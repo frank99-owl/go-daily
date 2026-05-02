@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, User as UserIcon } from "lucide-react";
+import { Crown, LogOut, User as UserIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -143,6 +143,14 @@ export function UserMenu() {
           >
             <UserIcon className="h-3.5 w-3.5" />
             {t.nav.account}
+          </LocalizedLink>
+          <LocalizedLink
+            href="/pricing"
+            role="menuitem"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]/5"
+          >
+            <Crown className="h-3.5 w-3.5" />
+            {t.pricing.seePlans}
           </LocalizedLink>
           <button
             type="button"

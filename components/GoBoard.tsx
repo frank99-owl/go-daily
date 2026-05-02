@@ -293,18 +293,24 @@ export function GoBoard({
       }
     }
 
-    // Highlight markers (e.g. solution circles).
+    // Highlight markers (e.g. correct answer) — draw stone + glowing outer ring.
     if (highlight?.length) {
-      ctx.save();
-      ctx.strokeStyle = accent === "var(--color-accent)" ? "#00f2ff" : accent;
-      ctx.lineWidth = Math.max(2, px / 260);
+      const accentColor = accent === "var(--color-accent)" ? "#00f2ff" : accent;
       for (const h of highlight) {
         if (!inWindow(h)) continue;
+        // Draw the actual stone in the correct color.
+        drawStone(h, toPlay);
+        // Draw the glowing accent ring around the stone.
+        ctx.save();
+        ctx.shadowColor = accentColor;
+        ctx.shadowBlur = Math.max(6, px / 120);
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = Math.max(2.5, px / 200);
         ctx.beginPath();
-        ctx.arc(px_(h.x), py_(h.y), stoneR * 0.75, 0, Math.PI * 2);
+        ctx.arc(px_(h.x), py_(h.y), stoneR * 1.15, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
       }
-      ctx.restore();
     }
 
     // Ghost stone on hover (only when interactive and cell is empty and in-window).

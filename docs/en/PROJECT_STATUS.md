@@ -29,7 +29,7 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **SEO Hreflang**: `buildHreflangAlternates()` helper with `alternates.languages` on all page routes.
 - **Accessibility**: Heatmap ARIA semantics (`role="grid"`, `aria-label`), UserMenu keyboard navigation (Arrow keys, Home/End).
 - **Route Boundaries**: `loading.tsx` + `error.tsx` for today, result, review, and puzzles routes.
-- **Test Suite**: 81 test files, ~631 test cases covering logic, UI, and API layers.
+- **Test Suite**: 81 test files, ~580 test cases covering logic, UI, and API layers.
 
 ## 4. Immediate Next Steps (Phase 3)
 

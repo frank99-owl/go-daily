@@ -94,7 +94,14 @@ export function Nav() {
               {t.nav.about}
             </LocalizedLink>
           </nav>
-          <div className="w-6" />
+          <div className="w-3" />
+          <LocalizedLink
+            href="/pricing"
+            className="whitespace-nowrap text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] transition-opacity hover:opacity-80"
+          >
+            Pro
+          </LocalizedLink>
+          <div className="w-3" />
           <UserMenu />
           <div className="w-2" />
           <LanguageToggle />

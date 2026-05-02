@@ -74,7 +74,21 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
     });
   }, [messages.length, pending]);
 
+  // AbortController to cancel in-flight requests on unmount or locale change.
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
   async function requestReply(historyForApi: CoachMessage[]) {
+    // Cancel any previous in-flight request.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setPending(true);
     setError(null);
     try {
@@ -95,6 +109,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
           personaId,
           history: historyForApi,
         }),
+        signal: controller.signal,
       });
       const data = (await res.json()) as { reply?: string; error?: string; code?: string };
       if (!res.ok || !data.reply) {
@@ -114,6 +129,9 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
         { role: "assistant", content: data.reply as string, ts: Date.now() },
       ]);
     } catch (e) {
+      // Ignore abort errors from locale change / unmount.
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      console.error("[coach] request failed", e);
       setError({
         kind: "generic",
         message: e instanceof Error ? e.message : "Network error",
@@ -133,7 +151,10 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   };
 
   return (
-    <section className="rounded-xl border border-[color:var(--color-line)] bg-white/5 backdrop-blur-sm overflow-hidden text-left">
+    <section
+      data-coach-section
+      className="rounded-xl border border-[color:var(--color-line)] bg-white/5 backdrop-blur-sm overflow-hidden text-left"
+    >
       <header className="px-4 py-2 border-b border-[color:var(--color-line)] flex items-center justify-between min-h-[56px]">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[color:var(--color-accent)] animate-pulse" />

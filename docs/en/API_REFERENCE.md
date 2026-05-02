@@ -12,7 +12,7 @@ AI coaching dialogue powered by DeepSeek.
 
 Send a user message and receive an AI coach reply.
 
-**Auth**: Required (Supabase session cookie).
+**Auth**: Optional. Logged-in users use the Supabase session cookie. Guest users send `x-go-daily-guest-device-id` header (lower quota limits apply).
 
 **Request Body** (JSON, validated by `CoachRequestSchema`):
 

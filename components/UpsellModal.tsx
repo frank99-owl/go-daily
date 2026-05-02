@@ -36,7 +36,13 @@ export function UpsellModal({
     router.push(localePath(locale, "/pricing"));
   };
 
-  const features = [t.pricing.featureSync, t.pricing.featureCoach, t.pricing.featureNoAds];
+  const features = [
+    t.pricing.featureSync,
+    t.pricing.featureCoach,
+    t.pricing.featureNoAds,
+    t.pricing.featurePriority,
+    t.pricing.featureOffline,
+  ];
 
   return (
     <ModalShell

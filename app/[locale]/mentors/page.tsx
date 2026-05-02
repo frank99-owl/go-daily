@@ -38,7 +38,7 @@ export default function MentorsPage() {
 
   return (
     <main
-      className="h-screen w-screen bg-[#020505] text-white/90 selection:bg-[color:var(--color-accent)]/20 relative overflow-hidden flex items-center justify-center p-0 m-0"
+      className="h-screen w-full bg-[#020505] text-white/90 selection:bg-[color:var(--color-accent)]/20 relative overflow-hidden overflow-x-hidden flex items-center justify-center p-0 m-0"
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           setActiveId(null);

@@ -77,7 +77,7 @@ describe("getEntitlements", () => {
         dailyLimit: 10,
         monthlyLimit: 30,
       },
-      deviceLimit: 2,
+      deviceLimit: 1,
     });
   });
 

@@ -6,13 +6,12 @@ This document defines the behavioral logic of go-daily's core features, synchron
 
 Instead of scattered boolean checks, go-daily uses a centralized **Lookup Table** to manage permissions. This ensures that adding a new tier (e.g., "Lifetime") only requires updating a single constant.
 
-| Feature            | Free Plan                  | Pro Plan                    |
-| ------------------ | -------------------------- | --------------------------- |
-| **AI Coach Quota** | 3 messages / day, 20/month | 10 messages / day, 50/month |
-| **Puzzle Archive** | Last 30 days + Curated     | All 3,000+ Puzzles          |
-| **Device Limit**   | 1 Device (Hard cap)        | Unlimited                   |
-| **Review Mode**    | Last 20 Mistakes           | Full SM-2 SRS Logic         |
-| **Share Cards**    | (Planned, not implemented) | (Planned, not implemented)  |
+| Feature            | Guest (No Login)   | Free Plan            | Pro Plan                |
+| ------------------ | ------------------ | -------------------- | ----------------------- |
+| **AI Coach Quota** | 3 / day, 5 / month | 10 / day, 30 / month | 51 / day, 1,001 / month |
+| **Device Limit**   | —                  | 1 device             | 3 devices               |
+| **Cloud Sync**     | None               | Single-device        | Multi-device            |
+| **Ads**            | Enabled            | Enabled              | Disabled                |
 
 ### Cache Strategy (Next.js 16)
 

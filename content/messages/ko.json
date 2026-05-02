@@ -20,7 +20,6 @@
       "rights": "All Rights Reserved."
     }
   },
-
   "about": {
     "title": "알고리즘의 시대, 기도로의 회귀",
     "introTitle": "프롤로그: 소란을 뒤로하고, 열아홉 줄의 정적으로",
@@ -191,9 +190,9 @@
     "monthlyPrice": "$2.99 / 월",
     "yearlyPrice": "$29.90 / 년",
     "trial": "7일 카드 체험 포함.",
-    "featureSync": "다중 기기 동기화",
-    "featureCoach": "AI 코치: 하루 10회 · 결제 주기당 50회",
-    "featureNoAds": "광고 없음",
+    "featureSync": "멀티디바이스 동기화",
+    "featureCoach": "5인의 AI 사범과 심층 대화 — 일 50+회 · 월 1000+회",
+    "featureNoAds": "광고 없는 쾌적한 경험",
     "monthlyCta": "월간 플랜 시작",
     "yearlyCta": "연간 플랜 시작",
     "processing": "Stripe로 이동하는 중…",
@@ -208,7 +207,18 @@
     "seePlans": "플랜 보기",
     "later": "나중에",
     "upsellTitle": "Pro로 업그레이드",
-    "upsellSubtitle": "다중 기기 동기화, 더 높은 AI 코치 한도, 광고 없는 환경을 잠금 해제하세요."
+    "upsellSubtitle": "다중 기기 동기화, 더 높은 AI 코치 한도, 광고 없는 환경을 잠금 해제하세요.",
+    "featurePriority": "새 기능 및 새 문제 우선 체험",
+    "featureOffline": "오답노트 무제한 복습 — 언제든 약점 보완",
+    "compareTitle": "Free vs Pro",
+    "compareFeature": "기능",
+    "compareFree": "Free",
+    "comparePro": "Pro",
+    "compareCoachDaily": "AI 코치 일일 횟수",
+    "compareCoachMonthly": "AI 코치 월간 횟수",
+    "compareDeviceSync": "기기 동기화",
+    "compareDevices": "지원 기기 수",
+    "compareAds": "광고"
   },
   "hero": {
     "titleLine1": "반상의 우주",

@@ -20,7 +20,6 @@
       "rights": "保留所有权利。"
     }
   },
-
   "about": {
     "title": "关于项目、棋道与 AI 时代的思考",
     "introTitle": "序言：在喧嚣中寻找一片棋盘",
@@ -191,9 +190,9 @@
     "monthlyPrice": "$2.99 / 月",
     "yearlyPrice": "$29.90 / 年",
     "trial": "包含 7 天银行卡试用期。",
-    "featureSync": "多端同步",
-    "featureCoach": "AI 教练：10 次/天 · 50 次/计费周期",
-    "featureNoAds": "无广告",
+    "featureSync": "支持多设备切换",
+    "featureCoach": "五大导师深度对话 — 每日 50+ 次 · 每月 1000+ 次",
+    "featureNoAds": "纯净无广告体验",
     "monthlyCta": "开始月付计划",
     "yearlyCta": "开始年付计划",
     "processing": "正在跳转到 Stripe…",
@@ -208,7 +207,18 @@
     "seePlans": "查看套餐",
     "later": "以后再说",
     "upsellTitle": "升级到 Pro",
-    "upsellSubtitle": "解锁多端同步、更高的 AI 教练额度、无广告体验。"
+    "upsellSubtitle": "解锁多端同步、更高的 AI 教练额度、无广告体验。",
+    "featurePriority": "优先体验新功能与新题目",
+    "featureOffline": "错题本无限回顾 — 随时复习不受限制",
+    "compareTitle": "Free vs Pro",
+    "compareFeature": "功能",
+    "compareFree": "Free",
+    "comparePro": "Pro",
+    "compareCoachDaily": "AI 教练每日次数",
+    "compareCoachMonthly": "AI 教练每月次数",
+    "compareDeviceSync": "设备同步",
+    "compareDevices": "支持设备数",
+    "compareAds": "广告"
   },
   "hero": {
     "titleLine1": "围棋智慧",

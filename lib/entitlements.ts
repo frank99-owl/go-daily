@@ -45,7 +45,7 @@ export const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> =
       dailyLimit: 10,
       monthlyLimit: 30,
     },
-    deviceLimit: 2,
+    deviceLimit: 1,
   },
   pro: {
     cloudSync: "multi-device",

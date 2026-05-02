@@ -19,7 +19,13 @@ function resolveDisplayContext(
 ): DisplayContext {
   const useLocalWindow = puzzle.boardSize === 19;
   const win = useLocalWindow
-    ? computeCropWindow(puzzle.boardSize, puzzle.stones, undefined, undefined, userMove ?? null)
+    ? computeCropWindow(
+        puzzle.boardSize,
+        puzzle.stones,
+        undefined,
+        puzzle.correct,
+        userMove ?? null,
+      )
     : fullWindow(puzzle.boardSize);
   const displayCoord = (c: { x: number; y: number }) =>
     coordLabel(useLocalWindow ? toWindowCoord(c, win) : c);
@@ -70,6 +76,7 @@ export function buildSystemPrompt(
     "If you mention coordinates, use the exact (x,y) format used in the UI. Do not switch to letter-number Go notation unless the student explicitly asks for it.",
     "If the student asks about a variation you're unsure about, say so honestly and defer to the solution note.",
     "The student has already submitted a move — answer their questions about it (or about the shape) naturally. Do NOT pre-empt with an unsolicited critique; wait for what they actually ask.",
+    "If the student sends a greeting (e.g. 'hello', 'hi', '你好'), respond warmly and briefly, then gently guide them toward the puzzle. Do not immediately analyze the position unless they ask.",
     "",
     "--- POSITION ---",
     describePosition(puzzle, userMove),
