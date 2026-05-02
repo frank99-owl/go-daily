@@ -498,7 +498,7 @@ export function GoBoard({
         onPointerMove={handleMove}
         onPointerLeave={handleLeave}
         onPointerDown={handleClick}
-        className="rounded-md shadow-sm touch-none select-none cursor-none"
+        className={`rounded-md shadow-sm touch-none select-none cursor-none ${disabled ? "opacity-50" : ""}`}
         aria-hidden={keyboardEnabled || undefined}
         aria-label={`Go board, ${size} by ${size}`}
         role="img"

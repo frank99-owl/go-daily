@@ -23,6 +23,8 @@ const GUEST_IP_DAILY_LIMIT = 20;
 // In-memory IP rate counter — resets on Vercel redeploy. That's acceptable:
 // it only gates abuse, not billing.
 const ipCounters = new Map<string, { date: string; count: number }>();
+/** Hard cap to prevent unbounded memory growth on long-lived serverless instances. */
+const MAX_IP_ENTRIES = 10_000;
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
@@ -30,6 +32,19 @@ function todayKey(): string {
 
 export function checkIpLimit(ip: string): { allowed: boolean; remaining: number } {
   const today = todayKey();
+
+  // Evict stale entries from previous days first; if still over cap,
+  // drop the oldest entries (Map iteration order is insertion order).
+  if (ipCounters.size > 0) {
+    for (const [key, val] of ipCounters) {
+      if (val.date !== today) ipCounters.delete(key);
+    }
+  }
+  if (ipCounters.size >= MAX_IP_ENTRIES) {
+    const oldest = ipCounters.keys().next().value;
+    if (oldest) ipCounters.delete(oldest);
+  }
+
   const entry = ipCounters.get(ip);
   if (!entry || entry.date !== today) {
     ipCounters.set(ip, { date: today, count: 0 });

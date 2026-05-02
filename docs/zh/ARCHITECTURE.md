@@ -4,7 +4,7 @@
 
 ## 1. 全局请求生命周期 (`proxy.ts`)
 
-所有用户侧请求都会经过 `proxy.ts` 中间件。它在单次传递中处理四个关键任务：
+所有用户侧请求都会经过 `proxy.ts` 中间件（按 Next.js 15 约定导出 `middleware`）。它在单次传递中处理四个关键任务：
 
 1.  **Manifest 特殊处理**：拦截 PWA Manifest 请求并返回对应的版本。
 2.  **豁免路径放行**：允许特定路径（静态资源、API Webhook 等）跳过所有中间件逻辑。
@@ -81,8 +81,9 @@
 
 - **行级安全 (RLS)**：所有 Postgres 表都强制执行 `auth.uid() = user_id` 策略，从数据库层面杜绝数据泄露。
 - **隐私脱敏**：Sentry 和 PostHog 配置了 `beforeSend` 过滤器，在 AI 对话离开客户端前对用户敏感信息进行脱敏处理。
-- **服务隔离**: `proxy.ts` 中间件确保只有经过身份验证和授权的请求才能到达核心 API 路由（如 Stripe/Coach）。
-- **速率限制**: `lib/rateLimit.ts` 提供两种实现 — `MemoryRateLimiter`（开发/单实例）和 `UpstashRateLimiter`（生产环境，基于 Redis）。根据环境变量 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN` 的有无自动选择。
+- **NFKC 规范化**：用户输入文本在处理前统一进行 NFKC 规范化，防止同形字攻击和 Unicode 规范化漏洞。
+- **服务隔离**: `proxy.ts` 中间件（导出 `middleware`）确保只有经过身份验证和授权的请求才能到达核心 API 路由（如 Stripe/Coach）。
+- **速率限制**: `lib/rateLimit.ts` 提供两种实现 — `MemoryRateLimiter`（开发/单实例，5 万条目上限，LRU 淘汰）和 `UpstashRateLimiter`（生产环境，基于 Redis）。根据环境变量 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN` 的有无自动选择。
 
 ---
 

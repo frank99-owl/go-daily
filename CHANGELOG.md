@@ -19,12 +19,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 - **Heatmap accessibility**: Added `role="grid"`, `aria-label`, and `role="gridcell"` to the activity heatmap.
 - **UserMenu keyboard navigation**: ArrowUp/Down, Home/End key support with auto-focus on open.
 
-### Fixed
-
-- **ja.json translation contamination**: Removed Korean and Chinese characters that had leaked into three Japanese UI strings.
-
 ### Changed
 
+- **Middleware export rename**: `proxy.ts` now exports `middleware` instead of `proxy`, aligning with Next.js 15 conventions. Route guarding, locale negotiation, and auth refresh are unchanged.
+- **`MemoryRateLimiter` size cap**: In-memory rate limiter now enforces a 50,000-entry cap with stale-entry eviction, preventing unbounded memory growth on long-lived serverless instances.
+- **Guest IP counter size cap**: `guestCoachUsage.ts` IP counters capped at 10,000 entries with day-rollover cleanup and LRU eviction.
+- **Shared body-parsing utility**: All mutation API routes (`/api/coach`, `/api/puzzle/attempt`, `/api/puzzle/reveal`) now use `parseMutationBody()` from `lib/apiHeaders.ts` instead of duplicating Content-Type/Content-Length/JSON-parse logic.
+- **Coach service client reuse**: Authenticated coach requests create a single `createServiceClient()` instance and reuse it across `getCoachState()` and `incrementCoachUsage()`.
+- **Coach history total character budget**: `MAX_HISTORY_CHARS = 6,000` now limits the total character count of the history array (newest-first truncation), in addition to the existing per-message 2,000-char cap.
+- **Optimized API key masking**: `maskKey()` now shows only the first 4 characters and total length (e.g., `sk-a...len:48`) instead of first-4 + last-4, to reduce key exposure in exported logs.
 - Documentation structure reorganized into formal project-level architecture.
 - Improved multilingual content: natural Japanese/Korean translations replacing mechanical translations.
 - Mentoring page content optimized across all four locales.
@@ -35,6 +38,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 - **Font loading**: Added `<link rel="preconnect">` for Google Fonts domains.
 - **Static asset caching**: `/avatars/*` now served with `Cache-Control: immutable` for versioned assets.
 - **robots.txt**: Removed `/about/` from disallow list; only `/api/` remains blocked.
+
+### Fixed
+
+- **Middleware routing**: `proxy.ts` middleware function was exported as `proxy` instead of `middleware`, which Next.js does not recognize as the middleware entry point. Renamed to `middleware` to ensure route guarding, auth refresh, and locale negotiation activate correctly.
+- **Coach persona selector mobile overflow**: Mentor panel portal now detects viewport overflow and repositions within a 16px margin on narrow screens.
+- **promptGuard Unicode test expectations**: Corrected NFKC normalization tests — Cyrillic U+0456 is not mapped to Latin "i" by NFKC; superscript "²" (U+00B2) normalizes to "2".
+- **ja.json translation contamination**: Removed Korean and Chinese characters that had leaked into three Japanese UI strings.
+
+### Security
+
+- **promptGuard NFKC normalization**: `guardUserMessage()` and `sanitizeInput()` now apply Unicode NFKC normalization as the first step, collapsing fullwidth and other homoglyph characters to their ASCII equivalents before pattern matching.
+- **Stripe webhook payload size limit**: `/api/stripe/webhook` rejects requests with `Content-Length > 1 MB` (HTTP 413) before reading the body, preventing large-payload memory exhaustion.
 
 ---
 

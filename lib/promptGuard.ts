@@ -59,20 +59,24 @@ function countSuspiciousKeywords(text: string): number {
 }
 
 export function guardUserMessage(message: string): GuardResult {
-  // Length check
-  if (message.length > MAX_MESSAGE_LENGTH) {
+  // NFKC-normalize first so homoglyph bypasses (Cyrillic "а" → Latin "a",
+  // fullwidth "Ｓ" → "S", etc.) are collapsed before pattern matching.
+  const normalized = message.normalize("NFKC");
+
+  // Length check (on normalized form)
+  if (normalized.length > MAX_MESSAGE_LENGTH) {
     return { ok: false, reason: "Message too long." };
   }
 
   // Pattern matching
   for (const pattern of INJECTION_PATTERNS) {
-    if (pattern.test(message)) {
+    if (pattern.test(normalized)) {
       return { ok: false, reason: "Potentially unsafe content detected." };
     }
   }
 
   // Keyword density check
-  if (countSuspiciousKeywords(message) >= SUSPICIOUS_KEYWORD_COUNT) {
+  if (countSuspiciousKeywords(normalized) >= SUSPICIOUS_KEYWORD_COUNT) {
     return { ok: false, reason: "Suspicious keyword density detected." };
   }
 
@@ -80,11 +84,18 @@ export function guardUserMessage(message: string): GuardResult {
 }
 
 /**
- * Sanitize user input by stripping control characters and normalizing whitespace.
+ * Sanitize user input by stripping control characters, normalizing Unicode
+ * (NFKC collapses Cyrillic/Greek lookalikes to their ASCII equivalents,
+ * closing the homoglyph bypass vector in promptGuard), and normalizing
+ * whitespace.
  */
 export function sanitizeInput(input: string): string {
-  return input
-    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "") // Control chars
-    .replace(/\s+/g, " ") // Normalize whitespace
-    .trim();
+  return (
+    input
+      .normalize("NFKC") // Unicode canonical + compatibility decomposition + composition
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "") // Control chars
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .trim()
+  );
 }

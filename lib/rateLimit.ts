@@ -26,11 +26,27 @@ export class MemoryRateLimiter implements RateLimiter {
   constructor(
     private windowMs: number,
     private maxRequests: number,
+    private maxEntries = 50_000,
   ) {}
 
   isLimited(key: string): boolean {
     const now = Date.now();
     const windowStart = now - this.windowMs;
+
+    // Evict expired entries before inserting, and cap total entries.
+    if (this.hits.size >= this.maxEntries) {
+      for (const [k, timestamps] of this.hits) {
+        if (timestamps.every((t) => t <= windowStart)) {
+          this.hits.delete(k);
+        }
+      }
+      // If still over cap after evicting stale entries, drop the oldest key.
+      if (this.hits.size >= this.maxEntries) {
+        const oldest = this.hits.keys().next().value;
+        if (oldest) this.hits.delete(oldest);
+      }
+    }
+
     const prev = (this.hits.get(key) ?? []).filter((t) => t > windowStart);
     if (prev.length >= this.maxRequests) {
       this.hits.set(key, prev);

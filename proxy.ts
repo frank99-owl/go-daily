@@ -28,7 +28,7 @@ import type { Locale } from "@/types";
  * Routes excluded from this middleware (see matcher below): /api, /auth,
  * /_next/static, /_next/image, favicon/manifest/sitemap assets.
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const { locale: urlLocale, path: strippedPath } = stripLocalePrefix(pathname);
 
@@ -152,7 +152,7 @@ function isExemptPath(pathname: string): boolean {
 }
 
 // Avoid running middleware for static assets and route handlers that manage
-// their own auth. Everything user-facing goes through proxy() for locale +
+// their own auth. Everything user-facing goes through middleware() for locale +
 // session handling.
 export const config = {
   matcher: [

@@ -16,6 +16,8 @@ Send a user message and receive an AI coach reply.
 
 **Request Body** (JSON, validated by `CoachRequestSchema`):
 
+**Note**: History messages are subject to a total character budget of 6,000 characters (newest-first truncation), in addition to per-message truncation at 2,000 characters.
+
 ```typescript
 {
   puzzleId: string;      // min 1 char
@@ -176,6 +178,7 @@ Stripe webhook receiver. Handles `checkout.session.completed`, `customer.subscri
 - Idempotency via `stripe_events` table (claims event before processing).
 - Upserts subscription state into `subscriptions` table.
 - Sends payment-failed email on `invoice.payment_failed`.
+- Requests with `Content-Length > 1 MB` are rejected with HTTP 413 before reading the body.
 
 ---
 
@@ -244,7 +247,13 @@ All write endpoints use `createRateLimiter()` which returns either:
 - `UpstashRateLimiter` (production, cross-instance) when `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set.
 - `MemoryRateLimiter` (dev, single-instance) as fallback.
 
+Both limiters enforce a maximum entry count (50,000 for `MemoryRateLimiter`) with stale-entry eviction to prevent unbounded memory growth.
+
 Default: 10 requests per 60-second window per key.
+
+### Body Parsing
+
+All mutation routes use `parseMutationBody()` from `lib/apiHeaders.ts` for shared Content-Type, Content-Length, CSRF, and JSON parsing.
 
 ### API Response Headers
 

@@ -31,6 +31,16 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **Route Boundaries**: `loading.tsx` + `error.tsx` for today, result, review, and puzzles routes.
 - **Test Suite**: 81 test files, ~580 test cases covering logic, UI, and API layers.
 
+## 3b. Recent Improvements (v1.1 Hardening)
+
+- **Middleware export fix**: `proxy.ts` now exports `middleware` per Next.js 15 convention, ensuring route guarding activates correctly.
+- **Memory-safe rate limiting**: `MemoryRateLimiter` (50k entry cap) and guest IP counters (10k cap) now evict stale entries to prevent unbounded memory growth on serverless instances.
+- **Shared body parsing**: All mutation API routes use `parseMutationBody()` from `lib/apiHeaders.ts` — single source of truth for CSRF, Content-Type, size, and JSON validation.
+- **Unicode prompt injection defense**: `promptGuard.ts` applies NFKC normalization to collapse fullwidth and homoglyph characters before pattern matching.
+- **Coach UX improvements**: Retry button on generic errors, animated thinking indicator, skeleton loading on mentor switch.
+- **Stripe webhook hardening**: 1 MB payload size limit (HTTP 413) before body read.
+- **GoBoard disabled state**: Board renders at 50% opacity when non-interactive.
+
 ## 4. Immediate Next Steps (Phase 3)
 
 1. **Production Smoke Checks**: Verify DNS/SMTP and Stripe Live Webhooks.

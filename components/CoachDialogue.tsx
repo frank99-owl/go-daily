@@ -33,11 +33,16 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<CoachError | null>(null);
+  const [switching, setSwitching] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const prevPersonaRef = useRef(personaId);
 
   // Load any saved conversation for this puzzle+locale from sessionStorage.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const isPersonaSwitch = prevPersonaRef.current !== personaId;
+    prevPersonaRef.current = personaId;
+    if (isPersonaSwitch) setSwitching(true);
     try {
       const raw = window.sessionStorage.getItem(historyKey(puzzleId, locale, personaId));
       if (raw) {
@@ -50,6 +55,10 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
       }
     } catch {
       setMessages([]);
+    }
+    if (isPersonaSwitch) {
+      // Brief delay so the loading skeleton is visible even when hydration is instant.
+      setTimeout(() => setSwitching(false), 300);
     }
   }, [puzzleId, locale, personaId]);
 
@@ -150,6 +159,12 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
     await requestReply(next);
   };
 
+  const retry = async () => {
+    if (pending) return;
+    setError(null);
+    await requestReply(messages);
+  };
+
   return (
     <section
       data-coach-section
@@ -172,26 +187,51 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
         aria-live="polite"
         aria-atomic="false"
       >
-        {messages.length === 0 && !pending && !error && (
+        {switching && (
+          <div className="flex flex-col gap-2 animate-pulse" aria-label="Switching mentor…">
+            <div className="h-3 w-3/4 rounded bg-white/10" />
+            <div className="h-3 w-1/2 rounded bg-white/10" />
+          </div>
+        )}
+        {!switching && messages.length === 0 && !pending && !error && (
           <p className="text-sm text-white/50">{t.result.coachEmpty}</p>
         )}
-        {messages.map((m) => (
-          <div
-            key={m.ts}
-            className={
-              "text-sm leading-relaxed whitespace-pre-wrap " +
-              (m.role === "assistant"
-                ? "text-white/85"
-                : "self-end max-w-[85%] rounded-lg bg-[color:var(--color-accent)]/15 text-white px-3 py-2 border border-[color:var(--color-accent)]/20")
-            }
-          >
-            {m.content}
+        {!switching &&
+          messages.map((m) => (
+            <div
+              key={m.ts}
+              className={
+                "text-sm leading-relaxed whitespace-pre-wrap " +
+                (m.role === "assistant"
+                  ? "text-white/85"
+                  : "self-end max-w-[85%] rounded-lg bg-[color:var(--color-accent)]/15 text-white px-3 py-2 border border-[color:var(--color-accent)]/20")
+              }
+            >
+              {m.content}
+            </div>
+          ))}
+        {!switching && pending && (
+          <div className="text-sm text-white/50 flex items-center gap-1.5">
+            <span>{t.result.thinking}</span>
+            <span className="inline-flex gap-0.5" aria-hidden="true">
+              <span className="w-1 h-1 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_infinite]" />
+              <span className="w-1 h-1 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_0.2s_infinite]" />
+              <span className="w-1 h-1 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_0.4s_infinite]" />
+            </span>
+            <style>{`@keyframes dotPulse{0%,80%,100%{opacity:.2}40%{opacity:1}}`}</style>
           </div>
-        ))}
-        {pending && <div className="text-sm text-white/50">{t.result.thinking}</div>}
+        )}
         {error?.kind === "generic" && (
-          <div className="text-sm text-[color:var(--color-warn)]" role="alert">
-            {error.message}
+          <div className="flex items-center gap-2 text-sm text-[color:var(--color-warn)]" role="alert">
+            <span>{error.message}</span>
+            <button
+              type="button"
+              onClick={retry}
+              disabled={pending}
+              className="ml-auto shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs text-white/60 hover:text-white hover:border-white/30 disabled:opacity-40 transition-colors"
+            >
+              {t.result.retry ?? "Retry"}
+            </button>
           </div>
         )}
         {error && error.kind !== "generic" && (
@@ -212,13 +252,13 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
           }}
           placeholder={t.result.coachPlaceholder}
           aria-label={t.result.coachPlaceholder}
-          disabled={pending}
+          disabled={pending || switching}
           className="flex-1 rounded-full border border-[color:var(--color-line)] bg-white/5 text-white placeholder:text-white/35 px-4 py-2 text-sm focus:outline-none focus:border-[color:var(--color-accent)]"
         />
         <button
           type="button"
           onClick={send}
-          disabled={pending || !input.trim()}
+          disabled={pending || switching || !input.trim()}
           className="px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium disabled:opacity-40 hover:bg-[color:var(--color-accent)] hover:text-black transition-colors"
         >
           {t.result.send}

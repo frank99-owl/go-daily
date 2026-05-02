@@ -4,7 +4,7 @@
 
 ## 1. グローバル・リクエスト・ライフサイクル (`proxy.ts`)
 
-すべてのユーザー向けリクエストは `proxy.ts` ミドルウェアを通過します。これは一度のパスで以下の 4 つの重要なタスクを処理します：
+すべてのユーザー向けリクエストは `proxy.ts` ミドルウェア（Next.js 15 の規約に従い `middleware` をエクスポート）を通過します。これは一度のパスで以下の 4 つの重要なタスクを処理します：
 
 1.  **マニフェストの特別処理 (Manifest Special-Case)**：PWA マニフェストへのリクエストを傍受し、適切なバージョンを返します。
 2.  **免除パスのパススルー (Exempt Path Passthrough)**：特定のパス（静的アセット、API Webhook など）をすべてのミドルウェアロジックから除外します。
@@ -81,8 +81,9 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 
 - **行レベルセキュリティ (RLS)**：すべての Postgres テーブルで `auth.uid() = user_id` ポリシーを強制し、データベース層でのデータ漏洩を防止します。
 - **PII マスキング**：Sentry と PostHog は `beforeSend` フィルタで構成されており、AI コーチとの対話がクライアントを離れる前に個人情報を匿名化します。
-- **サービス分離**: `proxy.ts` ミドルウェアにより、認証・認可されたリクエストのみが重要な API ルート (Stripe/Coach) に到達することを保証します。
-- **レート制限**: `lib/rateLimit.ts` は `MemoryRateLimiter`（開発用/単一インスタンス）と `UpstashRateLimiter`（本番環境、Redis ベース）の 2 つの実装を提供。環境変数 `UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の有無で自動選択されます。
+- **NFKC 正規化**: ユーザー入力テキストは処理前に NFKC 正規化を適用し、同形文字攻撃や Unicode 正規化の脆弱性を防止します。
+- **サービス分離**: `proxy.ts` ミドルウェア（`middleware` をエクスポート）により、認証・認可されたリクエストのみが重要な API ルート (Stripe/Coach) に到達することを保証します。
+- **レート制限**: `lib/rateLimit.ts` は `MemoryRateLimiter`（開発用/単一インスタンス、5 万エントリー上限・LRU 退避）と `UpstashRateLimiter`（本番環境、Redis ベース）の 2 つの実装を提供。環境変数 `UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の有無で自動選択されます。
 
 ---
 

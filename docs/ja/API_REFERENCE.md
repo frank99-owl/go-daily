@@ -16,6 +16,8 @@ DeepSeekによるAIコーチング対話。
 
 **リクエストボディ**（JSON、`CoachRequestSchema`でバリデーション）:
 
+**注意**: 履歴メッセージは合計6,000文字のバジェット制限の対象となります（最新メッセージから切り捨て）。さらにメッセージごとに2,000文字に切り捨てられます。
+
 ```typescript
 {
   puzzleId: string;      // min 1 char
@@ -177,6 +179,7 @@ Stripe Webhook受信エンドポイント。`checkout.session.completed`、`cust
 - `stripe_events`テーブルによる冪等性担保（処理前にイベントをクレームする）。
 - サブスクリプション状態を`subscriptions`テーブルにupsertする。
 - `invoice.payment_failed`時に支払い失敗メールを送信する。
+- `Content-Length > 1 MB`のリクエストはボディ読み込み前にHTTP 413で拒否される。
 
 ---
 
@@ -245,7 +248,13 @@ Supabase OAuth／マジックリンクコールバック。認証コードをセ
 - `UPSTASH_REDIS_REST_URL`と`UPSTASH_REDIS_REST_TOKEN`が設定されている場合: `UpstashRateLimiter`（本番環境、インスタンス横断）。
 - フォールバック: `MemoryRateLimiter`（開発環境、単一インスタンス）。
 
+両方のリミッターは最大エントリ数を強制し（`MemoryRateLimiter`は50,000件）、期限切れエントリの削除によりメモリの無制限な増加を防止する。
+
 デフォルト: キーごとに60秒ウィンドウあたり10リクエスト。
+
+### ボディパース
+
+すべてのミュテーションルートは`lib/apiHeaders.ts`の`parseMutationBody()`を使用し、Content-Type、Content-Length、CSRF、JSONパースを共通処理する。
 
 ### APIレスポンスヘッダー
 

@@ -31,6 +31,16 @@
 - **路由边界**：today、result、review、puzzles 路由添加 `loading.tsx` + `error.tsx`。
 - **测试套件**：81 个测试文件，约 631 个测试用例，覆盖逻辑、UI 和 API 层。
 
+## 三（续）、近期改进 (v1.1 加固)
+
+- **中间件导出修复**：`proxy.ts` 现在按 Next.js 15 约定导出 `middleware`，确保路由守卫正确激活。
+- **内存安全限流**：`MemoryRateLimiter`（5 万条上限）和访客 IP 计数器（1 万条上限）现在会淘汰过期条目，防止 serverless 实例内存无限增长。
+- **统一请求体解析**：所有写入 API 路由使用 `lib/apiHeaders.ts` 的 `parseMutationBody()` —— CSRF、Content-Type、大小限制和 JSON 校验的单一来源。
+- **Unicode 注入防御**：`promptGuard.ts` 在模式匹配前应用 NFKC 归一化，折叠全角和同形字符。
+- **Coach 体验优化**：通用错误增加重试按钮、思考状态动画指示器、切换导师时骨架屏加载。
+- **Stripe Webhook 加固**：读取请求体前校验 1 MB 大小限制（HTTP 413）。
+- **GoBoard 禁用状态**：棋盘不可交互时以 50% 透明度渲染。
+
 ## 四、后续即时步骤 (Phase 3)
 
 1. **生产环境烟感测试**：验证 DNS/SMTP 及 Stripe Live Webhook。

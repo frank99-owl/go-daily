@@ -25,6 +25,6 @@ We take the security of go-daily seriously. If you believe you have found a secu
 
 ## 4. Prompt Injection
 
-While we implement `promptGuard.ts` to mitigate prompt injection, users should be aware that the AI Coach is an LLM. We do not recommend sharing sensitive personal information with the coach.
+While we implement `promptGuard.ts` to mitigate prompt injection, users should be aware that the AI Coach is an LLM. We do not recommend sharing sensitive personal information with the coach. Input is Unicode NFKC-normalized before pattern matching, collapsing fullwidth and homoglyph characters to their ASCII equivalents to prevent bypass via lookalike characters.
 
 (C) 2026 Frank.

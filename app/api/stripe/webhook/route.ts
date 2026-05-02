@@ -434,6 +434,13 @@ export async function POST(request: Request) {
     return createApiResponse({ error: "missing_signature" }, { status: 400 });
   }
 
+  // Reject oversized payloads before reading into memory. Stripe events are
+  // typically < 10 KB; 1 MB is a generous safety ceiling.
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  if (contentLength > 1_000_000) {
+    return createApiResponse({ error: "payload_too_large" }, { status: 413 });
+  }
+
   const body = Buffer.from(await request.arrayBuffer());
 
   let event: Stripe.Event;

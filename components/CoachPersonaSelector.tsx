@@ -23,6 +23,7 @@ export function CoachPersonaSelector({ selectedId, onSelect }: Props) {
   const selectedPersona = PERSONAS.find((p) => p.id === selectedId) || PERSONAS[0];
 
   // Find the coach section ancestor to position the panel to its right.
+  // On narrow viewports, clamps the panel inside the viewport.
   const computePosition = useCallback(() => {
     const btn = buttonRef.current;
     if (!btn) return;
@@ -30,7 +31,13 @@ export function CoachPersonaSelector({ selectedId, onSelect }: Props) {
     if (!section) return;
     const rect = section.getBoundingClientRect();
     const gap = 12;
-    const left = rect.right + gap;
+    const panelW = 340;
+    const viewportW = window.innerWidth;
+    let left = rect.right + gap;
+    // Clamp so the panel stays inside the viewport with a 16px margin.
+    if (left + panelW > viewportW - 16) {
+      left = Math.max(16, viewportW - panelW - 16);
+    }
     const top = rect.top;
     const maxHeight = rect.height;
     setPanelPos({ top, left, maxHeight: Math.min(maxHeight, 500) });

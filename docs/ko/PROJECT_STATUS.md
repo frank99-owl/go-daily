@@ -31,6 +31,16 @@
 - **라우트 바운더리**: today, result, review, puzzles 라우트에 `loading.tsx` + `error.tsx` 추가.
 - **테스트 스위트**: 81개 테스트 파일, 약 631개 테스트 케이스.
 
+## 3b. 최근 개선 사항 (v1.1 하드닝)
+
+- **미들웨어 내보내기 수정**: `proxy.ts`가 Next.js 15 규약에 따라 `middleware`를 내보내도록 수정되어, 라우트 가드가 올바르게 활성화됩니다.
+- **메모리 안전 속도 제한**: `MemoryRateLimiter`(5만 항목 상한)와 게스트 IP 카운터(1만 항목 상한)가 만료된 항목을 제거하여 서버리스 인스턴스의 무제한 메모리 증가를 방지합니다.
+- **공통 요청 본문 파싱**: 모든 변형 API 라우트가 `lib/apiHeaders.ts`의 `parseMutationBody()`를 사용 —— CSRF, Content-Type, 크기 제한, JSON 검증의 단일 진실 공급원.
+- **Unicode 프롬프트 인젝션 방어**: `promptGuard.ts`가 패턴 매칭 전에 NFKC 정규화를 적용하여 전각 문자 및 동형 문자를 접습니다.
+- **Coach UX 개선**: 일반 오류 시 재시도 버튼, 사고 중 애니메이션 표시, 멘터 전환 시 스켈레톤 로딩.
+- **Stripe Webhook 하드닝**: 본문 읽기 전에 1MB 페이로드 크기 제한(HTTP 413) 검증.
+- **GoBoard 비활성 상태**: 상호작용 불가 시 판을 50% 투명도로 렌더링.
+
 ---
 
 전략적 깊이에 대해서는 [docs/ko/CONCEPT.md](docs/ko/CONCEPT.md)를 참조하십시오.

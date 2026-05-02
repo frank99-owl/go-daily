@@ -16,6 +16,8 @@
 
 **请求体** (JSON，由 `CoachRequestSchema` 校验)：
 
+**注意**：历史消息受总字符预算限制（6,000 字符，从最新消息开始截断），此外每条消息还单独截断至 2,000 字符。
+
 ```typescript
 {
   puzzleId: string;      // 最少 1 字符
@@ -176,6 +178,7 @@ Stripe Webhook 接收端。处理 `checkout.session.completed`、`customer.subsc
 - 通过 `stripe_events` 表实现幂等性（处理前先认领事件）。
 - 将订阅状态写入 `subscriptions` 表。
 - 在 `invoice.payment_failed` 时发送付款失败邮件。
+- `Content-Length > 1 MB` 的请求在读取正文前即被拒绝，返回 HTTP 413。
 
 ---
 
@@ -244,7 +247,13 @@ Vercel Cron 处理器，发送每日题目提醒邮件。
 - `UpstashRateLimiter`（生产环境，跨实例）：当 `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` 存在时使用。
 - `MemoryRateLimiter`（开发环境，单实例）：作为回退方案。
 
+两种限流器均强制执行最大条目数限制（`MemoryRateLimiter` 为 50,000 条），并通过淘汰过期条目防止内存无限增长。
+
 默认值：每 60 秒窗口每键 10 次请求。
+
+### 请求体解析
+
+所有变更路由使用 `lib/apiHeaders.ts` 中的 `parseMutationBody()` 进行统一的 Content-Type、Content-Length、CSRF 和 JSON 解析。
 
 ### API 响应头
 

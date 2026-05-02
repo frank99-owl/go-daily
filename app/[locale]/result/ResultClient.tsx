@@ -81,6 +81,11 @@ export function ResultClient({
     setHistory(getAttemptsFor(puzzle.id));
   }, [puzzle]);
 
+  // Safety: this effect cannot loop. (1) The guard bails once `revealToken`
+  // exists, and `setAttempt(upgraded)` adds exactly that field. (2) On API
+  // failure `setAttempt` is never called, so `attempt` (and thus the dep
+  // array) stays identical — React skips the re-run. (3) Attempts without
+  // `userMove` are skipped outright.
   useEffect(() => {
     const legacyAttempt = attempt;
     if (!legacyAttempt || legacyAttempt.revealToken || !legacyAttempt.userMove) return;

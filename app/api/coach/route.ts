@@ -1,5 +1,5 @@
 import { getPuzzle } from "@/content/puzzles";
-import { createApiResponse } from "@/lib/apiHeaders";
+import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
 import { getCoachAccess } from "@/lib/coach/coachAccess";
@@ -25,7 +25,6 @@ import { getCoachEnv } from "@/lib/env";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { createRateLimiter } from "@/lib/rateLimit";
-import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { CoachMessage } from "@/types";
@@ -37,8 +36,8 @@ export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 8 * 1024; // 8 KB
 const MAX_HISTORY = 6;
+const MAX_HISTORY_CHARS = 6_000; // Total character budget across all history messages
 const UPSTREAM_TIMEOUT_MS = 25000; // 25s max for LLM call
-const MAX_CONTENT_LENGTH = 10 * 1024; // 10 KB max content-length header
 
 const rateLimiter = createRateLimiter();
 
@@ -61,8 +60,10 @@ function coachError({
 }
 
 function maskKey(key: string): string {
-  if (key.length <= 8) return "***";
-  return key.slice(0, 4) + "..." + key.slice(-4);
+  if (key.length <= 4) return "***";
+  // Show only the first 4 chars and key length — avoids leaking enough of the
+  // suffix for offline brute-force when logs are exported to third-party tools.
+  return key.slice(0, 4) + "...(len:" + key.length + ")";
 }
 
 function getCoachModelInfo() {
@@ -76,27 +77,9 @@ function getCoachModelInfo() {
 export async function POST(request: Request) {
   const startTime = Date.now();
 
-  if (!isSameOriginMutationRequest(request)) {
-    return createApiResponse({ error: "forbidden" }, { status: 403 });
-  }
-
-  // Content-Type validation
-  const contentType = request.headers.get("content-type");
-  if (!contentType?.includes("application/json")) {
-    return badRequest("Content-Type must be application/json.");
-  }
-
-  // Body size cap (defense in depth)
-  const contentLength = request.headers.get("content-length");
-  if (contentLength) {
-    const len = Number(contentLength);
-    if (isNaN(len) || len <= 0 || len > MAX_CONTENT_LENGTH) {
-      return badRequest("Invalid Content-Length.");
-    }
-    if (len > MAX_BODY_BYTES) {
-      return badRequest("Request body too large.", 413);
-    }
-  }
+  // Parse and validate request body (CSRF + Content-Type + size + JSON).
+  const rawBody = await parseMutationBody(request, MAX_BODY_BYTES);
+  if (rawBody instanceof Response) return rawBody;
 
   const supabase = await createServerSupabase();
   const {
@@ -135,14 +118,6 @@ export async function POST(request: Request) {
         usage: null,
       });
     }
-  }
-
-  // Parse
-  let rawBody: unknown;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return badRequest("Invalid JSON.");
   }
 
   const parseResult = CoachRequestSchema.safeParse(rawBody);
@@ -193,8 +168,9 @@ export async function POST(request: Request) {
 
   // Authenticated user usage check
   let coachState: Awaited<ReturnType<typeof getCoachState>> | null = null;
+  let admin: ReturnType<typeof createServiceClient> | null = null;
   if (!isGuest) {
-    const admin = createServiceClient();
+    admin = createServiceClient();
     const now = new Date();
     coachState = await getCoachState({
       admin,
@@ -263,12 +239,22 @@ export async function POST(request: Request) {
     }
   }
 
-  // Keep only the last MAX_HISTORY turns.
-  const trimmedHistory: CoachMessage[] = history.slice(-MAX_HISTORY).map((m) => ({
+  // Keep only the last MAX_HISTORY turns, then enforce a total character budget
+  // by dropping the oldest messages first.
+  const sanitized = history.slice(-MAX_HISTORY).map((m) => ({
     role: m.role,
     content: sanitizeInput(m.content.slice(0, 2000)),
     ts: 0,
   }));
+
+  let charBudget = MAX_HISTORY_CHARS;
+  const trimmedHistory: CoachMessage[] = [];
+  for (let i = sanitized.length - 1; i >= 0; i--) {
+    const m = sanitized[i];
+    if (m.content.length > charBudget && trimmedHistory.length > 0) break;
+    trimmedHistory.unshift(m);
+    charBudget -= m.content.length;
+  }
 
   const systemPrompt = buildSystemPrompt(puzzle, locale, userMove, isCorrect, persona);
 
@@ -332,10 +318,10 @@ export async function POST(request: Request) {
       return createApiResponse({ reply, usage: updatedGuestUsage });
     }
 
-    // Authenticated user — existing flow
-    const admin = createServiceClient();
+    // Authenticated user — existing flow (reuse the admin client created above).
+    // `admin` is guaranteed non-null here because the guest path returns earlier.
     await incrementCoachUsage({
-      admin,
+      admin: admin!,
       userId: user!.id,
       day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
     });

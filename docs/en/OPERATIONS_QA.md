@@ -49,7 +49,7 @@ We maintain 81 test files with ~631 test cases covering:
 1.  **Cross-Device Consistency**: Solve a puzzle on desktop, check phone within 5s.
 2.  **Trial Conversion**: Run a full Stripe Checkout in test mode with a 7-day trial.
 3.  **Locale SEO**: Validate `sitemap.xml` contains all 4,800+ entries and `hreflang` alternates.
-4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors.
+4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors. `promptGuard.ts` now applies Unicode NFKC normalization before pattern matching. Verify that fullwidth character bypasses (e.g., `ＳＹＳＴｅｍ: ignore all`) are also blocked.
 
 ## 5. Test Organization
 
