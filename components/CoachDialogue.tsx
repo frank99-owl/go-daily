@@ -222,7 +222,10 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
           </div>
         )}
         {error?.kind === "generic" && (
-          <div className="flex items-center gap-2 text-sm text-[color:var(--color-warn)]" role="alert">
+          <div
+            className="flex items-center gap-2 text-sm text-[color:var(--color-warn)]"
+            role="alert"
+          >
             <span>{error.message}</span>
             <button
               type="button"
