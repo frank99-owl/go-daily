@@ -18,12 +18,17 @@ function resolveDisplayContext(
   userMove?: { x: number; y: number },
 ): DisplayContext {
   const useLocalWindow = puzzle.boardSize === 19;
+  // Mirror GoBoard's mutually-exclusive crop logic: when a solution sequence
+  // exists it drives the crop window (as extraStones); otherwise correct
+  // coordinates drive it (as highlight). Never both at once — otherwise the
+  // AI's coordinate frame won't match the rendered board.
+  const hasSolution = !!puzzle.solutionSequence?.length;
   const win = useLocalWindow
     ? computeCropWindow(
         puzzle.boardSize,
         puzzle.stones,
-        undefined,
-        puzzle.correct,
+        hasSolution ? puzzle.solutionSequence : undefined,
+        hasSolution ? undefined : puzzle.correct,
         userMove ?? null,
       )
     : fullWindow(puzzle.boardSize);
