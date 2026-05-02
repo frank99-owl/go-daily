@@ -21,7 +21,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Changed
 
-- **Middleware export rename**: `proxy.ts` now exports `middleware` instead of `proxy`, aligning with Next.js 15 conventions. Route guarding, locale negotiation, and auth refresh are unchanged.
 - **`MemoryRateLimiter` size cap**: In-memory rate limiter now enforces a 50,000-entry cap with stale-entry eviction, preventing unbounded memory growth on long-lived serverless instances.
 - **Guest IP counter size cap**: `guestCoachUsage.ts` IP counters capped at 10,000 entries with day-rollover cleanup and LRU eviction.
 - **Shared body-parsing utility**: All mutation API routes (`/api/coach`, `/api/puzzle/attempt`, `/api/puzzle/reveal`) now use `parseMutationBody()` from `lib/apiHeaders.ts` instead of duplicating Content-Type/Content-Length/JSON-parse logic.
@@ -41,7 +40,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Fixed
 
-- **Middleware routing**: `proxy.ts` middleware function was exported as `proxy` instead of `middleware`, which Next.js does not recognize as the middleware entry point. Renamed to `middleware` to ensure route guarding, auth refresh, and locale negotiation activate correctly.
 - **Coach persona selector mobile overflow**: Mentor panel portal now detects viewport overflow and repositions within a 16px margin on narrow screens.
 - **promptGuard Unicode test expectations**: Corrected NFKC normalization tests — Cyrillic U+0456 is not mapped to Latin "i" by NFKC; superscript "²" (U+00B2) normalizes to "2".
 - **ja.json translation contamination**: Removed Korean and Chinese characters that had leaked into three Japanese UI strings.

@@ -33,7 +33,6 @@
 
 ## 三（续）、近期改进 (v1.1 加固)
 
-- **中间件导出修复**：`proxy.ts` 现在按 Next.js 15 约定导出 `middleware`，确保路由守卫正确激活。
 - **内存安全限流**：`MemoryRateLimiter`（5 万条上限）和访客 IP 计数器（1 万条上限）现在会淘汰过期条目，防止 serverless 实例内存无限增长。
 - **统一请求体解析**：所有写入 API 路由使用 `lib/apiHeaders.ts` 的 `parseMutationBody()` —— CSRF、Content-Type、大小限制和 JSON 校验的单一来源。
 - **Unicode 注入防御**：`promptGuard.ts` 在模式匹配前应用 NFKC 归一化，折叠全角和同形字符。

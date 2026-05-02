@@ -33,7 +33,6 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 
 ## 3b. Recent Improvements (v1.1 Hardening)
 
-- **Middleware export fix**: `proxy.ts` now exports `middleware` per Next.js 15 convention, ensuring route guarding activates correctly.
 - **Memory-safe rate limiting**: `MemoryRateLimiter` (50k entry cap) and guest IP counters (10k cap) now evict stale entries to prevent unbounded memory growth on serverless instances.
 - **Shared body parsing**: All mutation API routes use `parseMutationBody()` from `lib/apiHeaders.ts` — single source of truth for CSRF, Content-Type, size, and JSON validation.
 - **Unicode prompt injection defense**: `promptGuard.ts` applies NFKC normalization to collapse fullwidth and homoglyph characters before pattern matching.

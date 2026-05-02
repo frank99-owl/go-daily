@@ -17,7 +17,7 @@ vi.mock("@/lib/supabase/middleware", () => ({
 }));
 
 import { LOCALE_COOKIE } from "@/lib/i18n/localePath";
-import { config, middleware } from "@/proxy";
+import { config, proxy } from "@/proxy";
 
 function request(path: string, init: { headers?: Record<string, string> } = {}) {
   return new NextRequest(new URL(path, "https://go-daily.local"), {
@@ -34,7 +34,7 @@ function setCookieHeader(response: Response): string {
   return (headers.getSetCookie?.() ?? [response.headers.get("set-cookie") ?? ""]).join("; ");
 }
 
-describe("middleware locale negotiation", () => {
+describe("proxy locale negotiation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabaseMocks.refreshSupabaseSession.mockResolvedValue({ user: null });
@@ -45,7 +45,7 @@ describe("middleware locale negotiation", () => {
   });
 
   it("redirects unprefixed paths using the locale cookie first and persists it", async () => {
-    const response = await middleware(
+    const response = await proxy(
       request("/today?mode=review", {
         headers: {
           cookie: `${LOCALE_COOKIE}=ja`,
@@ -61,7 +61,7 @@ describe("middleware locale negotiation", () => {
   });
 
   it("falls back to Accept-Language for unprefixed paths when the cookie is invalid", async () => {
-    const response = await middleware(
+    const response = await proxy(
       request("/puzzles", {
         headers: {
           cookie: `${LOCALE_COOKIE}=xx`,
@@ -76,7 +76,7 @@ describe("middleware locale negotiation", () => {
   });
 
   it("passes locale-prefixed pages through with x-locale and refreshes the session", async () => {
-    const response = await middleware(request("/ko/stats"));
+    const response = await proxy(request("/ko/stats"));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("x-middleware-next")).toBe("1");
@@ -85,7 +85,7 @@ describe("middleware locale negotiation", () => {
   });
 
   it("injects x-locale for manifest.webmanifest without redirecting or refreshing auth", async () => {
-    const response = await middleware(
+    const response = await proxy(
       request("/manifest.webmanifest", {
         headers: { "accept-language": "ja,en;q=0.5" },
       }),
@@ -98,7 +98,7 @@ describe("middleware locale negotiation", () => {
   });
 });
 
-describe("middleware auth guards", () => {
+describe("proxy auth guards", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabaseMocks.refreshSupabaseSession.mockResolvedValue({ user: null });
@@ -114,7 +114,7 @@ describe("middleware auth guards", () => {
       return { user: null };
     });
 
-    const response = await middleware(request("/zh/account?tab=billing"));
+    const response = await proxy(request("/zh/account?tab=billing"));
 
     expect(response.status).toBe(307);
     const location = new URL(response.headers.get("location") ?? "");
@@ -126,7 +126,7 @@ describe("middleware auth guards", () => {
   it("redirects authenticated /login users to a safe localized next target", async () => {
     supabaseMocks.refreshSupabaseSession.mockResolvedValueOnce({ user: { id: "u-1" } });
 
-    const response = await middleware(
+    const response = await proxy(
       request("/en/login?next=" + encodeURIComponent("/ja/review?due=1")),
     );
 
@@ -137,7 +137,7 @@ describe("middleware auth guards", () => {
   it("prevents authenticated /login redirect loops by falling back to account", async () => {
     supabaseMocks.refreshSupabaseSession.mockResolvedValueOnce({ user: { id: "u-1" } });
 
-    const response = await middleware(
+    const response = await proxy(
       request("/ja/login?next=" + encodeURIComponent("/ja/login?next=/ja/login")),
     );
 
@@ -146,14 +146,14 @@ describe("middleware auth guards", () => {
   });
 
   it("lets anonymous users view the login page", async () => {
-    const response = await middleware(request("/en/login?next=/en/account"));
+    const response = await proxy(request("/en/login?next=/en/account"));
 
     expect(response.status).toBe(200);
     expect(forwardedLocale(response)).toBe("en");
   });
 });
 
-describe("middleware exemptions and matcher", () => {
+describe("proxy exemptions and matcher", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabaseMocks.refreshSupabaseSession.mockResolvedValue({ user: null });
@@ -175,7 +175,7 @@ describe("middleware exemptions and matcher", () => {
     ["/twitter-image"],
     ["/images/stone.png"],
   ])("passes exempt path %s through without redirecting or refreshing auth", async (path) => {
-    const response = await middleware(request(path));
+    const response = await proxy(request(path));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("x-middleware-next")).toBe("1");
