@@ -21,7 +21,7 @@
 Our documentation is structured around core logical pillars to ensure deep understanding and maintainability:
 
 1.  **[Project Concept & Strategy](docs/en/CONCEPT.md)**: The "why" behind the geographic focus, monetization model, and lean engineering philosophy.
-2.  **[Technical Architecture](docs/en/ARCHITECTURE.md)**: Deep dive into the `proxy.ts` request lifecycle, sync storage engine, and six-domain refactoring.
+2.  **[Technical Architecture](docs/en/ARCHITECTURE.md)**: Deep dive into the `proxy.ts` request lifecycle, sync storage engine, and nine-domain `lib/` layout.
 3.  **[Product Specifications](docs/en/PRODUCT_SPECS.md)**: Detailed logic for the SM-2 SRS algorithm, subscription entitlements, and AI coach eligibility.
 4.  **[Operations & QA](docs/en/OPERATIONS_QA.md)**: Deployment guides, preflight checklists, and the test suite strategy.
 5.  **[Live Status](docs/en/PROJECT_STATUS.md)**: Real-time tracker for the current sprint and production readiness.

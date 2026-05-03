@@ -13,7 +13,7 @@
 添加新功能时，请遵循”九域分域”模式：
 
 - `lib/auth/`: 身份验证与会话管理。
-- `lib/board/`: Canvas 渲染与棋步校验。
+- `lib/board/`: 围棋规则、SGF 解析、棋盘渲染与落子校验。
 - `lib/coach/`: AI 提示词工程与配额逻辑。
 - `lib/i18n/`: 国际化文本与路径协商。
 - `lib/puzzle/`: 题目加载、元数据与状态。
@@ -61,7 +61,7 @@ npm run test:coverage # 检查覆盖率（目标：70%+）
 ## 5. 提交 PR
 
 1.  Fork 本仓库并从 `main` 分支创建你的功能分支。
-2.  确保 `npm run prebuild` 通过（这将运行 Lint 和 i18n 检查）。
+2.  确保 `npm run prebuild` 通过（校验题库数据与四套语言的文案 Key）。发起 PR 前请在本地执行 `npm run lint` —— CI 还会跑格式检查、Lint、类型检查、测试与生产构建。
 3.  为任何新逻辑包含测试。
 4.  如果你修改了核心行为，请同步更新 `docs/` 中的文档。
 

@@ -21,7 +21,7 @@ We take the security of go-daily seriously. If you believe you have found a secu
 
 - **AI Coach Dialogues**: We use a `beforeSend` filter in Sentry and PostHog to redact user messages before they leave the client. We do not store full dialogue history in a way that is linked to your identity on our servers.
 - **Payment Data**: All payment processing is handled by **Stripe**. We never see or store your full credit card number.
-- **Database Security**: We enforce Row Level Security (RLS) on all Supabase tables. Data is encrypted at rest and in transit.
+- **Database Security**: We enforce Row Level Security (RLS) on all Supabase tables. Data is encrypted at rest and in transit. The `manual_grants` table has RLS enabled with no end-user policies — reads/writes go through `service_role` on trusted server routes only. The `guest_coach_usage` table follows the same pattern for anonymous coach counters.
 
 ## 4. Prompt Injection
 

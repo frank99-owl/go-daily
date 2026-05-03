@@ -19,17 +19,17 @@
 
 All core logic lives in `lib/` organized by domain:
 
-| Domain   | Path            | Responsibility                                               |
-| -------- | --------------- | ------------------------------------------------------------ |
-| Auth     | `lib/auth/`     | Session management, device registry, guest identity          |
-| Board    | `lib/board/`    | Go rules, move validation, SGF parsing, board display        |
-| Coach    | `lib/coach/`    | AI prompting, quota management, persona system, eligibility  |
-| i18n     | `lib/i18n/`     | Locale negotiation, path helpers, message validation         |
-| PostHog  | `lib/posthog/`  | Analytics events, server-side capture, feature flags         |
-| Puzzle   | `lib/puzzle/`   | Puzzle loading, SRS scheduling, collections, reveal tokens   |
-| Storage  | `lib/storage/`  | Three-tier persistence (LocalStorage → IndexedDB → Supabase) |
-| Stripe   | `lib/stripe/`   | Payment processing, subscription management, webhooks        |
-| Supabase | `lib/supabase/` | Auth SSR helpers, service client, RLS bypass for admin ops   |
+| Domain   | Path            | Responsibility                                                                                   |
+| -------- | --------------- | ------------------------------------------------------------------------------------------------ |
+| Auth     | `lib/auth/`     | Session management, device registry, guest identity                                              |
+| Board    | `lib/board/`    | Go rules, move validation, SGF parsing, board/judge modules (`board`, `goRules`, `judge`, `sgf`) |
+| Coach    | `lib/coach/`    | AI prompting, quota management, persona system, eligibility                                      |
+| i18n     | `lib/i18n/`     | Locale negotiation, path helpers, message validation                                             |
+| PostHog  | `lib/posthog/`  | Analytics events, server-side capture, feature flags                                             |
+| Puzzle   | `lib/puzzle/`   | Puzzle loading, SRS scheduling, collections, reveal tokens                                       |
+| Storage  | `lib/storage/`  | Three-tier persistence (LocalStorage → IndexedDB → Supabase)                                     |
+| Stripe   | `lib/stripe/`   | Payment processing, subscription management, webhooks                                            |
+| Supabase | `lib/supabase/` | Auth SSR helpers, service client, RLS bypass for admin ops                                       |
 
 ## Critical Rules
 
@@ -46,7 +46,7 @@ All core logic lives in `lib/` organized by domain:
 ## Testing
 
 ```bash
-npm run test          # Run all (81 files, ~580 cases)
+npm run test          # Run all (81 files, 637 cases)
 npm run test:watch    # Watch mode
 npm run test:coverage # Coverage report (target: 70%+)
 ```
@@ -73,6 +73,8 @@ CI pipeline (`.github/workflows/ci.yml`): format:check → lint → validate:puz
 - **Stripe webhook idempotency**: Events are logged in `stripe_events` before processing. Never bypass this.
 - **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
 - **Environment variables**: See `.env.example` for the full list. Never commit `.env.local`. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.
+- **Manual Pro grants**: Email-based grants live in `manual_grants` and are merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). Admin APIs are under `/api/admin/*`; keep `ADMIN_PIN` server-only and do not add permissive RLS policies to `manual_grants`.
+- **Guest coach counters**: `guest_coach_usage` is written only via `service_role` in `guestCoachUsage.ts`; clients never query it directly.
 
 ## Documentation
 

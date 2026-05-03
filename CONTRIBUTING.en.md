@@ -13,7 +13,7 @@ Thank you for your interest in contributing to go-daily! We maintain high engine
 When adding new functionality, follow the nine-domain refactoring pattern:
 
 - `lib/auth/`: Authentication and session management.
-- `lib/board/`: Canvas rendering and move validation.
+- `lib/board/`: Go rules, SGF parsing, board rendering, and move validation.
 - `lib/coach/`: AI prompt engineering and quota logic.
 - `lib/i18n/`: Localized text and path negotiation.
 - `lib/puzzle/`: Puzzle loading, metadata, and state.
@@ -61,7 +61,7 @@ We follow conventional commits:
 ## 5. Submitting a PR
 
 1.  Fork the repo and create your branch from `main`.
-2.  Ensure `npm run prebuild` passes (this runs linting and i18n checks).
+2.  Ensure `npm run prebuild` passes (validates puzzle data and i18n message keys). Before opening a PR, also run `npm run lint` locally — CI runs format check, lint, typecheck, tests, and production build.
 3.  Include tests for any new logic.
 4.  Update documentation in `docs/` if you change core behavior.
 

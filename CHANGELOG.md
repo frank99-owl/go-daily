@@ -19,6 +19,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 - **Heatmap accessibility**: Added `role="grid"`, `aria-label`, and `role="gridcell"` to the activity heatmap.
 - **UserMenu keyboard navigation**: ArrowUp/Down, Home/End key support with auto-focus on open.
 
+### Documentation
+
+- **Canonical docs sync**: API reference (`/api/health`, `/api/admin/*`, guest coach persistence), database schema (`manual_grants`, `guest_coach_usage`), Vitest inventory (81 files / 637 tests), CONTRIBUTING guidance (`prebuild` vs lint), `PRODUCT_SPECS` SRS path (`lib/puzzle/srs.ts`), manual-grant behavior (`resolveViewerPlan`), and ja/ko product spec §4 (puzzle collections).
+- **Operations QA**: Example test paths now point at `tests/...`; ja/ko gained the §5 test-directory table and `generate:icons` script line aligned with English; `productionPreflight` validates `manual_grants` and `guest_coach_usage` columns.
+
 ### Changed
 
 - **`MemoryRateLimiter` size cap**: In-memory rate limiter now enforces a 50,000-entry cap with stale-entry eviction, preventing unbounded memory growth on long-lived serverless instances.
