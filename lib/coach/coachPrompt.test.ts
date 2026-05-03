@@ -81,22 +81,18 @@ describe("buildSystemPrompt — always included", () => {
   });
 });
 
-describe("buildSystemPrompt — 19×19 cropped window", () => {
-  it("describes a cropped local window (not the full board)", () => {
+describe("buildSystemPrompt — 19×19 full board", () => {
+  it("uses full-board framing, not a cropped-window banner", () => {
     const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
-    expect(prompt).toMatch(/cropped \d+x\d+ local board window/);
-    expect(prompt).toContain("Underlying board size: 19x19");
+    expect(prompt).toContain("Board size: 19x19");
+    expect(prompt).not.toMatch(/cropped \d+x\d+ local board window/);
+    expect(prompt).not.toContain("Underlying board size:");
   });
 
-  it("uses window-local (0-indexed) coordinates, not absolute", () => {
-    // Stones are all in the top-right corner; the crop should yield small numbers.
+  it("uses absolute coordinates (not window-local remapped)", () => {
     const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
-    // The absolute coord (16,2) should NOT appear as the coach's reference.
-    // Instead, small cropped coords should.
-    expect(prompt).not.toMatch(/\(16,2\)/);
-    // Pick a small relative coord — with CROP_PAD the origin is offset
-    // enough that something like (0,x) or (1,x) should appear.
-    expect(prompt).toMatch(/\(\d,\d\)/);
+    // Stone at absolute (16,2) should appear as-is.
+    expect(prompt).toContain("(16,2)");
   });
 });
 

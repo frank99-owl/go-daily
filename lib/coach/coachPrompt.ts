@@ -1,4 +1,3 @@
-import { computeCropWindow, fullWindow, toWindowCoord } from "@/lib/board/board";
 import { localized } from "@/lib/i18n/localized";
 import type { Locale, Puzzle, Stone } from "@/types";
 
@@ -6,52 +5,14 @@ import type { Persona } from "./personas";
 
 const coordLabel = (c: { x: number; y: number }) => `(${c.x},${c.y})`;
 
-interface DisplayContext {
-  useLocalWindow: boolean;
-  win: ReturnType<typeof computeCropWindow>;
-  visibleBoardSize: number;
-  displayCoord: (c: { x: number; y: number }) => string;
-}
-
-function resolveDisplayContext(
-  puzzle: Puzzle,
-  userMove?: { x: number; y: number },
-): DisplayContext {
-  const useLocalWindow = puzzle.boardSize === 19;
-  // Mirror GoBoard's mutually-exclusive crop logic: when a solution sequence
-  // exists it drives the crop window (as extraStones); otherwise correct
-  // coordinates drive it (as highlight). Never both at once — otherwise the
-  // AI's coordinate frame won't match the rendered board.
-  const hasSolution = !!puzzle.solutionSequence?.length;
-  const win = useLocalWindow
-    ? computeCropWindow(
-        puzzle.boardSize,
-        puzzle.stones,
-        hasSolution ? puzzle.solutionSequence : undefined,
-        hasSolution ? undefined : puzzle.correct,
-        userMove ?? null,
-      )
-    : fullWindow(puzzle.boardSize);
-  const displayCoord = (c: { x: number; y: number }) =>
-    coordLabel(useLocalWindow ? toWindowCoord(c, win) : c);
-  const visibleBoardSize = win.xMax - win.xMin + 1;
-  return { useLocalWindow, win, visibleBoardSize, displayCoord };
-}
-
 function describePosition(puzzle: Puzzle, userMove: { x: number; y: number }): string {
-  const { useLocalWindow, visibleBoardSize, displayCoord } = resolveDisplayContext(
-    puzzle,
-    userMove,
-  );
   const describe = (arr: Stone[]) =>
-    arr.length ? arr.map((s) => displayCoord(s)).join(", ") : "(none)";
+    arr.length ? arr.map((s) => coordLabel(s)).join(", ") : "(none)";
   const blacks = puzzle.stones.filter((s) => s.color === "black");
   const whites = puzzle.stones.filter((s) => s.color === "white");
-  const solution = puzzle.correct.map((c) => displayCoord(c)).join(", ");
+  const solution = puzzle.correct.map((c) => coordLabel(c)).join(", ");
   return [
-    useLocalWindow
-      ? `Underlying board size: ${puzzle.boardSize}x${puzzle.boardSize}. The student currently sees a cropped ${visibleBoardSize}x${visibleBoardSize} local board window.`
-      : `Board size: ${puzzle.boardSize}x${puzzle.boardSize}.`,
+    `Board size: ${puzzle.boardSize}x${puzzle.boardSize}.`,
     "Use only the displayed local 0-indexed (x,y) coordinates from the student's current view.",
     `Black stones on board: ${describe(blacks)}.`,
     `White stones on board: ${describe(whites)}.`,
@@ -87,17 +48,15 @@ export function buildSystemPrompt(
     describePosition(puzzle, userMove),
     "",
     "--- STUDENT'S MOVE ---",
-    `Move: ${resolveDisplayContext(puzzle, userMove).displayCoord(userMove)} — ${isCorrect ? "CORRECT" : "INCORRECT"}.`,
+    `Move: ${coordLabel(userMove)} — ${isCorrect ? "CORRECT" : "INCORRECT"}.`,
   ];
-
-  const { displayCoord } = resolveDisplayContext(puzzle, userMove);
 
   if (puzzle.solutionSequence?.length) {
     parts.push(
       "",
       "--- SOLUTION SEQUENCE (ground truth) ---",
       puzzle.solutionSequence
-        .map((s, i) => `Step ${i + 1}: ${s.color} ${displayCoord(s)}`)
+        .map((s, i) => `Step ${i + 1}: ${s.color} ${coordLabel(s)}`)
         .join("\n"),
     );
   }
@@ -109,7 +68,7 @@ export function buildSystemPrompt(
       puzzle.wrongBranches
         .map(
           (wb) =>
-            `If student plays ${displayCoord(wb.userWrongMove)}: ${wb.refutation.map((s) => `${s.color} ${displayCoord(s)}`).join(", ")}`,
+            `If student plays ${coordLabel(wb.userWrongMove)}: ${wb.refutation.map((s) => `${s.color} ${coordLabel(s)}`).join(", ")}`,
         )
         .join("\n"),
     );
