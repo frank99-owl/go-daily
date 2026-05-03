@@ -101,7 +101,9 @@ export class UpstashRateLimiter implements RateLimiter {
 }
 
 /** Factory — returns Upstash implementation if environment variables are present.
- *  Otherwise falls back to MemoryRateLimiter. */
+ *  Otherwise falls back to MemoryRateLimiter (dev only).
+ *  In production without Upstash, throws on first use (not at import time)
+ *  so that `next build` can still collect page data without env vars. */
 export function createRateLimiter(): RateLimiter {
   const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS) || DEFAULT_WINDOW_MS;
   const maxRequests = Number(process.env.RATE_LIMIT_MAX) || DEFAULT_MAX_REQUESTS;
@@ -114,9 +116,15 @@ export function createRateLimiter(): RateLimiter {
   }
 
   if (process.env.NODE_ENV === "production") {
-    throw new Error(
-      "CRITICAL: Upstash Redis is missing in production. Refusing to start without distributed rate limiting.",
-    );
+    // Fail on first actual use, not at import time — allows `next build`
+    // to complete without env vars (build-time page-data collection).
+    return {
+      isLimited() {
+        throw new Error(
+          "CRITICAL: Upstash Redis is missing in production. Refusing to start without distributed rate limiting.",
+        );
+      },
+    };
   }
 
   return new MemoryRateLimiter(windowMs, maxRequests);
