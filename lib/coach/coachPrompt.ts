@@ -5,7 +5,7 @@ import type { Persona } from "./personas";
 
 const coordLabel = (c: { x: number; y: number }) => `(${c.x},${c.y})`;
 
-function describePosition(puzzle: Puzzle, userMove: { x: number; y: number }): string {
+function describePosition(puzzle: Puzzle): string {
   const describe = (arr: Stone[]) =>
     arr.length ? arr.map((s) => coordLabel(s)).join(", ") : "(none)";
   const blacks = puzzle.stones.filter((s) => s.color === "black");
@@ -45,7 +45,7 @@ export function buildSystemPrompt(
     "If the student sends a greeting (e.g. 'hello', 'hi', '你好'), respond warmly and briefly, then gently guide them toward the puzzle. Do not immediately analyze the position unless they ask.",
     "",
     "--- POSITION ---",
-    describePosition(puzzle, userMove),
+    describePosition(puzzle),
     "",
     "--- STUDENT'S MOVE ---",
     `Move: ${coordLabel(userMove)} — ${isCorrect ? "CORRECT" : "INCORRECT"}.`,

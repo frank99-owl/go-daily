@@ -45,13 +45,11 @@ function redactUrlsInString(value: string): string {
     });
 }
 
-// Internal aliases for backward compatibility within this module
-const scrubString = redactString;
 const scrubUrl = (url: string) => redactSensitiveText(stripUrlQueryAndHash(url));
 
 function scrubValue(value: unknown): unknown {
   if (typeof value === "string") {
-    const scrubbed = scrubString(value);
+    const scrubbed = redactString(value);
     if (scrubbed.startsWith("http://") || scrubbed.startsWith("https://")) {
       return scrubUrl(scrubbed);
     }
@@ -64,15 +62,18 @@ function scrubValue(value: unknown): unknown {
   return value;
 }
 
+// Sentry SDK's beforeSend signature requires ErrorEvent, which lacks a string index
+// signature — making it incompatible with Record<string, unknown>. We use `any` here
+// because Sentry's type system doesn't allow a narrower compatible type.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function scrubSentryEvent(event: any): any {
   if (event.message) {
-    event.message = scrubString(event.message);
+    event.message = redactString(event.message);
   }
 
   if (event.exception?.values) {
     for (const ex of event.exception.values) {
-      if (ex.value) ex.value = scrubString(ex.value);
+      if (ex.value) ex.value = redactString(ex.value);
       if (ex.stacktrace?.frames) {
         for (const frame of ex.stacktrace.frames) {
           Object.assign(frame, scrubValue(frame) as Record<string, unknown>);
@@ -87,7 +88,7 @@ export function scrubSentryEvent(event: any): any {
 
   if (event.breadcrumbs) {
     for (const bc of event.breadcrumbs) {
-      if (typeof bc.message === "string") bc.message = scrubString(bc.message);
+      if (typeof bc.message === "string") bc.message = redactString(bc.message);
       if (bc.data) bc.data = scrubValue(bc.data) as Record<string, unknown>;
     }
   }

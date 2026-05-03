@@ -10,7 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Added
 
-- **Upstash Redis rate limiting**: Production now uses Upstash Redis for cross-instance rate limiting on coach, puzzle, and error-report endpoints. Falls back to in-memory limiter when env vars are absent.
+- **Upstash Redis rate limiting**: Production requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; `createRateLimiter()` throws at module load if either is missing when `NODE_ENV === "production"`. Non-production uses an in-memory limiter when Upstash is not configured.
 - **PWA icons**: Added 192×192 and 512×512 PNG icons for proper Android/Chrome install prompts. Run `npm run generate:icons` to regenerate from `public/icon.svg`.
 - **Localized OG/Twitter images**: Social share images now render in the viewer's locale (zh/en/ja/ko) instead of always English.
 - **Centralized env validation**: `lib/env.ts` with Zod-based lazy singletons for Coach, Stripe, Supabase, and Reveal env vars.
@@ -21,13 +21,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Documentation
 
-- **Canonical docs sync**: API reference (`/api/health`, `/api/admin/*`, guest coach persistence), database schema (`manual_grants`, `guest_coach_usage`), Vitest inventory (81 files / 637 tests), CONTRIBUTING guidance (`prebuild` vs lint), `PRODUCT_SPECS` SRS path (`lib/puzzle/srs.ts`), manual-grant behavior (`resolveViewerPlan`), and ja/ko product spec §4 (puzzle collections).
+- **Docs aligned with code (2026-05)**: Vitest inventory (80 files / 643 tests), CI Node 22, README `engines` (Node 22.5+), `proxy.ts` scope vs `/api` bypass and route-level auth, entitlements modules split out from `lib/puzzle/`, Upstash required in production for `createRateLimiter`, `MemoryRateLimiter` eviction semantics, preflight checklist described as variable (see `productionPreflight.ts`), multilingual `ARCHITECTURE` / `OPERATIONS_QA` / `API_REFERENCE` / `PROJECT_STATUS` updates.
+- **Canonical docs sync**: API reference (`/api/health`, `/api/admin/*`, guest coach persistence), database schema (`manual_grants`, `guest_coach_usage`), Vitest inventory (80 files / 643 tests), CONTRIBUTING guidance (`prebuild` vs lint), `PRODUCT_SPECS` SRS path (`lib/puzzle/srs.ts`), manual-grant behavior (`resolveViewerPlan`), and ja/ko product spec §4 (puzzle collections).
+- **Repository-wide Markdown sweep**: `POST /api/coach` documented as SSE (`text/event-stream`); pillar `DATABASE_SCHEMA` covers atomic usage RPCs (`0007_atomic_coach_usage_increment.sql`); multilingual `docs/*/CONCEPT.md` Pro bundle text matches entitlement quotas (not “unlimited” coach); `docs/README.md` notes `reports/*.md` is generator output only.
 - **Operations QA**: Example test paths now point at `tests/...`; ja/ko gained the §5 test-directory table and `generate:icons` script line aligned with English; `productionPreflight` validates `manual_grants` and `guest_coach_usage` columns.
 
 ### Changed
 
 - **`MemoryRateLimiter` size cap**: In-memory rate limiter now enforces a 50,000-entry cap with stale-entry eviction, preventing unbounded memory growth on long-lived serverless instances.
-- **Guest IP counter size cap**: `guestCoachUsage.ts` IP counters capped at 10,000 entries with day-rollover cleanup and LRU eviction.
+- **Guest IP counter size cap**: `guestCoachUsage.ts` IP counters capped at 10,000 entries with day-rollover cleanup and oldest-key eviction (Map insertion order).
 - **Shared body-parsing utility**: All mutation API routes (`/api/coach`, `/api/puzzle/attempt`, `/api/puzzle/reveal`) now use `parseMutationBody()` from `lib/apiHeaders.ts` instead of duplicating Content-Type/Content-Length/JSON-parse logic.
 - **Coach service client reuse**: Authenticated coach requests create a single `createServiceClient()` instance and reuse it across `getCoachState()` and `incrementCoachUsage()`.
 - **Coach history total character budget**: `MAX_HISTORY_CHARS = 6,000` now limits the total character count of the history array (newest-first truncation), in addition to the existing per-message 2,000-char cap.
@@ -88,7 +90,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 - **Core puzzle engine**: 3,033 curated tsumego puzzles (19x19) with difficulty ratings, tags, and four-language prompts.
 - **AI Coach (Socratic)**: DeepSeek-powered coaching with 5 persona mentors (Ke Jie, Lee Sedol, Go Seigen, Iyama Yuta, Shin Jinseo).
 - **Multilingual UI**: Full support for Chinese (zh), English (en), Japanese (ja), and Korean (ko).
-- **URL-prefixed routing**: `/{locale}/...` pattern for SEO-friendly internationalization (4,800+ indexable URLs).
+- **URL-prefixed routing**: `/{locale}/...` pattern for SEO-friendly internationalization (sitemap scales with the puzzle corpus — currently on the order of **12,000+** locale-specific URLs from `sitemap.ts`).
 - **Three-state storage**: Anonymous LocalStorage → IndexedDB Queue → Supabase Cloud sync.
 - **Stripe integration**: Adaptive pricing (JPY/KRW), 7-day trial, monthly/yearly plans.
 - **SM-2 spaced repetition**: Pro users get personalized review schedules.

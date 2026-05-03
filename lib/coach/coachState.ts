@@ -265,30 +265,39 @@ export async function incrementCoachUsage({
   userId: string;
   day: string;
 }): Promise<number> {
-  const { data: existing, error: existingError } = await admin
+  const { data, error } = await admin.rpc("increment_coach_usage", {
+    p_user_id: userId,
+    p_day: day,
+  });
+
+  if (error) {
+    throw new Error(`failed to increment coach usage: ${error.message}`);
+  }
+
+  return data as number;
+}
+
+export async function decrementCoachUsage({
+  admin,
+  userId,
+  day,
+}: {
+  admin: AdminClient;
+  userId: string;
+  day: string;
+}): Promise<void> {
+  const { data } = await admin
     .from("coach_usage")
     .select("count")
     .eq("user_id", userId)
     .eq("day", day)
     .maybeSingle();
 
-  if (existingError) {
-    throw new Error(`failed to read daily coach usage: ${existingError.message}`);
+  if (data && (data as CoachUsageRow).count > 0) {
+    await admin
+      .from("coach_usage")
+      .update({ count: (data as CoachUsageRow).count - 1 })
+      .eq("user_id", userId)
+      .eq("day", day);
   }
-
-  const nextCount = Number(existing?.count ?? 0) + 1;
-  const { error } = await admin.from("coach_usage").upsert(
-    {
-      user_id: userId,
-      day,
-      count: nextCount,
-    },
-    { onConflict: "user_id,day" },
-  );
-
-  if (error) {
-    throw new Error(`failed to write coach usage: ${error.message}`);
-  }
-
-  return nextCount;
 }

@@ -93,9 +93,11 @@ export function sanitizeInput(input: string): string {
   return (
     input
       .normalize("NFKC") // Unicode canonical + compatibility decomposition + composition
-      // eslint-disable-next-line no-control-regex
-      .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "") // Control chars
-      .replace(/\s+/g, " ") // Normalize whitespace
+      .replace(/[\u200B-\u200D\uFEFF]/g, "") // Strip zero-width characters
+
+      // Strip control chars but preserve \t (0x09), \n (0x0a), \r (0x0d) — chat messages need newlines.
+      .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
+      .replace(/[^\S\r\n]+/g, " ") // Normalize whitespace while preserving newlines
       .trim()
   );
 }

@@ -36,8 +36,9 @@ export const CoachRequestSchema = z.object({
   puzzleId: z.string().min(1),
   locale: LocaleSchema,
   userMove: CoordSchema,
-  isCorrect: z.boolean(),
-  personaId: z.string().optional(),
+  personaId: z
+    .enum(["ke-jie", "lee-sedol", "go-seigen", "iyama-yuta", "shin-jinseo", "custom"])
+    .optional(),
   history: z.array(CoachMessageSchema).min(1, "History must contain at least the user's question."),
 });
 

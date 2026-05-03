@@ -15,6 +15,8 @@ This document reflects the **actual shipped scope** of the v1.1 closure work on 
 - Maps upstream timeout / rate-limit / auth / generic failures to stable user-facing responses
 - Uses standardized API response headers through `lib/apiHeaders.ts`
 
+**Post‑v1.1 evolution** (still true on current `main`; see [API Reference](API_REFERENCE.md) / [Database Schema](DATABASE_SCHEMA.md)): `POST /api/coach` streams the assistant reply with **Server‑Sent Events** (`text/event-stream`) (`delta`, terminal `done` + `usage`, optional inline `error`). Message counts persist through Postgres RPCs **`increment_coach_usage`** and **`increment_guest_coach_usage`** (`supabase/migrations/0007_atomic_coach_usage_increment.sql`) so increments stay atomic under concurrency.
+
 ### 2. Client error reporting with a real server-side endpoint
 
 - `lib/errorReporting.ts`
@@ -81,11 +83,13 @@ Their related standalone tests were removed as well. v1.1 now prefers fewer conn
 
 ## Validation status
 
-Latest verification on this branch:
+Historical snapshot from the **v1.1 closure branch** (not current `main`): on that branch, verification showed `145` tests in `33` test files. Today's `main` uses a larger Vitest suite — run `npm run test` and see `docs/en/OPERATIONS_QA.md` / `AGENTS.md` for current counts.
+
+Latest verification on that branch:
 
 - `npm run lint` ✅
 - `npm run test` ✅
-- `145` tests across `33` test files
+- `145` tests across `33` test files _(v1.1-era only — see note above)_
 - `npm run build` ✅
 
 ## Public wording guardrails

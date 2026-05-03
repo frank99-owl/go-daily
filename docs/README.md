@@ -56,6 +56,8 @@ The documentation is structured around eight core pillars:
 
 Generated scripts produce audit reports in `reports/`:
 
+Files there are **regenerated outputs** (`npm run queue:content`, `npm run report:*`, etc.): treat them as inventory snapshots, not hand-maintained specs. Operational truth stays in this `docs/` tree (and pillar documents); rerun the scripts when puzzle metadata changes.
+
 | Report                                              | Script                      | Description                       |
 | --------------------------------------------------- | --------------------------- | --------------------------------- |
 | [Content Queue](../reports/content-queue/latest.md) | `npm run queue:content`     | Coach-ready puzzle inventory      |

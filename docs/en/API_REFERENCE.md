@@ -10,20 +10,23 @@ AI coaching dialogue powered by DeepSeek.
 
 ### `POST /api/coach`
 
-Send a user message and receive an AI coach reply.
+Send a user message and receive an AI coach reply as a streamed assistant message.
 
-**Auth**: Optional. Logged-in users use the Supabase session cookie. Guest users send `x-go-daily-guest-device-id` header (lower quota limits apply).
+**Auth**: Optional. Logged-in users use the Supabase session cookie **and should send `x-go-daily-device-id`** when the client tracks a device fingerprint (required for Free-plan device-seat logic in `getCoachState`). Guest users send `x-go-daily-guest-device-id` (lower quotas).
 
 **Request Body** (JSON, validated by `CoachRequestSchema`):
 
-**Note**: History messages are subject to a total character budget of 6,000 characters (newest-first truncation), in addition to per-message truncation at 2,000 characters.
+**Notes**:
+
+- Move correctness is **not** part of the request. The handler runs `judgeMove(puzzle, userMove)` and passes the result into the system prompt (`buildSystemPrompt`).
+- History messages are subject to a total character budget of 6,000 characters (newest-first truncation), in addition to per-message truncation at 2,000 characters. At most the last 6 turns are kept before the budget trim.
+- When provided, `personaId` must be one of: `ke-jie`, `lee-sedol`, `go-seigen`, `iyama-yuta`, `shin-jinseo`, `custom` (`CoachRequestSchema`); omitted selects Go Seigen (`go-seigen`).
 
 ```typescript
 {
   puzzleId: string;      // min 1 char
   locale: "zh" | "en" | "ja" | "ko";
   userMove: { x: number; y: number };
-  isCorrect: boolean;
   personaId?: string;    // defaults to Go Seigen
   history: Array<{       // min 1 entry
     role: "user" | "assistant";
@@ -33,46 +36,74 @@ Send a user message and receive an AI coach reply.
 }
 ```
 
-**Success Response** (`200`):
+**Success Response** (`200`): Server-Sent Events (`Content-Type: text/event-stream`). The body is SSE `data:` lines whose JSON payloads may be:
 
-```json
-{ "reply": "string", "usage": { "plan", "dailyRemaining", "monthlyRemaining", ... } }
-```
+| Payload                              | Meaning                                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `{ "delta": "..." }`                 | Partial assistant text (streamed)                                                                    |
+| `{ "done": true, "usage": { ... } }` | Stream finished; `usage` is the quota snapshot **after** the increment applied for this request      |
+| `{ "error": "<code>" }`              | Stream failed mid-flight; `<code>` is one of `upstream_error`, `timeout`, `rate_limit`, `auth_error` |
 
-**Error Responses**:
-| Status | Code | Condition |
-|--------|------|-----------|
-| 400 | — | Invalid Content-Type, body size, JSON, or schema |
-| 401 | `login_required` | No session and no `x-go-daily-guest-device-id` header |
-| 403 | `device_limit` | Free user exceeded 1 device |
-| 403 | — | Puzzle not approved for coaching |
-| 429 | `daily_limit_reached` | Daily quota exhausted |
-| 429 | `monthly_limit_reached` | Monthly quota exhausted |
-| 429 | — | IP rate limit |
-| 502 | — | Upstream LLM error |
-| 504 | — | Upstream timeout (>25s) |
+Counters are incremented **before** streaming begins, so aborted connections still consume quota.
+
+**JSON error responses** (no SSE body — returned before streaming starts):
+
+| Status          | Code / body             | Condition                                                                                                                        |
+| --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 400             | —                       | Invalid Content-Type, JSON, schema, malformed request, or `x-go-daily-guest-device-id` header exceeds 128 characters             |
+| 401             | `login_required`        | No session and no `x-go-daily-guest-device-id`                                                                                   |
+| 403             | `error: "forbidden"`    | Failed same-origin mutation / CSRF guard (`parseMutationBody`)                                                                   |
+| 403             | `device_limit`          | Free user exceeded device limit (`getCoachState`)                                                                                |
+| 403             | `coach_unavailable`     | Puzzle not coach-eligible (`getCoachAccess`)                                                                                     |
+| 404             | —                       | Unknown `puzzleId`                                                                                                               |
+| 413             | —                       | Body larger than **8 KB** (`MAX_BODY_BYTES`)                                                                                     |
+| 429             | `daily_limit_reached`   | User or guest **daily** coach quota exhausted, **or** (guest-only) **per-IP daily** cap (`checkIpLimit` — `usage` may be `null`) |
+| 429             | `monthly_limit_reached` | **Monthly** quota exhausted                                                                                                      |
+| 429             | —                       | Generic IP rate limiter (`rateLimiter`)                                                                                          |
+| 500             | —                       | Missing `DEEPSEEK_API_KEY` on server                                                                                             |
+| 500             | `quota_write_failed`    | Failed to increment usage counter (DB/RPC error)                                                                                 |
+| 502 / 504 / 429 | —                       | Provider fails before SSE starts (JSON `{ "error": "..." }`; timeout uses `504`)                                                 |
 
 **Guards Applied**:
 
-- Content-Length cap (8 KB body, 10 KB header)
-- IP rate limiting (Upstash Redis or in-memory fallback)
+- Content-Length cap (**8 KB** body via `parseMutationBody`; same-origin check)
+- IP rate limiting via `createRateLimiter` (Upstash Redis **required** in production; in-process `MemoryRateLimiter` only in non-production)
 - Prompt injection screening on all user messages (`guardUserMessage`)
 - Input sanitization (`sanitizeInput`)
-- Coach eligibility check (puzzle must be in `coachEligibleIds.json`)
-- Usage quota enforcement (per-user daily + monthly counters)
-- Guest usage persisted in Supabase `guest_coach_usage` via `service_role`; per-IP caps remain in-memory (`guestCoachUsage.ts`)
+- Coach eligibility check (puzzle ID allowlist in `coachEligibleIds.json` **and** runtime quality gates via `checkCoachEligibility` / `getCoachAccess`)
+- Usage quota enforcement (per-user daily + monthly counters; Postgres RPC increments — see Database Schema)
+- Guest usage persisted in Supabase `guest_coach_usage` via `service_role`; **per-IP daily** guest caps (`checkIpLimit`, `GUEST_IP_DAILY_LIMIT` — currently 20/IP/UTC day) use **Upstash** when `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set, otherwise an in-process `Map` in `guestCoachUsage.ts`.
 
 ### `GET /api/coach`
 
 Retrieve coach usage summary for the current caller.
 
-**Auth**: Optional. Logged-in users use the Supabase session cookie. Guests may pass `x-go-daily-guest-device-id` to read guest quota usage. Requests with neither session nor guest header return `401`.
+**Auth**: Optional. Logged-in users use the Supabase session cookie and may pass `x-go-daily-device-id` for device-seat evaluation. Guests may pass `x-go-daily-guest-device-id` to read guest quota usage. Requests with neither session nor guest header return `401`.
 
 **Response** (`200`):
 
 ```json
-{ "usage": { "plan", "dailyLimit", "monthlyLimit", "dailyUsed", "monthlyUsed", ... } }
+{
+  "usage": {
+    "plan",
+    "dailyLimit",
+    "monthlyLimit",
+    "dailyUsed",
+    "monthlyUsed",
+    "dailyRemaining",
+    "monthlyRemaining",
+    "timeZone",
+    "monthWindowKind",
+    "monthWindowStart",
+    "monthWindowEnd",
+    "billingAnchorDay"
+  }
+}
 ```
+
+For logged-in users, `usage` may be `null` when coach entitlements resolve to unavailable (`coach.available === false`). Guests always receive a numeric guest quota object when `x-go-daily-guest-device-id` is present.
+
+**Headers**: Same optional `x-go-daily-device-id` / `x-go-daily-guest-device-id` convention as POST.
 
 ---
 
@@ -305,14 +336,13 @@ Remove a manual grant.
 
 ### Rate Limiting
 
-All write endpoints use `createRateLimiter()` which returns either:
+Write endpoints use `createRateLimiter()`, which behaves as follows:
 
-- `UpstashRateLimiter` (production, cross-instance) when `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set.
-- `MemoryRateLimiter` (dev, single-instance) as fallback.
+- When **`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are both set**: `UpstashRateLimiter` (Redis-backed, multi-instance).
+- When **either is missing** and `NODE_ENV !== "production"`: `MemoryRateLimiter` (in-process only).
+- When **either is missing** and `NODE_ENV === "production"`: `createRateLimiter()` **throws** when the route module loads — production deploys must configure Upstash (see `lib/rateLimit.ts`).
 
-Both limiters enforce a maximum entry count (50,000 for `MemoryRateLimiter`) with stale-entry eviction to prevent unbounded memory growth.
-
-Default: 10 requests per 60-second window per key.
+`MemoryRateLimiter` caps tracked keys at 50,000; when over cap it deletes the oldest key by insertion order, and a periodic sweep drops idle keys. Default window: 10 requests per 60-second window per key (override via `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX`).
 
 ### Body Parsing
 

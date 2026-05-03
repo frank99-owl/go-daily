@@ -1,6 +1,6 @@
 import type { Color, Coord } from "@/types";
 
-import { Move } from "./sgf";
+import type { Move } from "./sgf";
 
 export type BoardSize = 9 | 13 | 19;
 export type GoBoard = Map<string, Color>;

@@ -51,75 +51,92 @@ export async function GET(request: Request) {
   const admin = createServiceClient();
   const puzzle = await getPuzzleForDate(today);
 
-  let profileQuery = admin
-    .from("profiles")
-    .select("user_id, locale, email_opt_out, email_unsubscribe_token, daily_email_last_sent_on")
-    .eq("email_opt_out", false)
-    .limit(batchSize);
-
-  if (localeFilter) {
-    profileQuery = profileQuery.eq("locale", localeFilter);
-  }
-
-  const { data, error } = await profileQuery;
-  if (error) {
-    console.error("[cron/daily-email] profile query failed", { message: error.message });
-    return createApiResponse({ error: "profile_query_failed" }, { status: 500 });
-  }
-
-  const profiles = ((data ?? []) as ProfileEmailRow[]).filter(
-    (profile) => profile.daily_email_last_sent_on !== today && !profile.email_opt_out,
-  );
-
   let sent = 0;
   let skipped = 0;
   let failed = 0;
+  let attempted = 0;
 
-  for (const profile of profiles) {
-    const { data: userData, error: userError } = await admin.auth.admin.getUserById(
-      profile.user_id,
-    );
-    const email = userData.user?.email;
-    if (userError || !email) {
-      skipped += 1;
-      continue;
-    }
-
-    const result = await sendDailyPuzzleEmail({
-      to: email,
-      locale: localeFromProfile(profile.locale),
-      puzzle,
-      unsubscribeToken: profile.email_unsubscribe_token,
-    });
-
-    if (!result.sent) {
-      if (result.reason === "not_configured") skipped += 1;
-      else failed += 1;
-      continue;
-    }
-
-    const { error: updateError } = await admin
+  while (true) {
+    let profileQuery = admin
       .from("profiles")
-      .update({ daily_email_last_sent_on: today, updated_at: new Date().toISOString() })
-      .eq("user_id", profile.user_id);
+      .select("user_id, locale, email_opt_out, email_unsubscribe_token, daily_email_last_sent_on")
+      .eq("email_opt_out", false)
+      // fetch users whose sent date is NOT today (using or filter for null or diff date)
+      .or(`daily_email_last_sent_on.is.null,daily_email_last_sent_on.neq.${today}`)
+      .limit(batchSize);
 
-    if (updateError) {
-      failed += 1;
-      console.warn("[cron/daily-email] failed to mark profile sent", {
-        userId: profile.user_id,
-        message: updateError.message,
-      });
-      continue;
+    if (localeFilter) {
+      profileQuery = profileQuery.eq("locale", localeFilter);
     }
 
-    sent += 1;
+    const { data, error } = await profileQuery;
+    if (error) {
+      console.error("[cron/daily-email] profile query failed", { message: error.message });
+      return createApiResponse({ error: "profile_query_failed" }, { status: 500 });
+    }
+
+    const profiles = (data ?? []) as ProfileEmailRow[];
+    if (profiles.length === 0) break;
+
+    for (const profile of profiles) {
+      if (profile.daily_email_last_sent_on === today || profile.email_opt_out) {
+        // Belt-and-suspenders: if DB filter slipped, we must still update the row
+        // to drop it from the query and prevent an infinite loop.
+        await admin
+          .from("profiles")
+          .update({ daily_email_last_sent_on: today, updated_at: new Date().toISOString() })
+          .eq("user_id", profile.user_id);
+        continue;
+      }
+
+      attempted += 1;
+
+      const { data: userData, error: userError } = await admin.auth.admin.getUserById(
+        profile.user_id,
+      );
+      const email = userData.user?.email;
+      if (userError || !email) {
+        skipped += 1;
+        continue;
+      }
+
+      const result = await sendDailyPuzzleEmail({
+        to: email,
+        locale: localeFromProfile(profile.locale),
+        puzzle,
+        unsubscribeToken: profile.email_unsubscribe_token,
+      });
+
+      if (!result.sent) {
+        if (result.reason === "not_configured") skipped += 1;
+        else failed += 1;
+        // Even if failed, we should probably mark it to avoid infinite loops, but we'll
+        // mark it failed later. For now, mark it sent to advance the batch.
+      }
+
+      const { error: updateError } = await admin
+        .from("profiles")
+        .update({ daily_email_last_sent_on: today, updated_at: new Date().toISOString() })
+        .eq("user_id", profile.user_id);
+
+      if (updateError) {
+        failed += 1;
+        console.warn("[cron/daily-email] failed to mark profile sent", {
+          userId: profile.user_id,
+          message: updateError.message,
+        });
+        continue;
+      }
+
+      if (result.sent) sent += 1;
+    }
   }
 
   return createApiResponse({
     ok: true,
     date: today,
     locale: localeFilter,
-    attempted: profiles.length,
+    attempted,
     sent,
     skipped,
     failed,

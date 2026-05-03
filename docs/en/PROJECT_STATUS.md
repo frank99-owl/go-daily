@@ -1,7 +1,7 @@
 # go-daily Project Status & Roadmap
 
-**Generated At**: May 3, 2026
-**Repository HEAD**: `43373fc`
+**Generated At**: May 4, 2026
+**Repository HEAD**: `bf582e2`
 **Status**: v2.7 Codebase Optimization Edition
 
 ---
@@ -29,10 +29,10 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **SEO Hreflang**: `buildHreflangAlternates()` helper with `alternates.languages` on all page routes.
 - **Accessibility**: Heatmap ARIA semantics (`role="grid"`, `aria-label`), UserMenu keyboard navigation (Arrow keys, Home/End).
 - **Route Boundaries**: `loading.tsx` + `error.tsx` for today, result, review, and puzzles routes.
-- **Test Suite**: 81 test files, 637 test cases covering logic, UI, and API layers.
+- **Test Suite**: 80 test files, 643 test cases covering logic, UI, and API layers.
 - **Guest coach persistence**: `guest_coach_usage` in Supabase stores anonymous coach message counts per device/day (`service_role` only); IP caps stay in-memory for abuse control.
 - **Board module**: Core logic consolidated into four modules (`board.ts`, `goRules.ts`, `judge.ts`, `sgf.ts`); legacy `boardDisplay.ts` removed.
-- **Documentation sync**: API reference covers `/api/health` and `/api/admin/*`; database docs include `manual_grants` and `guest_coach_usage`; README/docs index aligned with the nine-domain layout.
+- **Documentation sync**: API reference covers `/api/health` and `/api/admin/*`; includes **`POST /api/coach` as Server-Sent Events** and Postgres **RPC** usage increments; database docs include `manual_grants`, `guest_coach_usage`, and **`0007_atomic_coach_usage_increment.sql`** notes; multilingual **`CONCEPT.md`** Pro wording matches entitlement quotas (**not** “unlimited” coach — see **`PRODUCT_SPECS`**); README/docs index aligned with the nine-domain layout.
 
 ## 3b. Recent Improvements (v1.1 Hardening)
 

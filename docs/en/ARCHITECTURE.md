@@ -11,11 +11,13 @@ Everything user-facing passes through the `proxy.ts` middleware. It handles four
 3.  **Session Refresh & Auth Redirect**: Using `@supabase/ssr`, it refreshes the session cookie on every navigation to keep Server Components hydrated with fresh user state. Already-prefixed paths (`/en/account`, etc.) are guarded here — unauthenticated users hitting `/account` are redirected to `/login?next=...`, and authenticated users hitting `/login` are redirected to `/account`.
 4.  **Locale Negotiation**: For unprefixed paths, it handles the 308 (Permanent) redirect matrix to ensure every path is locale-prefixed (`/{zh|en|ja|ko}/...`).
 
+**Next.js 16 scope**: Global request handling lives in root `proxy.ts` (exported `proxy` + `config.matcher`; Node.js runtime). The matcher skips `/api/*` and `/auth/*`, so API routes and the Supabase auth callback implement their own checks (cookies, Stripe signatures, `parseMutationBody`, etc.). Locale negotiation and cookie refresh apply to **page** navigations, not those prefixes.
+
 ## 2. Core Domain Modules (`lib/`)
 
 ### `lib/env.ts` (Environment Validation)
 
-A centralized, Zod-based environment variable validator. Each domain (Coach, Stripe, Supabase, Reveal) has its own schema and a lazy-validated singleton accessor (`getCoachEnv()`, `getStripeEnv()`, etc.). Missing variables surface as clear startup-style errors at first use rather than silent 500s deep in a route handler. Browser-side Supabase files (`client.ts`, `middleware.ts`) maintain their own inline validation since `lib/env.ts` is server-only.
+A centralized, Zod-based environment variable validator. Each domain (Coach, Stripe, Supabase, Reveal) has its own schema and a lazy-validated singleton accessor (`getCoachEnv()`, `getStripeEnv()`, etc.). Missing variables surface as clear startup-style errors at first use rather than silent 500s deep in a route handler. Browser `client.ts` and the session-refresh helper `lib/supabase/middleware.ts` keep their own inline checks since `lib/env.ts` is server-only.
 
 ### `lib/auth/` & `lib/supabase/`
 
@@ -34,10 +36,11 @@ The system operates on a three-state synchronization model:
 
 - **Prompting**: Centralized in `coachPrompt.ts` to ensure consistency in Socratic tutoring across different puzzles.
 - **Budgeting**: `coachQuota.ts` provides date utility functions (`formatDateInTimeZone`, `getNaturalMonthWindow`, `getBillingAnchoredMonthWindow`) used for billing-period calculations. The actual quota limits are enforced in `lib/entitlements.ts`.
+- **Usage counters**: Logged-in and guest coach message counts persist in Postgres; increments go through RPCs (`increment_coach_usage`, `increment_guest_coach_usage`) for atomic upserts under concurrency.
 
 ### `lib/i18n/` (Global Presence)
 
-- **URL-First**: We favor URL parameters over cookies or headers for locale state to ensure search engines can crawl all 4,800+ localized puzzle pages independently.
+- **URL-First**: We favor URL parameters over cookies or headers for locale state so search engines can crawl the full localized surface: **12,000+** URLs in `sitemap.xml` today (static pages, collection filters, puzzle details × four locales), growing with `content/data/puzzleIndex.json`.
 - **Message Consistency**: `scripts/validateMessages.ts` ensures that keys across `zh`, `en`, `ja`, and `ko` never drift during build time.
 
 ### `lib/board/` (Go Board Logic)
@@ -47,8 +50,12 @@ The system operates on a three-state synchronization model:
 
 ### `lib/puzzle/` (Puzzle Engine)
 
-- **SRS Scheduling**: Spaced repetition logic drives the daily review queue, with 8 source files covering collections, daily selection, review flows, and reveal tokens.
-- **Entitlement**: Tracks puzzle access and streak state tied to the user's subscription tier.
+- **SRS & loading**: Spaced repetition (`srs.ts`, `reviewSrs.ts`), daily selection, collections, reveal tokens, snapshots, and status helpers — eight puzzle modules plus a colocated `puzzleOfTheDay.test.ts` in `lib/puzzle/`.
+
+### `lib/entitlements.ts` & `lib/entitlementsServer.ts` (Plans)
+
+- **Tier matrix**: `entitlements.ts` defines guest / free / Pro coach limits, device seats, ads, and sync behavior for client-safe consumption.
+- **Server merge**: `entitlementsServer.ts` resolves the effective plan (Stripe + `manual_grants` via `resolveViewerPlan`) for APIs and server components.
 
 ### `lib/stripe/` (Payments)
 
@@ -82,8 +89,8 @@ Legal requirements are treated as **Content Assets** rather than hardcoded logic
 - **RLS (Row Level Security)**: Every Postgres table has a mandatory `auth.uid() = user_id` policy. Even if an API is exposed, the database layer ensures no data leakage.
 - **PII Masking**: Sentry and PostHog are configured with `beforeSend` filters to redact user messages from AI coach dialogues before they leave the client.
 - **NFKC Normalization**: User-supplied text is normalized to NFKC form before processing to prevent homoglyph and Unicode normalization attacks.
-- **Service Isolation**: The `proxy.ts` middleware ensures that only authenticated and authorized requests reach the heavy-duty API routes (Stripe/Coach).
-- **Rate Limiting**: `lib/rateLimit.ts` provides two implementations — `MemoryRateLimiter` (dev/single-instance, 50k entry cap with LRU eviction) and `UpstashRateLimiter` (production, Redis-backed). The factory auto-selects based on `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` env vars.
+- **Route-level auth**: `proxy.ts` refreshes Supabase session cookies and guards locale-prefixed **pages** (e.g. `/account`, `/login`). `/api/*` is outside the proxy matcher; Stripe, coach, admin, and puzzle routes enforce sessions, tokens, or signatures themselves.
+- **Rate limiting**: `lib/rateLimit.ts` — `UpstashRateLimiter` when both `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set; otherwise `MemoryRateLimiter` in non-production. In **`NODE_ENV === "production"`**, missing Upstash variables make `createRateLimiter()` throw (distributed limiting is mandatory). `MemoryRateLimiter` caps tracked keys (50k) and drops the oldest key when over cap, plus periodic cleanup of idle keys.
 
 ---
 

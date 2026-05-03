@@ -17,11 +17,11 @@
 - `NEXT_PUBLIC_IS_COMMERCIAL`: 设为 `true` 以开启 Stripe 组件和 `/pricing` 页面。
 - `COACH_MODEL`: 默认为 `deepseek-chat`。可切换为 `deepseek-reasoner`。
 - `COACH_MONTHLY_TOKEN_BUDGET`: 应用层硬性限制，防止账单意外激增。
-- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: 配置后启用 Upstash Redis 跨实例限流；未配置则回退到进程内内存限流（在 Serverless 多实例上效果有限）。
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`：**生产环境必填** — 当 `NODE_ENV === "production"` 时，若缺少任一变量，`createRateLimiter()` 会在模块加载时抛出错误。**开发环境**可两者都不配置以使用 `MemoryRateLimiter`（仅适合单进程）。
 
 ## 3. 部署预检 (`scripts/productionPreflight.ts`)
 
-在任何生产推送前，运行以下命令验证 47 个关键配置点：
+在任何生产推送前，运行以下命令。脚本会输出可变的检查清单（必填环境变量、密钥形态校验、可选的 Supabase 列探测、可选的 Stripe 价格探测——完整项见 `scripts/productionPreflight.ts`）：
 
 ```bash
 npm run preflight:prod -- --stripe-mode=live
@@ -33,7 +33,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自动化覆盖 (Vitest)
 
-我们维护 81 个测试文件，637 个测试用例，涵盖：
+我们维护 80 个测试文件，643 个测试用例，涵盖：
 
 - **逻辑**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。
@@ -43,7 +43,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 1.  **跨设备一致性**：在桌面端解题，5秒内检查手机端是否同步。
 2.  **试用转化**：在测试模式下运行完整的 Stripe 结账流程（含7天试用）。
-3.  **SEO 验证**：验证 `sitemap.xml` 包含 4,800+ 条目及 `hreflang` 交替链接。
+3.  **SEO 验证**：确认 `sitemap.xml` 含 **12,000+** 条各语言 URL（随 `content/data/puzzleIndex.json` 增长），且 `hreflang` 交替正确。
 4.  **教练防护**：尝试提示词注入（如”忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。`promptGuard.ts` 现在会在模式匹配前进行 Unicode NFKC 归一化。请验证全角字符绕过尝试（如 `ＳＹＳＴｅｍ: ignore all`）也会被拦截。
 
 ## 5. 测试组织

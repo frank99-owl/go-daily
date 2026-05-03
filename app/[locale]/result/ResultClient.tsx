@@ -52,6 +52,41 @@ function normalizeReveal(data: PuzzleRevealResponse): PuzzleReveal {
   };
 }
 
+async function refreshAttemptToken(
+  puzzleId: string,
+  attemptToRefresh: AttemptRecord,
+): Promise<AttemptRecord> {
+  if (!attemptToRefresh.userMove) {
+    throw new Error("Cannot refresh attempt token without a recorded move.");
+  }
+
+  const response = await fetch("/api/puzzle/attempt", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      puzzleId,
+      userMove: attemptToRefresh.userMove,
+    }),
+  });
+  const data = (await response.json()) as PuzzleAttemptResponse;
+  if (!response.ok) {
+    throw new Error(data.error ?? `Request failed (${response.status})`);
+  }
+  if (typeof data.correct !== "boolean" || !data.revealToken) {
+    throw new Error("Invalid attempt response.");
+  }
+
+  const upgraded: AttemptRecord = {
+    ...attemptToRefresh,
+    correct: data.correct,
+    revealToken: data.revealToken,
+  };
+  const key = attemptKey(attemptToRefresh);
+  const all = loadAttempts();
+  replaceAttempts(all.map((item) => (attemptKey(item) === key ? upgraded : item)));
+  return upgraded;
+}
+
 export function ResultClient({
   initialPuzzle,
   todayPuzzleId,
@@ -93,42 +128,9 @@ export function ResultClient({
 
     let cancelled = false;
 
-    async function refreshAttemptToken(attemptToRefresh: AttemptRecord): Promise<AttemptRecord> {
-      try {
-        const response = await fetch("/api/puzzle/attempt", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            puzzleId: puzzle.id,
-            userMove: attemptToRefresh.userMove,
-          }),
-        });
-        const data = (await response.json()) as PuzzleAttemptResponse;
-        if (!response.ok) {
-          throw new Error(data.error ?? `Request failed (${response.status})`);
-        }
-        if (typeof data.correct !== "boolean" || !data.revealToken) {
-          throw new Error("Invalid attempt response.");
-        }
-
-        const upgraded: AttemptRecord = {
-          ...attemptToRefresh,
-          correct: data.correct,
-          revealToken: data.revealToken,
-        };
-        const key = attemptKey(attemptToRefresh);
-        const all = loadAttempts();
-        replaceAttempts(all.map((item) => (attemptKey(item) === key ? upgraded : item)));
-        return upgraded;
-      } catch (err) {
-        console.error("[puzzle] failed to refresh attempt token", err);
-        throw err;
-      }
-    }
-
     async function upgradeLegacyAttempt() {
       try {
-        const upgraded = await refreshAttemptToken(attemptToUpgrade);
+        const upgraded = await refreshAttemptToken(puzzle.id, attemptToUpgrade);
         if (!cancelled) {
           setAttempt(upgraded);
           setHistory(getAttemptsFor(puzzle.id));
@@ -172,38 +174,6 @@ export function ResultClient({
       return normalizeReveal(data);
     }
 
-    async function refreshAttemptToken(attemptToRefresh: AttemptRecord): Promise<AttemptRecord> {
-      if (!attemptToRefresh.userMove) {
-        throw new Error("Cannot refresh reveal token without a recorded move.");
-      }
-
-      const response = await fetch("/api/puzzle/attempt", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          puzzleId: puzzle.id,
-          userMove: attemptToRefresh.userMove,
-        }),
-      });
-      const data = (await response.json()) as PuzzleAttemptResponse;
-      if (!response.ok) {
-        throw new Error(data.error ?? `Request failed (${response.status})`);
-      }
-      if (typeof data.correct !== "boolean" || !data.revealToken) {
-        throw new Error("Invalid attempt response.");
-      }
-
-      const refreshed: AttemptRecord = {
-        ...attemptToRefresh,
-        correct: data.correct,
-        revealToken: data.revealToken,
-      };
-      const key = attemptKey(attemptToRefresh);
-      const all = loadAttempts();
-      replaceAttempts(all.map((item) => (attemptKey(item) === key ? refreshed : item)));
-      return refreshed;
-    }
-
     async function loadReveal() {
       try {
         let nextReveal: PuzzleReveal;
@@ -211,7 +181,7 @@ export function ResultClient({
           nextReveal = await revealWithToken(revealToken);
         } catch (err) {
           if (!attemptToReveal.userMove) throw err;
-          const refreshedAttempt = await refreshAttemptToken(attemptToReveal);
+          const refreshedAttempt = await refreshAttemptToken(puzzle.id, attemptToReveal);
           nextReveal = await revealWithToken(refreshedAttempt.revealToken as string);
           if (!cancelled) {
             setAttempt(refreshedAttempt);
@@ -259,17 +229,6 @@ export function ResultClient({
     }, 1200);
     return () => clearTimeout(timer);
   }, [isPlaying, solutionStep, reveal]);
-
-  if (!puzzle) {
-    return (
-      <p className="text-white/50">
-        Puzzle not found.{" "}
-        <LocalizedLink href="/" className="underline text-[var(--color-accent)]">
-          {t.result.backToToday}
-        </LocalizedLink>
-      </p>
-    );
-  }
 
   const correct = attempt?.correct ?? false;
   const hasReveal = !!reveal;
@@ -486,7 +445,7 @@ export function ResultClient({
       )}
 
       {attempt?.userMove && puzzle.coachAvailable && (
-        <CoachDialogue puzzleId={puzzle.id} userMove={attempt.userMove} isCorrect={correct} />
+        <CoachDialogue puzzleId={puzzle.id} userMove={attempt.userMove} />
       )}
 
       {attempt?.userMove && !puzzle.coachAvailable && (

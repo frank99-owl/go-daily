@@ -5,7 +5,11 @@
  * All reads/writes use the service-role client so no RLS policies are needed.
  */
 
+import { Redis } from "@upstash/redis";
+
 import { createServiceClient } from "@/lib/supabase/service";
+
+import { formatDateInTimeZone } from "./coachQuota";
 
 export interface GuestUsageSummary {
   dailyLimit: number;
@@ -20,18 +24,66 @@ const GUEST_DAILY_LIMIT = 3;
 const GUEST_MONTHLY_LIMIT = 5;
 const GUEST_IP_DAILY_LIMIT = 20;
 
-// In-memory IP rate counter — resets on Vercel redeploy. That's acceptable:
-// it only gates abuse, not billing.
+const countryToTimezone: Record<string, string> = {
+  CN: "Asia/Shanghai",
+  HK: "Asia/Hong_Kong",
+  TW: "Asia/Taipei",
+  JP: "Asia/Tokyo",
+  KR: "Asia/Seoul",
+  SG: "Asia/Singapore",
+  IN: "Asia/Kolkata",
+  AU: "Australia/Sydney",
+  NZ: "Pacific/Auckland",
+  UK: "Europe/London",
+  GB: "Europe/London",
+  FR: "Europe/Paris",
+  DE: "Europe/Berlin",
+  IT: "Europe/Rome",
+  ES: "Europe/Madrid",
+  US: "America/New_York",
+  CA: "America/Toronto",
+  BR: "America/Sao_Paulo",
+  MX: "America/Mexico_City",
+};
+
+let redisClient: Redis | null | undefined = undefined;
+function getRedis() {
+  if (redisClient !== undefined) return redisClient;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (url && token) redisClient = new Redis({ url, token });
+  else redisClient = null;
+  return redisClient;
+}
+
+// In-memory IP rate counter fallback
 const ipCounters = new Map<string, { date: string; count: number }>();
 /** Hard cap to prevent unbounded memory growth on long-lived serverless instances. */
 const MAX_IP_ENTRIES = 10_000;
 
-function todayKey(): string {
+// Uses IP-based country timezone if available, otherwise falls back to UTC.
+function todayKey(countryCode?: string | null): string {
+  if (countryCode) {
+    const tz = countryToTimezone[countryCode.toUpperCase()];
+    if (tz) {
+      return formatDateInTimeZone(new Date(), tz);
+    }
+  }
   return new Date().toISOString().slice(0, 10);
 }
 
-export function checkIpLimit(ip: string): { allowed: boolean; remaining: number } {
-  const today = todayKey();
+export async function checkIpLimit(
+  ip: string,
+  countryCode?: string | null,
+): Promise<{ allowed: boolean; remaining: number }> {
+  const today = todayKey(countryCode);
+  const redis = getRedis();
+
+  if (redis) {
+    const count = (await redis.get<number>(`guest_ip:${ip}:${today}`)) || 0;
+    const remaining = GUEST_IP_DAILY_LIMIT - count;
+    return { allowed: remaining > 0, remaining: Math.max(remaining, 0) };
+  }
 
   // Evict stale entries from previous days first; if still over cap,
   // drop the oldest entries (Map iteration order is insertion order).
@@ -54,8 +106,19 @@ export function checkIpLimit(ip: string): { allowed: boolean; remaining: number 
   return { allowed: remaining > 0, remaining: Math.max(remaining, 0) };
 }
 
-export function incrementIpCounter(ip: string): void {
-  const today = todayKey();
+export async function incrementIpCounter(ip: string, countryCode?: string | null): Promise<void> {
+  const today = todayKey(countryCode);
+  const redis = getRedis();
+
+  if (redis) {
+    const key = `guest_ip:${ip}:${today}`;
+    const p = redis.pipeline();
+    p.incr(key);
+    p.expire(key, 60 * 60 * 48); // 48 hours
+    await p.exec();
+    return;
+  }
+
   const entry = ipCounters.get(ip);
   if (!entry || entry.date !== today) {
     ipCounters.set(ip, { date: today, count: 1 });
@@ -64,9 +127,12 @@ export function incrementIpCounter(ip: string): void {
   }
 }
 
-export async function getGuestUsage(deviceId: string): Promise<GuestUsageSummary> {
+export async function getGuestUsage(
+  deviceId: string,
+  countryCode?: string | null,
+): Promise<GuestUsageSummary> {
   const admin = createServiceClient();
-  const today = todayKey();
+  const today = todayKey(countryCode);
   // Month start: first day of current UTC month
   const monthStart = today.slice(0, 7) + "-01";
 
@@ -95,29 +161,44 @@ export async function getGuestUsage(deviceId: string): Promise<GuestUsageSummary
   };
 }
 
-export async function incrementGuestUsage(deviceId: string): Promise<number> {
+export async function incrementGuestUsage(
+  deviceId: string,
+  countryCode?: string | null,
+): Promise<number> {
   const admin = createServiceClient();
-  const today = todayKey();
+  const today = todayKey(countryCode);
 
-  const { data: existing, error: readError } = await admin
+  const { data, error } = await admin.rpc("increment_guest_coach_usage", {
+    p_device_id: deviceId,
+    p_day: today,
+  });
+
+  if (error) {
+    throw new Error(`failed to increment guest usage: ${error.message}`);
+  }
+
+  return data as number;
+}
+
+export async function decrementGuestUsage(
+  deviceId: string,
+  countryCode?: string | null,
+): Promise<void> {
+  const admin = createServiceClient();
+  const today = todayKey(countryCode);
+
+  const { data } = await admin
     .from("guest_coach_usage")
     .select("count")
     .eq("device_id", deviceId)
     .eq("day", today)
     .maybeSingle();
 
-  if (readError) {
-    throw new Error(`failed to read guest usage: ${readError.message}`);
+  if (data && (data as { count: number }).count > 0) {
+    await admin
+      .from("guest_coach_usage")
+      .update({ count: (data as { count: number }).count - 1 })
+      .eq("device_id", deviceId)
+      .eq("day", today);
   }
-
-  const nextCount = Number(existing?.count ?? 0) + 1;
-  const { error: writeError } = await admin
-    .from("guest_coach_usage")
-    .upsert({ device_id: deviceId, day: today, count: nextCount }, { onConflict: "device_id,day" });
-
-  if (writeError) {
-    throw new Error(`failed to write guest usage: ${writeError.message}`);
-  }
-
-  return nextCount;
 }

@@ -11,11 +11,13 @@
 3.  **身份刷新与认证重定向 (Auth Refresh & Redirect)**：利用 `@supabase/ssr` 在每次导航时刷新 Session Cookie，确保服务端组件 (RSC) 始终持有最新的用户状态。已加前缀路径（如 `/en/account` 等）在此进行守卫——未登录用户访问 `/account` 会被重定向至 `/login?next=...`，已登录用户访问 `/login` 会被重定向至 `/account`。
 4.  **国际化协商 (Locale Negotiation)**：对于未加前缀的路径，处理 308 (永久) 重定向矩阵，确保所有路径都带有语言前缀 (`/{zh|en|ja|ko}/...`)。
 
+**Next.js 16 范围**：全局面请求逻辑在根目录 `proxy.ts`（导出 `proxy` + `config.matcher`；Node.js 运行时）。`config.matcher` 排除 `/api/*` 与 `/auth/*`，因此 API 与 Supabase 授权回调在各自路由内完成校验（会话、Stripe 签名、`parseMutationBody` 等）。语言协商与 Cookie 刷新主要针对**页面**导航，而非上述前缀路径。
+
 ## 2. 核心领域模块 (`lib/`)
 
 ### `lib/env.ts` (环境变量校验)
 
-集中式 Zod 环境变量校验器。每个领域（Coach、Stripe、Supabase、Reveal）都有独立的 Schema 和惰性单例访问器（`getCoachEnv()`、`getStripeEnv()` 等）。缺失的变量会在首次使用时抛出清晰的启动级错误，而非在路由深处产生静默 500。浏览器端 Supabase 文件（`client.ts`、`middleware.ts`）保留各自的 inline 校验，因为 `lib/env.ts` 仅限服务端使用。
+集中式 Zod 环境变量校验器。每个领域（Coach、Stripe、Supabase、Reveal）都有独立的 Schema 和惰性单例访问器（`getCoachEnv()`、`getStripeEnv()` 等）。缺失的变量会在首次使用时抛出清晰的启动级错误，而非在路由深处产生静默 500。浏览器端 `client.ts` 与 `lib/supabase/middleware.ts`（会话刷新辅助）保留各自的 inline 校验，因为 `lib/env.ts` 仅限服务端使用。
 
 ### `lib/auth/` & `lib/supabase/`
 
@@ -33,11 +35,12 @@
 ### `lib/coach/` (AI 智能)
 
 - **提示词工程**：集中在 `coachPrompt.ts`，确保不同题目间的“苏格拉底式教学”风格一致。
-- **预算控制**：`coachQuota.ts` 在应用层（DeepSeek 计费上游）执行硬性的月度 Token 限制，防止意外的成本激增。
+- **配额与时间窗**：`coachQuota.ts` 提供按用户时区格式化日期与自然月 / 计费锚定月窗口（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）。各档位的条数上限定义在 `lib/entitlements.ts`（并受 `getCoachState` 等消费）。
+- **使用量计数**：登录与访客教练消息次数持久化在 Postgres；并发下通过 RPC（`increment_coach_usage`、`increment_guest_coach_usage`）原子自增，避免读改写竞态。
 
 ### `lib/i18n/` (全球化呈现)
 
-- **路径优先**：我们倾向于使用 URL 参数而非 Cookie 来存储语言状态，确保搜索引擎可以独立抓取 4,800+ 个本地化页面。
+- **路径优先**：我们倾向于用 URL 而非 Cookie 携带语言，使搜索引擎能抓取完整的本地化站点面：当前 `sitemap.xml` 中约在 **12,000+** 条各语言 URL（静态页、题集筛选、题目详情 × 四种语言），并随 `content/data/puzzleIndex.json` 增长。
 - **零飘移校验**：`scripts/validateMessages.ts` 确保 `zh`, `en`, `ja`, `ko` 之间的翻译 Key 在构建时永远保持对齐。
 
 ### `lib/board/` (棋盘逻辑)
@@ -47,8 +50,12 @@
 
 ### `lib/puzzle/` (题目引擎)
 
-- **SRS 调度**：间隔重复算法驱动每日复习队列，8 个源文件涵盖题集、每日选题、复习流程和揭示令牌 (Reveal Token)。
-- **权益管理**：跟踪题目访问权限和连胜状态，与用户的订阅层级挂钩。
+- **SRS 与加载**：间隔重复（`srs.ts`、`reviewSrs.ts`）、每日选题、题集、揭示令牌、快照与状态工具等 — `lib/puzzle/` 下八个实现模块，另含同目录的 `puzzleOfTheDay.test.ts`。
+
+### `lib/entitlements.ts` 与 `lib/entitlementsServer.ts`（档位）
+
+- **档位矩阵**：`entitlements.ts` 定义访客/免费/Pro 的教练条数、设备数、广告与同步策略，供客户端安全读取。
+- **服务端合并**：`entitlementsServer.ts` 在服务端解析最终方案（Stripe + `manual_grants`，`resolveViewerPlan`），供 API 与 Server Components 使用。
 
 ### `lib/stripe/` (支付)
 
@@ -82,8 +89,8 @@
 - **行级安全 (RLS)**：所有 Postgres 表都强制执行 `auth.uid() = user_id` 策略，从数据库层面杜绝数据泄露。
 - **隐私脱敏**：Sentry 和 PostHog 配置了 `beforeSend` 过滤器，在 AI 对话离开客户端前对用户敏感信息进行脱敏处理。
 - **NFKC 规范化**：用户输入文本在处理前统一进行 NFKC 规范化，防止同形字攻击和 Unicode 规范化漏洞。
-- **服务隔离**: `proxy.ts` 中间件确保只有经过身份验证和授权的请求才能到达核心 API 路由（如 Stripe/Coach）。
-- **速率限制**: `lib/rateLimit.ts` 提供两种实现 — `MemoryRateLimiter`（开发/单实例，5 万条目上限，LRU 淘汰）和 `UpstashRateLimiter`（生产环境，基于 Redis）。根据环境变量 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN` 的有无自动选择。
+- **路由层安全**：`proxy.ts` 刷新 Supabase 会话 Cookie，并守卫带语言前缀的**页面**（如 `/account`、`/login`）。`/api/*` 不在 proxy 的 matcher 内，Stripe、教练、管理与题目等路由自行校验会话、令牌或签名。
+- **速率限制**：`lib/rateLimit.ts` — 同时设置 `UPSTASH_REDIS_REST_URL` 与 `UPSTASH_REDIS_REST_TOKEN` 时使用 `UpstashRateLimiter`；非生产环境否则使用 `MemoryRateLimiter`。当 **`NODE_ENV === "production"`** 且缺少 Upstash 变量时，`createRateLimiter()` 会抛出错误（生产必须分布式限流）。`MemoryRateLimiter` 对键数量设上限（5 万），超出时淘汰最早插入的键，并定期清理空闲键。
 
 ---
 

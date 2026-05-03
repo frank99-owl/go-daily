@@ -35,7 +35,7 @@ describe("isValidIP", () => {
 });
 
 describe("getClientIP — priority chain", () => {
-  it("prefers CF-Connecting-IP over everything else", () => {
+  it("prefers X-Forwarded-For over CF-Connecting-IP", () => {
     const ip = getClientIP(
       req({
         "cf-connecting-ip": "1.1.1.1",
@@ -43,7 +43,7 @@ describe("getClientIP — priority chain", () => {
         "x-real-ip": "3.3.3.3",
       }),
     );
-    expect(ip).toBe("1.1.1.1");
+    expect(ip).toBe("2.2.2.2");
   });
 
   it("skips CF-Connecting-IP when it's invalid and falls through to X-Forwarded-For", () => {
@@ -90,6 +90,6 @@ describe("getClientIP — priority chain", () => {
         "x-forwarded-for": "1.2.3.4",
       }),
     );
-    expect(ip).toBe("100.100.100.100");
+    expect(ip).toBe("1.2.3.4");
   });
 });

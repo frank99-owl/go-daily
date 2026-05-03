@@ -10,21 +10,24 @@
 
 ### `POST /api/coach`
 
-发送用户消息并获取 AI 教练回复。
+通过流式（SSE）返回助手回复片段。
 
-**认证**: 可选。已登录用户使用 Supabase 会话 Cookie；访客须发送请求头 `x-go-daily-guest-device-id`（配额更低）。
+**认证**：可选。已登录用户使用 Supabase 会话 Cookie；若客户端持有设备指纹，应附带 **`x-go-daily-device-id`**（免费档单设备席位逻辑见 `getCoachState`）。访客须发送 **`x-go-daily-guest-device-id`**（配额更低）。
 
-**请求体** (JSON，由 `CoachRequestSchema` 校验)：
+**请求体**（JSON，`CoachRequestSchema` 校验）：
 
-**注意**：历史消息受总字符预算限制（6,000 字符，从最新消息开始截断），此外每条消息还单独截断至 2,000 字符。
+**说明**：
+
+- 落子是否正确**不由客户端传入**。服务端调用 `judgeMove(puzzle, userMove)`，结果写入系统提示词（`buildSystemPrompt`）。
+- 历史消息受总字符预算 **6,000**（优先保留最新消息）限制，每条另截断至 **2,000**；在上述裁剪前最多保留最近 **6** 轮往返。
+- 若传入 `personaId`，须为 `ke-jie`、`lee-sedol`、`go-seigen`、`iyama-yuta`、`shin-jinseo`、`custom` 之一（`CoachRequestSchema`）；省略时默认为棋圣吴清源风格（`go-seigen`）。
 
 ```typescript
 {
   puzzleId: string;      // 最少 1 字符
   locale: "zh" | "en" | "ja" | "ko";
   userMove: { x: number; y: number };
-  isCorrect: boolean;
-  personaId?: string;    // 默认吴清源
+  personaId?: string;    // 默认棋圣（吴清源样式 persona）
   history: Array<{       // 最少 1 条
     role: "user" | "assistant";
     content: string;
@@ -33,46 +36,74 @@
 }
 ```
 
-**成功响应** (`200`):
+**成功响应**（`200`）：**Server-Sent Events**（`Content-Type: text/event-stream`）。正文为 SSE 的 `data:` 行，其中 JSON 可能为：
 
-```json
-{ "reply": "string", "usage": { "plan", "dailyRemaining", "monthlyRemaining", ... } }
-```
+| 载荷                                 | 含义                                                                                   |
+| ------------------------------------ | -------------------------------------------------------------------------------------- |
+| `{ "delta": "..." }`                 | 助手增量文本                                                                           |
+| `{ "done": true, "usage": { ... } }` | 结束；`usage` 为本请求**已加计一次用量后**的快照                                       |
+| `{ "error": "<code>" }`              | 流式中途失败；`<code>` 为 `upstream_error`、`timeout`、`rate_limit`、`auth_error` 之一 |
 
-**错误响应**:
-| 状态码 | 错误码 | 触发条件 |
-|--------|--------|----------|
-| 400 | — | Content-Type 错误、请求体过大、JSON 解析失败或 Schema 校验失败 |
-| 401 | `login_required` | 既无会话也无 `x-go-daily-guest-device-id` 请求头 |
-| 403 | `device_limit` | 免费用户超出 1 台设备限制 |
-| 403 | — | 题目未获准教练功能 |
-| 429 | `daily_limit_reached` | 每日配额耗尽 |
-| 429 | `monthly_limit_reached` | 每月配额耗尽 |
-| 429 | — | IP 限流 |
-| 502 | — | 上游 LLM 错误 |
-| 504 | — | 上游超时 (>25s) |
+用量在模型开始流出 token **之前**已递增；客户端中途断开仍会扣减配额。
 
-**安全防护**:
+**JSON 错误响应**（未进入 SSE —— 在开始流之前返回）：
 
-- Content-Length 限制（请求体 8 KB，头部 10 KB）
-- IP 限流（Upstash Redis 或内存回退）
-- 所有用户消息的提示词注入检测 (`guardUserMessage`)
-- 输入清洗 (`sanitizeInput`)
-- 教练准入检查（题目必须在 `coachEligibleIds.json` 中）
-- 使用配额执行（每日 + 每月用户级计数器）
-- 访客用量写入 Supabase `guest_coach_usage`（`service_role`）；IP 维度限制仍在内存中（`guestCoachUsage.ts`）
+| 状态码          | 判定                    | 触发条件                                                                                                 |
+| --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| 400             | —                       | Content-Type / JSON / Schema 无效，或 `x-go-daily-guest-device-id` 头超过 128 字符                       |
+| 401             | `login_required`        | 无会话且无 `x-go-daily-guest-device-id`                                                                  |
+| 403             | `error: "forbidden"`    | 同源变异 / CSRF 校验失败（`parseMutationBody`）                                                          |
+| 403             | `device_limit`          | 超出免费档设备限制（`getCoachState`）                                                                    |
+| 403             | `coach_unavailable`     | 题目未开放教练（`getCoachAccess`）                                                                       |
+| 404             | —                       | 未知 `puzzleId`                                                                                          |
+| 413             | —                       | 请求体大于 **8 KB**（`MAX_BODY_BYTES`）                                                                  |
+| 429             | `daily_limit_reached`   | 登录用户或访客的 **日**配额用尽，或（仅访客）**按 IP 的日**上限（`checkIpLimit`，`usage` 可能为 `null`） |
+| 429             | `monthly_limit_reached` | **月**配额用尽                                                                                           |
+| 429             | —                       | 通用 IP 限频（`rateLimiter`）                                                                            |
+| 500             | —                       | 服务器缺少 `DEEPSEEK_API_KEY`                                                                            |
+| 500             | `quota_write_failed`    | 使用量计数写入失败（DB/RPC 错误）                                                                        |
+| 502 / 504 / 429 | —                       | 在返回 SSE **之前** 上游失败时的 JSON `{ "error": "..." }`（超时用 `504`）                               |
+
+**防护**：
+
+- `Content-Length` 上限 **8 KB**（`parseMutationBody`）与同源校验
+- IP 限流（`createRateLimiter`：**生产环境**须配置 Upstash；**开发环境**可用进程内实现）
+- 用户消息的提示注入检测（`guardUserMessage`）
+- 输入清理（`sanitizeInput`）
+- 教练准入：`coachEligibleIds.json` 白名单 **且** `checkCoachEligibility` / `getCoachAccess` 运行时质量校验
+- 配额：`coach_usage` / `guest_coach_usage` 经 Postgres RPC 原子自增（见数据库文档）
+- 访客设备用量写入 Supabase `guest_coach_usage` 仅经 `service_role`；**按 IP 的访客日上限**（`checkIpLimit`、`GUEST_IP_DAILY_LIMIT`，当前每 IP 每 UTC 日 **20** 次）在配置 Upstash 时走 **Redis**，否则为 `guestCoachUsage.ts` 进程内 `Map`。
 
 ### `GET /api/coach`
 
 获取当前调用方的教练用量摘要。
 
-**认证**: 可选。已登录用户使用会话 Cookie；访客可携带 `x-go-daily-guest-device-id` 查询访客配额。两者皆无时返回 `401`。
+**认证**：可选。已登录用户可使用会话 Cookie，并可附带 `x-go-daily-device-id`。访客携带 `x-go-daily-guest-device-id` 可查询访客配额。两者皆无则 `401`。
 
-**响应** (`200`):
+**响应**（`200`）：
 
 ```json
-{ "usage": { "plan", "dailyLimit", "monthlyLimit", "dailyUsed", "monthlyUsed", ... } }
+{
+  "usage": {
+    "plan",
+    "dailyLimit",
+    "monthlyLimit",
+    "dailyUsed",
+    "monthlyUsed",
+    "dailyRemaining",
+    "monthlyRemaining",
+    "timeZone",
+    "monthWindowKind",
+    "monthWindowStart",
+    "monthWindowEnd",
+    "billingAnchorDay"
+  }
+}
 ```
+
+已登录用户的 `usage` 在权益中教练不可用时可为 `null`（`coach.available === false`）。访客在提供 `x-go-daily-guest-device-id` 时总会得到数值型访客配额对象。
+
+**请求头**：与 POST 相同，可选 `x-go-daily-device-id` / `x-go-daily-guest-device-id`。
 
 ---
 
@@ -305,14 +336,13 @@ Vercel Cron 处理器，发送每日题目提醒邮件。
 
 ### 限流
 
-所有写入端点使用 `createRateLimiter()`，返回以下实现之一：
+各写入端点使用 `createRateLimiter()`，行为如下：
 
-- `UpstashRateLimiter`（生产环境，跨实例）：当 `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` 存在时使用。
-- `MemoryRateLimiter`（开发环境，单实例）：作为回退方案。
+- **`UPSTASH_REDIS_REST_URL` 与 `UPSTASH_REDIS_REST_TOKEN` 均已设置**：`UpstashRateLimiter`（Redis 后端，多实例）。
+- **任一未设置**且 `NODE_ENV !== "production"`：`MemoryRateLimiter`（仅适合单进程）。
+- **任一未设置**且 `NODE_ENV === "production"`：路由模块加载时 `createRateLimiter()` **抛出错误**——生产环境必须配置 Upstash（见 `lib/rateLimit.ts`）。
 
-两种限流器均强制执行最大条目数限制（`MemoryRateLimiter` 为 50,000 条），并通过淘汰过期条目防止内存无限增长。
-
-默认值：每 60 秒窗口每键 10 次请求。
+`MemoryRateLimiter` 对键数量上限为 50,000；超限时按插入顺序删除最旧键，并定期清理空闲键。默认：每键每 60 秒窗口内 10 次请求（可通过 `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` 覆盖）。
 
 ### 请求体解析
 

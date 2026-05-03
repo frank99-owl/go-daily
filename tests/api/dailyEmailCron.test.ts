@@ -79,6 +79,7 @@ function buildAdminClient({
   //   await profileQuery;
   // So .limit() must return something that exposes BOTH another .eq() AND
   // an awaitable then().
+  let thenCallCount = 0;
   function selectThenable(): Record<string, unknown> {
     const node: Record<string, unknown> = {
       eq: vi.fn((column: string, value: unknown) => {
@@ -88,7 +89,11 @@ function buildAdminClient({
       then: (
         resolve: (value: ProfileQueryResult) => unknown,
         reject?: (reason: unknown) => unknown,
-      ) => Promise.resolve(profileResult).then(resolve, reject),
+      ) => {
+        thenCallCount++;
+        const result = thenCallCount === 1 ? profileResult : { data: [], error: null };
+        return Promise.resolve(result).then(resolve, reject);
+      },
     };
     return node;
   }
@@ -100,6 +105,7 @@ function buildAdminClient({
         eqSpy(column, value);
         return chain;
       }),
+      or: vi.fn(() => chain),
       limit: vi.fn((value: number) => {
         limitSpy(value);
         return selectThenable();

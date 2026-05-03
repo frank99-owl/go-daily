@@ -23,7 +23,7 @@
 1.  **[项目理念与战略](docs/zh/CONCEPT.md)**：为什么做 go-daily？我们的市场定位、商业哲学与”精益”运营。
 2.  **[技术架构深度解析](docs/zh/ARCHITECTURE.md)**：深入了解 `proxy.ts` 请求生命周期、三态持久化引擎及九大领域 `lib/` 布局。
 3.  **[产品规格与功能逻辑](docs/zh/PRODUCT_SPECS.md)**：SM-2 算法参数映射、订阅权益引擎以及 AI 教练准入逻辑的详细说明。
-4.  **[运维与质量保障](docs/zh/OPERATIONS_QA.md)**：生产环境部署指南、47 项发布前预检清单以及测试套件策略。
+4.  **[运维与质量保障](docs/zh/OPERATIONS_QA.md)**：生产环境部署指南、`productionPreflight` 发布前检查以及测试套件策略。
 5.  **[实时项目看板](docs/zh/PROJECT_STATUS.md)**：跟踪当前 Sprint 进度与生产环境就绪状态。
 6.  **[API 路由参考](docs/zh/API_REFERENCE.md)**：所有 API 路由的完整目录，含请求/响应 Schema。
 7.  **[数据库 Schema](docs/zh/DATABASE_SCHEMA.md)**：Supabase 表定义、索引与 RLS 策略。
@@ -35,7 +35,7 @@
 
 ### 1. 环境要求
 
-- Node.js 20+
+- Node.js 22.5+（见 `package.json` 的 `engines`）
 - DeepSeek 或兼容 OpenAI 接口的 API Key。
 - Supabase 项目（可选，匿名模式下无需配置）。
 

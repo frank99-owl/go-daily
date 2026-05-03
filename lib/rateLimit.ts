@@ -27,24 +27,31 @@ export class MemoryRateLimiter implements RateLimiter {
     private windowMs: number,
     private maxRequests: number,
     private maxEntries = 50_000,
-  ) {}
+  ) {
+    if (typeof setInterval !== "undefined") {
+      const interval = setInterval(
+        () => {
+          const windowStart = Date.now() - this.windowMs;
+          for (const [k, timestamps] of this.hits) {
+            if (timestamps.every((t) => t <= windowStart)) {
+              this.hits.delete(k);
+            }
+          }
+        },
+        Math.max(this.windowMs, 10000),
+      );
+      if (interval.unref) interval.unref();
+    }
+  }
 
   isLimited(key: string): boolean {
     const now = Date.now();
     const windowStart = now - this.windowMs;
 
-    // Evict expired entries before inserting, and cap total entries.
     if (this.hits.size >= this.maxEntries) {
-      for (const [k, timestamps] of this.hits) {
-        if (timestamps.every((t) => t <= windowStart)) {
-          this.hits.delete(k);
-        }
-      }
-      // If still over cap after evicting stale entries, drop the oldest key.
-      if (this.hits.size >= this.maxEntries) {
-        const oldest = this.hits.keys().next().value;
-        if (oldest) this.hits.delete(oldest);
-      }
+      // If over cap, drop the oldest key.
+      const oldest = this.hits.keys().next().value;
+      if (oldest) this.hits.delete(oldest);
     }
 
     const prev = (this.hits.get(key) ?? []).filter((t) => t > windowStart);
@@ -76,17 +83,20 @@ export class UpstashRateLimiter implements RateLimiter {
   }
 
   async isLimited(key: string): Promise<boolean> {
-    const windowId = Math.floor(Date.now() / this.windowMs);
-    const redisKey = `ratelimit:${key}:${windowId}`;
+    const now = Date.now();
+    const windowStart = now - this.windowMs;
+    const redisKey = `ratelimit:${key}`;
 
     // pipeline to reduce network roundtrips
     const p = this.redis.pipeline();
-    p.incr(redisKey);
-    p.pexpire(redisKey, this.windowMs * 2); // Expiration slightly larger than window to ensure cleanup
+    p.zremrangebyscore(redisKey, 0, windowStart);
+    p.zcard(redisKey);
+    p.zadd(redisKey, { score: now, member: `${now}-${Math.random()}` });
+    p.pexpire(redisKey, this.windowMs);
     const results = await p.exec();
 
-    const count = results[0] as number;
-    return count > this.maxRequests;
+    const count = results[1] as number;
+    return count >= this.maxRequests;
   }
 }
 
@@ -101,6 +111,12 @@ export function createRateLimiter(): RateLimiter {
 
   if (upstashUrl && upstashToken) {
     return new UpstashRateLimiter(windowMs, maxRequests, upstashUrl, upstashToken);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "CRITICAL: Upstash Redis is missing in production. Refusing to start without distributed rate limiting.",
+    );
   }
 
   return new MemoryRateLimiter(windowMs, maxRequests);

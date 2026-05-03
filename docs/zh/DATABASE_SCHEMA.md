@@ -72,7 +72,9 @@
 
 **PK**: `(user_id, day)`
 
-**RLS**: 用户可 SELECT 自己的行。写入仅通过 `service_role`。
+**RLS**: 用户可 SELECT 自己的行。
+
+**写入**：仅通过 `service_role`，使用 Postgres RPC `increment_coach_usage(p_user_id uuid, p_day text)`（迁移 `0007_atomic_coach_usage_increment.sql`）对整日计数做原子自增（`lib/coach/coachState.ts` → `incrementCoachUsage`）。
 
 ---
 
@@ -175,6 +177,8 @@ Stripe 订阅状态。仅由 Webhook 处理器写入。
 
 **RLS**：已启用但**无策略** —— 仅通过 `service_role` 访问（`lib/coach/guestCoachUsage.ts`）。
 
+**写入**：通过 `increment_guest_coach_usage(p_device_id text, p_day text)` 原子自增（同一迁移）；由 `guestCoachUsage.ts` 的 `incrementGuestUsage` 调用。
+
 ---
 
 ### 9. `manual_grants`（手动授予 Pro）
@@ -205,6 +209,17 @@ Stripe 订阅状态。仅由 Webhook 处理器写入。
 | `user_devices`      | `own devices`                | 完整 CRUD（仅限自己的行）               |
 | `guest_coach_usage` | （无）                       | 客户端不可访问（仅 service_role）       |
 | `manual_grants`     | （无）                       | 客户端不可访问（仅 service_role）       |
+
+---
+
+## Postgres 函数（RPC）
+
+| 函数                                                        | 作用                                                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `increment_coach_usage(p_user_id uuid, p_day text)`         | 对 `coach_usage` 的 `(user_id, day)` 执行 `INSERT … ON CONFLICT DO UPDATE`，返回新 `count` |
+| `increment_guest_coach_usage(p_device_id text, p_day text)` | 对 `guest_coach_usage` 采用相同模式，返回新 `count`                                        |
+
+两者用于消除并发教练请求下的读改写竞态。
 
 ---
 

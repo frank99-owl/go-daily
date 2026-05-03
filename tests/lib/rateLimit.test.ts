@@ -11,11 +11,13 @@ vi.mock("@upstash/redis", () => {
       let mockCount = 0;
       return {
         pipeline: vi.fn().mockImplementation(() => ({
-          incr: vi.fn().mockImplementation(() => {
+          zremrangebyscore: vi.fn(),
+          zcard: vi.fn(),
+          zadd: vi.fn().mockImplementation(() => {
             mockCount++;
           }),
           pexpire: vi.fn(),
-          exec: vi.fn().mockImplementation(async () => [mockCount]),
+          exec: vi.fn().mockImplementation(async () => [0, mockCount - 1]),
         })),
       };
     }),

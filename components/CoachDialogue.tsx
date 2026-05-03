@@ -16,19 +16,20 @@ import type { CoachMessage, Coord, Locale } from "@/types";
 type Props = {
   puzzleId: string;
   userMove: Coord;
-  isCorrect: boolean;
 };
 
 type CoachError = { kind: CoachErrorCode } | { kind: "generic"; message: string };
 
+const PERSONA_SWITCH_DELAY_MS = 300;
+
 const historyKey = (puzzleId: string, locale: Locale, personaId: string) =>
   `go-daily.coach.${puzzleId}.${locale}.${personaId}`;
 
-export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
+export function CoachDialogue({ puzzleId, userMove }: Props) {
   const { t, locale } = useLocale();
   const pathname = usePathname();
   const { user } = useCurrentUser();
-  const [personaId, setPersonaId] = useState<string>(DEFAULT_PERSONA.id);
+  const [personaId, setPersonaId] = useState<PersonaId>(DEFAULT_PERSONA.id);
   const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
@@ -59,7 +60,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
     }
     if (isPersonaSwitch) {
       // Brief delay so the loading skeleton is visible even when hydration is instant.
-      setTimeout(() => setSwitching(false), 300);
+      setTimeout(() => setSwitching(false), PERSONA_SWITCH_DELAY_MS);
     }
   }, [puzzleId, locale, personaId]);
 
@@ -117,7 +118,6 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
           puzzleId,
           locale,
           userMove,
-          isCorrect,
           personaId,
           history: historyForApi,
         }),
@@ -173,7 +173,6 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
       };
 
       try {
-        // eslint-disable-next-line no-constant-condition
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -207,8 +206,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
         return;
       }
 
-      // Clean up occasional "system:" prefix leakage
-      const reply = fullContent.replace(/^(system|SYSTEM)\s*[:：]\s*/i, "").trim();
+      const reply = fullContent.trim();
       setMessages((prev) => [...prev, { role: "assistant", content: reply, ts: Date.now() }]);
       setStreamingContent("");
     } catch (e) {
@@ -274,9 +272,9 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
           <p className="text-sm text-white/50">{t.result.coachEmpty}</p>
         )}
         {!switching &&
-          messages.map((m) => (
+          messages.map((m, i) => (
             <div
-              key={m.ts}
+              key={`${m.ts}-${i}`}
               className={
                 "text-sm leading-relaxed whitespace-pre-wrap " +
                 (m.role === "assistant"
@@ -295,7 +293,6 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
               <span className="w-1 h-1 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_0.2s_infinite]" />
               <span className="w-1 h-1 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_0.4s_infinite]" />
             </span>
-            <style>{`@keyframes dotPulse{0%,80%,100%{opacity:.2}40%{opacity:1}}`}</style>
           </div>
         )}
         {!switching && pending && streamingContent && (

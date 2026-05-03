@@ -72,7 +72,9 @@ Per-user daily AI coach usage counter.
 
 **PK**: `(user_id, day)`
 
-**RLS**: Users can SELECT their own rows. Writes happen via `service_role` only.
+**RLS**: Users can SELECT their own rows.
+
+**Writes**: Inserts / updates happen only through `service_role`, using the Postgres RPC `increment_coach_usage(p_user_id uuid, p_day text)` (migration `0007_atomic_coach_usage_increment.sql`) so daily counts are incremented atomically (`lib/coach/coachState.ts` → `incrementCoachUsage`).
 
 ---
 
@@ -175,6 +177,8 @@ Per-device guest AI coach usage counter by calendar day (persists across deploys
 
 **RLS**: Enabled with **no** policies — all access via `service_role` (`lib/coach/guestCoachUsage.ts`).
 
+**Writes**: Atomically incremented via `increment_guest_coach_usage(p_device_id text, p_day text)` in the same migration; called from `incrementGuestUsage` in `guestCoachUsage.ts`.
+
 ---
 
 ### 9. `manual_grants`
@@ -205,6 +209,17 @@ Admin-assigned Pro access by email without Stripe checkout.
 | `user_devices`      | `own devices`                | Full CRUD (own row only)                |
 | `guest_coach_usage` | _(none)_                     | No client access (service_role only)    |
 | `manual_grants`     | _(none)_                     | No client access (service_role only)    |
+
+---
+
+## Postgres functions (RPC)
+
+| Function                                                    | Purpose                                                                                      |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `increment_coach_usage(p_user_id uuid, p_day text)`         | `INSERT … ON CONFLICT DO UPDATE` on `(user_id, day)` for `coach_usage`; returns new `count`. |
+| `increment_guest_coach_usage(p_device_id text, p_day text)` | Same pattern on `guest_coach_usage`; returns new `count`.                                    |
+
+Both eliminate read–modify–write races from concurrent coach requests.
 
 ---
 

@@ -35,7 +35,7 @@ Our documentation is structured around core logical pillars to ensure deep under
 
 ### 1. Prerequisites
 
-- Node.js 20+
+- Node.js 22.5+ (see `package.json` `engines`)
 - A DeepSeek or OpenAI-compatible API key.
 - Supabase project (optional for local dev, fallback to anonymous mode).
 

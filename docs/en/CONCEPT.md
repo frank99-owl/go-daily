@@ -13,14 +13,14 @@ Go-daily is designed to solve the "consistency gap" in Go improvement. It transf
 The goal was to build a "Product" out of a "Toy".
 
 - **Geographic Focus**: Japan & Korea (High ARPU markets) + English fallback.
-- **Internationalization**: Moved from cookie-based to **URL-prefixed routing** (`/[locale]`) to maximize SEO indexability (4,800+ URLs).
+- **Internationalization**: Moved from cookie-based to **URL-prefixed routing** (`/[locale]`). The generated `sitemap.xml` lists **12,000+** locale-specific URLs today (static routes, browse collections, puzzle detail pages × four locales) and grows with `content/data/puzzleIndex.json`.
 - **Persistence**: Implemented a robust "Three-State" storage logic (Anonymous LocalStorage -> IndexedDB Queue -> Supabase Cloud).
 
 ### Phase 2: Monetization & AI Coach (Status: Launching)
 
 The goal is to prove the business model with a "Zero-Cost" infrastructure.
 
-- **The "Pro" Bundle**: Defined by **Cross-Device Sync**, **Infinite Coach**, and **SRS Spaced Repetition**.
+- **The "Pro" Bundle**: Defined by **Cross-Device Sync**, **high AI coach quotas** (51 messages/day and 1,001/month — see [Product Specifications](PRODUCT_SPECS.md)), and **SRS Spaced Repetition**.
 - **Monetization**: Stripe integration with adaptive pricing for JPY/KRW and a 7-day trial to lower friction.
 - **AI Economy**: Utilizing DeepSeek to provide professional-grade coaching at a fraction of the cost of KataGo-driven cloud compute.
 

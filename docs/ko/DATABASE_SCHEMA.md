@@ -72,7 +72,9 @@
 
 **PK**: `(user_id, day)`
 
-**RLS**: 사용자는 자신의 행만 SELECT할 수 있습니다. 쓰기는 `service_role`을 통해서만 가능합니다.
+**RLS**: 사용자는 자신의 행만 SELECT할 수 있습니다.
+
+**쓰기**: `service_role`만. Postgres RPC `increment_coach_usage(p_user_id uuid, p_day text)`(마이그레이션 `0007_atomic_coach_usage_increment.sql`)로 일일 카운터를 원자적으로 증가(`lib/coach/coachState.ts` → `incrementCoachUsage`).
 
 ---
 
@@ -175,6 +177,8 @@ Stripe 구독 상태. 웹훅 핸들러에 의해서만 기록됩니다.
 
 **RLS**: 활성화되어 있으나 **정책 없음** —— `service_role`만 (`lib/coach/guestCoachUsage.ts`).
 
+**쓰기**: 동일 마이그레이션의 RPC `increment_guest_coach_usage(p_device_id text, p_day text)`로 원자적 증가(`guestCoachUsage.ts`의 `incrementGuestUsage`).
+
 ---
 
 ### 9. `manual_grants`
@@ -205,6 +209,17 @@ Stripe 없이 이메일로 Pro를 부여하기 위한 관리자 테이블.
 | `user_devices`      | `own devices`                | 전체 CRUD(본인 행만)                    |
 | `guest_coach_usage` | (없음)                       | 클라이언트 접근 불가(service_role 전용) |
 | `manual_grants`     | (없음)                       | 클라이언트 접근 불가(service_role 전용) |
+
+---
+
+## Postgres 함수(RPC)
+
+| 함수                                                        | 역할                                                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `increment_coach_usage(p_user_id uuid, p_day text)`         | `coach_usage`의 `(user_id, day)`에 대해 `INSERT … ON CONFLICT DO UPDATE`, 새 `count` 반환. |
+| `increment_guest_coach_usage(p_device_id text, p_day text)` | `guest_coach_usage`에 동일 패턴.                                                           |
+
+동시 코치 요청에서 읽기-수정-쓰기 경쟁을 제거합니다.
 
 ---
 

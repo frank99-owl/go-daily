@@ -32,7 +32,7 @@ describe("CoachDialogue", () => {
   function renderWithLocale() {
     return render(
       <LocaleProvider initialLocale="zh">
-        <CoachDialogue puzzleId="test-puzzle" userMove={{ x: 3, y: 3 }} isCorrect={true} />
+        <CoachDialogue puzzleId="test-puzzle" userMove={{ x: 3, y: 3 }} />
       </LocaleProvider>,
     );
   }
@@ -155,7 +155,7 @@ describe("CoachDialogue — error-code routing", () => {
   function renderWithLocale() {
     return render(
       <LocaleProvider initialLocale="zh">
-        <CoachDialogue puzzleId="err-puzzle" userMove={{ x: 3, y: 3 }} isCorrect={false} />
+        <CoachDialogue puzzleId="err-puzzle" userMove={{ x: 3, y: 3 }} />
       </LocaleProvider>,
     );
   }
@@ -263,5 +263,126 @@ describe("CoachDialogue — error-code routing", () => {
     });
 
     expect(trackMock).not.toHaveBeenCalled();
+  });
+
+  it("renders the monthly-limit CTA for monthly_limit_reached", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 429,
+          json: () =>
+            Promise.resolve({
+              code: "monthly_limit_reached",
+              error: "Monthly AI coach limit reached.",
+            }),
+        } as Response),
+      ),
+    );
+
+    renderWithLocale();
+    await triggerSend();
+
+    await waitFor(() => {
+      expect(screen.getByText(/本月的 AI 教练额度已经用完/)).toBeInTheDocument();
+    });
+
+    expect(trackMock).toHaveBeenCalledWith("coach_limit_hit", { code: "monthly_limit_reached" });
+  });
+
+  it("shows retry button on generic error and re-sends on click", async () => {
+    let callCount = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            json: () => Promise.resolve({ error: "Temporary failure" }),
+          } as Response);
+        }
+        // Second call (retry) succeeds
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ delta: "Recovered" })}\n\n`),
+            );
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ done: true, usage: {} })}\n\n`),
+            );
+            controller.close();
+          },
+        });
+        return Promise.resolve({ ok: true, status: 200, body: stream } as Response);
+      }),
+    );
+
+    renderWithLocale();
+    await triggerSend();
+
+    await waitFor(() => {
+      expect(screen.getByText("Temporary failure")).toBeInTheDocument();
+    });
+
+    const retryBtn = screen.getByRole("button", { name: /再做一次/ });
+    fireEvent.click(retryBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Recovered")).toBeInTheDocument();
+    });
+
+    expect(callCount).toBe(2);
+  });
+
+  it("shows empty reply error when stream finishes with no content", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ done: true, usage: {} })}\n\n`),
+            );
+            controller.close();
+          },
+        });
+        return Promise.resolve({ ok: true, status: 200, body: stream } as Response);
+      }),
+    );
+
+    renderWithLocale();
+    await triggerSend();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Empty reply from the model/)).toBeInTheDocument();
+    });
+  });
+
+  it("handles SSE timeout error event", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "timeout" })}\n\n`));
+            controller.close();
+          },
+        });
+        return Promise.resolve({ ok: true, status: 200, body: stream } as Response);
+      }),
+    );
+
+    renderWithLocale();
+    await triggerSend();
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/Coach is taking too long/);
+    });
   });
 });

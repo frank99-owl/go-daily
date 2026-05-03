@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getCoachAccess, isApprovedCoachId } from "@/lib/coach/coachAccess";
+import { getCoachAccess } from "@/lib/coach/coachAccess";
 import type { Puzzle } from "@/types";
 
 function makePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {
@@ -32,8 +32,6 @@ function makePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {
 
 describe("coachAccess", () => {
   it("allows approved coach-ready puzzles", () => {
-    expect(isApprovedCoachId("p-00001")).toBe(true);
-
     expect(
       getCoachAccess(
         makePuzzle({

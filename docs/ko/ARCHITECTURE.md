@@ -11,11 +11,13 @@
 3.  **세션 갱신 및 인증 리다이렉트 (Auth Refresh & Redirect)**: `@supabase/ssr`을 사용하여 페이지 이동 시마다 세션 쿠키를 갱신함으로써, 서버 컴포넌트(RSC)가 항상 최신 사용자 상태를 유지하도록 합니다. 접두사가 붙은 경로(`/en/account` 등)는 여기서 보호되며, 인증되지 않은 사용자가 `/account`에 접근하면 `/login?next=...`로 리다이렉트되고, 인증된 사용자가 `/login`에 접근하면 `/account`로 리다이렉트됩니다.
 4.  **로케일 협상 (Locale Negotiation)**: 접두사가 없는 경로에 대해 모든 경로에 언어 접두사(`/{zh|en|ja|ko}/...`)가 포함되도록 308(영구) 리다이렉트 매트릭스를 처리합니다.
 
+**Next.js 16 범위**: 전역 요청 처리는 프로젝트 루트의 `proxy.ts`에 있습니다(`proxy` 및 `config.matcher` 내보내기, Node.js 런타임). `config.matcher`는 `/api/*`와 `/auth/*`를 제외하므로, API와 Supabase 인증 콜백은 각 라우트에서 세션·Stripe 서명·`parseMutationBody` 등을 검증합니다. 로케일 협상과 쿠키 갱신은 주로 **페이지** 내비게이션용입니다.
+
 ## 2. 핵심 도메인 모듈 (`lib/`)
 
 ### `lib/env.ts` (환경 변수 검증)
 
-Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe, Supabase, Reveal)에 고유한 스키마와 지연 검증 싱글턴 접근자(`getCoachEnv()`, `getStripeEnv()` 등)를 보유한다. 누락된 변수는 라우트 핸들러 깊숙이 조용한 500 에러를 발생시키는 대신, 첫 사용 시 명확한 시작 스타일 오류로 표면화된다. 브라우저 측 Supabase 파일(`client.ts`, `middleware.ts`)은 `lib/env.ts`가 전용 서버이므로各自的 인라인 검증을 유지한다.
+Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe, Supabase, Reveal)에 고유한 스키마와 지연 검증 싱글턴 접근자(`getCoachEnv()`, `getStripeEnv()` 등)를 보유한다. 누락된 변수는 라우트 핸들러 깊숙이 조용한 500 에러를 발생시키는 대신, 첫 사용 시 명확한 시작 스타일 오류로 표면화된다. 브라우저용 `client.ts`와 세션 갱신 헬퍼(`lib/supabase/middleware.ts`)는 `lib/env.ts`가 서버 전용이므로 각자의 인라인 검증을 유지한다.
 
 ### `lib/auth/` & `lib/supabase/`
 
@@ -33,11 +35,12 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 ### `lib/coach/` (AI 지능)
 
 - **프롬프트 관리**: `coachPrompt.ts`에 집중화하여 서로 다른 문제 사이에서도 "소크라테스식 교육" 스타일이 일관되게 유지되도록 합니다.
-- **예산 제어**: `coachQuota.ts`는 DeepSeek 과금 상위 단계에서 애플리케이션 레벨의 엄격한 월간 토큰 제한을 적용하여 예상치 못한 비용 급증을 방지합니다.
+- **할당량·날짜 창**: `coachQuota.ts`는 사용자 타임존 기준 날짜 서식 및 자연월/청구 앵커 월 창(`formatDateInTimeZone`, `getNaturalMonthWindow`, `getBillingAnchoredMonthWindow`)을 제공합니다. 메시지 횟수 상한은 `lib/entitlements.ts`에 정의되며 `getCoachState` 등에서 적용됩니다.
+- **사용 카운터**: 로그인·게스트 코치 메시지 수는 Postgres에 저장되며, 동시 접속 시 RPC(`increment_coach_usage`, `increment_guest_coach_usage`)로 원자적 upsert 증분합니다.
 
 ### `lib/i18n/` (글로벌 존재감)
 
-- **경로 우선**: 검색 엔진이 4,800개 이상의 로컬라이즈된 페이지를 독립적으로 크롤링할 수 있도록 쿠키가 아닌 URL 파라미터를 통한 언어 상태 유지를 선호합니다.
+- **경로 우선**: 검색 엔진이 로컬라이즈된 전체 표면을 크롤링할 수 있도록 URL을 선호합니다. 현재 `sitemap.xml`에는 **12,000개 이상**의 로케일별 URL(정적·목록·문제 상세 × 4개 언어)이 포함되며 `content/data/puzzleIndex.json`에 따라 늘어납니다.
 - **정확성 검증**: `scripts/validateMessages.ts`를 통해 `zh`, `en`, `ja`, `ko` 사이의 번역 키가 빌드 시점에 항상 동기화되도록 보장합니다.
 
 ### `lib/board/` (바둑판 로직)
@@ -47,8 +50,12 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 
 ### `lib/puzzle/` (문제 엔진)
 
-- **SRS 스케줄링**: 간격 반복 로직이 일일 복습 큐를 구동하며, 컬렉션, 일일 선택, 복습 흐름, 리빌 토큰을 다루는 8개의 소스 파일로 구성.
-- **엔타이틀먼트**: 사용자의 구독 티어에 연동된 문제 접근 권한 및 연승 상태를 추적.
+- **SRS 및 로딩**: 간격 반복(`srs.ts`, `reviewSrs.ts`), 일일 선택, 컬렉션, 리빌 토큰, 스냅샷, 상태 유틸 — `lib/puzzle/`에 구현 모듈 8개와 동일 디렉터리의 `puzzleOfTheDay.test.ts`.
+
+### `lib/entitlements.ts` & `lib/entitlementsServer.ts` (플랜)
+
+- **티어 표**: `entitlements.ts`가 게스트/무료/Pro 코치 한도, 기기 수, 광고, 동기화 정책을 클라이언트 안전하게 정의합니다.
+- **서버 병합**: `entitlementsServer.ts`가 Stripe + `manual_grants`(`resolveViewerPlan`)로 실효 플랜을 해석합니다.
 
 ### `lib/stripe/` (결제)
 
@@ -82,12 +89,12 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 - **행 수준 보안 (RLS)**: 모든 Postgres 테이블에서 `auth.uid() = user_id` 정책을 강제하여 데이터베이스 계층에서의 데이터 유출을 원천 차단합니다.
 - **PII 마스킹**: Sentry 및 PostHog는 `beforeSend` 필터로 구성되어 있으며, AI 코치와의 대화 내용이 클라이언트를 떠나기 전에 개인정보를 비식별화합니다.
 - **NFKC 정규화**: 사용자 입력 텍스트는 처리 전 NFKC 정규화를 적용하여 동형 문자 공격 및 Unicode 정규화 취약점을 방지합니다.
-- **서비스 격리**: `proxy.ts` 미들웨어를 통해 인증 및 권한이 부여된 요청만이 핵심 API 라우트(Stripe/Coach)에 도달하도록 보장합니다.
-- **속도 제한**: `lib/rateLimit.ts`는 `MemoryRateLimiter`(개발/단일 인스턴스, 5만 엔트리 상한, LRU 제거)와 `UpstashRateLimiter`(프로덕션, Redis 기반) 두 가지 구현을 제공합니다. 환경 변수 `UPSTASH_REDIS_REST_URL`과 `UPSTASH_REDIS_REST_TOKEN`의 유무에 따라 자동 선택됩니다.
+- **라우트 계층 인증**: `proxy.ts`는 Supabase 세션 쿠키를 갱신하고 로케일이 붙은 **페이지**(예: `/account`, `/login`)를 보호합니다. `/api/*`는 프록시 matcher 밖이므로 Stripe·코치·관리·퍼즐 라우트가 세션·서명 등을 각자 검증합니다.
+- **속도 제한**: `lib/rateLimit.ts` — `UPSTASH_REDIS_REST_URL`과 `UPSTASH_REDIS_REST_TOKEN`이 모두 있으면 `UpstashRateLimiter`, 비프로덕션에서는 `MemoryRateLimiter`。**`NODE_ENV === "production"`**에서 Upstash가 없으면 `createRateLimiter()`가 예외를 던집니다(프로덕션에서는 분산 제한 필수). `MemoryRateLimiter`는 키 상한 5만 개, 초과 시 가장 오래된 키를 제거하고 주기적으로 유휴 키를 정리합니다.
 
 ---
 
 **관련 문서**:
 
-- [API 레퍼런스](../en/API_REFERENCE.md) — 전체 API 라우트 카탈로그.
-- [데이터베이스 스키마](../en/DATABASE_SCHEMA.md) — Supabase 테이블 정의, 인덱스, RLS 정책.
+- [API 레퍼런스](API_REFERENCE.md) — 전체 API 라우트 카탈로그.
+- [데이터베이스 스키마](DATABASE_SCHEMA.md) — Supabase 테이블 정의, 인덱스, RLS 정책.

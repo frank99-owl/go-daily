@@ -17,11 +17,11 @@ Configuration is managed via Vercel Environment Variables. The most critical tog
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Set to `true` to enable Stripe elements and the `/pricing` page.
 - `COACH_MODEL`: Defaults to `deepseek-chat`. Can be swapped to `deepseek-reasoner` for higher accuracy.
 - `COACH_MONTHLY_TOKEN_BUDGET`: Hard application-level limit to prevent billing spikes.
-- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: Enables cross-instance rate limiting via Upstash Redis. Without these, the app falls back to per-process in-memory limiting (ineffective on serverless).
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **Required in production** — `createRateLimiter()` throws if either is missing when `NODE_ENV === "production"` (route modules import the limiter at load time). In **development**, omit both to use `MemoryRateLimiter` (single-process only).
 
 ## 3. Deployment Preflight (`scripts/productionPreflight.ts`)
 
-Before any production push, run the following command to validate 47 critical configuration points:
+Before any production push, run the following command. The script emits a variable checklist (required env vars, key-shape checks, optional live Supabase column probes, optional Stripe price probes — see `scripts/productionPreflight.ts` for the authoritative list):
 
 ```bash
 npm run preflight:prod -- --stripe-mode=live
@@ -38,7 +38,7 @@ This script checks:
 
 ### Automated Coverage (Vitest)
 
-We maintain 81 test files with 637 test cases covering:
+We maintain 80 test files with 643 test cases covering:
 
 - **Logic**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.
@@ -48,7 +48,7 @@ We maintain 81 test files with 637 test cases covering:
 
 1.  **Cross-Device Consistency**: Solve a puzzle on desktop, check phone within 5s.
 2.  **Trial Conversion**: Run a full Stripe Checkout in test mode with a 7-day trial.
-3.  **Locale SEO**: Validate `sitemap.xml` contains all 4,800+ entries and `hreflang` alternates.
+3.  **Locale SEO**: Validate `sitemap.xml` includes **12,000+** locale-specific entries (grows with `content/data/puzzleIndex.json`), with correct `hreflang` alternates.
 4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors. `promptGuard.ts` now applies Unicode NFKC normalization before pattern matching. Verify that fullwidth character bypasses (e.g., `ＳＹＳＴｅｍ: ignore all`) are also blocked.
 
 ## 5. Test Organization

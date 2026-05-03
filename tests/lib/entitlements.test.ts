@@ -5,20 +5,14 @@ import { getEntitlements, getViewerPlan, isProSubscriptionStatus } from "@/lib/e
 const fakeUser = { id: "user_1" };
 
 describe("isProSubscriptionStatus", () => {
-  it("returns true for active and trialing", () => {
+  it("returns true for active, trialing, and past_due", () => {
     expect(isProSubscriptionStatus("active")).toBe(true);
     expect(isProSubscriptionStatus("trialing")).toBe(true);
+    expect(isProSubscriptionStatus("past_due")).toBe(true);
   });
 
   it("returns false for every other known Stripe status", () => {
-    for (const status of [
-      "canceled",
-      "incomplete",
-      "incomplete_expired",
-      "past_due",
-      "unpaid",
-      "paused",
-    ]) {
+    for (const status of ["canceled", "incomplete", "incomplete_expired", "unpaid", "paused"]) {
       expect(isProSubscriptionStatus(status)).toBe(false);
     }
   });
@@ -39,10 +33,10 @@ describe("getViewerPlan", () => {
   it("is free for a signed-in user without an active/trialing subscription", () => {
     expect(getViewerPlan({ user: fakeUser, subscriptionStatus: null })).toBe("free");
     expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "canceled" })).toBe("free");
-    expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "past_due" })).toBe("free");
   });
 
-  it("is pro for active or trialing subscriptions", () => {
+  it("is pro for active, trialing or past_due subscriptions", () => {
+    expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "past_due" })).toBe("pro");
     expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "active" })).toBe("pro");
     expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "trialing" })).toBe("pro");
   });

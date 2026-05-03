@@ -10,20 +10,23 @@ DeepSeekによるAIコーチング対話。
 
 ### `POST /api/coach`
 
-ユーザーのメッセージを送信し、AIコーチの返信を受け取る。
+アシスタントの返信は **SSE（Server-Sent Events）** でストリーミングされます。
 
-**認証**: 任意。ログインユーザーは Supabase セッション Cookie を使用。ゲストはヘッダー `x-go-daily-guest-device-id` が必要（より低いクォータ）。
+**認証**: 任意。ログインユーザーは Supabase セッション Cookie を使用。**端末フィンガープリントがあるクライアントは `x-go-daily-device-id` を送信**（フリープランの端末席ロジック `getCoachState`）。ゲストは **`x-go-daily-guest-device-id` が必要**（より低いクォータ）。
 
-**リクエストボディ**（JSON、`CoachRequestSchema`でバリデーション）:
+**リクエストボディ**（JSON、`CoachRequestSchema`）:
 
-**注意**: 履歴メッセージは合計6,000文字のバジェット制限の対象となります（最新メッセージから切り捨て）。さらにメッセージごとに2,000文字に切り捨てられます。
+**注**:
+
+- **正解／不正解はリクエストに含めません**。サーバー側で `judgeMove(puzzle, userMove)` を実行し、結果はシステムプロンプト（`buildSystemPrompt`）に渡します。
+- 履歴は合計 **6,000** 文字（新しいメッセージ優先）＋ メッセージごと最大 **2,000** 文字に制限。その前に最大 **6** 往復まで保持されます。
+- `personaId` を送る場合は `ke-jie`、`lee-sedol`、`go-seigen`、`iyama-yuta`、`shin-jinseo`、`custom` のいずれか（`CoachRequestSchema`）。省略時は碁聖（`go-seigen`）。
 
 ```typescript
 {
   puzzleId: string;      // min 1 char
   locale: "zh" | "en" | "ja" | "ko";
   userMove: { x: number; y: number };
-  isCorrect: boolean;
   personaId?: string;    // defaults to Go Seigen
   history: Array<{       // min 1 entry
     role: "user" | "assistant";
@@ -33,47 +36,66 @@ DeepSeekによるAIコーチング対話。
 }
 ```
 
-**成功レスポンス**（`200`）:
+**成功**（`200`）:`Content-Type: text/event-stream`。SSE の `data:` 行の JSON は次のとおりです。
 
-```json
-{ "reply": "string", "usage": { "plan", "dailyRemaining", "monthlyRemaining", ... } }
-```
+| ペイロード                           | 意味                                                                                                  |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `{ "delta": "..." }`                 | アシスタントの部分テキスト                                                                            |
+| `{ "done": true, "usage": { ... } }` | 終了。このリクエストで **1 回カウント済み後** のクォータ                                              |
+| `{ "error": "<code>" }`              | ストリーム途中失敗。`<code>` は `upstream_error` / `timeout` / `rate_limit` / `auth_error` のいずれか |
 
-**エラーレスポンス**:
+モデル送信の前に利用回数が加算されます。切断してもその回は消費されます。
 
-| ステータス | コード                  | 条件                                                   |
-| ---------- | ----------------------- | ------------------------------------------------------ |
-| 400        | —                       | 無効なContent-Type、ボディサイズ、JSON、またはスキーマ |
-| 401        | `login_required`        | セッションもゲストヘッダーもない場合                   |
-| 403        | `device_limit`          | 無料ユーザーが1台のデバイス制限を超過                  |
-| 403        | —                       | パズルがコーチング未対応                               |
-| 429        | `daily_limit_reached`   | 日次クォータ枯渇                                       |
-| 429        | `monthly_limit_reached` | 月次クォータ枯渇                                       |
-| 429        | —                       | IPレート制限                                           |
-| 502        | —                       | アップストリームLLMエラー                              |
-| 504        | —                       | アップストリームタイムアウト（25秒超）                 |
+**JSON エラー**（SSE 開始前）:
 
-**適用されるガード**:
+| ステータス      | 条件                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| 400             | Content-Type／JSON／スキーマ不正、または `x-go-daily-guest-device-id` ヘッダーが 128 文字超     |
+| 401             | `login_required` … セッションもゲストヘッダーも無い                                             |
+| 403             | `forbidden` … 同一オリジン／CSRF（`parseMutationBody`）                                         |
+| 403             | `device_limit` … `getCoachState` で端末制限                                                     |
+| 403             | `coach_unavailable` … パズルがコーチ非対応（`getCoachAccess`）                                  |
+| 404             | 未知の `puzzleId`                                                                               |
+| 413             | ボディが **8 KB** 超（`MAX_BODY_BYTES`）                                                        |
+| 429             | `daily_limit_reached` … **日次**または（ゲストのみ）**IP 日次**（`usage` が `null` の場合あり） |
+| 429             | `monthly_limit_reached`                                                                         |
+| 429             | 汎用 IP レート制限                                                                              |
+| 500             | `DEEPSEEK_API_KEY` 未設定                                                                       |
+| 500             | `quota_write_failed` … 使用量カウント書き込み失敗（DB/RPC エラー）                              |
+| 502 / 504 / 429 | SSE に入る前のプロバイダ失敗で JSON `{ "error": "..." }`（タイムアウトは `504`）                |
 
-- Content-Length上限（ボディ8 KB、ヘッダー10 KB）
-- IPレート制限（Upstash Redisまたはインメモリフォールバック）
-- すべてのユーザーメッセージに対するプロンプトインジェクション検出（`guardUserMessage`）
-- 入力サニタイズ（`sanitizeInput`）
-- コーチ対象チェック（パズルが`coachEligibleIds.json`に含まれている必要あり）
-- 使用量クォータの適用（ユーザーごとの日次・月次カウンター）
-- ゲスト利用量は Supabase `guest_coach_usage` に `service_role` で永続化；IP 上限はインメモリ（`guestCoachUsage.ts`）
+**ガード**:
+
+- ボディ **8 KB** 上限と同一オリジン（`parseMutationBody`）、IP レート制限（`createRateLimiter`：**本番**は Upstash 必須、**開発**のみインメモリ）、`guardUserMessage`、`sanitizeInput`、`coachEligibleIds.json` に加え `checkCoachEligibility` / `getCoachAccess` による実行時チェック、クォータ（Postgres RPC による原子カウント — Database Schema 参照）。ゲストのデバイス別行は `service_role` のみ。**ゲスト IP 日次上限**（`checkIpLimit`、`GUEST_IP_DAILY_LIMIT`、現状 20/IP/UTC 日）は Upstash 設定時は Redis、未設定時は `guestCoachUsage.ts` のインメモリ `Map`。
 
 ### `GET /api/coach`
 
-呼び出し元のコーチ使用量サマリーを取得する。
+呼び出し元のコーチ使用量サマリー。
 
-**認証**: 任意。ログインユーザーはセッション Cookie。ゲストは `x-go-daily-guest-device-id` でゲスト枠の使用量を取得できる。どちらも無い場合は `401`。
+**認証**: 任意。ログイン時は Cookie、`x-go-daily-device-id` 可。ゲストは `x-go-daily-guest-device-id`。どちらも無ければ `401`。
 
 **レスポンス**（`200`）:
 
 ```json
-{ "usage": { "plan", "dailyLimit", "monthlyLimit", "dailyUsed", "monthlyUsed", ... } }
+{
+  "usage": {
+    "plan",
+    "dailyLimit",
+    "monthlyLimit",
+    "dailyUsed",
+    "monthlyUsed",
+    "dailyRemaining",
+    "monthlyRemaining",
+    "timeZone",
+    "monthWindowKind",
+    "monthWindowStart",
+    "monthWindowEnd",
+    "billingAnchorDay"
+  }
+}
 ```
+
+ログインユーザーで `coach.available === false` のとき `usage` は `null` になり得ます。ゲストはヘッダーがある場合常にオブジェクトです。
 
 ---
 
@@ -306,14 +328,13 @@ Supabase OAuth／マジックリンクコールバック。認証コードをセ
 
 ### レート制限
 
-すべての書き込みエンドポイントは`createRateLimiter()`を使用しており、以下のいずれかを返す:
+書き込み系エンドポイントは`createRateLimiter()`を使い、挙動は次のとおりです。
 
-- `UPSTASH_REDIS_REST_URL`と`UPSTASH_REDIS_REST_TOKEN`が設定されている場合: `UpstashRateLimiter`（本番環境、インスタンス横断）。
-- フォールバック: `MemoryRateLimiter`（開発環境、単一インスタンス）。
+- **`UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の両方が設定されている**: `UpstashRateLimiter`（Redis、マルチインスタンス）。
+- **どちらか欠け、`NODE_ENV !== "production"`**: `MemoryRateLimiter`（同一プロセス内のみ）。
+- **どちらか欠け、`NODE_ENV === "production"`**: ルートモジュール読み込み時に `createRateLimiter()` が**例外を投げる** — 本番では Upstash 必須（`lib/rateLimit.ts` 参照）。
 
-両方のリミッターは最大エントリ数を強制し（`MemoryRateLimiter`は50,000件）、期限切れエントリの削除によりメモリの無制限な増加を防止する。
-
-デフォルト: キーごとに60秒ウィンドウあたり10リクエスト。
+`MemoryRateLimiter` はキー数上限 50,000。超過時は挿入順で最古キーを削除し、定期的にアイドルキーを掃除。既定: キーあたり 60 秒ウィンドウで 10 リクエスト（`RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` で上書き可能）。
 
 ### ボディパース
 

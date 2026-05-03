@@ -11,12 +11,14 @@ import {
   COACH_DEVICE_ID_HEADER,
   getCoachState,
   incrementCoachUsage,
+  decrementCoachUsage,
   type CoachUsageSummary,
 } from "@/lib/coach/coachState";
 import {
   checkIpLimit,
   getGuestUsage,
   incrementGuestUsage,
+  decrementGuestUsage,
   incrementIpCounter,
   type GuestUsageSummary,
 } from "@/lib/coach/guestCoachUsage";
@@ -41,7 +43,7 @@ const UPSTREAM_TIMEOUT_MS = 25000; // 25s max for LLM call
 
 const rateLimiter = createRateLimiter();
 
-function badRequest(message: string, status = 400) {
+function errorResponse(message: string, status = 400) {
   return createApiResponse({ error: message }, { status });
 }
 
@@ -57,13 +59,6 @@ function coachError({
   usage?: CoachUsageSummary | GuestUsageSummary | null;
 }) {
   return createApiResponse({ error, code, usage: usage ?? null }, { status });
-}
-
-function maskKey(key: string): string {
-  if (key.length <= 4) return "***";
-  // Show only the first 4 chars and key length — avoids leaking enough of the
-  // suffix for offline brute-force when logs are exported to third-party tools.
-  return key.slice(0, 4) + "...(len:" + key.length + ")";
 }
 
 function getCoachModelInfo() {
@@ -87,6 +82,9 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   const guestDeviceId = request.headers.get(GUEST_DEVICE_ID_HEADER);
+  if (guestDeviceId && guestDeviceId.length > 128) {
+    return errorResponse("Invalid device ID.", 400);
+  }
   const isGuest = !user && !!guestDeviceId;
 
   if (!user && !guestDeviceId) {
@@ -99,9 +97,10 @@ export async function POST(request: Request) {
 
   // Rate limit
   const ip = getClientIP(request);
+  const countryCode = request.headers.get("cf-ipcountry");
   try {
     if (await rateLimiter.isLimited(ip)) {
-      return badRequest("Too many requests, slow down.", 429);
+      return errorResponse("Too many requests, slow down.", 429);
     }
   } catch (error) {
     console.warn("[coach] rate limiter failed open", { ip, error });
@@ -109,7 +108,7 @@ export async function POST(request: Request) {
 
   // IP rate limit for guests — prevents abuse via repeated incognito sessions
   if (isGuest) {
-    const ipCheck = checkIpLimit(ip);
+    const ipCheck = await checkIpLimit(ip, countryCode);
     if (!ipCheck.allowed) {
       return coachError({
         status: 429,
@@ -123,29 +122,28 @@ export async function POST(request: Request) {
   const parseResult = CoachRequestSchema.safeParse(rawBody);
   if (!parseResult.success) {
     const first = parseResult.error.issues[0];
-    return badRequest(first.message);
+    return errorResponse(first.message);
   }
 
   const { puzzleId, locale, userMove, personaId, history } = parseResult.data;
 
   const puzzle = await getPuzzle(puzzleId);
-  if (!puzzle) return badRequest("Unknown puzzleId.", 404);
+  if (!puzzle) return errorResponse("Unknown puzzleId.", 404);
   const isCorrect = judgeMove(puzzle, userMove);
-  const persona = getPersona(personaId || "");
+  const persona = getPersona(personaId);
   const coachAccess = getCoachAccess(puzzle);
   if (!coachAccess.available) {
-    return createApiResponse(
-      {
-        error: "AI coach is only available on approved coach-ready puzzles.",
-      },
-      { status: 403 },
-    );
+    return coachError({
+      status: 403,
+      code: COACH_ERROR_CODES.COACH_UNAVAILABLE,
+      error: "AI coach is only available on approved coach-ready puzzles.",
+    });
   }
 
   // Guest usage check
   let guestUsage: GuestUsageSummary | null = null;
   if (isGuest) {
-    guestUsage = await getGuestUsage(guestDeviceId!);
+    guestUsage = await getGuestUsage(guestDeviceId!, countryCode);
 
     if (guestUsage.dailyRemaining <= 0) {
       return coachError({
@@ -234,7 +232,7 @@ export async function POST(request: Request) {
     if (m.role === "user") {
       const guard = guardUserMessage(m.content);
       if (!guard.ok) {
-        return badRequest(guard.reason || "Invalid message content.");
+        return errorResponse(guard.reason || "Invalid message content.");
       }
     }
   }
@@ -243,7 +241,7 @@ export async function POST(request: Request) {
   // by dropping the oldest messages first.
   const sanitized = history.slice(-MAX_HISTORY).map((m) => ({
     role: m.role,
-    content: sanitizeInput(m.content.slice(0, 2000)),
+    content: sanitizeInput([...m.content.normalize("NFKC")].slice(0, 2000).join("")),
     ts: 0,
   }));
 
@@ -269,15 +267,27 @@ export async function POST(request: Request) {
 
   const modelInfo = getCoachModelInfo();
 
-  // Increment usage BEFORE streaming to prevent free partial responses.
-  if (isGuest) {
-    await incrementGuestUsage(guestDeviceId!);
-    incrementIpCounter(ip);
-  } else {
-    await incrementCoachUsage({
-      admin: admin!,
-      userId: user!.id,
-      day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
+  // Intentional: charge usage BEFORE streaming. Prevents abuse where a user
+  // starts a request, collects partial tokens, then aborts to avoid the charge.
+  // Failed upstream requests still count — deferred charging would let users
+  // retry freely on transient errors, burning LLM budget.
+  try {
+    if (isGuest) {
+      await incrementGuestUsage(guestDeviceId!, countryCode);
+      incrementIpCounter(ip, countryCode);
+    } else {
+      await incrementCoachUsage({
+        admin: admin!,
+        userId: user!.id,
+        day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
+      });
+    }
+  } catch (err) {
+    console.error("[coach] failed to increment usage", err);
+    return coachError({
+      status: 500,
+      code: COACH_ERROR_CODES.QUOTA_WRITE_FAILED,
+      error: "Failed to record usage. Please try again.",
     });
   }
 
@@ -304,7 +314,7 @@ export async function POST(request: Request) {
       timeout: UPSTREAM_TIMEOUT_MS,
     });
 
-    const stream = provider.createReplyStream(openaiMessages);
+    const stream = provider.createReplyStream(openaiMessages, { signal: request.signal });
     let tokenUsage: CoachProviderUsage | null = null;
     let modelName: string | null = null;
     let firstToken = true;
@@ -358,6 +368,17 @@ export async function POST(request: Request) {
           const error = err as Error;
           const durationMs = Date.now() - startTime;
 
+          // Refund usage on upstream failure
+          if (isGuest) {
+            await decrementGuestUsage(guestDeviceId!, countryCode).catch(() => {});
+          } else {
+            await decrementCoachUsage({
+              admin: admin!,
+              userId: user!.id,
+              day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
+            }).catch(() => {});
+          }
+
           let errorCode = "upstream_error";
           if (error.name === "AbortError" || error.message?.includes("timeout")) {
             errorCode = "timeout";
@@ -387,6 +408,9 @@ export async function POST(request: Request) {
           }).catch(() => {});
         }
       },
+      cancel(reason) {
+        console.log(`[coach] SSE stream canceled by client. Reason:`, reason);
+      },
     });
 
     return new Response(sseStream, {
@@ -402,6 +426,17 @@ export async function POST(request: Request) {
     // Provider construction failed — return a normal JSON error
     const error = err as Error;
     const durationMs = Date.now() - startTime;
+
+    // Refund usage on upstream failure
+    if (isGuest) {
+      await decrementGuestUsage(guestDeviceId!, countryCode).catch(() => {});
+    } else {
+      await decrementCoachUsage({
+        admin: admin!,
+        userId: user!.id,
+        day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
+      }).catch(() => {});
+    }
 
     let httpStatus = 502;
     let errorCode = "upstream_error";
@@ -454,10 +489,11 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   const guestDeviceId = request.headers.get(GUEST_DEVICE_ID_HEADER);
+  const countryCode = request.headers.get("cf-ipcountry");
 
   // Guest usage query
   if (!user && guestDeviceId) {
-    const usage = await getGuestUsage(guestDeviceId);
+    const usage = await getGuestUsage(guestDeviceId, countryCode);
     return createApiResponse({ usage });
   }
 
@@ -474,6 +510,7 @@ export async function GET(request: Request) {
     userId: user.id,
     deviceId: request.headers.get(COACH_DEVICE_ID_HEADER),
     email: user.email,
+    now: new Date(),
   });
 
   if (coachState.deviceLimited) {

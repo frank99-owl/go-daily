@@ -11,11 +11,13 @@
 3.  **セッション更新と認証リダイレクト (Auth Refresh & Redirect)**：`@supabase/ssr` を利用して、ナビゲーションごとにセッション Cookie を更新し、サーバーコンポーネント (RSC) が常に最新のユーザー状態を保持できるようにします。プレフィックス付きパス（`/en/account` など）はここでガードされ、未認証ユーザーが `/account` にアクセスすると `/login?next=...` にリダイレクトされ、認証済みユーザーが `/login` にアクセスすると `/account` にリダイレクトされます。
 4.  **ロケール交渉 (Locale Negotiation)**：プレフィックスなしのパスに対して、すべてのパスに言語プレフィックス (`/{zh|en|ja|ko}/...`) が付与されるよう 308（永久リダイレクト）マトリックスを処理します。
 
+**Next.js 16 の範囲**: グローバルなリクエスト処理はルートの `proxy.ts`（`proxy` と `config.matcher` のエクスポート、Node.js ランタイム）。`config.matcher` は `/api/*` と `/auth/*` を除外するため、API と Supabase 認証コールバックは各ルートで検証（セッション、Stripe 署名、`parseMutationBody` など）を行います。ロケール交渉と Cookie 更新は主に**ページ**遷移向けです。
+
 ## 2. コアドメイン・モジュール (`lib/`)
 
 ### `lib/env.ts` (環境変数検証)
 
-Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Stripe、Supabase、Reveal）に独自のスキーマと遅延検証シングルトンアクセサ（`getCoachEnv()`、`getStripeEnv()` など）を持つ。欠落変数はルートハンドラ深部でのサイレント 500 ではなく、初回使用時に明確なスタートアップスタイルエラーとして表面化する。ブラウザ側 Supabase ファイル（`client.ts`、`middleware.ts`）は `lib/env.ts` がサーバー専用のため、各自のインライン検証を維持する。
+Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Stripe、Supabase、Reveal）に独自のスキーマと遅延検証シングルトンアクセサ（`getCoachEnv()`、`getStripeEnv()` など）を持つ。欠落変数はルートハンドラ深部でのサイレント 500 ではなく、初回使用時に明確なスタートアップスタイルエラーとして表面化する。ブラウザ側 Supabase ファイル（`client.ts`）とセッション更新ヘルパ（`lib/supabase/middleware.ts`）は `lib/env.ts` がサーバー専用のため、各自のインライン検証を維持する。
 
 ### `lib/auth/` & `lib/supabase/`
 
@@ -33,11 +35,12 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 ### `lib/coach/` (AI インテリジェンス)
 
 - **プロンプト管理**：`coachPrompt.ts` に集約し、異なる問題間でも「ソクラテス式指導」のスタイルが一貫するようにします。
-- **予算制御**：`coachQuota.ts` は、DeepSeek の課金上流でアプリケーションレベルのハードな月間トークン制限を適用し、予期せぬコスト増大を防止します。
+- **割り当てと日付ウィンドウ**：`coachQuota.ts` はユーザー TZ の日付整形と自然月／請求アンカー月ウィンドウ（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）を提供。メッセージ回数上限は `lib/entitlements.ts` で定義され、`getCoachState` 等で消費されます。
+- **利用カウンタ**：ログイン／ゲストのコーチ回数は Postgres に保存。同時実行下では RPC（`increment_coach_usage`、`increment_guest_coach_usage`）により原子的な upsert で加算します。
 
 ### `lib/i18n/` (グローバル展開)
 
-- **URL 優先**：検索エンジンが 4,800 以上のローカライズされたページを個別にクロールできるように、Cookie ではなく URL パラメータによる言語状態の保持を推奨しています。
+- **URL 優先**：検索エンジンがローカライズ全ページをクロールできるよう、Cookie より URL を優先。現行の `sitemap.xml` は **12,000 本超**のロケール別 URL（静的・一覧・各題 × 4 言語）を列挙し、`content/data/puzzleIndex.json` に追従して増える。
 - **不整合の検知**：`scripts/validateMessages.ts` により、`zh`, `en`, `ja`, `ko` 間の翻訳キーがビルド時に常に同期されていることを保証します。
 
 ### `lib/board/` (碁盤ロジック)
@@ -47,8 +50,12 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 
 ### `lib/puzzle/` (パズルエンジン)
 
-- **SRS スケジューリング**：間隔反復ロジックがデイリーレビュー・キューを駆動し、コレクション、毎日の選択、レビューフロー、リビールトークンをカバーする 8 つのソースファイルで構成。
-- **エンタイトルメント**：ユーザーのサブスクリプション層に紐づくパズルアクセス権と連勝状態を追跡。
+- **SRS とロード**：間隔反復（`srs.ts`, `reviewSrs.ts`）、デイリー選択、コレクション、リビールトークン、スナップショット、状態ヘルパー — `lib/puzzle/` に 8 実装モジュールと同梱の `puzzleOfTheDay.test.ts`。
+
+### `lib/entitlements.ts` & `lib/entitlementsServer.ts`（プラン）
+
+- **ティア行列**：`entitlements.ts` がゲスト／無料／Pro のコーチ上限、端末数、広告、同期方針をクライアント安全に定義。
+- **サーバー合成**：`entitlementsServer.ts` が Stripe + `manual_grants`（`resolveViewerPlan`）から実効プランを解決。
 
 ### `lib/stripe/` (決済)
 
@@ -82,12 +89,12 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 - **行レベルセキュリティ (RLS)**：すべての Postgres テーブルで `auth.uid() = user_id` ポリシーを強制し、データベース層でのデータ漏洩を防止します。
 - **PII マスキング**：Sentry と PostHog は `beforeSend` フィルタで構成されており、AI コーチとの対話がクライアントを離れる前に個人情報を匿名化します。
 - **NFKC 正規化**: ユーザー入力テキストは処理前に NFKC 正規化を適用し、同形文字攻撃や Unicode 正規化の脆弱性を防止します。
-- **サービス分離**: `proxy.ts` ミドルウェアにより、認証・認可されたリクエストのみが重要な API ルート (Stripe/Coach) に到達することを保証します。
-- **レート制限**: `lib/rateLimit.ts` は `MemoryRateLimiter`（開発用/単一インスタンス、5 万エントリー上限・LRU 退避）と `UpstashRateLimiter`（本番環境、Redis ベース）の 2 つの実装を提供。環境変数 `UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の有無で自動選択されます。
+- **ルート層の認証**: `proxy.ts` は Supabase セッション Cookie を更新し、ロケール付き**ページ**（例: `/account`, `/login`）をガードします。`/api/*` はプロキシの matcher 外のため、Stripe・コーチ・管理・パズル各ルートがセッションや署名を独自に検証します。
+- **レート制限**: `lib/rateLimit.ts` — `UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の両方があれば `UpstashRateLimiter`、非本番ではなければ `MemoryRateLimiter`。**`NODE_ENV === "production"`** で Upstash が欠けると `createRateLimiter()` はスローします（本番では分散制限が必須）。`MemoryRateLimiter` はキー上限 5 万件で、超過時は最古キーを削除し、定期的にアイドルキーを掃除します。
 
 ---
 
 **関連ドキュメント**:
 
-- [APIリファレンス](../en/API_REFERENCE.md) — 全APIルートカタログ。
-- [データベーススキーマ](../en/DATABASE_SCHEMA.md) — Supabaseテーブル定義、インデックス、RLSポリシー。
+- [APIリファレンス](API_REFERENCE.md) — 全APIルートカタログ。
+- [データベーススキーマ](DATABASE_SCHEMA.md) — Supabaseテーブル定義、インデックス、RLSポリシー。

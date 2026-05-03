@@ -14,13 +14,6 @@ export interface CoachProviderUsage {
   usageAvailable: boolean;
 }
 
-export interface CoachProviderResult {
-  content: string;
-  usage: CoachProviderUsage;
-  model: string;
-  provider: string;
-}
-
 export interface CoachStreamChunk {
   /** Token text — empty string for the final usage-only chunk. */
   delta: string;
@@ -33,8 +26,10 @@ export interface CoachStreamChunk {
 }
 
 export interface CoachProvider {
-  createReply(messages: CoachProviderMessage[]): Promise<CoachProviderResult>;
-  createReplyStream(messages: CoachProviderMessage[]): AsyncIterable<CoachStreamChunk>;
+  createReplyStream(
+    messages: CoachProviderMessage[],
+    options?: { signal?: AbortSignal },
+  ): AsyncIterable<CoachStreamChunk>;
 }
 
 export class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
@@ -63,41 +58,21 @@ export class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
     this.baseURL = baseURL;
   }
 
-  async createReply(messages: CoachProviderMessage[]): Promise<CoachProviderResult> {
-    const completion = await this.client.chat.completions.create({
-      model: this.model,
-      messages,
-      temperature: 0.6,
-      max_tokens: 400,
-    });
-
-    const content = completion.choices[0]?.message?.content?.trim() ?? "";
-    const raw = completion.usage;
-
-    const usage: CoachProviderUsage = {
-      inputTokens: raw?.prompt_tokens ?? null,
-      outputTokens: raw?.completion_tokens ?? null,
-      totalTokens: raw?.total_tokens ?? null,
-      usageAvailable: raw != null,
-    };
-
-    return {
-      content,
-      usage,
-      model: completion.model ?? this.model,
-      provider: this.baseURL,
-    };
-  }
-
-  async *createReplyStream(messages: CoachProviderMessage[]): AsyncIterable<CoachStreamChunk> {
-    const stream = await this.client.chat.completions.create({
-      model: this.model,
-      messages,
-      temperature: 0.6,
-      max_tokens: 400,
-      stream: true,
-      stream_options: { include_usage: true },
-    });
+  async *createReplyStream(
+    messages: CoachProviderMessage[],
+    options?: { signal?: AbortSignal },
+  ): AsyncIterable<CoachStreamChunk> {
+    const stream = await this.client.chat.completions.create(
+      {
+        model: this.model,
+        messages,
+        temperature: 0.6,
+        max_tokens: 400,
+        stream: true,
+        stream_options: { include_usage: true },
+      },
+      { signal: options?.signal },
+    );
 
     let model: string | null = null;
     for await (const chunk of stream) {
@@ -129,27 +104,26 @@ export class FallbackCoachProvider implements CoachProvider {
     }
   }
 
-  async createReply(messages: CoachProviderMessage[]): Promise<CoachProviderResult> {
+  async *createReplyStream(
+    messages: CoachProviderMessage[],
+    options?: { signal?: AbortSignal },
+  ): AsyncIterable<CoachStreamChunk> {
     let lastError: unknown;
     for (const provider of this.providers) {
       try {
-        return await provider.createReply(messages);
-      } catch (error) {
-        console.warn(
-          "[CoachProvider] API call failed, attempting fallback if available...",
-          error instanceof Error ? error.message : error,
-        );
-        lastError = error;
-      }
-    }
-    throw lastError; // All providers failed
-  }
+        const iterator = provider.createReplyStream(messages, options)[Symbol.asyncIterator]();
+        const first = await iterator.next();
 
-  async *createReplyStream(messages: CoachProviderMessage[]): AsyncIterable<CoachStreamChunk> {
-    let lastError: unknown;
-    for (const provider of this.providers) {
-      try {
-        yield* provider.createReplyStream(messages);
+        async function* wrappedStream() {
+          if (!first.done) yield first.value;
+          yield* {
+            [Symbol.asyncIterator]() {
+              return iterator;
+            },
+          };
+        }
+
+        yield* wrappedStream();
         return;
       } catch (error) {
         console.warn(

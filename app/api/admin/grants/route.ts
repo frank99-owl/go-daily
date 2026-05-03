@@ -5,11 +5,9 @@ import { createServiceClient } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
 
-function isAdmin(email: string | undefined | null): boolean {
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase());
-  return !!email && adminEmails.includes(email.toLowerCase());
+function isAdmin(userId: string | undefined | null): boolean {
+  const adminIds = (process.env.ADMIN_USER_IDS ?? "").split(",").map((id) => id.trim());
+  return !!userId && adminIds.includes(userId);
 }
 
 async function verifyAdmin() {
@@ -17,7 +15,7 @@ async function verifyAdmin() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user?.email || !isAdmin(user.email)) {
+  if (!user?.id || !isAdmin(user.id)) {
     return null;
   }
   return user;

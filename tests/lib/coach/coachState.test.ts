@@ -37,6 +37,8 @@ type UsageBehavior = {
   existing?: { count: number } | null;
   existingError?: { message: string } | null;
   upsertError?: { message: string } | null;
+  rpcResult?: number;
+  rpcError?: { message: string } | null;
 };
 
 function buildAdminClient({
@@ -53,9 +55,13 @@ function buildAdminClient({
   const upsertMock = vi.fn(() =>
     Promise.resolve({ error: usage.upsertError ?? null } as QueryResult),
   );
+  const rpcMock = vi.fn(() =>
+    Promise.resolve({ data: usage.rpcResult ?? 1, error: usage.rpcError ?? null } as QueryResult),
+  );
 
   return {
     upsertMock,
+    rpcMock,
     from: vi.fn((table: string) => {
       switch (table) {
         case "profiles":
@@ -92,6 +98,7 @@ function buildAdminClient({
           return query({ data: null, error: null });
       }
     }),
+    rpc: rpcMock,
   };
 }
 
@@ -443,63 +450,36 @@ describe("incrementCoachUsage", () => {
     vi.restoreAllMocks();
   });
 
-  it("writes count=1 when no row exists for the day", async () => {
-    const admin = buildAdminClient({ usage: { existing: null } });
+  it("calls the atomic RPC function with correct params", async () => {
+    const admin = buildAdminClient({ usage: { rpcResult: 1 } });
     const next = await incrementCoachUsage({
       admin: admin as never,
       userId: "user-1",
       day: "2026-04-25",
     });
     expect(next).toBe(1);
-    expect(admin.upsertMock).toHaveBeenCalledWith(
-      { user_id: "user-1", day: "2026-04-25", count: 1 },
-      { onConflict: "user_id,day" },
-    );
+    expect(admin.rpcMock).toHaveBeenCalledWith("increment_coach_usage", {
+      p_user_id: "user-1",
+      p_day: "2026-04-25",
+    });
   });
 
-  it("increments the existing count by one", async () => {
-    const admin = buildAdminClient({ usage: { existing: { count: 7 } } });
+  it("returns the incremented count from the RPC result", async () => {
+    const admin = buildAdminClient({ usage: { rpcResult: 8 } });
     const next = await incrementCoachUsage({
       admin: admin as never,
       userId: "user-1",
       day: "2026-04-25",
     });
     expect(next).toBe(8);
-    expect(admin.upsertMock).toHaveBeenCalledWith(
-      { user_id: "user-1", day: "2026-04-25", count: 8 },
-      { onConflict: "user_id,day" },
-    );
   });
 
-  it("throws when the read fails", async () => {
+  it("throws when the RPC call fails", async () => {
     const admin = buildAdminClient({
-      usage: { existingError: { message: "read denied" } },
+      usage: { rpcError: { message: "permission denied" } },
     });
     await expect(
       incrementCoachUsage({ admin: admin as never, userId: "user-1", day: "2026-04-25" }),
-    ).rejects.toThrow(/failed to read daily coach usage: read denied/);
-  });
-
-  it("throws when the upsert fails", async () => {
-    const admin = buildAdminClient({
-      usage: { existing: { count: 2 }, upsertError: { message: "write denied" } },
-    });
-    await expect(
-      incrementCoachUsage({ admin: admin as never, userId: "user-1", day: "2026-04-25" }),
-    ).rejects.toThrow(/failed to write coach usage: write denied/);
-  });
-
-  it("treats a nullish count field as zero", async () => {
-    // Some rows might have `count: null` if the row exists but was never
-    // populated. The `?? 0` coercion should kick in.
-    const admin = buildAdminClient({
-      usage: { existing: { count: null as unknown as number } },
-    });
-    const next = await incrementCoachUsage({
-      admin: admin as never,
-      userId: "user-1",
-      day: "2026-04-25",
-    });
-    expect(next).toBe(1);
+    ).rejects.toThrow(/failed to increment coach usage: permission denied/);
   });
 });

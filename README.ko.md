@@ -23,7 +23,7 @@
 1.  **[프로젝트 철학 및 전략](docs/ko/CONCEPT.md)**: 왜 go-daily인가? 시장 포지셔닝, 상업적 철학 및 "린(Lean)" 운영에 대하여.
 2.  **[기술 아키텍처 상세 분석](docs/ko/ARCHITECTURE.md)**: `proxy.ts` 요청 생명주기, 3단계 영속성 엔진 및 9개 도메인 `lib/` 레이아웃의 심층 이해.
 3.  **[제품 사양 및 기능 로직](docs/ko/PRODUCT_SPECS.md)**: SM-2 알고리즘 파라미터 매핑, 구독 권한 엔진 및 AI 코치 자격 판정 로직 상세 설명.
-4.  **[운영 및 품질 보증](docs/ko/OPERATIONS_QA.md)**: 운영 환경 배포 가이드, 47가지 배포 전 사전 점검 리스트 및 테스트 스위트 전략.
+4.  **[운영 및 품질 보증](docs/ko/OPERATIONS_QA.md)**: 운영 배포, `productionPreflight` 기반 가변 체크리스트, 테스트 전략(자세한 내용은 `docs/ko/OPERATIONS_QA.md`).
 5.  **[실시간 프로젝트 간판](docs/ko/PROJECT_STATUS.md)**: 현재 스프린트 진행 상황 및 운영 환경 준비 상태 확인.
 6.  **[API 레퍼런스](docs/ko/API_REFERENCE.md)**: 전체 API 라우트 카탈로그 (요청/응답 스키마).
 7.  **[데이터베이스 스키마](docs/ko/DATABASE_SCHEMA.md)**: Supabase 테이블 정의, 인덱스, RLS 정책.
@@ -35,7 +35,7 @@
 
 ### 1. 전제 조건
 
-- Node.js 20+
+- Node.js 22.5 이상 (`package.json`의 `engines` 참고)
 - DeepSeek 또는 OpenAI 호환 API 키.
 - Supabase 프로젝트 (옵션, 익명 모드에서는 불필요).
 

@@ -14,9 +14,6 @@
  * stable sentinel rather than short-circuiting.
  */
 export function getClientIP(request: Request): string {
-  const cf = request.headers.get("cf-connecting-ip");
-  if (cf && isValidIP(cf)) return cf;
-
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
@@ -25,6 +22,11 @@ export function getClientIP(request: Request): string {
 
   const realIp = request.headers.get("x-real-ip");
   if (realIp && isValidIP(realIp)) return realIp;
+
+  // cf-connecting-ip can be easily spoofed if not strictly behind Cloudflare.
+  // Checked last as a fallback.
+  const cf = request.headers.get("cf-connecting-ip");
+  if (cf && isValidIP(cf)) return cf;
 
   return "unknown";
 }

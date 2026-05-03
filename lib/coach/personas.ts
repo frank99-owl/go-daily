@@ -213,8 +213,8 @@ export const PERSONAS: Persona[] = [
   },
 ];
 
-export const DEFAULT_PERSONA = PERSONAS[2]; // Go Seigen as default? Or a "Standard Coach"
+export const DEFAULT_PERSONA = PERSONAS[2]; // Go Seigen
 
-export function getPersona(id: PersonaId | string): Persona {
+export function getPersona(id: PersonaId | undefined): Persona {
   return PERSONAS.find((p) => p.id === id) || DEFAULT_PERSONA;
 }

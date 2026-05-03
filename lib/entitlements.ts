@@ -61,7 +61,7 @@ export const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> =
 };
 
 export function isProSubscriptionStatus(status: string | null | undefined): boolean {
-  return status === "active" || status === "trialing";
+  return status === "active" || status === "trialing" || status === "past_due";
 }
 
 export function getViewerPlan({

@@ -13,6 +13,8 @@ go-daily는 분산된 불리언(boolean) 체크 대신 중앙 집중식 **조회
 | **클라우드 동기화** | 없음               | 싱글 디바이스        | 멀티 디바이스           |
 | **광고**            | 있음               | 있음                 | 없음                    |
 
+표의 기기별 할당량 외에, 게스트 코치 요청에는 서버에서 **IP당 UTC 일 단위** 추가 일일 상한이 있습니다(`GUEST_IP_DAILY_LIMIT`, 현재 IP당 일 **20**회 — `guestCoachUsage.ts`). `UPSTASH_*`가 있으면 IP 카운트는 **Upstash**에, 없으면 프로세스 내 `Map`(최대 1만 키, 일 경과 후 삽입 순으로 가장 오래된 키 제거)에 저장합니다. 표의 기기별 카운트와는 별도 레이어입니다.
+
 ### 캐시 전략 (Next.js 16)
 
 우리는 `'use cache'` 지시어와 `cacheTag`를 활용합니다. Stripe 웹훅이 구독 정보를 업데이트하면 `revalidateTag('entitlements:' + userId)`를 호출하여 UI에 즉시 변경 사항이 반영되도록 합니다.

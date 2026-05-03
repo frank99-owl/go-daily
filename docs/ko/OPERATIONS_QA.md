@@ -17,11 +17,11 @@
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Stripe 구성 요소와 `/pricing` 페이지를 활성화하려면 `true`로 설정합니다.
 - `COACH_MODEL`: 기본값은 `deepseek-chat`입니다. 필요한 경우 `deepseek-reasoner`로 교체할 수 있습니다.
 - `COACH_MONTHLY_TOKEN_BUDGET`: 예기치 않은 비용 급증을 방지하기 위한 애플리케이션 레벨의 엄격한 월간 제한.
-- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: 설정 시 Upstash Redis로 인스턴스 간 속도 제한이 활성화됩니다. 미설정 시 프로세스 내 메모리로 폴백되며, 서버리스 다중 인스턴스에서는 효과가 제한적입니다.
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **프로덕션에서 필수** — `NODE_ENV === "production"`일 때 둘 중 하나라도 없으면 라우트 모듈 로드 시점에 `createRateLimiter()`가 예외를 던집니다. **개발**에서는 둘 다 생략해 `MemoryRateLimiter`(단일 프로세스 전용)를 쓸 수 있습니다.
 
 ## 3. 배포 전 사전 점검 (`scripts/productionPreflight.ts`)
 
-운영 환경 배포 전, 다음 명령어를 실행하여 47가지 핵심 설정 항목을 검증하십시오:
+운영 환경 배포 전, 다음 명령을 실행합니다. 스크립트는 가변 체크리스트(필수 환경 변수, 키 형식 검사, 선택적 Supabase 컬럼 프로브, 선택적 Stripe 가격 프로브 — 전체 목록은 `scripts/productionPreflight.ts` 참고)를 출력합니다:
 
 ```bash
 npm run preflight:prod -- --stripe-mode=live
@@ -33,7 +33,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 자동화 테스트 (Vitest)
 
-81개의 테스트 파일, 637개의 테스트 케이스를 유지하고 있습니다:
+80개의 테스트 파일, 643개의 테스트 케이스를 유지하고 있습니다:
 
 - **로직**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.
@@ -43,7 +43,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 1.  **기기 간 동기화 일관성**: 데스크톱에서 문제를 해결하고 5초 이내에 모바일 기기에서 동기화 여부를 확인합니다.
 2.  **무료 체험 전환**: 테스트 모드에서 7일 무료 체험이 포함된 전체 Stripe 결제 프로세스를 실행합니다.
-3.  **로케일 SEO**: `sitemap.xml`에 4,800개 이상의 항목과 `hreflang` 대체 링크가 포함되어 있는지 확인합니다.
+3.  **로케일 SEO**: `sitemap.xml`에 **12,000개 이상**의 로케일별 항목(`content/data/puzzleIndex.json` 규모에 따라 증가)과 올바른 `hreflang` 대체 링크가 있는지 확인합니다.
 4.  **코치 가드레일**: 프롬프트 인젝션(예: "이전의 모든 지시를 잊어라")을 시도하여 `promptGuard.ts`의 차단 성능을 검증합니다. `promptGuard.ts`는 이제 패턴 매칭 전에 Unicode NFKC 정규화를 적용합니다. 전각 문자 우회 시도(예: `ＳＹＳＴｅｍ: ignore all`)도 차단되는지 확인하십시오.
 
 ## 5. 테스트 구성
