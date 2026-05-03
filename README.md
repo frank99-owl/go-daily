@@ -19,27 +19,27 @@ Technically, the product is a **Next.js 16 (App Router)** stack on **Supabase** 
 
 ## At a glance
 
-| Focus | What you get |
-| ----- | ------------ |
-| **Daily practice** | Curated puzzles, habit-friendly flow, keyboard-accessible board |
-| **AI coach** | Streaming coach API, fair-use quotas, persona system, puzzle-level eligibility |
-| **Global product** | Locale-prefixed routing, SEO-scale sitemap with the puzzle corpus, adaptive pricing |
-| **Operations** | Documented APIs & schema, automated CI (format → lint → validate → typecheck → test → build), security disclosure process |
+| Focus              | What you get                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| **Daily practice** | Curated puzzles, habit-friendly flow, keyboard-accessible board                                                           |
+| **AI coach**       | Streaming coach API, fair-use quotas, persona system, puzzle-level eligibility                                            |
+| **Global product** | Locale-prefixed routing, SEO-scale sitemap with the puzzle corpus, adaptive pricing                                       |
+| **Operations**     | Documented APIs & schema, automated CI (format → lint → validate → typecheck → test → build), security disclosure process |
 
 ## Documentation
 
 Authoritative technical and product documentation is the **eight-pillar, four-locale** library under [`docs/`](docs/README.md). Use the hub to pick your language (`en` / `zh` / `ja` / `ko`).
 
-| I need… | Start here (English) |
-| ------- | -------------------- |
-| Vision, strategy, phases | [Concept & strategy](docs/en/CONCEPT.md) |
-| Request lifecycle, `lib/` domains, security boundaries | [Architecture](docs/en/ARCHITECTURE.md) |
-| SRS, entitlements, subscriptions, coach rules | [Product specifications](docs/en/PRODUCT_SPECS.md) |
-| Deploy, env, tests, preflight | [Operations & QA](docs/en/OPERATIONS_QA.md) |
-| Release readiness / roadmap cues | [Project status](docs/en/PROJECT_STATUS.md) |
-| HTTP routes & payloads | [API reference](docs/en/API_REFERENCE.md) |
-| Tables, indexes, RLS | [Database schema](docs/en/DATABASE_SCHEMA.md) |
-| Legal posture (multi-jurisdiction) | [Legal & compliance](docs/en/LEGAL_COMPLIANCE.md) |
+| I need…                                                | Start here (English)                               |
+| ------------------------------------------------------ | -------------------------------------------------- |
+| Vision, strategy, phases                               | [Concept & strategy](docs/en/CONCEPT.md)           |
+| Request lifecycle, `lib/` domains, security boundaries | [Architecture](docs/en/ARCHITECTURE.md)            |
+| SRS, entitlements, subscriptions, coach rules          | [Product specifications](docs/en/PRODUCT_SPECS.md) |
+| Deploy, env, tests, preflight                          | [Operations & QA](docs/en/OPERATIONS_QA.md)        |
+| Release readiness / roadmap cues                       | [Project status](docs/en/PROJECT_STATUS.md)        |
+| HTTP routes & payloads                                 | [API reference](docs/en/API_REFERENCE.md)          |
+| Tables, indexes, RLS                                   | [Database schema](docs/en/DATABASE_SCHEMA.md)      |
+| Legal posture (multi-jurisdiction)                     | [Legal & compliance](docs/en/LEGAL_COMPLIANCE.md)  |
 
 **Also:** [Changelog](CHANGELOG.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Contributing (中文)](CONTRIBUTING.zh.md) · [License](LICENSE)
 
@@ -65,14 +65,14 @@ Open `http://localhost:3000` — locale negotiation redirects to `/{zh|en|ja|ko}
 
 ## Tech stack
 
-| Layer | Choices |
-| ----- | ------- |
-| UI | Next.js 16, React 19, Tailwind CSS v4, Framer Motion |
-| Data & auth | Supabase (Postgres + RLS), tiered client storage |
-| Payments | Stripe (adaptive pricing, trials) |
-| AI | DeepSeek Chat API (Socratic coach pipeline) |
-| Edge | Upstash Redis rate limiting (required in production for standard deployments) |
-| Email | Resend (transactional, where configured) |
+| Layer       | Choices                                                                       |
+| ----------- | ----------------------------------------------------------------------------- |
+| UI          | Next.js 16, React 19, Tailwind CSS v4, Framer Motion                          |
+| Data & auth | Supabase (Postgres + RLS), tiered client storage                              |
+| Payments    | Stripe (adaptive pricing, trials)                                             |
+| AI          | DeepSeek Chat API (Socratic coach pipeline)                                   |
+| Edge        | Upstash Redis rate limiting (required in production for standard deployments) |
+| Email       | Resend (transactional, where configured)                                      |
 
 ## Contributing & security
 

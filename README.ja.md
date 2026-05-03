@@ -19,27 +19,27 @@
 
 ## ハイライト
 
-| 観点 | 内容 |
-| ---- | ---- |
-| **毎日の練習** | キュレーションされた問題、没入型フロー、キーボードで操作できる盤面 |
-| **AI コーチ** | ストリーミング Coach API、利用枠・ペルソナ、問題ごとの可否判定 |
-| **グローバル** | ロケール接頭のルーティング、sitemap が問題コーパスと連動、地域別価格 |
-| **運用** | API と DB をドキュメント化、CI（フォーマット・Lint・検証・型チェック・テスト・ビルド） |
+| 観点           | 内容                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------- |
+| **毎日の練習** | キュレーションされた問題、没入型フロー、キーボードで操作できる盤面                     |
+| **AI コーチ**  | ストリーミング Coach API、利用枠・ペルソナ、問題ごとの可否判定                         |
+| **グローバル** | ロケール接頭のルーティング、sitemap が問題コーパスと連動、地域別価格                   |
+| **運用**       | API と DB をドキュメント化、CI（フォーマット・Lint・検証・型チェック・テスト・ビルド） |
 
 ## ドキュメント
 
 正式な技術・製品ドキュメントは `docs/` にある **8 本の柱 × 4 言語** です。入口は **[ドキュメントハブ](docs/README.md)**（`en` / `zh` / `ja` / `ko`）。
 
-| 知りたいこと | 日本語 |
-| ------------ | ------ |
-| ビジョン・フェーズ | [プロジェクト理念](docs/ja/CONCEPT.md) |
-| リクエストと `lib/` 分離・セキュリティ | [アーキテクチャ](docs/ja/ARCHITECTURE.md) |
-| SRS・権利・課金・コーチルール | [製品仕様](docs/ja/PRODUCT_SPECS.md) |
-| デプロイ・環境・テスト | [運用と QA](docs/ja/OPERATIONS_QA.md) |
-| 準備状況の追跡 | [プロジェクト状況](docs/ja/PROJECT_STATUS.md) |
-| HTTP API | [API リファレンス](docs/ja/API_REFERENCE.md) |
-| スキーマ・RLS | [データベーススキーマ](docs/ja/DATABASE_SCHEMA.md) |
-| コンプライアンス | [法務](docs/ja/LEGAL_COMPLIANCE.md) |
+| 知りたいこと                           | 日本語                                             |
+| -------------------------------------- | -------------------------------------------------- |
+| ビジョン・フェーズ                     | [プロジェクト理念](docs/ja/CONCEPT.md)             |
+| リクエストと `lib/` 分離・セキュリティ | [アーキテクチャ](docs/ja/ARCHITECTURE.md)          |
+| SRS・権利・課金・コーチルール          | [製品仕様](docs/ja/PRODUCT_SPECS.md)               |
+| デプロイ・環境・テスト                 | [運用と QA](docs/ja/OPERATIONS_QA.md)              |
+| 準備状況の追跡                         | [プロジェクト状況](docs/ja/PROJECT_STATUS.md)      |
+| HTTP API                               | [API リファレンス](docs/ja/API_REFERENCE.md)       |
+| スキーマ・RLS                          | [データベーススキーマ](docs/ja/DATABASE_SCHEMA.md) |
+| コンプライアンス                       | [法務](docs/ja/LEGAL_COMPLIANCE.md)                |
 
 **その他:** [CHANGELOG](CHANGELOG.md) · [SECURITY](SECURITY.md) · [Contributing](CONTRIBUTING.md) / [中文](CONTRIBUTING.zh.md) · [LICENSE](LICENSE)
 
@@ -65,14 +65,14 @@ npm run dev
 
 ## 技術スタック
 
-| 層 | 採用技術 |
-| -- | -------- |
-| UI | Next.js 16, React 19, Tailwind CSS v4, Framer Motion |
-| データ | Supabase（Postgres + RLS）、段階的クライアント永続化 |
-| 決済 | Stripe |
-| AI | DeepSeek Chat API |
-| レート制限 | Upstash Redis（本番の標準構成で利用） |
-| メール | Resend（設定時） |
+| 層         | 採用技術                                             |
+| ---------- | ---------------------------------------------------- |
+| UI         | Next.js 16, React 19, Tailwind CSS v4, Framer Motion |
+| データ     | Supabase（Postgres + RLS）、段階的クライアント永続化 |
+| 決済       | Stripe                                               |
+| AI         | DeepSeek Chat API                                    |
+| レート制限 | Upstash Redis（本番の標準構成で利用）                |
+| メール     | Resend（設定時）                                     |
 
 ## コントリビューションとセキュリティ
 

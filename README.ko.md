@@ -19,27 +19,27 @@
 
 ## 한눈에 보기
 
-| 영역 | 설명 |
-| ---- | ---- |
-| **일일 연습** | 큐레이션된 문제, 몰입형 플로우, 키보드 접근 가능한 바둑판 |
-| **AI 코치** | 스트리밍 Coach API, 쿼터·페르소나, 퍼즐별 적격 여부 |
-| **글로벌** | 로케일 접두 경로, 퍼즐 코퍼스와 함께 커지는 sitemap, 지역별 가격 |
-| **운영** | API·DB 문서화, CI(포맷·lint·검증·타입체크·테스트·빌드) |
+| 영역          | 설명                                                             |
+| ------------- | ---------------------------------------------------------------- |
+| **일일 연습** | 큐레이션된 문제, 몰입형 플로우, 키보드 접근 가능한 바둑판        |
+| **AI 코치**   | 스트리밍 Coach API, 쿼터·페르소나, 퍼즐별 적격 여부              |
+| **글로벌**    | 로케일 접두 경로, 퍼즐 코퍼스와 함께 커지는 sitemap, 지역별 가격 |
+| **운영**      | API·DB 문서화, CI(포맷·lint·검증·타입체크·테스트·빌드)           |
 
 ## 문서
 
 공식 기술·제품 문서는 `docs/`의 **8개 기둥 × 4개 언어**입니다. 시작은 **[문서 허브](docs/README.md)**에서 로케일을 고르세요 (`en` / `zh` / `ja` / `ko`).
 
-| 필요한 정보 | 한국어 |
-| ----------- | ------ |
-| 비전·단계 | [프로젝트 철학](docs/ko/CONCEPT.md) |
-| 요청 흐름·`lib/`·보안 | [아키텍처](docs/ko/ARCHITECTURE.md) |
-| SRS·자격·구독·코치 규칙 | [제품 사양](docs/ko/PRODUCT_SPECS.md) |
-| 배포·환경·테스트 | [운영 및 QA](docs/ko/OPERATIONS_QA.md) |
-| 준비 상태 추적 | [프로젝트 상태](docs/ko/PROJECT_STATUS.md) |
-| HTTP API | [API 레퍼런스](docs/ko/API_REFERENCE.md) |
-| 스키마·RLS | [데이터베이스 스키마](docs/ko/DATABASE_SCHEMA.md) |
-| 컴플라이언스 | [법무](docs/ko/LEGAL_COMPLIANCE.md) |
+| 필요한 정보             | 한국어                                            |
+| ----------------------- | ------------------------------------------------- |
+| 비전·단계               | [프로젝트 철학](docs/ko/CONCEPT.md)               |
+| 요청 흐름·`lib/`·보안   | [아키텍처](docs/ko/ARCHITECTURE.md)               |
+| SRS·자격·구독·코치 규칙 | [제품 사양](docs/ko/PRODUCT_SPECS.md)             |
+| 배포·환경·테스트        | [운영 및 QA](docs/ko/OPERATIONS_QA.md)            |
+| 준비 상태 추적          | [프로젝트 상태](docs/ko/PROJECT_STATUS.md)        |
+| HTTP API                | [API 레퍼런스](docs/ko/API_REFERENCE.md)          |
+| 스키마·RLS              | [데이터베이스 스키마](docs/ko/DATABASE_SCHEMA.md) |
+| 컴플라이언스            | [법무](docs/ko/LEGAL_COMPLIANCE.md)               |
 
 **또 보기:** [CHANGELOG](CHANGELOG.md) · [SECURITY](SECURITY.md) · [Contributing](CONTRIBUTING.md) / [中文](CONTRIBUTING.zh.md) · [LICENSE](LICENSE)
 
@@ -65,14 +65,14 @@ npm run dev
 
 ## 기술 스택
 
-| 계층 | 선택 |
-| ---- | ---- |
-| UI | Next.js 16, React 19, Tailwind CSS v4, Framer Motion |
-| 데이터 | Supabase(Postgres + RLS), 계층형 클라이언트 저장소 |
-| 결제 | Stripe |
-| AI | DeepSeek Chat API |
-| 속도 제한 | Upstash Redis(프로덕션 표준 구성) |
-| 메일 | Resend(설정 시) |
+| 계층      | 선택                                                 |
+| --------- | ---------------------------------------------------- |
+| UI        | Next.js 16, React 19, Tailwind CSS v4, Framer Motion |
+| 데이터    | Supabase(Postgres + RLS), 계층형 클라이언트 저장소   |
+| 결제      | Stripe                                               |
+| AI        | DeepSeek Chat API                                    |
+| 속도 제한 | Upstash Redis(프로덕션 표준 구성)                    |
+| 메일      | Resend(설정 시)                                      |
 
 ## 기여와 보안
 

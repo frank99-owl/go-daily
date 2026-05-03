@@ -91,4 +91,4 @@ CI pipeline (`.github/workflows/ci.yml`): format:check → lint → validate:puz
 | `docs/{locale}/DATABASE_SCHEMA.md`  | Supabase table definitions and RLS policies                 |
 | `docs/{locale}/LEGAL_COMPLIANCE.md` | Multi-jurisdiction legal strategy                           |
 
-**Other Markdown**: root `README.md` / localized `README.*`, `CONTRIBUTING.md` (English; GitHub default) + `CONTRIBUTING.zh.md`, `CHANGELOG.md`, `SECURITY.md`, `LICENSE`. **`reports/**`**: generator output from `audit:puzzles`, `queue:content`, `report:*` — not committed; not hand-maintained product specs (see `docs/README.md`).
+**Other Markdown**: root `README.md` / localized `README.*`, `CONTRIBUTING.md` (English; GitHub default) + `CONTRIBUTING.zh.md`, `CHANGELOG.md`, `SECURITY.md`, `LICENSE`. **`reports/**`**: generator output from `audit:puzzles`, `queue:content`, `report:\*`— not committed; not hand-maintained product specs (see`docs/README.md`).

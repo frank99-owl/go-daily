@@ -19,27 +19,27 @@
 
 ## 一览
 
-| 维度 | 说明 |
-| ---- | ---- |
-| **每日练习** | 精选题库、沉浸流程、棋盘键盘可操作 |
-| **AI 教练** | 流式 Coach API、配额与人格、按题目准入 |
-| **全球化** | 语言路径前缀、sitemap 与题库规模同步增长、地区化定价 |
-| **可运维** | API 与数据库文档化；CI 覆盖格式、Lint、校验、类型检查、测试与构建 |
+| 维度         | 说明                                                              |
+| ------------ | ----------------------------------------------------------------- |
+| **每日练习** | 精选题库、沉浸流程、棋盘键盘可操作                                |
+| **AI 教练**  | 流式 Coach API、配额与人格、按题目准入                            |
+| **全球化**   | 语言路径前缀、sitemap 与题库规模同步增长、地区化定价              |
+| **可运维**   | API 与数据库文档化；CI 覆盖格式、Lint、校验、类型检查、测试与构建 |
 
 ## 文档
 
 权威技术 / 产品文档为 `docs/` 下 **八大支柱 × 四语文**。请从 **[文档中心](docs/README.md)** 选择语言（`en` / `zh` / `ja` / `ko`）。
 
-| 我需要… | 中文入口 |
-| ------- | -------- |
-| 愿景、阶段、战略 | [项目理念](docs/zh/CONCEPT.md) |
-| 请求链路、`lib/` 分域、安全边界 | [技术架构](docs/zh/ARCHITECTURE.md) |
-| SRS、权益、订阅与教练规则 | [产品规格](docs/zh/PRODUCT_SPECS.md) |
-| 部署、环境、测试、预检 | [运维与 QA](docs/zh/OPERATIONS_QA.md) |
-| 交付 / 就绪跟踪 | [项目状态](docs/zh/PROJECT_STATUS.md) |
-| HTTP 路由与载荷 | [API 参考](docs/zh/API_REFERENCE.md) |
-| 表、索引、RLS | [数据库 Schema](docs/zh/DATABASE_SCHEMA.md) |
-| 合规策略 | [法律与合规](docs/zh/LEGAL_COMPLIANCE.md) |
+| 我需要…                         | 中文入口                                    |
+| ------------------------------- | ------------------------------------------- |
+| 愿景、阶段、战略                | [项目理念](docs/zh/CONCEPT.md)              |
+| 请求链路、`lib/` 分域、安全边界 | [技术架构](docs/zh/ARCHITECTURE.md)         |
+| SRS、权益、订阅与教练规则       | [产品规格](docs/zh/PRODUCT_SPECS.md)        |
+| 部署、环境、测试、预检          | [运维与 QA](docs/zh/OPERATIONS_QA.md)       |
+| 交付 / 就绪跟踪                 | [项目状态](docs/zh/PROJECT_STATUS.md)       |
+| HTTP 路由与载荷                 | [API 参考](docs/zh/API_REFERENCE.md)        |
+| 表、索引、RLS                   | [数据库 Schema](docs/zh/DATABASE_SCHEMA.md) |
+| 合规策略                        | [法律与合规](docs/zh/LEGAL_COMPLIANCE.md)   |
 
 **另见：** [CHANGELOG](CHANGELOG.md) · [安全策略](SECURITY.md) · [贡献指南（英文默认）](CONTRIBUTING.md) / [中文版](CONTRIBUTING.zh.md) · [LICENSE](LICENSE)
 
@@ -65,14 +65,14 @@ npm run dev
 
 ## 技术栈
 
-| 层级 | 选型 |
-| ---- | ---- |
-| 前端 | Next.js 16、React 19、Tailwind CSS v4、Framer Motion |
-| 数据与认证 | Supabase（Postgres + RLS）、分层客户端存储 |
-| 支付 | Stripe（动态定价、试用） |
-| AI | DeepSeek Chat API（苏格拉底式教练管线） |
-| 边缘限流 | Upstash Redis（生产环境标准部署下需要） |
-| 邮件 | Resend（在配置可用时使用） |
+| 层级       | 选型                                                 |
+| ---------- | ---------------------------------------------------- |
+| 前端       | Next.js 16、React 19、Tailwind CSS v4、Framer Motion |
+| 数据与认证 | Supabase（Postgres + RLS）、分层客户端存储           |
+| 支付       | Stripe（动态定价、试用）                             |
+| AI         | DeepSeek Chat API（苏格拉底式教练管线）              |
+| 边缘限流   | Upstash Redis（生产环境标准部署下需要）              |
+| 邮件       | Resend（在配置可用时使用）                           |
 
 ## 贡献与安全
 

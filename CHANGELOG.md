@@ -87,9 +87,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 When describing 1.1.x capabilities in marketing, support, or partner materials, use accurate phrasing:
 
-- **Storage recovery**: Say *integrity check / corruption recovery*, not “anti-tamper” or “forgery-proof.”
+- **Storage recovery**: Say _integrity check / corruption recovery_, not “anti-tamper” or “forgery-proof.”
 - **Error reporting**: Say errors are sent to an internal endpoint and recorded in server logs, not that an administrator is automatically notified by a third-party dashboard.
-- **Offline**: Say *basic offline shell* (network-first HTML, cache-first assets), not that the full dynamic puzzle experience works offline.
+- **Offline**: Say _basic offline shell_ (network-first HTML, cache-first assets), not that the full dynamic puzzle experience works offline.
 - **Keyboard**: Say shortcuts on **today / result** puzzle surfaces, not site-wide hotkeys everywhere.
 
 Implementation-level closure detail for v1.1 now lives in the pillar docs on `main` (`docs/*/ARCHITECTURE.md`, `API_REFERENCE.md`, `DATABASE_SCHEMA.md`, `OPERATIONS_QA.md`).
