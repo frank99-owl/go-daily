@@ -86,6 +86,7 @@ const EXPECTED_SUPABASE_COLUMNS: Record<string, string[]> = {
     "created_at",
   ],
   coach_usage: ["user_id", "day", "count"],
+  guest_coach_usage: ["device_id", "day", "count", "created_at"],
   subscriptions: [
     "user_id",
     "stripe_customer_id",
@@ -116,6 +117,7 @@ const EXPECTED_SUPABASE_COLUMNS: Record<string, string[]> = {
     "last_error",
   ],
   user_devices: ["user_id", "device_id", "first_seen", "last_seen", "user_agent"],
+  manual_grants: ["email", "expires_at", "granted_by", "created_at"],
 };
 
 function argValue(name: string): string | null {

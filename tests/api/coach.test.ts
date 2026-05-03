@@ -23,6 +23,43 @@ import { MemoryRateLimiter } from "@/lib/rateLimit";
 
 const createCompletionMock = vi.fn();
 
+/** Create a mock async iterable that simulates OpenAI streaming. */
+function mockStream(text: string) {
+  const words = text.split(/(\s+)/);
+  let i = 0;
+  let usageSent = false;
+  return {
+    [Symbol.asyncIterator]() {
+      return {
+        async next() {
+          if (i < words.length) {
+            const delta = words[i++];
+            return {
+              done: false,
+              value: {
+                choices: [{ delta: { content: delta }, finish_reason: null }],
+                model: "test-model",
+              },
+            };
+          }
+          if (!usageSent) {
+            usageSent = true;
+            return {
+              done: false,
+              value: {
+                choices: [],
+                model: "test-model",
+                usage: { prompt_tokens: 50, completion_tokens: 20, total_tokens: 70 },
+              },
+            };
+          }
+          return { done: true, value: undefined };
+        },
+      };
+    },
+  };
+}
+
 vi.mock("@/content/puzzles", () => ({
   getPuzzle: vi.fn(),
 }));
@@ -146,6 +183,22 @@ function nextTestIp(): string {
   const b = (ipCounter >> 8) & 0xff;
   const c = ipCounter & 0xff;
   return `10.${a}.${b}.${c}`;
+}
+
+/** Parse an SSE response into its data events. */
+async function readSse(response: Response): Promise<Array<Record<string, unknown>>> {
+  const text = await response.text();
+  const events: Array<Record<string, unknown>> = [];
+  for (const line of text.split("\n")) {
+    if (line.startsWith("data: ")) {
+      try {
+        events.push(JSON.parse(line.slice(6)));
+      } catch {
+        // ignore
+      }
+    }
+  }
+  return events;
 }
 
 function makeRequest(body: unknown, init?: { headers?: HeadersInit }): Request {
@@ -303,9 +356,7 @@ describe("/api/coach", () => {
   });
 
   it("rate limits repeated requests from the same IP", async () => {
-    createCompletionMock.mockResolvedValue({
-      choices: [{ message: { content: "Coach reply" } }],
-    });
+    createCompletionMock.mockReturnValue(mockStream("Coach reply"));
 
     let status = 200;
     for (let index = 0; index < 15; index++) {
@@ -332,9 +383,7 @@ describe("/api/coach", () => {
   });
 
   it("fails open when the local rate limiter throws", async () => {
-    createCompletionMock.mockResolvedValue({
-      choices: [{ message: { content: "Coach reply" } }],
-    });
+    createCompletionMock.mockReturnValue(mockStream("Coach reply"));
     vi.spyOn(MemoryRateLimiter.prototype, "isLimited").mockImplementationOnce(() => {
       throw new Error("simulated limiter failure");
     });
@@ -376,7 +425,7 @@ describe("/api/coach", () => {
     });
   });
 
-  it("returns 504 on upstream timeout errors", async () => {
+  it("returns SSE timeout error on upstream timeout", async () => {
     createCompletionMock.mockRejectedValue(new Error("request timeout"));
 
     const response = await POST(
@@ -389,13 +438,12 @@ describe("/api/coach", () => {
       }),
     );
 
-    expect(response.status).toBe(504);
-    await expect(response.json()).resolves.toEqual({
-      error: "Coach is taking too long. Please try again.",
-    });
+    expect(response.status).toBe(200);
+    const events = await readSse(response);
+    expect(events).toContainEqual({ error: "timeout" });
   });
 
-  it("returns 429 on upstream rate limiting", async () => {
+  it("returns SSE rate_limit error on upstream rate limiting", async () => {
     createCompletionMock.mockRejectedValue(new Error("429 rate limit"));
 
     const response = await POST(
@@ -408,13 +456,12 @@ describe("/api/coach", () => {
       }),
     );
 
-    expect(response.status).toBe(429);
-    await expect(response.json()).resolves.toEqual({
-      error: "Coach is busy. Please try again in a moment.",
-    });
+    expect(response.status).toBe(200);
+    const events = await readSse(response);
+    expect(events).toContainEqual({ error: "rate_limit" });
   });
 
-  it("returns 500 on upstream auth errors", async () => {
+  it("returns SSE auth_error on upstream auth errors", async () => {
     createCompletionMock.mockRejectedValue(new Error("401 auth failed"));
 
     const response = await POST(
@@ -427,13 +474,12 @@ describe("/api/coach", () => {
       }),
     );
 
-    expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toEqual({
-      error: "Coach authentication failed. Please contact support.",
-    });
+    expect(response.status).toBe(200);
+    const events = await readSse(response);
+    expect(events).toContainEqual({ error: "auth_error" });
   });
 
-  it("returns 502 on other upstream failures", async () => {
+  it("returns SSE upstream_error on other upstream failures", async () => {
     createCompletionMock.mockRejectedValue(new Error("upstream unavailable"));
 
     const response = await POST(
@@ -446,17 +492,82 @@ describe("/api/coach", () => {
       }),
     );
 
-    expect(response.status).toBe(502);
-    await expect(response.json()).resolves.toEqual({
-      error: "Coach is temporarily unavailable. Please try again later.",
+    expect(response.status).toBe(200);
+    const events = await readSse(response);
+    expect(events).toContainEqual({ error: "upstream_error" });
+  });
+
+  it("returns SSE error when stream fails mid-way", async () => {
+    // Stream yields one delta then throws
+    createCompletionMock.mockReturnValue({
+      [Symbol.asyncIterator]() {
+        let sent = false;
+        return {
+          async next() {
+            if (!sent) {
+              sent = true;
+              return {
+                done: false,
+                value: {
+                  choices: [{ delta: { content: "partial" }, finish_reason: null }],
+                  model: "test-model",
+                },
+              };
+            }
+            throw new Error("connection reset");
+          },
+        };
+      },
     });
+
+    const response = await POST(
+      makeRequest({
+        puzzleId: "p-00001",
+        locale: "en",
+        userMove: { x: 3, y: 3 },
+        isCorrect: false,
+        history: [{ role: "user", content: "Why?", ts: 1 }],
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const events = await readSse(response);
+    expect(events).toContainEqual({ error: "upstream_error" });
+  });
+
+  it("handles empty stream (no deltas, immediate done)", async () => {
+    createCompletionMock.mockReturnValue({
+      [Symbol.asyncIterator]() {
+        return {
+          async next() {
+            return { done: true, value: undefined };
+          },
+        };
+      },
+    });
+
+    const response = await POST(
+      makeRequest({
+        puzzleId: "p-00001",
+        locale: "en",
+        userMove: { x: 3, y: 3 },
+        isCorrect: false,
+        history: [{ role: "user", content: "Why?", ts: 1 }],
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const events = await readSse(response);
+    // No deltas — only the done event is sent. The frontend handles the
+    // "empty reply" case by showing an error to the user.
+    const deltas = events.filter((e) => e.delta);
+    expect(deltas).toHaveLength(0);
+    expect(events.some((e) => e.done)).toBe(true);
   });
 
   it("uses the default model when COACH_MODEL is unset", async () => {
     delete process.env.COACH_MODEL;
-    createCompletionMock.mockResolvedValue({
-      choices: [{ message: { content: "Coach reply" } }],
-    });
+    createCompletionMock.mockReturnValue(mockStream("Coach reply"));
 
     const response = await POST(
       makeRequest({
@@ -476,9 +587,7 @@ describe("/api/coach", () => {
 
   it("uses the configured COACH_MODEL and returns the reply", async () => {
     process.env.COACH_MODEL = "custom-model";
-    createCompletionMock.mockResolvedValue({
-      choices: [{ message: { content: "Coach reply" } }],
-    });
+    createCompletionMock.mockReturnValue(mockStream("Coach reply"));
 
     const response = await POST(
       makeRequest({
@@ -491,9 +600,14 @@ describe("/api/coach", () => {
     );
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ reply: "Coach reply" });
+    const events = await readSse(response);
+    const deltas = events
+      .filter((e) => e.delta)
+      .map((e) => e.delta)
+      .join("");
+    expect(deltas).toContain("Coach reply");
     expect(createCompletionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ model: "custom-model" }),
+      expect.objectContaining({ model: "custom-model", stream: true }),
     );
     expect(OpenAI).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -505,9 +619,7 @@ describe("/api/coach", () => {
   });
 
   it("recomputes correctness from the private puzzle instead of trusting the client", async () => {
-    createCompletionMock.mockResolvedValue({
-      choices: [{ message: { content: "Coach reply" } }],
-    });
+    createCompletionMock.mockReturnValue(mockStream("Coach reply"));
 
     const response = await POST(
       makeRequest({
@@ -553,9 +665,7 @@ describe("/api/coach", () => {
     });
 
     it("allows a free user whose device_id matches the registered seat", async () => {
-      createCompletionMock.mockResolvedValue({
-        choices: [{ message: { content: "Coach reply" } }],
-      });
+      createCompletionMock.mockReturnValue(mockStream("Coach reply"));
       supabaseMocks.createServiceClient.mockReturnValue(
         buildAdminClient({
           subscription: { status: null },
@@ -577,9 +687,10 @@ describe("/api/coach", () => {
       );
 
       expect(response.status).toBe(200);
-      const body = await response.json();
-      expect(body).toMatchObject({ reply: "Coach reply" });
-      expect(body.usage).toMatchObject({ plan: "free" });
+      const events = await readSse(response);
+      const doneEvent = events.find((e) => e.done);
+      expect(doneEvent).toBeDefined();
+      expect(doneEvent!.usage).toMatchObject({ plan: "free" });
     });
 
     it("blocks a free user at the device limit with 403 device_limit", async () => {
@@ -614,9 +725,7 @@ describe("/api/coach", () => {
     });
 
     it("lets a pro user add new devices without hitting the limit", async () => {
-      createCompletionMock.mockResolvedValue({
-        choices: [{ message: { content: "Coach reply" } }],
-      });
+      createCompletionMock.mockReturnValue(mockStream("Coach reply"));
       supabaseMocks.createServiceClient.mockReturnValue(
         buildAdminClient({
           subscription: { status: "active" },
@@ -638,8 +747,9 @@ describe("/api/coach", () => {
       );
 
       expect(response.status).toBe(200);
-      const body = await response.json();
-      expect(body.usage).toMatchObject({ plan: "pro" });
+      const events = await readSse(response);
+      const doneEvent = events.find((e) => e.done);
+      expect(doneEvent!.usage).toMatchObject({ plan: "pro" });
     });
 
     it("returns 429 daily_limit_reached when today's usage equals the free daily limit", async () => {

@@ -102,11 +102,22 @@ describe("CoachDialogue", () => {
       expect(screen.getByText(/思考中/i)).toBeInTheDocument();
     });
 
-    // Resolve the fetch
+    // Resolve the fetch with an SSE stream
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: "这是回复" })}\n\n`));
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ done: true, usage: {} })}\n\n`),
+        );
+        controller.close();
+      },
+    });
+
     resolveResponse!({
       ok: true,
       status: 200,
-      json: () => Promise.resolve({ reply: "这是回复" }),
+      body: stream,
     } as Response);
 
     await waitFor(() => {

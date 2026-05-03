@@ -45,7 +45,10 @@ export function HeroSection() {
     locale === "zh"
       ? { fontFamily: '"Zhi Mang Xing", cursive', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
       : locale === "ja"
-        ? { fontFamily: '"Yuji Syuku", serif', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
+        ? {
+            fontFamily: '"Shippori Mincho", serif',
+            textShadow: "0 0 30px rgba(255, 255, 255, 0.2)",
+          }
         : locale === "ko"
           ? { fontFamily: '"Gowun Batang", serif', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
           : {

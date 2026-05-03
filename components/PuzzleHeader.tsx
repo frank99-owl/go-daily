@@ -1,6 +1,5 @@
 "use client";
 
-import { isLocalBoardDisplay } from "@/lib/board/boardDisplay";
 import { useLocale } from "@/lib/i18n/i18n";
 import { localized } from "@/lib/i18n/localized";
 import type { PublicPuzzle } from "@/types";
@@ -10,9 +9,7 @@ export function PuzzleHeader({ puzzle, metaLabel }: { puzzle: PublicPuzzle; meta
   const toPlayLabel = puzzle.toPlay === "black" ? t.home.toPlayBlack : t.home.toPlayWhite;
   const primaryMeta = metaLabel ?? puzzle.source ?? puzzle.date;
   const boardSizeKey = String(puzzle.boardSize) as "9" | "13" | "19";
-  const boardSizeLabel = isLocalBoardDisplay(puzzle)
-    ? t.puzzles.boardSize.local19
-    : t.puzzles.boardSize[boardSizeKey];
+  const boardSizeLabel = t.puzzles.boardSize[boardSizeKey];
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-3 text-sm text-ink-2">

@@ -18,11 +18,14 @@
  *     credentials is accepted.
  */
 import { createApiResponse } from "@/lib/apiHeaders";
+import { createRateLimiter } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
+
+const rateLimiter = createRateLimiter();
 
 export async function POST(request: Request) {
   if (!isSameOriginMutationRequest(request)) {
@@ -37,6 +40,15 @@ export async function POST(request: Request) {
 
   if (userErr || !user) {
     return createApiResponse({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  // Rate limit: 5 requests per hour per user (destructive action)
+  try {
+    if (await rateLimiter.isLimited(`delete:${user.id}`)) {
+      return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
+    }
+  } catch (error) {
+    console.warn("[account/delete] rate limiter failed open", { userId: user.id, error });
   }
 
   const admin = createServiceClient();

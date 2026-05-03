@@ -165,38 +165,36 @@ export function PricingClient({ viewerPlan, locale }: { viewerPlan: ViewerPlan; 
             </thead>
             <tbody>
               <tr className="border-b border-white/5">
-                <td className="px-4 py-2.5 text-white/60">{copy.compareCoachDaily}</td>
-                <td className="px-4 py-2.5 text-center text-white/50">10</td>
+                <td className="px-4 py-2.5 text-white/80">{copy.compareCoachDaily}</td>
+                <td className="px-4 py-2.5 text-center text-white/70">10</td>
                 <td className="px-4 py-2.5 text-center text-white font-medium">50+</td>
               </tr>
               <tr className="border-b border-white/5">
-                <td className="px-4 py-2.5 text-white/60">{copy.compareCoachMonthly}</td>
-                <td className="px-4 py-2.5 text-center text-white/50">30</td>
+                <td className="px-4 py-2.5 text-white/80">{copy.compareCoachMonthly}</td>
+                <td className="px-4 py-2.5 text-center text-white/70">30</td>
                 <td className="px-4 py-2.5 text-center text-white font-medium">1,000+</td>
               </tr>
               <tr className="border-b border-white/5">
-                <td className="px-4 py-2.5 text-white/60">{copy.compareDeviceSync}</td>
-                <td className="px-4 py-2.5 text-center text-white/50">
-                  <X className="inline h-4 w-4 text-white/20" />
-                </td>
-                <td className="px-4 py-2.5 text-center">
-                  <Check className="inline h-4 w-4 text-[var(--color-accent)]" />
-                </td>
+                <td className="px-4 py-2.5 text-white/80">{copy.compareDevices}</td>
+                <td className="px-4 py-2.5 text-center text-white/70">1</td>
+                <td className="px-4 py-2.5 text-center text-white font-medium">3</td>
               </tr>
               <tr className="border-b border-white/5">
-                <td className="px-4 py-2.5 text-white/60">{copy.compareDevices}</td>
-                <td className="px-4 py-2.5 text-center text-white/50">1</td>
-                <td className="px-4 py-2.5 text-center text-white font-medium">
+                <td className="px-4 py-2.5 text-white/80">{copy.compareDeviceSync}</td>
+                <td className="px-4 py-2.5 text-center text-white/70">
+                  <X className="inline h-4 w-4 text-white/40" />
+                </td>
+                <td className="px-4 py-2.5 text-center">
                   <Check className="inline h-4 w-4 text-[var(--color-accent)]" />
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-2.5 text-white/60">{copy.compareAds}</td>
+                <td className="px-4 py-2.5 text-white/80">{copy.compareAds}</td>
                 <td className="px-4 py-2.5 text-center">
-                  <Check className="inline h-4 w-4 text-white/30" />
+                  <X className="inline h-4 w-4 text-white/40" />
                 </td>
                 <td className="px-4 py-2.5 text-center">
-                  <X className="inline h-4 w-4 text-[var(--color-accent)]" />
+                  <Check className="inline h-4 w-4 text-[var(--color-accent)]" />
                 </td>
               </tr>
             </tbody>

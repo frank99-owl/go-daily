@@ -5,7 +5,7 @@ import { getClientIP } from "@/lib/clientIp";
 import { getCoachAccess } from "@/lib/coach/coachAccess";
 import { COACH_ERROR_CODES } from "@/lib/coach/coachErrorCodes";
 import { buildSystemPrompt } from "@/lib/coach/coachPrompt";
-import { createManagedCoachProvider } from "@/lib/coach/coachProvider";
+import { createManagedCoachProvider, type CoachProviderUsage } from "@/lib/coach/coachProvider";
 import { formatDateInTimeZone } from "@/lib/coach/coachQuota";
 import {
   COACH_DEVICE_ID_HEADER,
@@ -269,119 +269,154 @@ export async function POST(request: Request) {
 
   const modelInfo = getCoachModelInfo();
 
-  try {
-    const provider = createManagedCoachProvider({
-      apiKey,
-      timeout: UPSTREAM_TIMEOUT_MS,
+  // Increment usage BEFORE streaming to prevent free partial responses.
+  if (isGuest) {
+    await incrementGuestUsage(guestDeviceId!);
+    incrementIpCounter(ip);
+  } else {
+    await incrementCoachUsage({
+      admin: admin!,
+      userId: user!.id,
+      day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
     });
-    const result = await provider.createReply(openaiMessages);
-    if (!result.content) {
-      console.warn("[coach] Empty reply from model");
-      return createApiResponse({ error: "Empty reply from the model." }, { status: 502 });
-    }
+  }
 
-    // Clean up occasional "system:" prefix leakage from the model
-    const reply = result.content.replace(/^(system|SYSTEM)\s*[:：]\s*/i, "").trim();
-
-    if (isGuest) {
-      await incrementGuestUsage(guestDeviceId!);
-      incrementIpCounter(ip);
-
-      const updatedGuestUsage = {
+  const updatedUsage = isGuest
+    ? {
         dailyLimit: guestUsage!.dailyLimit,
         monthlyLimit: guestUsage!.monthlyLimit,
         dailyUsed: guestUsage!.dailyUsed + 1,
         monthlyUsed: guestUsage!.monthlyUsed + 1,
         dailyRemaining: Math.max(guestUsage!.dailyRemaining - 1, 0),
         monthlyRemaining: Math.max(guestUsage!.monthlyRemaining - 1, 0),
+      }
+    : {
+        ...coachState!.usage!,
+        dailyUsed: coachState!.usage!.dailyUsed + 1,
+        monthlyUsed: coachState!.usage!.monthlyUsed + 1,
+        dailyRemaining: Math.max(coachState!.usage!.dailyRemaining - 1, 0),
+        monthlyRemaining: Math.max(coachState!.usage!.monthlyRemaining - 1, 0),
       };
 
-      const durationMs = Date.now() - startTime;
-      captureServerEvent({
-        distinctId: guestDeviceId!,
-        event: "coach_request_completed",
-        properties: {
-          puzzleId,
-          locale,
-          personaId: personaId || "default",
-          plan: "guest",
-          model: result.model,
-          provider: result.provider,
-          durationMs,
-          inputTokens: result.usage.inputTokens,
-          outputTokens: result.usage.outputTokens,
-          totalTokens: result.usage.totalTokens,
-          usageAvailable: result.usage.usageAvailable,
-        },
-      }).catch(() => {});
-
-      return createApiResponse({ reply, usage: updatedGuestUsage });
-    }
-
-    // Authenticated user — existing flow (reuse the admin client created above).
-    // `admin` is guaranteed non-null here because the guest path returns earlier.
-    await incrementCoachUsage({
-      admin: admin!,
-      userId: user!.id,
-      day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
+  try {
+    const provider = createManagedCoachProvider({
+      apiKey,
+      timeout: UPSTREAM_TIMEOUT_MS,
     });
 
-    const updatedUsage: CoachUsageSummary = {
-      ...coachState!.usage!,
-      dailyUsed: coachState!.usage!.dailyUsed + 1,
-      monthlyUsed: coachState!.usage!.monthlyUsed + 1,
-      dailyRemaining: Math.max(coachState!.usage!.dailyRemaining - 1, 0),
-      monthlyRemaining: Math.max(coachState!.usage!.monthlyRemaining - 1, 0),
-    };
+    const stream = provider.createReplyStream(openaiMessages);
+    let tokenUsage: CoachProviderUsage | null = null;
+    let modelName: string | null = null;
+    let firstToken = true;
 
-    const durationMs = Date.now() - startTime;
-    captureServerEvent({
-      distinctId: user!.id,
-      event: "coach_request_completed",
-      properties: {
-        puzzleId,
-        locale,
-        personaId: personaId || "default",
-        plan: coachState!.usage!.plan,
-        model: result.model,
-        provider: result.provider,
-        durationMs,
-        inputTokens: result.usage.inputTokens,
-        outputTokens: result.usage.outputTokens,
-        totalTokens: result.usage.totalTokens,
-        usageAvailable: result.usage.usageAvailable,
+    const encoder = new TextEncoder();
+    const sseStream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            if (chunk.model) modelName = chunk.model;
+            if (chunk.usage) tokenUsage = chunk.usage;
+
+            if (chunk.delta) {
+              // Strip "system:" prefix from the very first token batch
+              if (firstToken) {
+                firstToken = false;
+                chunk.delta = chunk.delta.replace(/^(system|SYSTEM)\s*[:：]\s*/i, "");
+              }
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ delta: chunk.delta })}\n\n`),
+              );
+            }
+          }
+
+          // Stream finished — send done event with usage
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ done: true, usage: updatedUsage })}\n\n`),
+          );
+          controller.close();
+
+          // Fire-and-forget analytics
+          const durationMs = Date.now() - startTime;
+          captureServerEvent({
+            distinctId: isGuest ? guestDeviceId! : user!.id,
+            event: "coach_request_completed",
+            properties: {
+              puzzleId,
+              locale,
+              personaId: personaId || "default",
+              plan: isGuest ? "guest" : coachState!.usage!.plan,
+              model: modelName ?? modelInfo.model,
+              provider: modelInfo.provider,
+              durationMs,
+              inputTokens: tokenUsage?.inputTokens ?? null,
+              outputTokens: tokenUsage?.outputTokens ?? null,
+              totalTokens: tokenUsage?.totalTokens ?? null,
+              usageAvailable: tokenUsage?.usageAvailable ?? false,
+            },
+          }).catch(() => {});
+        } catch (err) {
+          const error = err as Error;
+          const durationMs = Date.now() - startTime;
+
+          let errorCode = "upstream_error";
+          if (error.name === "AbortError" || error.message?.includes("timeout")) {
+            errorCode = "timeout";
+          } else if (error.message?.includes("429") || error.message?.includes("rate limit")) {
+            errorCode = "rate_limit";
+          } else if (error.message?.includes("401") || error.message?.includes("auth")) {
+            errorCode = "auth_error";
+          }
+
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorCode })}\n\n`));
+          controller.close();
+
+          captureServerEvent({
+            distinctId: isGuest ? guestDeviceId! : (user?.id ?? "unknown"),
+            event: "coach_request_failed",
+            properties: {
+              puzzleId,
+              locale,
+              personaId: personaId || "default",
+              plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),
+              model: modelInfo.model,
+              provider: modelInfo.provider,
+              durationMs,
+              errorCode,
+              httpStatus: 0,
+            },
+          }).catch(() => {});
+        }
       },
-    }).catch(() => {});
+    });
 
-    return createApiResponse({ reply, usage: updatedUsage });
+    return new Response(sseStream, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
+    });
   } catch (err) {
+    // Provider construction failed — return a normal JSON error
     const error = err as Error;
     const durationMs = Date.now() - startTime;
 
-    // Classify error for better diagnostics
     let httpStatus = 502;
     let errorCode = "upstream_error";
 
     if (error.name === "AbortError" || error.message?.includes("timeout")) {
       httpStatus = 504;
       errorCode = "timeout";
-      console.error(`[coach] upstream timeout puzzle=${puzzleId} duration=${durationMs}ms`);
     } else if (error.message?.includes("429") || error.message?.includes("rate limit")) {
       httpStatus = 429;
       errorCode = "rate_limit";
-      console.error(`[coach] upstream rate limit puzzle=${puzzleId}`);
     } else if (error.message?.includes("401") || error.message?.includes("auth")) {
       httpStatus = 500;
       errorCode = "auth_error";
-      console.error(`[coach] auth error key=${maskKey(apiKey)}`);
-    } else {
-      console.error(
-        `[coach] upstream error puzzle=${puzzleId} duration=${durationMs}ms:`,
-        error.message,
-      );
     }
 
-    // Fire-and-forget analytics for failures too
     captureServerEvent({
       distinctId: isGuest ? guestDeviceId! : (user?.id ?? "unknown"),
       event: "coach_request_failed",

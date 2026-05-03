@@ -32,6 +32,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
   const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
+  const [streamingContent, setStreamingContent] = useState("");
   const [error, setError] = useState<CoachError | null>(null);
   const [switching, setSwitching] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +82,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages.length, pending]);
+  }, [messages.length, pending, streamingContent]);
 
   // AbortController to cancel in-flight requests on unmount or locale change.
   const abortRef = useRef<AbortController | null>(null);
@@ -99,7 +100,9 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
     abortRef.current = controller;
 
     setPending(true);
+    setStreamingContent("");
     setError(null);
+    let fullContent = "";
     try {
       const headers: Record<string, string> = {
         "content-type": "application/json",
@@ -120,8 +123,10 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
         }),
         signal: controller.signal,
       });
-      const data = (await res.json()) as { reply?: string; error?: string; code?: string };
-      if (!res.ok || !data.reply) {
+
+      // Non-200 means JSON error (auth/validation/quota) — not SSE
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string; code?: string };
         if (isCoachErrorCode(data.code)) {
           track("coach_limit_hit", { code: data.code });
           setError({ kind: data.code });
@@ -133,10 +138,79 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
         }
         return;
       }
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.reply as string, ts: Date.now() },
-      ]);
+
+      // Read SSE stream
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("No response body");
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const processLine = (line: string) => {
+        if (!line.startsWith("data: ")) return;
+        try {
+          const evt = JSON.parse(line.slice(6)) as {
+            delta?: string;
+            done?: boolean;
+            usage?: unknown;
+            error?: string;
+          };
+          if (evt.error) {
+            const errorMessages: Record<string, string> = {
+              timeout: "Coach is taking too long. Please try again.",
+              rate_limit: "Coach is busy. Please try again in a moment.",
+              auth_error: "Coach authentication failed. Please contact support.",
+            };
+            throw new Error(errorMessages[evt.error] ?? "Coach is temporarily unavailable.");
+          }
+          if (evt.delta) {
+            fullContent += evt.delta;
+            setStreamingContent(fullContent);
+          }
+        } catch (e) {
+          if (e instanceof Error && e.message !== "Ignore") throw e;
+          // Ignore malformed SSE lines
+        }
+      };
+
+      try {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          // Process complete SSE lines
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? ""; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            processLine(line);
+          }
+        }
+
+        // Process any residual content in the buffer (e.g. proxy stripped trailing newline)
+        if (buffer.trim()) {
+          for (const line of buffer.split("\n")) {
+            processLine(line);
+          }
+        }
+      } catch (e) {
+        if (e instanceof Error) {
+          setError({ kind: "generic", message: e.message });
+          return;
+        }
+        throw e;
+      }
+
+      if (!fullContent) {
+        setError({ kind: "generic", message: "Empty reply from the model." });
+        return;
+      }
+
+      // Clean up occasional "system:" prefix leakage
+      const reply = fullContent.replace(/^(system|SYSTEM)\s*[:：]\s*/i, "").trim();
+      setMessages((prev) => [...prev, { role: "assistant", content: reply, ts: Date.now() }]);
+      setStreamingContent("");
     } catch (e) {
       // Ignore abort errors from locale change / unmount.
       if (e instanceof DOMException && e.name === "AbortError") return;
@@ -147,6 +221,9 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
       });
     } finally {
       setPending(false);
+      // Don't clear streamingContent here — let the error handler or success
+      // path manage it. Only clear if nothing was streamed (e.g. early abort).
+      if (!fullContent) setStreamingContent("");
     }
   }
 
@@ -210,7 +287,7 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
               {m.content}
             </div>
           ))}
-        {!switching && pending && (
+        {!switching && pending && !streamingContent && (
           <div className="text-sm text-white/50 flex items-center gap-1.5">
             <span>{t.result.thinking}</span>
             <span className="inline-flex gap-0.5" aria-hidden="true">
@@ -219,6 +296,11 @@ export function CoachDialogue({ puzzleId, userMove, isCorrect }: Props) {
               <span className="w-1 h-1 rounded-full bg-white/50 animate-[dotPulse_1.4s_ease-in-out_0.4s_infinite]" />
             </span>
             <style>{`@keyframes dotPulse{0%,80%,100%{opacity:.2}40%{opacity:1}}`}</style>
+          </div>
+        )}
+        {!switching && pending && streamingContent && (
+          <div className="text-sm leading-relaxed whitespace-pre-wrap text-white/85">
+            {streamingContent}
           </div>
         )}
         {error?.kind === "generic" && (

@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import { createApiResponse } from "@/lib/apiHeaders";
+import { getClientIP } from "@/lib/clientIp";
 import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/i18n/localePath";
+import { createRateLimiter } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import {
   getProPriceId,
@@ -13,6 +15,8 @@ import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import type { Locale } from "@/types";
 
 export const runtime = "nodejs";
+
+const rateLimiter = createRateLimiter();
 
 const CheckoutRequestSchema = z.object({
   interval: z.enum(["monthly", "yearly"]),
@@ -57,6 +61,16 @@ export async function POST(request: Request) {
   const contentType = request.headers.get("content-type");
   if (!contentType?.includes("application/json")) {
     return createApiResponse({ error: "content_type" }, { status: 400 });
+  }
+
+  // Rate limit: 10 requests per minute per IP (payment abuse prevention)
+  const ip = getClientIP(request);
+  try {
+    if (await rateLimiter.isLimited(`checkout:${ip}`)) {
+      return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
+    }
+  } catch (error) {
+    console.warn("[stripe/checkout] rate limiter failed open", { ip, error });
   }
 
   const supabase = await createServerSupabase();

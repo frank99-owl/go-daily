@@ -82,7 +82,7 @@ export function BoardShowcase() {
                   locale === "zh"
                     ? '"Zhi Mang Xing", cursive'
                     : locale === "ja"
-                      ? '"Yuji Syuku", serif'
+                      ? '"Shippori Mincho", serif'
                       : locale === "ko"
                         ? '"Gowun Batang", serif'
                         : 'var(--font-headline), "Playfair Display", serif',

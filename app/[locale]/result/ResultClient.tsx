@@ -388,7 +388,6 @@ export function ResultClient({
           highlight={showAnswer && !hasSolution && reveal ? reveal.correct : undefined}
           extraStones={extraStones}
           disabled
-          cropToStones={puzzle.boardSize === 19}
           boardStyle="dark"
         />
       </div>
@@ -481,7 +480,7 @@ export function ResultClient({
             {t.result.curatedNote}
           </div>
           <div className="text-sm leading-relaxed text-white/60">
-            {localized(reveal.solutionNote, locale)}
+            {localized(reveal.solutionNote, locale).replace(/^\[SYSTEM ANCHOR\]\s*/, "")}
           </div>
         </section>
       )}

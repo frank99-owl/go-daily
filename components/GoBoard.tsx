@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
-  computeCropWindow,
   coordEquals,
   fullWindow,
   isInBounds,
@@ -25,11 +24,6 @@ type Props = {
   onPlay?: (c: Coord) => void;
   /** Max rendered width in CSS pixels. Defaults to 520. */
   maxPx?: number;
-  /**
-   * When true, only render the bounding box of stones + markers (+ small
-   * padding). Useful for 19×19 problems whose content lives in one corner.
-   */
-  cropToStones?: boolean;
   /** Board visual style. "classic" keeps the original light wood; "dark" uses the new dark theme. */
   boardStyle?: "classic" | "dark";
   /** Coordinate key "x,y" → move number to draw on the stone. */
@@ -104,7 +98,6 @@ export function GoBoard({
   disabled,
   onPlay,
   maxPx = 520,
-  cropToStones = false,
   boardStyle = "classic",
   moveNumbers,
   highlightColor,
@@ -136,16 +129,8 @@ export function GoBoard({
     return () => ro.disconnect();
   }, [maxPx]);
 
-  // Compute the render window (full board or cropped bbox). We intentionally
-  // don't include `hover` here — otherwise the visible area would wobble as
-  // the user moves the pointer.
-  const win: BoardWindow = useMemo(
-    () =>
-      cropToStones
-        ? computeCropWindow(size, stones, extraStones, highlight, userMove)
-        : fullWindow(size),
-    [cropToStones, size, stones, extraStones, highlight, userMove],
-  );
+  // Always render the full board.
+  const win: BoardWindow = useMemo(() => fullWindow(size), [size]);
 
   const inWindow = useCallback(
     (c: Coord) => c.x >= win.xMin && c.x <= win.xMax && c.y >= win.yMin && c.y <= win.yMax,
@@ -341,33 +326,6 @@ export function GoBoard({
       ctx.stroke();
       ctx.restore();
     }
-
-    // When we're showing only a corner of a full board, soften the interior
-    // boundaries (edges of the window that aren't the real board edge) with a
-    // gradient to the board color. This communicates "the board continues here"
-    // so a 19×19 corner problem isn't mistaken for a 9×9 full board.
-    if (cropToStones) {
-      const fadeW = Math.min(pad * 1.6, step * 1.8);
-      const BOARD_BG_RGB = isDark ? "31, 22, 17" : "232, 197, 148";
-      const drawFade = (dir: "right" | "left" | "bottom" | "top") => {
-        let grad: CanvasGradient;
-        if (dir === "right") grad = ctx.createLinearGradient(px - fadeW, 0, px, 0);
-        else if (dir === "left") grad = ctx.createLinearGradient(fadeW, 0, 0, 0);
-        else if (dir === "bottom") grad = ctx.createLinearGradient(0, px - fadeW, 0, px);
-        else grad = ctx.createLinearGradient(0, fadeW, 0, 0);
-        grad.addColorStop(0, `rgba(${BOARD_BG_RGB}, 0)`);
-        grad.addColorStop(1, `rgba(${BOARD_BG_RGB}, 1)`);
-        ctx.fillStyle = grad;
-        if (dir === "right") ctx.fillRect(px - fadeW, 0, fadeW, px);
-        else if (dir === "left") ctx.fillRect(0, 0, fadeW, px);
-        else if (dir === "bottom") ctx.fillRect(0, px - fadeW, px, fadeW);
-        else ctx.fillRect(0, 0, px, fadeW);
-      };
-      if (win.xMax < size - 1) drawFade("right");
-      if (win.xMin > 0) drawFade("left");
-      if (win.yMax < size - 1) drawFade("bottom");
-      if (win.yMin > 0) drawFade("top");
-    }
   }, [
     cssSize,
     size,
@@ -383,7 +341,6 @@ export function GoBoard({
     keyboardEnabled,
     win,
     inWindow,
-    cropToStones,
     isDark,
     accent,
     moveNumbers,
@@ -498,7 +455,7 @@ export function GoBoard({
         onPointerMove={handleMove}
         onPointerLeave={handleLeave}
         onPointerDown={handleClick}
-        className={`rounded-md shadow-sm touch-none select-none cursor-none ${disabled ? "opacity-50" : ""}`}
+        className="rounded-md shadow-sm touch-none select-none cursor-none"
         aria-hidden={keyboardEnabled || undefined}
         aria-label={`Go board, ${size} by ${size}`}
         role="img"

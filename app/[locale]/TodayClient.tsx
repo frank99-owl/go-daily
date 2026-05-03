@@ -116,7 +116,6 @@ export function TodayClient({ puzzle, metaLabel }: { puzzle: PublicPuzzle; metaL
           toPlay={puzzle.toPlay}
           userMove={pending}
           onPlay={(c) => setPending(c)}
-          cropToStones={puzzle.boardSize === 19}
           boardStyle="dark"
           keyboardEnabled
           focusOnMount

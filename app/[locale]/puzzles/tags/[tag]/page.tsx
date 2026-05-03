@@ -11,7 +11,7 @@ import {
   getTagCollectionPath,
   isValidPuzzleTag,
 } from "@/lib/puzzle/puzzleCollections";
-import { absoluteUrl } from "@/lib/siteUrl";
+import { absoluteUrl, buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
 import { PuzzleListClient } from "../../PuzzleListClient";
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: buildHreflangAlternates(getTagCollectionPath(tag)) },
     openGraph: { title, description, url: path },
   };
 }
