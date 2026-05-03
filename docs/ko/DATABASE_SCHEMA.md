@@ -160,17 +160,51 @@ Stripe 구독 상태. 웹훅 핸들러에 의해서만 기록됩니다.
 
 ---
 
+### 8. `guest_coach_usage`
+
+게스트 기기 ID와 달력 일자별 익명 AI 코치 사용량(재배포 후에도 유지).
+
+| 컬럼         | 타입          | 제약 조건                 | 설명                          |
+| ------------ | ------------- | ------------------------- | ----------------------------- |
+| `device_id`  | `text`        | NOT NULL, 복합 PK 일부    | 클라이언트 게스트 기기 지문   |
+| `day`        | `text`        | NOT NULL, 복합 PK 일부    | ISO `YYYY-MM-DD`(UTC)         |
+| `count`      | `integer`     | NOT NULL, DEFAULT `0`     | 해당 기기/일의 코치 메시지 수 |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT `now()` | —                             |
+
+**PK**: `(device_id, day)`
+
+**RLS**: 활성화되어 있으나 **정책 없음** —— `service_role`만 (`lib/coach/guestCoachUsage.ts`).
+
+---
+
+### 9. `manual_grants`
+
+Stripe 없이 이메일로 Pro를 부여하기 위한 관리자 테이블.
+
+| 컬럼         | 타입          | 제약 조건                   | 설명                   |
+| ------------ | ------------- | --------------------------- | ---------------------- |
+| `email`      | `text`        | PK                          | 부여 대상 이메일       |
+| `expires_at` | `timestamptz` | NOT NULL                    | 부여 만료 시각         |
+| `granted_by` | `text`        | NOT NULL, DEFAULT `'admin'` | 감사용 라벨(발급 주체) |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT `now()`   | —                      |
+
+**RLS**: 활성화되어 있으나 **정책 없음** —— 읽기/쓰기는 신뢰 서버 라우트에서만 `service_role`로 수행(`app/api/admin/grants`, 자격 해석).
+
+---
+
 ## RLS 요약
 
-| 테이블          | 정책                         | 접근 권한                               |
-| --------------- | ---------------------------- | --------------------------------------- |
-| `profiles`      | `own profile`                | 전체 CRUD(본인 행만)                    |
-| `attempts`      | `own attempts select/insert` | SELECT + INSERT(본인 행만, append-only) |
-| `coach_usage`   | `own usage select`           | SELECT만(service_role을 통한 쓰기)      |
-| `subscriptions` | `own subs select`            | SELECT만(service_role을 통한 쓰기)      |
-| `srs_cards`     | `own srs`                    | 전체 CRUD(본인 행만)                    |
-| `stripe_events` | `no public stripe events`    | 외부 접근 불가(service_role 전용)       |
-| `user_devices`  | `own devices`                | 전체 CRUD(본인 행만)                    |
+| 테이블              | 정책                         | 접근 권한                               |
+| ------------------- | ---------------------------- | --------------------------------------- |
+| `profiles`          | `own profile`                | 전체 CRUD(본인 행만)                    |
+| `attempts`          | `own attempts select/insert` | SELECT + INSERT(본인 행만, append-only) |
+| `coach_usage`       | `own usage select`           | SELECT만(service_role을 통한 쓰기)      |
+| `subscriptions`     | `own subs select`            | SELECT만(service_role을 통한 쓰기)      |
+| `srs_cards`         | `own srs`                    | 전체 CRUD(본인 행만)                    |
+| `stripe_events`     | `no public stripe events`    | 외부 접근 불가(service_role 전용)       |
+| `user_devices`      | `own devices`                | 전체 CRUD(본인 행만)                    |
+| `guest_coach_usage` | (없음)                       | 클라이언트 접근 불가(service_role 전용) |
+| `manual_grants`     | (없음)                       | 클라이언트 접근 불가(service_role 전용) |
 
 ---
 

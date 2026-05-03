@@ -160,17 +160,51 @@ Device registry for Free-plan single-device enforcement.
 
 ---
 
+### 8. `guest_coach_usage`
+
+Per-device guest AI coach usage counter by calendar day (persists across deploys).
+
+| Column       | Type          | Constraints               | Description                                 |
+| ------------ | ------------- | ------------------------- | ------------------------------------------- |
+| `device_id`  | `text`        | NOT NULL, PK part         | Guest device fingerprint from client header |
+| `day`        | `text`        | NOT NULL, PK part         | ISO `YYYY-MM-DD` (UTC)                      |
+| `count`      | `integer`     | NOT NULL, DEFAULT `0`     | Coach messages for that device/day          |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                           |
+
+**PK**: `(device_id, day)`
+
+**RLS**: Enabled with **no** policies — all access via `service_role` (`lib/coach/guestCoachUsage.ts`).
+
+---
+
+### 9. `manual_grants`
+
+Admin-assigned Pro access by email without Stripe checkout.
+
+| Column       | Type          | Constraints                 | Description                        |
+| ------------ | ------------- | --------------------------- | ---------------------------------- |
+| `email`      | `text`        | PK                          | Lowercase grantee email            |
+| `expires_at` | `timestamptz` | NOT NULL                    | When the grant lapses              |
+| `granted_by` | `text`        | NOT NULL, DEFAULT `'admin'` | Audit label (who issued the grant) |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT `now()`   | —                                  |
+
+**RLS**: Enabled with **no** policies — reads and writes occur only through `service_role` on trusted server routes (`app/api/admin/grants`, entitlement resolution).
+
+---
+
 ## RLS Summary
 
-| Table           | Policy                       | Access                                  |
-| --------------- | ---------------------------- | --------------------------------------- |
-| `profiles`      | `own profile`                | Full CRUD (own row only)                |
-| `attempts`      | `own attempts select/insert` | SELECT + INSERT (own rows, append-only) |
-| `coach_usage`   | `own usage select`           | SELECT only (writes via service_role)   |
-| `subscriptions` | `own subs select`            | SELECT only (writes via service_role)   |
-| `srs_cards`     | `own srs`                    | Full CRUD (own row only)                |
-| `stripe_events` | `no public stripe events`    | No public access (service_role only)    |
-| `user_devices`  | `own devices`                | Full CRUD (own row only)                |
+| Table               | Policy                       | Access                                  |
+| ------------------- | ---------------------------- | --------------------------------------- |
+| `profiles`          | `own profile`                | Full CRUD (own row only)                |
+| `attempts`          | `own attempts select/insert` | SELECT + INSERT (own rows, append-only) |
+| `coach_usage`       | `own usage select`           | SELECT only (writes via service_role)   |
+| `subscriptions`     | `own subs select`            | SELECT only (writes via service_role)   |
+| `srs_cards`         | `own srs`                    | Full CRUD (own row only)                |
+| `stripe_events`     | `no public stripe events`    | No public access (service_role only)    |
+| `user_devices`      | `own devices`                | Full CRUD (own row only)                |
+| `guest_coach_usage` | _(none)_                     | No client access (service_role only)    |
+| `manual_grants`     | _(none)_                     | No client access (service_role only)    |
 
 ---
 

@@ -160,17 +160,51 @@ Webhook 冪等性レジャー。イベントの重複処理を防止します。
 
 ---
 
+### 8. `guest_coach_usage`
+
+ゲスト端末 ID と暦日ごとの匿名 AI コーチ利用回数（デプロイをまたいで保持）。
+
+| カラム       | 型            | 制約                      | 説明                                           |
+| ------------ | ------------- | ------------------------- | ---------------------------------------------- |
+| `device_id`  | `text`        | NOT NULL, PK の一部       | クライアント送信のゲスト端末フィンガープリント |
+| `day`        | `text`        | NOT NULL, PK の一部       | ISO `YYYY-MM-DD`（UTC）                        |
+| `count`      | `integer`     | NOT NULL, DEFAULT `0`     | 当該端末／日のコーチメッセージ数               |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                              |
+
+**PK**: `(device_id, day)`
+
+**RLS**: 有効だが**ポリシーなし** —— `service_role` のみ（`lib/coach/guestCoachUsage.ts`）。
+
+---
+
+### 9. `manual_grants`
+
+Stripe を経由せずにメールアドレス単位で Pro を付与する管理者用テーブル。
+
+| カラム       | 型            | 制約                        | 説明                         |
+| ------------ | ------------- | --------------------------- | ---------------------------- |
+| `email`      | `text`        | PK                          | 付与先メールアドレス         |
+| `expires_at` | `timestamptz` | NOT NULL                    | 付与の失効日時               |
+| `granted_by` | `text`        | NOT NULL, DEFAULT `'admin'` | 監査用ラベル（発行者の記録） |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT `now()`   | —                            |
+
+**RLS**: 有効だが**ポリシーなし** —— 読み書きは信頼できるサーバールートが `service_role` で実行（`app/api/admin/grants`、権限解決）。
+
+---
+
 ## RLS 一覧
 
-| テーブル        | ポリシー                     | アクセス                                    |
-| --------------- | ---------------------------- | ------------------------------------------- |
-| `profiles`      | `own profile`                | 完全な CRUD（自身の行のみ）                 |
-| `attempts`      | `own attempts select/insert` | SELECT + INSERT（自身の行のみ、追記専用）   |
-| `coach_usage`   | `own usage select`           | SELECT のみ（書き込みは service_role 経由） |
-| `subscriptions` | `own subs select`            | SELECT のみ（書き込みは service_role 経由） |
-| `srs_cards`     | `own srs`                    | 完全な CRUD（自身の行のみ）                 |
-| `stripe_events` | `no public stripe events`    | 外部アクセス不可（service_role のみ）       |
-| `user_devices`  | `own devices`                | 完全な CRUD（自身の行のみ）                 |
+| テーブル            | ポリシー                     | アクセス                                    |
+| ------------------- | ---------------------------- | ------------------------------------------- |
+| `profiles`          | `own profile`                | 完全な CRUD（自身の行のみ）                 |
+| `attempts`          | `own attempts select/insert` | SELECT + INSERT（自身の行のみ、追記専用）   |
+| `coach_usage`       | `own usage select`           | SELECT のみ（書き込みは service_role 経由） |
+| `subscriptions`     | `own subs select`            | SELECT のみ（書き込みは service_role 経由） |
+| `srs_cards`         | `own srs`                    | 完全な CRUD（自身の行のみ）                 |
+| `stripe_events`     | `no public stripe events`    | 外部アクセス不可（service_role のみ）       |
+| `user_devices`      | `own devices`                | 完全な CRUD（自身の行のみ）                 |
+| `guest_coach_usage` | （なし）                     | クライアントからは不可（service_role のみ） |
+| `manual_grants`     | （なし）                     | クライアントからは不可（service_role のみ） |
 
 ---
 

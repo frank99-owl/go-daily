@@ -38,10 +38,10 @@ This script checks:
 
 ### Automated Coverage (Vitest)
 
-We maintain 81 test files with ~631 test cases covering:
+We maintain 81 test files with 637 test cases covering:
 
-- **Logic**: `lib/srs.test.ts`, `lib/entitlements.test.ts`.
-- **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`.
+- **Logic**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
+- **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.
 - **API**: `tests/api/stripeWebhook.test.ts`.
 
 ### Manual Acceptance Checklist (Critical Paths)
@@ -55,13 +55,13 @@ We maintain 81 test files with ~631 test cases covering:
 
 Tests mirror the source tree under `tests/`:
 
-| Directory           | Scope                  | Examples                                                         |
-| ------------------- | ---------------------- | ---------------------------------------------------------------- |
-| `tests/lib/`        | Core library logic     | `srs.test.ts`, `entitlements.test.ts`, `coachProvider.test.ts`   |
-| `tests/components/` | React components       | `GoBoard.test.tsx`, `Nav.test.tsx`, `ShareCard.test.tsx`         |
-| `tests/api/`        | API route handlers     | `stripeWebhook.test.ts`, `coach.test.ts`, `puzzleRandom.test.ts` |
-| `tests/app/`        | Page-level integration | `TodayClient.test.tsx`, `StatsClient.test.tsx`                   |
-| `tests/scripts/`    | Build/audit scripts    | `auditPuzzles.test.ts`, `queueContent.test.ts`                   |
+| Directory           | Scope                  | Examples                                                              |
+| ------------------- | ---------------------- | --------------------------------------------------------------------- |
+| `tests/lib/`        | Core library logic     | `puzzle/srs.test.ts`, `entitlements.test.ts`, `coachProvider.test.ts` |
+| `tests/components/` | React components       | `GoBoard.test.tsx`, `Nav.test.tsx`, `ShareCard.test.tsx`              |
+| `tests/api/`        | API route handlers     | `stripeWebhook.test.ts`, `coach.test.ts`, `puzzleRandom.test.ts`      |
+| `tests/app/`        | Page-level integration | `TodayClient.test.tsx`, `StatsClient.test.tsx`                        |
+| `tests/scripts/`    | Build/audit scripts    | `auditPuzzles.test.ts`, `queueContent.test.ts`                        |
 
 Run tests with:
 

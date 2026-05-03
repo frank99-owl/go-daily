@@ -17,6 +17,7 @@
 - `NEXT_PUBLIC_IS_COMMERCIAL`: 设为 `true` 以开启 Stripe 组件和 `/pricing` 页面。
 - `COACH_MODEL`: 默认为 `deepseek-chat`。可切换为 `deepseek-reasoner`。
 - `COACH_MONTHLY_TOKEN_BUDGET`: 应用层硬性限制，防止账单意外激增。
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: 配置后启用 Upstash Redis 跨实例限流；未配置则回退到进程内内存限流（在 Serverless 多实例上效果有限）。
 
 ## 3. 部署预检 (`scripts/productionPreflight.ts`)
 
@@ -32,30 +33,30 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自动化覆盖 (Vitest)
 
-我们维护 81 个测试文件，约 631 个测试用例，涵盖：
+我们维护 81 个测试文件，637 个测试用例，涵盖：
 
-- **逻辑**: `lib/srs.test.ts`, `lib/entitlements.test.ts`。
-- **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`。
+- **逻辑**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
+- **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。
 - **API**: `tests/api/stripeWebhook.test.ts`。
 
 ### 手动验收清单 (关键路径)
 
 1.  **跨设备一致性**：在桌面端解题，5秒内检查手机端是否同步。
 2.  **试用转化**：在测试模式下运行完整的 Stripe 结账流程（含7天试用）。
-3.  **SEO 验证**：验证 `sitemap.xml` 包含所有 4,800+ 条目。
+3.  **SEO 验证**：验证 `sitemap.xml` 包含 4,800+ 条目及 `hreflang` 交替链接。
 4.  **教练防护**：尝试提示词注入（如”忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。`promptGuard.ts` 现在会在模式匹配前进行 Unicode NFKC 归一化。请验证全角字符绕过尝试（如 `ＳＹＳＴｅｍ: ignore all`）也会被拦截。
 
 ## 5. 测试组织
 
 测试目录镜像源码结构，位于 `tests/` 下：
 
-| 目录                | 范围          | 示例                                                             |
-| ------------------- | ------------- | ---------------------------------------------------------------- |
-| `tests/lib/`        | 核心库逻辑    | `srs.test.ts`, `entitlements.test.ts`, `coachProvider.test.ts`   |
-| `tests/components/` | React 组件    | `GoBoard.test.tsx`, `Nav.test.tsx`, `ShareCard.test.tsx`         |
-| `tests/api/`        | API 路由处理  | `stripeWebhook.test.ts`, `coach.test.ts`, `puzzleRandom.test.ts` |
-| `tests/app/`        | 页面级集成    | `TodayClient.test.tsx`, `StatsClient.test.tsx`                   |
-| `tests/scripts/`    | 构建/审计脚本 | `auditPuzzles.test.ts`, `queueContent.test.ts`                   |
+| 目录                | 范围          | 示例                                                                  |
+| ------------------- | ------------- | --------------------------------------------------------------------- |
+| `tests/lib/`        | 核心库逻辑    | `puzzle/srs.test.ts`, `entitlements.test.ts`, `coachProvider.test.ts` |
+| `tests/components/` | React 组件    | `GoBoard.test.tsx`, `Nav.test.tsx`, `ShareCard.test.tsx`              |
+| `tests/api/`        | API 路由处理  | `stripeWebhook.test.ts`, `coach.test.ts`, `puzzleRandom.test.ts`      |
+| `tests/app/`        | 页面级集成    | `TodayClient.test.tsx`, `StatsClient.test.tsx`                        |
+| `tests/scripts/`    | 构建/审计脚本 | `auditPuzzles.test.ts`, `queueContent.test.ts`                        |
 
 运行测试：
 

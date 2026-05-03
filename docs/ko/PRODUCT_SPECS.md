@@ -17,7 +17,11 @@ go-daily는 분산된 불리언(boolean) 체크 대신 중앙 집중식 **조회
 
 우리는 `'use cache'` 지시어와 `cacheTag`를 활용합니다. Stripe 웹훅이 구독 정보를 업데이트하면 `revalidateTag('entitlements:' + userId)`를 호출하여 UI에 즉시 변경 사항이 반영되도록 합니다.
 
-## 2. 간격 반복 (SRS) 로직 (`lib/srs.ts`)
+### 수동 Pro 부여(`manual_grants` / `lib/entitlementsServer.ts`)
+
+Stripe 없이 이메일로 Pro를 부여할 때는 `manual_grants` 테이블과 `/api/admin/grants`를 사용합니다. `lib/entitlementsServer.ts`의 `resolveViewerPlan()`은 먼저 `getViewerPlan()`(Stripe 구독 상태)으로 기본 플랜을 정하고, 아직 Pro가 아닐 때만 유효한 `expires_at`의 수동 부여로 Pro로 승격합니다.
+
+## 2. 간격 반복 (SRS) 로직 (`lib/puzzle/srs.ts`)
 
 우리는 개선된 SuperMemo-2 (SM-2) 알고리즘을 구현했습니다.
 
@@ -32,6 +36,14 @@ go-daily는 분산된 불리언(boolean) 체크 대신 중앙 집중식 **조회
 - **결제**: Stripe Adaptive Pricing을 사용하여 사용자 IP에 따라 $4.9 USD를 한국 원화(KRW) 등 적절한 현지 통화로 자동 변환합니다.
 - **웹훅 멱등성**: 모든 Stripe 이벤트는 처리 전 `stripe_events` 테이블에 기록됩니다. 이벤트가 중복 전달되면 시스템은 이를 감지하고 처리를 건너뜁니다.
 - **무료 체험**: 모든 Pro 구독에 대해 7일간의 무료 체험을 필수화했습니다. 결제 수단 사전 등록(`payment_method_collection: 'always'`)을 요구하여 유료 전환율을 극대화했습니다.
+
+## 4. 퍼즐 컬렉션 및 필터 (`lib/puzzle/puzzleCollections.ts`)
+
+태그와 난이도 기반 탐색을 지원합니다.
+
+- **태그**: `life-death`, `tesuji`, `endgame`, `opening`(`PuzzleTagSchema`에 정의).
+- **난이도**: 1–5 척도. 각 퍼즐은 단일 난이도.
+- **컬렉션 페이지**: `/puzzles/tags/{tag}` 및 `/puzzles/difficulty/{level}`에서 `PuzzleListClient`로 필터 뷰를 렌더링합니다.
 
 ## 5. 법적 준수 표시 로직
 

@@ -17,7 +17,11 @@ Instead of scattered boolean checks, go-daily uses a centralized **Lookup Table*
 
 We utilize the `'use cache'` directive and `cacheTag` for entitlements. When a Stripe webhook updates a subscription, we call `revalidateTag('entitlements:' + userId)` to ensure the UI reflects the new state without a full page reload.
 
-## 2. Spaced Repetition (SRS) Logic (`lib/srs.ts`)
+### Manual Pro grants (`manual_grants` / `lib/entitlementsServer.ts`)
+
+Operators can grant Pro by email without Stripe using the `manual_grants` table and `/api/admin/grants`. `resolveViewerPlan()` (`lib/entitlementsServer.ts`) starts from `getViewerPlan()` (Stripe subscription status); if the user is not already Pro, an unexpired manual grant upgrades them to Pro.
+
+## 2. Spaced Repetition (SRS) Logic (`lib/puzzle/srs.ts`)
 
 We implement a modified SuperMemo-2 (SM-2) algorithm.
 

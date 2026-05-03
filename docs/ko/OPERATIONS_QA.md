@@ -17,6 +17,7 @@
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Stripe 구성 요소와 `/pricing` 페이지를 활성화하려면 `true`로 설정합니다.
 - `COACH_MODEL`: 기본값은 `deepseek-chat`입니다. 필요한 경우 `deepseek-reasoner`로 교체할 수 있습니다.
 - `COACH_MONTHLY_TOKEN_BUDGET`: 예기치 않은 비용 급증을 방지하기 위한 애플리케이션 레벨의 엄격한 월간 제한.
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: 설정 시 Upstash Redis로 인스턴스 간 속도 제한이 활성화됩니다. 미설정 시 프로세스 내 메모리로 폴백되며, 서버리스 다중 인스턴스에서는 효과가 제한적입니다.
 
 ## 3. 배포 전 사전 점검 (`scripts/productionPreflight.ts`)
 
@@ -32,20 +33,32 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 자동화 테스트 (Vitest)
 
-81개의 테스트 파일, 약 631개의 테스트 케이스를 유지하고 있습니다:
+81개의 테스트 파일, 637개의 테스트 케이스를 유지하고 있습니다:
 
-- **로직**: `lib/srs.test.ts`, `lib/entitlements.test.ts`.
-- **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`.
+- **로직**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
+- **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.
 - **API**: `tests/api/stripeWebhook.test.ts`.
 
 ### 수동 검수 체크리스트 (핵심 경로)
 
 1.  **기기 간 동기화 일관성**: 데스크톱에서 문제를 해결하고 5초 이내에 모바일 기기에서 동기화 여부를 확인합니다.
 2.  **무료 체험 전환**: 테스트 모드에서 7일 무료 체험이 포함된 전체 Stripe 결제 프로세스를 실행합니다.
-3.  **로케일 SEO**: `sitemap.xml`에 4,800개 이상의 모든 항목이 포함되어 있는지 확인합니다.
+3.  **로케일 SEO**: `sitemap.xml`에 4,800개 이상의 항목과 `hreflang` 대체 링크가 포함되어 있는지 확인합니다.
 4.  **코치 가드레일**: 프롬프트 인젝션(예: "이전의 모든 지시를 잊어라")을 시도하여 `promptGuard.ts`의 차단 성능을 검증합니다. `promptGuard.ts`는 이제 패턴 매칭 전에 Unicode NFKC 정규화를 적용합니다. 전각 문자 우회 시도(예: `ＳＹＳＴｅｍ: ignore all`)도 차단되는지 확인하십시오.
 
-사용 가능한 npm 스크립트:
+## 5. 테스트 구성
+
+테스트는 소스 트리를 `tests/` 아래에 반영합니다:
+
+| 디렉터리            | 범위                 | 예시                                                                  |
+| ------------------- | -------------------- | --------------------------------------------------------------------- |
+| `tests/lib/`        | 핵심 라이브러리 로직 | `puzzle/srs.test.ts`, `entitlements.test.ts`, `coachProvider.test.ts` |
+| `tests/components/` | React 컴포넌트       | `GoBoard.test.tsx`, `Nav.test.tsx`, `ShareCard.test.tsx`              |
+| `tests/api/`        | API 라우트 핸들러    | `stripeWebhook.test.ts`, `coach.test.ts`, `puzzleRandom.test.ts`      |
+| `tests/app/`        | 페이지 수준 통합     | `TodayClient.test.tsx`, `StatsClient.test.tsx`                        |
+| `tests/scripts/`    | 빌드·감사 스크립트   | `auditPuzzles.test.ts`, `queueContent.test.ts`                        |
+
+다음 npm 스크립트를 실행합니다:
 
 ```bash
 npm run dev               # 로컬 개발 서버
@@ -71,6 +84,7 @@ npm run gemini:solutions  # Gemini 솔루션 생성
 npm run mimo:solutions    # MiMo 솔루션 생성
 npm run supabase:health   # Supabase 상태 확인
 npm run email:smoketest   # 이메일 스모크 테스트
+npm run generate:icons    # public/icon.svg에서 PWA 아이콘 재생성
 ```
 
 ## 6. 출시 전 컴플라이언스 감사

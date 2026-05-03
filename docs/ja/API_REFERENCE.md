@@ -12,7 +12,7 @@ DeepSeekによるAIコーチング対話。
 
 ユーザーのメッセージを送信し、AIコーチの返信を受け取る。
 
-**認証**: 必須（SupabaseセッションCookie）。
+**認証**: 任意。ログインユーザーは Supabase セッション Cookie を使用。ゲストはヘッダー `x-go-daily-guest-device-id` が必要（より低いクォータ）。
 
 **リクエストボディ**（JSON、`CoachRequestSchema`でバリデーション）:
 
@@ -44,7 +44,7 @@ DeepSeekによるAIコーチング対話。
 | ステータス | コード                  | 条件                                                   |
 | ---------- | ----------------------- | ------------------------------------------------------ |
 | 400        | —                       | 無効なContent-Type、ボディサイズ、JSON、またはスキーマ |
-| 401        | `login_required`        | セッションなし                                         |
+| 401        | `login_required`        | セッションもゲストヘッダーもない場合                   |
 | 403        | `device_limit`          | 無料ユーザーが1台のデバイス制限を超過                  |
 | 403        | —                       | パズルがコーチング未対応                               |
 | 429        | `daily_limit_reached`   | 日次クォータ枯渇                                       |
@@ -61,12 +61,13 @@ DeepSeekによるAIコーチング対話。
 - 入力サニタイズ（`sanitizeInput`）
 - コーチ対象チェック（パズルが`coachEligibleIds.json`に含まれている必要あり）
 - 使用量クォータの適用（ユーザーごとの日次・月次カウンター）
+- ゲスト利用量は Supabase `guest_coach_usage` に `service_role` で永続化；IP 上限はインメモリ（`guestCoachUsage.ts`）
 
 ### `GET /api/coach`
 
-現在のユーザーのコーチ使用量サマリーを取得する。
+呼び出し元のコーチ使用量サマリーを取得する。
 
-**認証**: 必須。
+**認証**: 任意。ログインユーザーはセッション Cookie。ゲストは `x-go-daily-guest-device-id` でゲスト枠の使用量を取得できる。どちらも無い場合は `401`。
 
 **レスポンス**（`200`）:
 
@@ -239,7 +240,69 @@ Supabase OAuth／マジックリンクコールバック。認証コードをセ
 
 ---
 
-## 7. 横断的な共通事項
+## 7. ヘルスチェック API
+
+### `GET /api/health` (`app/api/health/route.ts`)
+
+監視向けの軽量ヘルスチェック。
+
+**認証**: 不要。
+
+**挙動**: `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` が設定されていれば `${SUPABASE_URL}/auth/v1/settings` をプローブ（5秒タイムアウト）。未設定なら `supabase` は `skipped` となり healthy を返す。
+
+**レスポンス**（`200`）: `{ "status": "healthy", "timestamp": ISO8601, "checks": { "supabase": "ok" | "error" | "skipped" } }`
+
+**レスポンス**（`503`）: Supabase プローブ失敗時 `{ "status": "degraded", ... }`。
+
+---
+
+## 8. 管理 API (`app/api/admin/`)
+
+`ADMIN_EMAILS`（カンマ区切り許可リスト）と `ADMIN_PIN` で保護された運用エンドポイント。
+
+### `POST /api/admin/verify` (`verify/route.ts`)
+
+メールが管理者として確認済みのあと PIN を検証する。
+
+**認証**: 必須（セッション、`user.email` が `ADMIN_EMAILS` に含まれること）。
+
+**同一オリジン**: POST は同一オリジン検証が必要。
+
+**リクエストボディ**（JSON）: `{ "pin": string }` — `ADMIN_PIN` と一致すること。
+
+**レスポンス**: `200` `{ "ok": true }`；未ログインは `401`；許可リスト外・PIN 不一致は `403`；`ADMIN_PIN` 未設定は `500`。
+
+### `GET /api/admin/grants` (`grants/route.ts`)
+
+手動 Pro 付与（`manual_grants`）を一覧する。
+
+**認証**: セッションメールが `ADMIN_EMAILS` に含まれること。
+
+**レスポンス**（`200`）: `{ "grants": [{ "email", "expires_at", "granted_by", "created_at" }, ...] }`
+
+### `POST /api/admin/grants`
+
+メールをキーに手動付与を upsert（`onConflict: email`）。
+
+**認証**: 管理者セッション。同一オリジン POST。
+
+**リクエストボディ**: `{ "email": string, "days": number /* 1–3650 */, "granted_by"?: string }`
+
+**レスポンス**（`200`）: `{ "ok": true, "email", "expires_at" }`
+
+### `DELETE /api/admin/grants`
+
+手動付与を削除する。
+
+**認証**: 管理者セッション。同一オリジンのミュテーション。
+
+**リクエストボディ**: `{ "email": string }`
+
+**レスポンス**（`200`）: `{ "ok": true }`
+
+---
+
+## 9. 横断的な共通事項
 
 ### レート制限
 
@@ -262,4 +325,4 @@ Supabase OAuth／マジックリンクコールバック。認証コードをセ
 
 ### ランタイム
 
-すべてのAPIルートは`export const runtime = "nodejs"`を指定しており、Node.js APIへのアクセスを確保している（Edge Runtimeではない）。
+Stripe・コーチ・cron・admin・パズル書き込みなど統合の重いハンドラは `export const runtime = "nodejs"` を指定する。`/api/health` のような軽量ルートはデフォルトランタイムを使用する。

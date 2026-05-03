@@ -12,7 +12,7 @@
 
 发送用户消息并获取 AI 教练回复。
 
-**认证**: 需要（Supabase 会话 Cookie）。
+**认证**: 可选。已登录用户使用 Supabase 会话 Cookie；访客须发送请求头 `x-go-daily-guest-device-id`（配额更低）。
 
 **请求体** (JSON，由 `CoachRequestSchema` 校验)：
 
@@ -43,7 +43,7 @@
 | 状态码 | 错误码 | 触发条件 |
 |--------|--------|----------|
 | 400 | — | Content-Type 错误、请求体过大、JSON 解析失败或 Schema 校验失败 |
-| 401 | `login_required` | 无会话 |
+| 401 | `login_required` | 既无会话也无 `x-go-daily-guest-device-id` 请求头 |
 | 403 | `device_limit` | 免费用户超出 1 台设备限制 |
 | 403 | — | 题目未获准教练功能 |
 | 429 | `daily_limit_reached` | 每日配额耗尽 |
@@ -60,12 +60,13 @@
 - 输入清洗 (`sanitizeInput`)
 - 教练准入检查（题目必须在 `coachEligibleIds.json` 中）
 - 使用配额执行（每日 + 每月用户级计数器）
+- 访客用量写入 Supabase `guest_coach_usage`（`service_role`）；IP 维度限制仍在内存中（`guestCoachUsage.ts`）
 
 ### `GET /api/coach`
 
-获取当前用户的教练使用摘要。
+获取当前调用方的教练用量摘要。
 
-**认证**: 需要。
+**认证**: 可选。已登录用户使用会话 Cookie；访客可携带 `x-go-daily-guest-device-id` 查询访客配额。两者皆无时返回 `401`。
 
 **响应** (`200`):
 
@@ -238,7 +239,69 @@ Vercel Cron 处理器，发送每日题目提醒邮件。
 
 ---
 
-## 7. 横切关注点
+## 7. 健康检查 API
+
+### `GET /api/health` (`app/api/health/route.ts`)
+
+用于监控的轻量存活探测。
+
+**认证**: 不需要。
+
+**行为**: 若配置了 `NEXT_PUBLIC_SUPABASE_URL` 与 `NEXT_PUBLIC_SUPABASE_ANON_KEY`，则探测 `${SUPABASE_URL}/auth/v1/settings`（5 秒超时）。若未配置，则 `supabase` 标记为 `skipped`，仍返回 healthy。
+
+**响应** (`200`): `{ "status": "healthy", "timestamp": ISO8601, "checks": { "supabase": "ok" | "error" | "skipped" } }`
+
+**响应** (`503`): Supabase 探测失败时 `{ "status": "degraded", ... }`。
+
+---
+
+## 8. 管理 API (`app/api/admin/`)
+
+依赖 `ADMIN_EMAILS`（逗号分隔白名单）与 `ADMIN_PIN` 的运营接口。
+
+### `POST /api/admin/verify` (`verify/route.ts`)
+
+在邮箱已确认为管理员后校验 PIN。
+
+**认证**: 需要（会话；`user.email` 须在 `ADMIN_EMAILS` 中）。
+
+**同源**: POST 须通过同源校验。
+
+**请求体** (JSON): `{ "pin": string }` — 须等于 `ADMIN_PIN`。
+
+**响应**: `200` `{ "ok": true }`；未登录 `401`；非管理员或 PIN 错误 `403`；未配置 `ADMIN_PIN` 时 `500`。
+
+### `GET /api/admin/grants` (`grants/route.ts`)
+
+列出所有手动 Pro 授予记录（`manual_grants`）。
+
+**认证**: 会话邮箱须在 `ADMIN_EMAILS` 中。
+
+**响应** (`200`): `{ "grants": [{ "email", "expires_at", "granted_by", "created_at" }, ...] }`
+
+### `POST /api/admin/grants`
+
+按邮箱 upsert 手动授予（冲突键：`email`）。
+
+**认证**: 管理员会话。同源 POST。
+
+**请求体**: `{ "email": string, "days": number /* 1–3650 */, "granted_by"?: string }`
+
+**响应** (`200`): `{ "ok": true, "email", "expires_at" }`
+
+### `DELETE /api/admin/grants`
+
+移除一条手动授予。
+
+**认证**: 管理员会话。同源变更请求。
+
+**请求体**: `{ "email": string }`
+
+**响应** (`200`): `{ "ok": true }`
+
+---
+
+## 9. 横切关注点
 
 ### 限流
 
@@ -261,4 +324,4 @@ Vercel Cron 处理器，发送每日题目提醒邮件。
 
 ### 运行时
 
-所有 API 路由指定 `export const runtime = "nodejs"` 以确保可访问 Node.js API（非 Edge Runtime）。
+集成较重的处理器（Stripe、教练、cron、admin、题目写入等）设置 `export const runtime = "nodejs"` 以使用 Node API。`/api/health` 等轻量路由使用默认运行时。

@@ -17,6 +17,7 @@
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Stripe コンポーネントと `/pricing` ページを有効にするには `true` に設定します。
 - `COACH_MODEL`: デフォルトは `deepseek-chat`。より精度の高い `deepseek-reasoner` に変更可能です。
 - `COACH_MONTHLY_TOKEN_BUDGET`: 予期せぬ課金の急増を防ぐための、アプリケーションレベルのハードな月間制限。
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: 設定すると Upstash Redis によるインスタンス横断のレート制限が有効になります。未設定の場合はプロセス内メモリへのフォールバックとなり、サーバーレスの複数インスタンスでは効果が限定的です。
 
 ## 3. デプロイ前の事前チェック (`scripts/productionPreflight.ts`)
 
@@ -32,13 +33,32 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自動化カバレッジ (Vitest)
 
-81 テストファイル、約 631 テストケースを維持しています：
+81 テストファイル、637 テストケースを維持しています：
 
-- **ロジック**: `lib/srs.test.ts`, `lib/entitlements.test.ts`。
-- **UI**: `components/GoBoard.test.tsx`, `app/TodayClient.test.tsx`。
+- **ロジック**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
+- **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。
 - **API**: `tests/api/stripeWebhook.test.ts`。
 
-利用可能な npm スクリプト：
+### 手動受入チェックリスト (重要パス)
+
+1.  **デバイス間の整合性**: デスクトップで問題を解き、5 秒以内にスマートフォンで同期を確認する。
+2.  **トライアル転換**: 7 日間のトライアルを含む Stripe チェックアウトフローをテストモードで完走させる。
+3.  **ロケール SEO**: `sitemap.xml` に 4,800 以上のエントリと `hreflang` 代替リンクが含まれていることを確認する。
+4.  **コーチのガードレール**: プロンプトインジェクション（例：「以前の指示を忘れて」）を試行し、`promptGuard.ts` の遮断を確認する。`promptGuard.ts` はパターンマッチング前に Unicode NFKC 正規化を適用する。全角文字によるバイパス試行（例：`ＳＹＳＴｅｍ: ignore all`）も遮断されることを確認すること。
+
+## 5. テスト構成
+
+テストはソースツリーを `tests/` 以下に反映します：
+
+| ディレクトリ        | スコープ               | 例                                                                    |
+| ------------------- | ---------------------- | --------------------------------------------------------------------- |
+| `tests/lib/`        | コアライブラリロジック | `puzzle/srs.test.ts`, `entitlements.test.ts`, `coachProvider.test.ts` |
+| `tests/components/` | React コンポーネント   | `GoBoard.test.tsx`, `Nav.test.tsx`, `ShareCard.test.tsx`              |
+| `tests/api/`        | API ルートハンドラ     | `stripeWebhook.test.ts`, `coach.test.ts`, `puzzleRandom.test.ts`      |
+| `tests/app/`        | ページレベル統合       | `TodayClient.test.tsx`, `StatsClient.test.tsx`                        |
+| `tests/scripts/`    | ビルド／監査スクリプト | `auditPuzzles.test.ts`, `queueContent.test.ts`                        |
+
+開発および検証に使用する npm スクリプト：
 
 ```bash
 npm run dev               # ローカル開発サーバー
@@ -64,14 +84,8 @@ npm run gemini:solutions  # Gemini 解答生成
 npm run mimo:solutions    # MiMo 解答生成
 npm run supabase:health   # Supabase ヘルスチェック
 npm run email:smoketest   # メールスモークテスト
+npm run generate:icons    # public/icon.svg から PWA アイコンを再生成
 ```
-
-### 手動受入チェックリスト (重要パス)
-
-1.  **デバイス間の整合性**: デスクトップで問題を解き、5 秒以内にスマートフォンで同期を確認する。
-2.  **トライアル転換**: 7 日間のトライアルを含む Stripe チェックアウトフローをテストモードで完走させる。
-3.  **ロケール SEO**: `sitemap.xml` に 4,800 以上の全エントリが含まれていることを確認する。
-4.  **コーチのガードレール**: プロンプトインジェクション（例：「以前の指示を忘れて」）を試行し、`promptGuard.ts` の遮断を確認する。`promptGuard.ts` はパターンマッチング前に Unicode NFKC 正規化を適用する。全角文字によるバイパス試行（例：`ＳＹＳＴｅｍ: ignore all`）も遮断されることを確認すること。
 
 ## 6. リリース前コンプライアンス監査
 

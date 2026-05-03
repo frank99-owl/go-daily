@@ -8,16 +8,16 @@ This directory contains the project's technical and operational documentation, o
 
 The documentation is structured around eight core pillars:
 
-| #   | Pillar                                        | Description                                                 |
-| --- | --------------------------------------------- | ----------------------------------------------------------- |
-| 1   | [Concept & Strategy](en/CONCEPT.md)           | Mission, strategic phases, lean engineering philosophy      |
-| 2   | [Architecture](en/ARCHITECTURE.md)            | Request lifecycle, six-domain module design, security model |
-| 3   | [Product Specifications](en/PRODUCT_SPECS.md) | Entitlement engine, SRS algorithm, subscription management  |
-| 4   | [Operations & QA](en/OPERATIONS_QA.md)        | Deployment stack, environment config, testing strategy      |
-| 5   | [Project Status](en/PROJECT_STATUS.md)        | Live sprint tracker and production readiness                |
-| 6   | [API Reference](en/API_REFERENCE.md)          | Complete route catalog with request/response schemas        |
-| 7   | [Database Schema](en/DATABASE_SCHEMA.md)      | Supabase table definitions, indexes, and RLS policies       |
-| 8   | [Legal & Compliance](en/LEGAL_COMPLIANCE.md)  | Multi-jurisdiction legal strategy                           |
+| #   | Pillar                                        | Description                                                  |
+| --- | --------------------------------------------- | ------------------------------------------------------------ |
+| 1   | [Concept & Strategy](en/CONCEPT.md)           | Mission, strategic phases, lean engineering philosophy       |
+| 2   | [Architecture](en/ARCHITECTURE.md)            | Request lifecycle, nine-domain `lib/` layout, security model |
+| 3   | [Product Specifications](en/PRODUCT_SPECS.md) | Entitlement engine, SRS algorithm, subscription management   |
+| 4   | [Operations & QA](en/OPERATIONS_QA.md)        | Deployment stack, environment config, testing strategy       |
+| 5   | [Project Status](en/PROJECT_STATUS.md)        | Live sprint tracker and production readiness                 |
+| 6   | [API Reference](en/API_REFERENCE.md)          | Complete route catalog with request/response schemas         |
+| 7   | [Database Schema](en/DATABASE_SCHEMA.md)      | Supabase table definitions, indexes, and RLS policies        |
+| 8   | [Legal & Compliance](en/LEGAL_COMPLIANCE.md)  | Multi-jurisdiction legal strategy                            |
 
 ---
 

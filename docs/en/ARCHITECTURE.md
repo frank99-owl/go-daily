@@ -42,7 +42,7 @@ The system operates on a three-state synchronization model:
 
 ### `lib/board/` (Go Board Logic)
 
-- **Core Engine**: Stone placement, rule enforcement (liberties, captures, ko), and board display across 6 source files.
+- **Core Engine**: Stone placement, rule enforcement (liberties, captures, ko), and board rendering across four modules: `board.ts`, `goRules.ts`, `judge.ts`, and `sgf.ts`.
 - **SGF Parsing**: Full SGF (Smart Game Format) import/export for game records and puzzle definitions.
 
 ### `lib/puzzle/` (Puzzle Engine)

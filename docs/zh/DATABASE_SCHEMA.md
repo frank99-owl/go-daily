@@ -160,17 +160,51 @@ Stripe 订阅状态。仅由 Webhook 处理器写入。
 
 ---
 
+### 8. `guest_coach_usage`（访客教练用量）
+
+按访客设备 ID 与自然日累计匿名 AI 教练消息次数（部署之间持久化）。
+
+| 列名         | 类型          | 约束                      | 说明                     |
+| ------------ | ------------- | ------------------------- | ------------------------ |
+| `device_id`  | `text`        | NOT NULL，复合 PK 一部分  | 客户端访客设备指纹       |
+| `day`        | `text`        | NOT NULL，复合 PK 一部分  | ISO `YYYY-MM-DD`（UTC）  |
+| `count`      | `integer`     | NOT NULL，DEFAULT `0`     | 当日该设备的教练消息计数 |
+| `created_at` | `timestamptz` | NOT NULL，DEFAULT `now()` | —                        |
+
+**PK**: `(device_id, day)`
+
+**RLS**：已启用但**无策略** —— 仅通过 `service_role` 访问（`lib/coach/guestCoachUsage.ts`）。
+
+---
+
+### 9. `manual_grants`（手动授予 Pro）
+
+运营人员按邮箱授予 Pro，无需走 Stripe 结账。
+
+| 列名         | 类型          | 约束                        | 说明                 |
+| ------------ | ------------- | --------------------------- | -------------------- |
+| `email`      | `text`        | PK                          | 被授予用户邮箱       |
+| `expires_at` | `timestamptz` | NOT NULL                    | 授予到期时间         |
+| `granted_by` | `text`        | NOT NULL, DEFAULT `'admin'` | 审计标签（发放来源） |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT `now()`   | —                    |
+
+**RLS**：已启用但**无策略** —— 读写在受信任服务端路由通过 `service_role` 完成（`app/api/admin/grants`、权益解析）。
+
+---
+
 ## RLS 策略总览
 
-| 表              | 策略名                       | 访问权限                                |
-| --------------- | ---------------------------- | --------------------------------------- |
-| `profiles`      | `own profile`                | 完整 CRUD（仅限自己的行）               |
-| `attempts`      | `own attempts select/insert` | SELECT + INSERT（仅限自己的行，仅追加） |
-| `coach_usage`   | `own usage select`           | 仅 SELECT（写入通过 service_role）      |
-| `subscriptions` | `own subs select`            | 仅 SELECT（写入通过 service_role）      |
-| `srs_cards`     | `own srs`                    | 完整 CRUD（仅限自己的行）               |
-| `stripe_events` | `no public stripe events`    | 无公开访问（仅 service_role）           |
-| `user_devices`  | `own devices`                | 完整 CRUD（仅限自己的行）               |
+| 表                  | 策略名                       | 访问权限                                |
+| ------------------- | ---------------------------- | --------------------------------------- |
+| `profiles`          | `own profile`                | 完整 CRUD（仅限自己的行）               |
+| `attempts`          | `own attempts select/insert` | SELECT + INSERT（仅限自己的行，仅追加） |
+| `coach_usage`       | `own usage select`           | 仅 SELECT（写入通过 service_role）      |
+| `subscriptions`     | `own subs select`            | 仅 SELECT（写入通过 service_role）      |
+| `srs_cards`         | `own srs`                    | 完整 CRUD（仅限自己的行）               |
+| `stripe_events`     | `no public stripe events`    | 无公开访问（仅 service_role）           |
+| `user_devices`      | `own devices`                | 完整 CRUD（仅限自己的行）               |
+| `guest_coach_usage` | （无）                       | 客户端不可访问（仅 service_role）       |
+| `manual_grants`     | （无）                       | 客户端不可访问（仅 service_role）       |
 
 ---
 

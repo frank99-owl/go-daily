@@ -17,7 +17,11 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 我们利用 `'use cache'` 指令和 `cacheTag`。当 Stripe Webhook 更新订阅时，我们会调用 `revalidateTag('entitlements:' + userId)`，确保 UI 即时反映新状态。
 
-## 2. 间隔复习 (SRS) 逻辑 (`lib/srs.ts`)
+### 手动授予 Pro（`manual_grants` / `lib/entitlementsServer.ts`）
+
+运营可通过 `manual_grants` 表与 `/api/admin/grants` 在不经 Stripe 的情况下按邮箱授予 Pro。`lib/entitlementsServer.ts` 的 `resolveViewerPlan()` 先用 `getViewerPlan()`（Stripe 订阅状态）得到基础档位；若用户尚非 Pro，且存在未过期的手动授予，则升为 Pro。
+
+## 2. 间隔复习 (SRS) 逻辑 (`lib/puzzle/srs.ts`)
 
 我们实现了改进后的 SuperMemo-2 (SM-2) 算法。
 

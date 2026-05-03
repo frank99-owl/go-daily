@@ -43,7 +43,7 @@ Send a user message and receive an AI coach reply.
 | Status | Code | Condition |
 |--------|------|-----------|
 | 400 | — | Invalid Content-Type, body size, JSON, or schema |
-| 401 | `login_required` | No session |
+| 401 | `login_required` | No session and no `x-go-daily-guest-device-id` header |
 | 403 | `device_limit` | Free user exceeded 1 device |
 | 403 | — | Puzzle not approved for coaching |
 | 429 | `daily_limit_reached` | Daily quota exhausted |
@@ -60,12 +60,13 @@ Send a user message and receive an AI coach reply.
 - Input sanitization (`sanitizeInput`)
 - Coach eligibility check (puzzle must be in `coachEligibleIds.json`)
 - Usage quota enforcement (per-user daily + monthly counters)
+- Guest usage persisted in Supabase `guest_coach_usage` via `service_role`; per-IP caps remain in-memory (`guestCoachUsage.ts`)
 
 ### `GET /api/coach`
 
-Retrieve current user's coach usage summary.
+Retrieve coach usage summary for the current caller.
 
-**Auth**: Required.
+**Auth**: Optional. Logged-in users use the Supabase session cookie. Guests may pass `x-go-daily-guest-device-id` to read guest quota usage. Requests with neither session nor guest header return `401`.
 
 **Response** (`200`):
 
@@ -238,7 +239,69 @@ Client-side error reporting endpoint. Accepts structured error reports from brow
 
 ---
 
-## 7. Cross-Cutting Concerns
+## 7. Health API
+
+### `GET /api/health` (`app/api/health/route.ts`)
+
+Lightweight uptime probe for monitoring.
+
+**Auth**: Not required.
+
+**Behavior**: When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, probes `${SUPABASE_URL}/auth/v1/settings` (5s timeout). If env vars are missing, Supabase is marked `skipped` and the handler still returns healthy.
+
+**Response** (`200`): `{ "status": "healthy", "timestamp": ISO8601, "checks": { "supabase": "ok" | "error" | "skipped" } }`
+
+**Response** (`503`): `{ "status": "degraded", ... }` when the Supabase probe fails.
+
+---
+
+## 8. Admin API (`app/api/admin/`)
+
+Operational routes protected by `ADMIN_EMAILS` (comma-separated allowlist) and `ADMIN_PIN`. Intended for trusted operators only.
+
+### `POST /api/admin/verify` (`verify/route.ts`)
+
+Verify the configured admin PIN after the user’s email is confirmed as an admin.
+
+**Auth**: Required (session; `user.email` must appear in `ADMIN_EMAILS`).
+
+**Same-origin**: Required (`isSameOriginMutationRequest`).
+
+**Request Body** (JSON): `{ "pin": string }` — must equal `ADMIN_PIN`.
+
+**Responses**: `200` `{ "ok": true }`; `401` if not signed in; `403` wrong PIN or not allowlisted; `500` if `ADMIN_PIN` is unset.
+
+### `GET /api/admin/grants` (`grants/route.ts`)
+
+List manual Pro grants (`manual_grants` table).
+
+**Auth**: Session email must be in `ADMIN_EMAILS`.
+
+**Response** (`200`): `{ "grants": [{ "email", "expires_at", "granted_by", "created_at" }, ...] }`
+
+### `POST /api/admin/grants`
+
+Upsert a manual grant by email (`onConflict: email`).
+
+**Auth**: Admin session. Same-origin POST.
+
+**Request Body**: `{ "email": string, "days": number /* 1–3650 */, "granted_by"?: string }`
+
+**Response** (`200`): `{ "ok": true, "email", "expires_at" }`
+
+### `DELETE /api/admin/grants`
+
+Remove a manual grant.
+
+**Auth**: Admin session. Same-origin mutation.
+
+**Request Body**: `{ "email": string }`
+
+**Response** (`200`): `{ "ok": true }`
+
+---
+
+## 9. Cross-Cutting Concerns
 
 ### Rate Limiting
 
@@ -261,4 +324,4 @@ All responses pass through `createApiResponse()` from `lib/apiHeaders.ts`, which
 
 ### Runtime
 
-All API routes specify `export const runtime = "nodejs"` to ensure access to Node.js APIs (not Edge Runtime).
+Integration-heavy handlers (Stripe, coach, cron, admin, puzzle mutations, etc.) set `export const runtime = "nodejs"` so Node-only APIs are available. Lightweight routes such as `/api/health` rely on the default runtime.

@@ -1,7 +1,7 @@
 # go-daily プロジェクトステータスと次なるロードマップ
 
-**生成日**: 2026-05-01
-**リポジトリ HEAD**: `ae8ecce`
+**生成日**: 2026-05-03
+**リポジトリ HEAD**: `43373fc`
 **ステータス**: v2.7 コードベース最適化版
 
 ---
@@ -29,7 +29,10 @@
 - **SEO hreflang**: `buildHreflangAlternates()` ヘルパーが全ページルートに `alternates.languages` を追加。
 - **アクセシビリティ**: Heatmap ARIA セマンティクス（`role="grid"`、`aria-label`）、UserMenu キーボードナビゲーション（矢印キー、Home/End）。
 - **ルートバウンダリ**: today、result、review、puzzles ルートに `loading.tsx` + `error.tsx` を追加。
-- **テストスイート**: 81 テストファイル、約 631 テストケース。
+- **テストスイート**: 81 テストファイル、637 テストケース。
+- **ゲストコーチの永続化**: Supabase の `guest_coach_usage` が端末／日単位の匿名コーチ利用を集計（`service_role` のみ）。IP 制限は不正対策用にインメモリのまま。
+- **碁盤モジュール**: コアは 4 ファイル（`board.ts`, `goRules.ts`, `judge.ts`, `sgf.ts`）に整理し、旧 `boardDisplay.ts` を削除。
+- **ドキュメント同期**: API リファレンスに `/api/health` と `/api/admin/*` を記載；DB 資料に `manual_grants` と `guest_coach_usage` を追加；README／索引を 9 ドメイン構成に整合。
 
 ## 3b. 最近の改善 (v1.1 ハードニング)
 
