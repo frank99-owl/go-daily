@@ -2,6 +2,12 @@
 
 This document describes the internal structure of go-daily, reflecting the nine-domain structure of the `lib/` directory and the centralized middleware logic.
 
+## Overview
+
+- **Edge & routing:** Page traffic passes through root `proxy.ts` for session refresh, auth redirects, and locale negotiation (`/{locale}/...`). API routes under `app/api/` skip that middleware and enforce their own validation (cookies, Stripe signatures, `parseMutationBody`, etc.).
+- **Modular core:** Business logic lives in `lib/<domain>/` (board rules, coach, puzzle, storage, Stripe, …) with shared contracts from `types/schemas.ts`.
+- **This document:** Request lifecycle, domain map, and security-relevant boundaries.
+
 ## 1. The Global Request Lifecycle (`proxy.ts`)
 
 Everything user-facing passes through the `proxy.ts` middleware. It handles four critical tasks in a single pass:

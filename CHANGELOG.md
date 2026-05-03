@@ -10,7 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Added
 
-- **Upstash Redis rate limiting**: Production requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; `createRateLimiter()` throws at module load if either is missing when `NODE_ENV === "production"`. Non-production uses an in-memory limiter when Upstash is not configured.
+- **Upstash Redis rate limiting**: Production requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; `createRateLimiter()` throws on first `isLimited()` call if either is missing when `NODE_ENV === "production"` (deferred from module load to allow `next build` without env vars). Non-production uses an in-memory limiter when Upstash is not configured.
 - **PWA icons**: Added 192×192 and 512×512 PNG icons for proper Android/Chrome install prompts. Run `npm run generate:icons` to regenerate from `public/icon.svg`.
 - **Localized OG/Twitter images**: Social share images now render in the viewer's locale (zh/en/ja/ko) instead of always English.
 - **Centralized env validation**: `lib/env.ts` with Zod-based lazy singletons for Coach, Stripe, Supabase, and Reveal env vars.
@@ -21,6 +21,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Documentation
 
+- **Public documentation & repo presentation**: Rewrote all four root `README.*` files with CI badge, product/engineering positioning, and role-based links into `docs/`. `docs/README.md` is now a documentation hub (repository map, audience paths, Mermaid pillar diagram, clarified root companions). Added `LICENSE` (all rights reserved). `CONTRIBUTING.md` is the GitHub-default English guide; Chinese moved to `CONTRIBUTING.zh.md` (removed `CONTRIBUTING.en.md`). Added localized **Overview** sections to every locale's `CONCEPT.md` and `ARCHITECTURE.md` for executive readability.
+- **Enterprise doc hygiene**: Removed `docs/en/UPGRADE_v1.1.md` (English-only orphan vs. four-locale pillars); v1.1 closure notes and **external communications** phrasing live under [1.1.0] in `CHANGELOG.md`. Stopped tracking `reports/duplicates` and `reports/quality` generator output (aligned with other `reports/` outputs); `docs/README.md` lists local output paths instead of dead links.
 - **Docs aligned with code (2026-05)**: Vitest inventory (80 files / 643 tests), CI Node 22, README `engines` (Node 22.5+), `proxy.ts` scope vs `/api` bypass and route-level auth, entitlements modules split out from `lib/puzzle/`, Upstash required in production for `createRateLimiter`, `MemoryRateLimiter` eviction semantics, preflight checklist described as variable (see `productionPreflight.ts`), multilingual `ARCHITECTURE` / `OPERATIONS_QA` / `API_REFERENCE` / `PROJECT_STATUS` updates.
 - **Canonical docs sync**: API reference (`/api/health`, `/api/admin/*`, guest coach persistence), database schema (`manual_grants`, `guest_coach_usage`), Vitest inventory (80 files / 643 tests), CONTRIBUTING guidance (`prebuild` vs lint), `PRODUCT_SPECS` SRS path (`lib/puzzle/srs.ts`), manual-grant behavior (`resolveViewerPlan`), and ja/ko product spec §4 (puzzle collections).
 - **Repository-wide Markdown sweep**: `POST /api/coach` documented as SSE (`text/event-stream`); pillar `DATABASE_SCHEMA` covers atomic usage RPCs (`0007_atomic_coach_usage_increment.sql`); multilingual `docs/*/CONCEPT.md` Pro bundle text matches entitlement quotas (not “unlimited” coach); `docs/README.md` notes `reports/*.md` is generator output only.
@@ -80,6 +82,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 ### Removed
 
 - Unused legacy modules cleaned up.
+
+### Notes (external communications)
+
+When describing 1.1.x capabilities in marketing, support, or partner materials, use accurate phrasing:
+
+- **Storage recovery**: Say *integrity check / corruption recovery*, not “anti-tamper” or “forgery-proof.”
+- **Error reporting**: Say errors are sent to an internal endpoint and recorded in server logs, not that an administrator is automatically notified by a third-party dashboard.
+- **Offline**: Say *basic offline shell* (network-first HTML, cache-first assets), not that the full dynamic puzzle experience works offline.
+- **Keyboard**: Say shortcuts on **today / result** puzzle surfaces, not site-wide hotkeys everywhere.
+
+Implementation-level closure detail for v1.1 now lives in the pillar docs on `main` (`docs/*/ARCHITECTURE.md`, `API_REFERENCE.md`, `DATABASE_SCHEMA.md`, `OPERATIONS_QA.md`).
 
 ---
 

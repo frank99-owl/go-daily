@@ -2,6 +2,12 @@
 
 This document outlines the "why" and "how" of go-daily's evolution from a zero-backend MVP to a global subscription product.
 
+## Overview
+
+- **Product surface:** Daily tsumego with four-locale UX, optional Pro sync and SRS, and a **Socratic** AI coach (streaming API, quotas, hardened prompting).
+- **Technical foundation:** Next.js 16 App Router, Supabase with RLS, tiered client storage, Stripe subscriptions — organised as **nine domains** under `lib/` (detailed in [Architecture](ARCHITECTURE.md)).
+- **This document:** Mission, phased strategy, lean engineering constraints, and content-sourcing ethics.
+
 ## 1. The Mission
 
 Go-daily is designed to solve the "consistency gap" in Go improvement. It transforms a deep, often intimidating board game into a modern, 5-minute daily habit powered by Socratic AI coaching.

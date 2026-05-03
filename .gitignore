@@ -47,13 +47,17 @@ next-env.d.ts
 # Claude Code session files
 .claude/
 
-# generated audit artifacts
+# generated audit artifacts (regenerate via npm run audit:puzzles | queue:content | report:*)
 /reports/puzzle-audit/*.json
 /reports/puzzle-audit/*.md
 !/reports/puzzle-audit/.gitkeep
 /reports/content-queue/*.json
 /reports/content-queue/*.md
 !/reports/content-queue/.gitkeep
+/reports/duplicates/*.json
+/reports/duplicates/*.md
+/reports/quality/*.json
+/reports/quality/*.md
 # KataGo & Analysis Assets
 katago_model.bin.gz
 *.bin.gz
