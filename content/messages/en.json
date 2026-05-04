@@ -28,7 +28,7 @@
     "section1Title": "1. The Virtue of Deliberation",
     "section1Text1": "The beauty of Go lies not in the final score, but in the quality of thought behind every move.",
     "section1Text2": "Modern AI is formidable, but its strength can be a double-edged sword. When an algorithm hands you the 'correct' move instantly, it robs you of the struggle that defines true improvement. Knowledge directly handed down is fragile.",
-    "section1Text3": "Insights earned through the 'pain' of deep calculation are the only ones that truly belong to you. Our AI coach is not an oracle of answers, but a Socratic guide—reviewing with you, prompting you when you hesitate, and ultimately empowering your own intuition.",
+    "section1Text3": "Insights earned through the 'pain' of deep calculation are the only ones that truly belong to you. Our AI coach is not an oracle of answers—it stays anchored to each puzzle's curated explanation and board context while reviewing with you and nudging you when you hesitate.",
     "section2Title": "2. The Spirit of Move 78",
     "section2Text1": "On March 13, 2016, the world witnessed a moment of pure human transcendence.",
     "section2Text2": "Against the cold, calculating logic of AlphaGo, Lee Sedol played the 'Divine Move'—a wedge at L11. It was a move the algorithm had deemed a 1-in-10,000 statistical anomaly.",
@@ -240,12 +240,12 @@
   "manifest": {
     "name": "go-daily — Daily Go Puzzle",
     "shortName": "go-daily",
-    "description": "One Go puzzle a day with a Socratic AI coach."
+    "description": "One Go puzzle a day with DeepSeek-backed AI coaching."
   },
   "metadata": {
     "home": {
       "title": "go-daily — Daily Go Puzzle with AI Coach",
-      "description": "Master Go (Weiqi/Baduk) with one hand-picked puzzle a day. Socratic AI coaching helps you understand the 'why', not just the 'where'."
+      "description": "Master Go (Weiqi/Baduk) with one hand-picked puzzle a day. AI coaching stays aligned with official explanations—helping you understand the 'why', not just the 'where'."
     },
     "today": {
       "title": "Today's Puzzle — go-daily",

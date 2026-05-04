@@ -29,7 +29,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   return {
     name: t.manifest?.name ?? "go-daily",
     short_name: t.manifest?.shortName ?? "go-daily",
-    description: t.manifest?.description ?? "One Go puzzle a day with a Socratic AI coach",
+    description: t.manifest?.description ?? "One Go puzzle a day with DeepSeek-backed AI coaching",
     lang: locale,
     start_url: localePath(locale, "/"),
     scope: "/",

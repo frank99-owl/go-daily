@@ -55,10 +55,10 @@ function make9Puzzle(overrides: Partial<Puzzle> = {}): Puzzle {
 }
 
 describe("buildSystemPrompt — always included", () => {
-  it("includes the coach role framing and Socratic tone instruction", () => {
+  it("includes the coach role framing and ground-truth constraints", () => {
     const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
     expect(prompt).toContain("AI coach for go-daily");
-    expect(prompt).toContain("Socratic");
+    expect(prompt).toContain("ground truth");
   });
 
   it("declares the correct 'CORRECT' / 'INCORRECT' verdict on the student's move", () => {

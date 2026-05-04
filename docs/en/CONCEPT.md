@@ -4,13 +4,13 @@ This document outlines the "why" and "how" of go-daily's evolution from a zero-b
 
 ## Overview
 
-- **Product surface:** Daily tsumego with four-locale UX, optional Pro sync and SRS, and a **Socratic** AI coach (streaming API, quotas, hardened prompting).
+- **Product surface:** Daily tsumego with four-locale UX, optional Pro sync and SRS, and **DeepSeek-backed streaming AI coaching** (personas, quotas, hardened prompting anchored to each puzzle's curated explanations via `coachPrompt.ts`).
 - **Technical foundation:** Next.js 16 App Router, Supabase with RLS, tiered client storage, Stripe subscriptions — organised as **nine domains** under `lib/` (detailed in [Architecture](ARCHITECTURE.md)).
 - **This document:** Mission, phased strategy, lean engineering constraints, and content-sourcing ethics.
 
 ## 1. The Mission
 
-Go-daily is designed to solve the "consistency gap" in Go improvement. It transforms a deep, often intimidating board game into a modern, 5-minute daily habit powered by Socratic AI coaching.
+Go-daily is designed to solve the "consistency gap" in Go improvement. It transforms a deep, often intimidating board game into a modern, 5-minute daily habit supported by that streaming coaching pipeline (DeepSeek API, fair-use quotas, persona prompts).
 
 ## 2. Strategic Phases (The Logic of Growth)
 
@@ -26,7 +26,7 @@ The goal was to build a "Product" out of a "Toy".
 
 The goal is to prove the business model with a "Zero-Cost" infrastructure.
 
-- **The "Pro" Bundle**: Defined by **Cross-Device Sync**, **high AI coach quotas** (51 messages/day and 1,001/month — see [Product Specifications](PRODUCT_SPECS.md)), and **SRS Spaced Repetition**.
+- **The "Pro" Bundle**: Defined by **Cross-Device Sync**, **high AI coach quotas** (**50+** turns/day and **1,000+**/month — see [Product Specifications](PRODUCT_SPECS.md)), and **SRS Spaced Repetition**.
 - **Monetization**: Stripe integration with adaptive pricing for JPY/KRW and a 7-day trial to lower friction.
 - **AI Economy**: Utilizing DeepSeek to provide professional-grade coaching at a fraction of the cost of KataGo-driven cloud compute.
 

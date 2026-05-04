@@ -41,7 +41,7 @@ export default async function Home({ params }: { params: Promise<{ locale: Local
       "@context": "https://schema.org",
       "@type": "WebApplication",
       name: "go-daily",
-      description: "Daily Go puzzles with Socratic AI coaching.",
+      description: "Daily Go puzzles with streaming AI coaching.",
       url: siteUrl,
       applicationCategory: "EducationalApplication",
       operatingSystem: "Web",

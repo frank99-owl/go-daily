@@ -240,12 +240,12 @@
   "manifest": {
     "name": "go-daily — 毎日の囲碁詰碁",
     "shortName": "go-daily",
-    "description": "1日1題、ソクラテス式AIコーチと一緒に棋力を磨く。"
+    "description": "1日1題、問題ごとの解説と局面を起点に DeepSeek のストリーミング AI コーチで復習。"
   },
   "metadata": {
     "home": {
       "title": "go-daily — 毎日の囲碁詰碁とAIコーチ",
-      "description": "毎日1題の厳選囲碁問題で、ソクラテス式AIコーチと共に「なぜ」を理解しよう。"
+      "description": "毎日1題の厳選囲碁問題で、公式解説と局面に沿った AI コーチと「なぜ」を読み解こう。"
     },
     "today": {
       "title": "今日の問題 — go-daily",

@@ -240,12 +240,12 @@
   "manifest": {
     "name": "go-daily — 매일 바둑 사활 문제",
     "shortName": "go-daily",
-    "description": "하루 한 문제, 소크라테스식 AI 코치와 함께 복기하세요."
+    "description": "하루 한 문제, 문제별 해설·국면에 맞춘 DeepSeek 스트리밍 AI 코치와 복기하세요."
   },
   "metadata": {
     "home": {
       "title": "go-daily — 매일 바둑 사활 문제와 AI 코치",
-      "description": "매일 엄선된 바둑 문제로 소크라테스식 AI 코치와 함께 '왜'를 이해하세요."
+      "description": "매일 엄선된 바둑 문제로, 공식 해설과 국면에 맞춘 AI 코치와 함께 '왜'를 이해하세요."
     },
     "today": {
       "title": "오늘의 문제 — go-daily",

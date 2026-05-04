@@ -101,7 +101,7 @@ Implementation-level closure detail for v1.1 now lives in the pillar docs on `ma
 ### Added
 
 - **Core puzzle engine**: 3,033 curated tsumego puzzles (19x19) with difficulty ratings, tags, and four-language prompts.
-- **AI Coach (Socratic)**: DeepSeek-powered coaching with 5 persona mentors (Ke Jie, Lee Sedol, Go Seigen, Iyama Yuta, Shin Jinseo).
+- **AI Coach**: DeepSeek-powered streaming coaching (`coachPrompt.ts`, curated explanations as ground truth) with 5 persona mentors (Ke Jie, Lee Sedol, Go Seigen, Iyama Yuta, Shin Jinseo).
 - **Multilingual UI**: Full support for Chinese (zh), English (en), Japanese (ja), and Korean (ko).
 - **URL-prefixed routing**: `/{locale}/...` pattern for SEO-friendly internationalization (sitemap scales with the puzzle corpus — currently on the order of **12,000+** locale-specific URLs from `sitemap.ts`).
 - **Three-state storage**: Anonymous LocalStorage → IndexedDB Queue → Supabase Cloud sync.

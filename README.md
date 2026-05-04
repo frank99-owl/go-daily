@@ -1,6 +1,6 @@
 # go-daily
 
-> One Go puzzle a day — with a Socratic AI coach in **中 / EN / 日 / 한**.
+> One Go puzzle a day — with streaming DeepSeek AI coaching in **中 / EN / 日 / 한**.
 
 **Languages:** English (this page) · [中文](README.zh.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
@@ -13,7 +13,7 @@
 
 ## Overview
 
-**go-daily** is a production-oriented daily tsumego (Go life-and-death) platform: one focused puzzle per day, full **Chinese / English / Japanese / Korean** UX, and a **Socratic** AI coach that guides thinking instead of giving away the solution.
+**go-daily** is a production-oriented daily tsumego (Go life-and-death) platform: one focused puzzle per day, full **Chinese / English / Japanese / Korean** UX, and **streaming AI coaching** via DeepSeek (`coachPrompt.ts` anchors replies to curated explanations and board metadata; persona voices and fair-use quotas apply).
 
 Technically, the product is a **Next.js 16 (App Router)** stack on **Supabase** (Auth, Postgres, RLS), **Stripe** for subscriptions, and a deliberately **nine-domain** layout under `lib/` so behaviour stays traceable as the system grows.
 
@@ -65,14 +65,14 @@ Open `http://localhost:3000` — locale negotiation redirects to `/{zh|en|ja|ko}
 
 ## Tech stack
 
-| Layer       | Choices                                                                       |
-| ----------- | ----------------------------------------------------------------------------- |
-| UI          | Next.js 16, React 19, Tailwind CSS v4, Framer Motion                          |
-| Data & auth | Supabase (Postgres + RLS), tiered client storage                              |
-| Payments    | Stripe (adaptive pricing, trials)                                             |
-| AI          | DeepSeek Chat API (Socratic coach pipeline)                                   |
-| Edge        | Upstash Redis rate limiting (required in production for standard deployments) |
-| Email       | Resend (transactional, where configured)                                      |
+| Layer       | Choices                                                                          |
+| ----------- | -------------------------------------------------------------------------------- |
+| UI          | Next.js 16, React 19, Tailwind CSS v4, Framer Motion                             |
+| Data & auth | Supabase (Postgres + RLS), tiered client storage                                 |
+| Payments    | Stripe (adaptive pricing, trials)                                                |
+| AI          | DeepSeek Chat API (`coachPrompt.ts` coach pipeline: streaming, personas, quotas) |
+| Edge        | Upstash Redis rate limiting (required in production for standard deployments)    |
+| Email       | Resend (transactional, where configured)                                         |
 
 ## Contributing & security
 

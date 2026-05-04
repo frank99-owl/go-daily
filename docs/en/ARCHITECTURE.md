@@ -40,7 +40,7 @@ The system operates on a three-state synchronization model:
 
 ### `lib/coach/` (AI Intelligence)
 
-- **Prompting**: Centralized in `coachPrompt.ts` to ensure consistency in Socratic tutoring across different puzzles.
+- **Prompting**: Centralized in `coachPrompt.ts` so every puzzle shares the same coaching contract (solution notes and variation metadata treated as ground truth, persona tone, locale-specific style blocks).
 - **Budgeting**: `coachQuota.ts` provides date utility functions (`formatDateInTimeZone`, `getNaturalMonthWindow`, `getBillingAnchoredMonthWindow`) used for billing-period calculations. The actual quota limits are enforced in `lib/entitlements.ts`.
 - **Usage counters**: Logged-in and guest coach message counts persist in Postgres; increments go through RPCs (`increment_coach_usage`, `increment_guest_coach_usage`) for atomic upserts under concurrency.
 

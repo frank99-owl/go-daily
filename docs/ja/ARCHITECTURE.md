@@ -40,7 +40,7 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 
 ### `lib/coach/` (AI インテリジェンス)
 
-- **プロンプト管理**：`coachPrompt.ts` に集約し、異なる問題間でも「ソクラテス式指導」のスタイルが一貫するようにします。
+- **プロンプト管理**：`coachPrompt.ts` に集約し、問題ごとに同じコーチング契約（解説・分岐などを正として扱う、ペルソナの口調、言語別スタイル）を適用します。
 - **割り当てと日付ウィンドウ**：`coachQuota.ts` はユーザー TZ の日付整形と自然月／請求アンカー月ウィンドウ（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）を提供。メッセージ回数上限は `lib/entitlements.ts` で定義され、`getCoachState` 等で消費されます。
 - **利用カウンタ**：ログイン／ゲストのコーチ回数は Postgres に保存。同時実行下では RPC（`increment_coach_usage`、`increment_guest_coach_usage`）により原子的な upsert で加算します。
 

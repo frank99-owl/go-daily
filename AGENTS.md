@@ -2,7 +2,7 @@
 
 ## Quick Orientation
 
-**What**: go-daily — a daily Go (围棋) puzzle platform with Socratic AI coaching, 4-language i18n (zh/en/ja/ko), and Stripe subscriptions.
+**What**: go-daily — a daily Go (围棋) puzzle platform with DeepSeek-backed streaming AI coaching (`coachPrompt.ts`, personas, quotas), 4-language i18n (zh/en/ja/ko), and Stripe subscriptions.
 
 **Stack**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Supabase (Auth + Postgres), Stripe, DeepSeek AI, Vitest.
 

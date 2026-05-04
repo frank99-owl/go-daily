@@ -6,12 +6,14 @@ This document defines the behavioral logic of go-daily's core features, synchron
 
 Instead of scattered boolean checks, go-daily uses a centralized **Lookup Table** to manage permissions. This ensures that adding a new tier (e.g., "Lifetime") only requires updating a single constant.
 
-| Feature            | Guest (No Login)   | Free Plan            | Pro Plan                |
-| ------------------ | ------------------ | -------------------- | ----------------------- |
-| **AI Coach Quota** | 3 / day, 5 / month | 10 / day, 30 / month | 51 / day, 1,001 / month |
-| **Device Limit**   | —                  | 1 device             | 3 devices               |
-| **Cloud Sync**     | None               | Single-device        | Multi-device            |
-| **Ads**            | Enabled            | Enabled              | Disabled                |
+| Feature            | Guest (No Login)   | Free Plan            | Pro Plan                       |
+| ------------------ | ------------------ | -------------------- | ------------------------------ |
+| **AI Coach Quota** | 3 / day, 5 / month | 10 / day, 30 / month | **50+ / day · 1,000+ / month** |
+| **Device Limit**   | —                  | 1 device             | 3 devices                      |
+| **Cloud Sync**     | None               | Single-device        | Multi-device                   |
+| **Ads**            | Enabled            | Enabled              | Disabled                       |
+
+Public-facing docs round **Pro** limits this way; authoritative counters live only in `lib/entitlements.ts`.
 
 Beyond device quotas: guest coach requests also enforce an extra **per–IP-address daily cap** on the server (currently **20** requests per UTC calendar day in `GUEST_IP_DAILY_LIMIT`, `guestCoachUsage.ts`). IP counts live in **Upstash** when `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set; otherwise they use an in-process `Map` (10k-key cap, oldest-key eviction after day rollover). This does not change the per-device counts in the table above.
 

@@ -40,7 +40,7 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 
 ### `lib/coach/` (AI 지능)
 
-- **프롬프트 관리**: `coachPrompt.ts`에 집중화하여 서로 다른 문제 사이에서도 "소크라테스식 교육" 스타일이 일관되게 유지되도록 합니다.
+- **프롬프트 관리**: `coachPrompt.ts`에 집중하여 모든 문제에 동일한 코칭 계약(해설·분기 정보를 근거로 삼음, 페르소나 톤, 로케일별 스타일 블록)을 적용합니다.
 - **할당량·날짜 창**: `coachQuota.ts`는 사용자 타임존 기준 날짜 서식 및 자연월/청구 앵커 월 창(`formatDateInTimeZone`, `getNaturalMonthWindow`, `getBillingAnchoredMonthWindow`)을 제공합니다. 메시지 횟수 상한은 `lib/entitlements.ts`에 정의되며 `getCoachState` 등에서 적용됩니다.
 - **사용 카운터**: 로그인·게스트 코치 메시지 수는 Postgres에 저장되며, 동시 접속 시 RPC(`increment_coach_usage`, `increment_guest_coach_usage`)로 원자적 upsert 증분합니다.
 

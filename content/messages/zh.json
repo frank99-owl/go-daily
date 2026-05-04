@@ -240,12 +240,12 @@
   "manifest": {
     "name": "go-daily — 每日围棋一题",
     "shortName": "go-daily",
-    "description": "一天一题，苏格拉底式 AI 教练陪你复盘。"
+    "description": "一天一题，AI 教练按题库解析与盘面上下文陪你复盘。"
   },
   "metadata": {
     "home": {
       "title": "go-daily — 每日围棋死活题与 AI 教练",
-      "description": "每天精选一道围棋死活题，苏格拉底式 AI 教练帮你理解「为什么」，而不只是「下哪里」。"
+      "description": "每天精选一道围棋死活题；AI 教练在官方解析与盘面约束内陪你读懂「为什么」，而不只是「下哪里」。"
     },
     "today": {
       "title": "今日一题 — go-daily",

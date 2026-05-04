@@ -54,7 +54,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(getSiteUrl()),
     title: { template: "%s — go-daily", absolute: "go-daily — Daily Go Puzzle with AI Coach" },
     description:
-      "One Go problem a day, with a Socratic AI coach. Switch between Chinese, English, Japanese, and Korean.",
+      "One Go problem a day, with DeepSeek-backed AI coaching. Switch between Chinese, English, Japanese, and Korean.",
     openGraph: {
       type: "website",
       locale: OG_LOCALE_MAP[locale],

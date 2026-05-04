@@ -7,6 +7,6 @@ export const LEE_ALPHAGO_G4_META = {
   black: "AlphaGo",
   white: "Lee Sedol (9p)",
   result: "W+R",
-  godMoveNumber: 78, // "Divine Move" (神之一手) W[ki] = L11
+  godMoveNumber: 78, // Famous wedge ("Divine Move") at L11 — White plays ki (move 78).
   totalMoves: 176,
 };

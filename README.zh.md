@@ -1,6 +1,6 @@
 # go-daily
 
-> 每日一题围棋死活练习 — 搭载苏格拉底式 AI 教练（**中 / EN / 日 / 한**）。
+> 每日一题围棋死活练习 — 搭载 DeepSeek 流式 AI 教练（**中 / EN / 日 / 한**）。
 
 **语言：** [English](README.md) · 中文（本页） · [日本語](README.ja.md) · [한국어](README.ko.md)
 
@@ -13,7 +13,7 @@
 
 ## 概览
 
-**go-daily** 是面向习惯养成的 **每日围棋死活** 学习产品：每天一题、**中 / 英 / 日 / 韩** 全链路本地化，以及强调思辨的 **苏格拉底式 AI 教练**（引导推理，而非直接报答案）。
+**go-daily** 是面向习惯养成的 **每日围棋死活** 学习产品：每天一题、**中 / 英 / 日 / 韩** 全链路本地化，以及基于 **`coachPrompt.ts`** 约束的 **DeepSeek 流式 AI 教练**（以题库解析与盘面信息为准；人设语气与配额见产品与规格文档）。
 
 工程上，产品基于 **Next.js 16（App Router）**，以 **Supabase**（认证、Postgres、RLS）与 **Stripe**（订阅）为骨架，并在 `lib/` 下以 **九大领域** 划分业务逻辑，保证规模扩张时边界仍然清晰。
 
@@ -65,14 +65,14 @@ npm run dev
 
 ## 技术栈
 
-| 层级       | 选型                                                 |
-| ---------- | ---------------------------------------------------- |
-| 前端       | Next.js 16、React 19、Tailwind CSS v4、Framer Motion |
-| 数据与认证 | Supabase（Postgres + RLS）、分层客户端存储           |
-| 支付       | Stripe（动态定价、试用）                             |
-| AI         | DeepSeek Chat API（苏格拉底式教练管线）              |
-| 边缘限流   | Upstash Redis（生产环境标准部署下需要）              |
-| 邮件       | Resend（在配置可用时使用）                           |
+| 层级       | 选型                                                    |
+| ---------- | ------------------------------------------------------- |
+| 前端       | Next.js 16、React 19、Tailwind CSS v4、Framer Motion    |
+| 数据与认证 | Supabase（Postgres + RLS）、分层客户端存储              |
+| 支付       | Stripe（动态定价、试用）                                |
+| AI         | DeepSeek Chat API（`coachPrompt.ts`：流式、人设、配额） |
+| 边缘限流   | Upstash Redis（生产环境标准部署下需要）                 |
+| 邮件       | Resend（在配置可用时使用）                              |
 
 ## 贡献与安全
 
