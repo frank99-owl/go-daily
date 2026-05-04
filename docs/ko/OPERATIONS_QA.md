@@ -19,6 +19,12 @@
 - `COACH_MONTHLY_TOKEN_BUDGET`: 예기치 않은 비용 급증을 방지하기 위한 애플리케이션 레벨의 엄격한 월간 제한.
 - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **프로덕션에서 필수** — `NODE_ENV === "production"`일 때 둘 중 하나라도 없으면 라우트 모듈 로드 시점에 `createRateLimiter()`가 예외를 던집니다. **개발**에서는 둘 다 생략해 `MemoryRateLimiter`(단일 프로세스 전용)를 쓸 수 있습니다.
 
+### OG / Twitter 미리보기 이미지 (`next/og`)
+
+- **위치**: `app/opengraph-image.tsx`, `app/twitter-image.tsx`(사이트 기본), `app/[locale]/opengraph-image.tsx`(로케일별).
+- **런타임**: 루트 OG/Twitter는 `export const runtime = "nodejs"`와 `ImageResponse`를 사용해 빌드 시 **정적 프리렌더**되며, Edge Runtime 관련 정적 생성 경고를 피합니다.
+- **Satori**: **`z-index` 미지원**. 그라데이션 등 겹침은 **바깥 래퍼의 `background`**로 처리하고 absolute 오버레이 다층은 피합니다.
+
 ## 3. 배포 전 사전 점검 (`scripts/productionPreflight.ts`)
 
 운영 환경 배포 전, 다음 명령을 실행합니다. 스크립트는 가변 체크리스트(필수 환경 변수, 키 형식 검사, 선택적 Supabase 컬럼 프로브, 선택적 Stripe 가격 프로브 — 전체 목록은 `scripts/productionPreflight.ts` 참고)를 출력합니다:

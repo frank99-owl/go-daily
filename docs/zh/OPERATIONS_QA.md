@@ -19,6 +19,12 @@
 - `COACH_MONTHLY_TOKEN_BUDGET`: 应用层硬性限制，防止账单意外激增。
 - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`：**生产环境必填** — 当 `NODE_ENV === "production"` 时，若缺少任一变量，`createRateLimiter()` 会在模块加载时抛出错误。**开发环境**可两者都不配置以使用 `MemoryRateLimiter`（仅适合单进程）。
 
+### OG / Twitter 预览图（`next/og`）
+
+- **位置**：`app/opengraph-image.tsx`、`app/twitter-image.tsx`（全站默认），以及 `app/[locale]/opengraph-image.tsx`（按语言）。
+- **运行时**：根级 OG/Twitter 使用 `export const runtime = "nodejs"` 配合 `ImageResponse`，以便在构建阶段**静态预渲染**，并避免 Edge Runtime 关于静态生成的告警。
+- **Satori 限制**：渲染器**不支持** `z-index`；层次背景请叠在**最外层容器的 `background`** 上，勿用多层 absolute 叠加。
+
 ## 3. 部署预检 (`scripts/productionPreflight.ts`)
 
 在任何生产推送前，运行以下命令。脚本会输出可变的检查清单（必填环境变量、密钥形态校验、可选的 Supabase 列探测、可选的 Stripe 价格探测——完整项见 `scripts/productionPreflight.ts`）：

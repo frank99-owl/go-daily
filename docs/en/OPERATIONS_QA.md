@@ -19,6 +19,12 @@ Configuration is managed via Vercel Environment Variables. The most critical tog
 - `COACH_MONTHLY_TOKEN_BUDGET`: Hard application-level limit to prevent billing spikes.
 - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **Required in production** — `createRateLimiter()` throws if either is missing when `NODE_ENV === "production"` (route modules import the limiter at load time). In **development**, omit both to use `MemoryRateLimiter` (single-process only).
 
+### OG & Twitter preview images (`next/og`)
+
+- **Where**: `app/opengraph-image.tsx`, `app/twitter-image.tsx` (site defaults), and `app/[locale]/opengraph-image.tsx` (locale-specific artwork).
+- **Runtime**: Root OG/Twitter files set `export const runtime = "nodejs"` with `ImageResponse` so Next.js **prerenders them as static routes** at build time and avoids Edge-runtime warnings about static generation.
+- **Satori markup**: The renderer does **not** support `z-index`; build layered backgrounds on the **outer wrapper’s `background`** instead of stacking absolutely positioned overlays.
+
 ## 3. Deployment Preflight (`scripts/productionPreflight.ts`)
 
 Before any production push, run the following command. The script emits a variable checklist (required env vars, key-shape checks, optional live Supabase column probes, optional Stripe price probes — see `scripts/productionPreflight.ts` for the authoritative list):

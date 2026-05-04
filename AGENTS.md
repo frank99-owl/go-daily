@@ -10,6 +10,7 @@
 
 - `proxy.ts` — global middleware (auth refresh, locale negotiation, route guarding)
 - `app/[locale]/` — all user-facing pages (locale-prefixed)
+- `app/opengraph-image.tsx`, `app/twitter-image.tsx` — default social preview images (`ImageResponse`, **`nodejs` runtime**, statically prerendered); localized OG in `app/[locale]/opengraph-image.tsx`
 - `app/api/` — API route handlers
 - `lib/` — core business logic (nine domains: auth, board, coach, i18n, posthog, puzzle, storage, stripe, supabase)
 - `content/` — puzzle data and i18n messages
@@ -77,6 +78,7 @@ CI pipeline (`.github/workflows/ci.yml`): format:check → lint → validate:puz
 - **Environment variables**: See `.env.example` for the full list. Never commit `.env.local`. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.
 - **Manual Pro grants**: Email-based grants live in `manual_grants` and are merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). Admin APIs are under `/api/admin/*`; keep `ADMIN_PIN` server-only and do not add permissive RLS policies to `manual_grants`.
 - **Guest coach counters**: `guest_coach_usage` is written only via `service_role` in `guestCoachUsage.ts`; clients never query it directly.
+- **`next/og` (Satori)**: Avoid `z-index` in OG/Twitter JSX—layer gradients on the root wrapper `background` instead. Root OG routes intentionally use **`runtime = "nodejs"`** (not Edge) so build output stays clean and those routes prerender statically.
 
 ## Documentation
 

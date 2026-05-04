@@ -19,6 +19,12 @@
 - `COACH_MONTHLY_TOKEN_BUDGET`: 予期せぬ課金の急増を防ぐための、アプリケーションレベルのハードな月間制限。
 - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`：**本番では必須** — `NODE_ENV === "production"` のときどちらかが欠けると、ルートモジュール読み込み時に `createRateLimiter()` が例外を投げます。**開発**では両方省略して `MemoryRateLimiter`（単一プロセス専用）にできます。
 
+### OG / Twitter プレビュー画像（`next/og`）
+
+- **配置**: `app/opengraph-image.tsx`、`app/twitter-image.tsx`（サイト既定）、`app/[locale]/opengraph-image.tsx`（ロケール別）。
+- **ランタイム**: ルートの OG/Twitter は `export const runtime = "nodejs"` と `ImageResponse` を指定し、ビルド時に**静的プリレンダ**され、Edge Runtime に起因する静的生成警告を避けます。
+- **Satori**: **`z-index` 非対応**。グラデーションなどの重ね合わせは **外側ラッパーの `background`** にまとめ、absolute のオーバーレイ積み重ねは避けます。
+
 ## 3. デプロイ前の事前チェック (`scripts/productionPreflight.ts`)
 
 本番環境へのプッシュ前に、以下のコマンドを実行します。スクリプトは可変のチェックリスト（必須環境変数、キー形状チェック、任意の Supabase 列プローブ、任意の Stripe 価格プローブ — 完全な一覧は `scripts/productionPreflight.ts` を参照）を出力します：

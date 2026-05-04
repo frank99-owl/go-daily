@@ -51,7 +51,8 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
         display: "flex",
         alignItems: "stretch",
         justifyContent: "space-between",
-        background: "#050505",
+        background:
+          "radial-gradient(circle at 76% 24%, rgba(0,242,255,0.22), transparent 30%), linear-gradient(135deg, #050505 0%, #11100e 48%, #241915 100%)",
         color: "#f7f1e8",
         overflow: "hidden",
         position: "relative",
@@ -59,21 +60,7 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
     >
       <div
         style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-          display: "flex",
-          background:
-            "radial-gradient(circle at 76% 24%, rgba(0,242,255,0.22), transparent 30%), linear-gradient(135deg, #050505 0%, #11100e 48%, #241915 100%)",
-        }}
-      />
-
-      <div
-        style={{
           position: "relative",
-          zIndex: 1,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
@@ -153,7 +140,6 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
       <div
         style={{
           position: "relative",
-          zIndex: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

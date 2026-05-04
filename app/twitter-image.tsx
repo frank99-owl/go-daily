@@ -1,6 +1,6 @@
 import OpenGraphImage from "./opengraph-image";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const alt = "go-daily - Daily Go puzzle with AI Coach";
 export const size = {
   width: 1200,
