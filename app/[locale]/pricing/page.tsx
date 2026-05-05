@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import { getViewerPlan, type ViewerPlan } from "@/lib/entitlements";
+import type { ViewerPlan } from "@/lib/entitlements";
+import { resolveViewerPlan } from "@/lib/entitlementsServer";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { buildHreflangAlternates } from "@/lib/siteUrl";
@@ -59,7 +60,11 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
       if (subErr) {
         console.error("[pricing] failed to read subscription", subErr.message);
       }
-      viewerPlan = getViewerPlan({ user, subscriptionStatus: subscription?.status ?? null });
+      viewerPlan = await resolveViewerPlan({
+        user,
+        subscriptionStatus: subscription?.status ?? null,
+        email: user.email,
+      });
     }
   } catch (error) {
     console.error("[pricing] supabase check failed", error);

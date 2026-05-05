@@ -13,7 +13,7 @@ This tree is the **canonical** technical and product reference for go-daily: **e
 | `app/`     | Next.js App Router — `app/[locale]/` pages, `app/api/` route handlers                                                |
 | `lib/`     | Domain logic (nine domains: auth, board, coach, i18n, puzzle, storage, posthog, stripe, supabase — see Architecture) |
 | `content/` | Puzzle data, static messages                                                                                         |
-| `proxy.ts` | Global middleware: session refresh, locale negotiation, route guarding                                               |
+| `proxy.ts` | Next.js 16 app-root **proxy** (replaces `middleware.ts`): session refresh, locale negotiation, route guarding        |
 | `types/`   | Zod schemas (`types/schemas.ts`) — shared contracts                                                                  |
 | `tests/`   | Vitest suites (mirror structure under `tests/lib`, `tests/api`, …)                                                   |
 

@@ -8,7 +8,7 @@
 
 **Key entry points**:
 
-- `proxy.ts` — global middleware (auth refresh, locale negotiation, route guarding)
+- `proxy.ts` — global request proxy (Next.js 16; auth refresh, locale negotiation, route guarding)
 - `app/[locale]/` — all user-facing pages (locale-prefixed)
 - `app/opengraph-image.tsx`, `app/twitter-image.tsx` — default social preview images (`ImageResponse`, **`nodejs` runtime**, statically prerendered); localized OG in `app/[locale]/opengraph-image.tsx`
 - `app/api/` — API route handlers
@@ -49,7 +49,7 @@ All core logic lives in `lib/` organized by domain:
 ## Testing
 
 ```bash
-npm run test          # Run all (80 files, 643 cases)
+npm run test          # Run all (81 files, 647 cases)
 npm run test:watch    # Watch mode
 npm run test:coverage # Coverage report (target: 70%+)
 ```

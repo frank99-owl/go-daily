@@ -1,7 +1,7 @@
 # go-daily 项目状态与下一步路线图
 
-**生成日期**: 2026-05-04
-**仓库 HEAD**: `bf582e2`
+**生成日期**: 2026-05-05
+**仓库 HEAD**: `70d34b7`
 **版本状态**: v2.7 代码库优化版
 
 ---
@@ -18,7 +18,7 @@
 
 ## 三、近期进展 (v2.8)
 
-- **Upstash Redis 限流**：生产环境使用 Upstash Redis 实现跨实例速率限制，无环境变量时回退到内存限流。
+- **Upstash Redis 限流**：生产环境使用 Upstash Redis 做跨实例限流。当 `NODE_ENV === "production"` 且未设置 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` 时，`createRateLimiter()` 返回的桩实现会在首次执行限流检查时抛出错误（开发环境可同时省略两者并使用 `MemoryRateLimiter`）。
 - **PWA 图标**：新增 192×192 和 512×512 PNG 图标，支持 Android/Chrome 安装提示。
 - **OG 图片本地化**：社交分享图片现在根据用户语言环境（zh/en/ja/ko）渲染。
 - **ja.json 翻译修复**：移除了 3 条日语 UI 字符串中混入的韩文和中文字符。
@@ -29,7 +29,7 @@
 - **SEO hreflang**：`buildHreflangAlternates()` 辅助函数为所有页面路由添加 `alternates.languages`。
 - **无障碍**：Heatmap ARIA 语义（`role="grid"`、`aria-label`），UserMenu 键盘导航（方向键、Home/End）。
 - **路由边界**：today、result、review、puzzles 路由添加 `loading.tsx` + `error.tsx`。
-- **测试套件**：80 个测试文件，643 个测试用例，覆盖逻辑、UI 和 API 层。
+- **测试套件**：81 个测试文件，647 个测试用例，覆盖逻辑、UI 和 API 层。
 - **访客教练持久化**：Supabase `guest_coach_usage` 按设备/自然日累计匿名教练用量（仅 `service_role`）；IP 维度限制仍在内存中用于防滥用。
 - **棋盘模块**：核心逻辑收敛为四个模块（`board.ts`、`goRules.ts`、`judge.ts`、`sgf.ts`），已移除旧的 `boardDisplay.ts`。
 - **文档同步**：API 参考包含 `/api/health`、`/api/admin/*`，并写明 **`POST /api/coach` 为 SSE（Server‑Sent Events）** 以及 Postgres **RPC** 递增用量；数据库文档包含 `manual_grants`、`guest_coach_usage` 以及 **`0007_atomic_coach_usage_increment.sql`** 说明；多语言 **`CONCEPT.md`** 对 Pro 的表述与配额一致（并非「无限次」教练——见 **`PRODUCT_SPECS`**）；README / 文档索引与九大领域布局一致。

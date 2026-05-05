@@ -1,7 +1,7 @@
 # go-daily Project Status & Roadmap
 
-**Generated At**: May 4, 2026
-**Repository HEAD**: `bf582e2`
+**Generated At**: May 5, 2026
+**Repository HEAD**: `70d34b7`
 **Status**: v2.7 Codebase Optimization Edition
 
 ---
@@ -18,7 +18,7 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 
 ## 3. Recent Progress (v2.8)
 
-- **Upstash Redis Rate Limiting**: Production uses Upstash Redis for cross-instance rate limiting. Falls back to in-memory when env vars are absent.
+- **Upstash Redis Rate Limiting**: Production uses Upstash Redis for cross-instance rate limiting. When `NODE_ENV === "production"`, missing `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` makes `createRateLimiter()` return a stub that throws on the first rate-limit check (dev omits both vars and uses `MemoryRateLimiter`).
 - **PWA Icons**: 192×192 and 512×512 PNG icons added for Android/Chrome install prompts.
 - **Localized OG Images**: Social share images now render in the viewer's locale (zh/en/ja/ko).
 - **ja.json Translation Fix**: Removed Korean/Chinese character contamination from 3 Japanese UI strings.
@@ -29,7 +29,7 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **SEO Hreflang**: `buildHreflangAlternates()` helper with `alternates.languages` on all page routes.
 - **Accessibility**: Heatmap ARIA semantics (`role="grid"`, `aria-label`), UserMenu keyboard navigation (Arrow keys, Home/End).
 - **Route Boundaries**: `loading.tsx` + `error.tsx` for today, result, review, and puzzles routes.
-- **Test Suite**: 80 test files, 643 test cases covering logic, UI, and API layers.
+- **Test Suite**: 81 test files, 647 test cases covering logic, UI, and API layers.
 - **Guest coach persistence**: `guest_coach_usage` in Supabase stores anonymous coach message counts per device/day (`service_role` only); IP caps stay in-memory for abuse control.
 - **Board module**: Core logic consolidated into four modules (`board.ts`, `goRules.ts`, `judge.ts`, `sgf.ts`); legacy `boardDisplay.ts` removed.
 - **Documentation sync**: API reference covers `/api/health` and `/api/admin/*`; includes **`POST /api/coach` as Server-Sent Events** and Postgres **RPC** usage increments; database docs include `manual_grants`, `guest_coach_usage`, and **`0007_atomic_coach_usage_increment.sql`** notes; multilingual **`CONCEPT.md`** Pro wording matches entitlement quotas (**not** “unlimited” coach — see **`PRODUCT_SPECS`**); README/docs index aligned with the nine-domain layout.

@@ -1,19 +1,19 @@
 # Technical Architecture & Core Modules
 
-This document describes the internal structure of go-daily, reflecting the nine-domain structure of the `lib/` directory and the centralized middleware logic.
+This document describes the internal structure of go-daily, reflecting the nine-domain structure of the `lib/` directory and the centralized app-root proxy (`proxy.ts`).
 
 ## Overview
 
-- **Edge & routing:** Page traffic passes through root `proxy.ts` for session refresh, auth redirects, and locale negotiation (`/{locale}/...`). API routes under `app/api/` skip that middleware and enforce their own validation (cookies, Stripe signatures, `parseMutationBody`, etc.).
+- **Edge & routing:** Page traffic passes through root `proxy.ts` for session refresh, auth redirects, and locale negotiation (`/{locale}/...`). API routes under `app/api/` skip the global proxy and enforce their own validation (cookies, Stripe signatures, `parseMutationBody`, etc.).
 - **Modular core:** Business logic lives in `lib/<domain>/` (board rules, coach, puzzle, storage, Stripe, …) with shared contracts from `types/schemas.ts`.
 - **This document:** Request lifecycle, domain map, and security-relevant boundaries.
 
 ## 1. The Global Request Lifecycle (`proxy.ts`)
 
-Everything user-facing passes through the `proxy.ts` middleware. It handles four critical tasks in a single pass:
+Everything user-facing passes through root `proxy.ts` (the Next.js app-root proxy). It handles four critical tasks in a single pass:
 
 1.  **Manifest Special-Case Handling**: Intercepts requests for the PWA manifest and serves the appropriate version.
-2.  **Exempt Path Passthrough**: Lets certain paths (static assets, API webhooks, etc.) bypass all middleware logic.
+2.  **Exempt Path Passthrough**: Lets certain paths (static assets, API webhooks, etc.) bypass all proxy logic.
 3.  **Session Refresh & Auth Redirect**: Using `@supabase/ssr`, it refreshes the session cookie on every navigation to keep Server Components hydrated with fresh user state. Already-prefixed paths (`/en/account`, etc.) are guarded here — unauthenticated users hitting `/account` are redirected to `/login?next=...`, and authenticated users hitting `/login` are redirected to `/account`.
 4.  **Locale Negotiation**: For unprefixed paths, it handles the 308 (Permanent) redirect matrix to ensure every path is locale-prefixed (`/{zh|en|ja|ko}/...`).
 

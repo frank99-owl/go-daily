@@ -1,7 +1,7 @@
 # go-daily プロジェクトステータスと次なるロードマップ
 
-**生成日**: 2026-05-04
-**リポジトリ HEAD**: `bf582e2`
+**生成日**: 2026-05-05
+**リポジトリ HEAD**: `70d34b7`
 **ステータス**: v2.7 コードベース最適化版
 
 ---
@@ -18,7 +18,7 @@
 
 ## 3. 最近の進捗 (v2.8)
 
-- **Upstash Redis レート制限**: 本番環境で Upstash Redis を使用したクロスインスタンスのレート制限を導入。環境変数がない場合はインメモリにフォールバック。
+- **Upstash Redis レート制限**: 本番では Upstash Redis でマルチインスタンスのレート制限を行う。`NODE_ENV === "production"` かつ `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` が未設定のとき、`createRateLimiter()` はスタブを返し、初回の `isLimited` で例外を投げる（開発では両方省略して `MemoryRateLimiter`）。
 - **PWA アイコン**: Android/Chrome のインストールプロンプト用に 192×192、512×512 PNG アイコンを追加。
 - **OG 画像のローカライズ**: SNS 共有画像が閲覧者のロケール（zh/en/ja/ko）で表示されるように変更。
 - **ja.json 翻訳修正**: 3 つの日本語 UI 文字列から混入した韓国語・中国語文字を除去。
@@ -29,7 +29,7 @@
 - **SEO hreflang**: `buildHreflangAlternates()` ヘルパーが全ページルートに `alternates.languages` を追加。
 - **アクセシビリティ**: Heatmap ARIA セマンティクス（`role="grid"`、`aria-label`）、UserMenu キーボードナビゲーション（矢印キー、Home/End）。
 - **ルートバウンダリ**: today、result、review、puzzles ルートに `loading.tsx` + `error.tsx` を追加。
-- **テストスイート**: 80 テストファイル、643 テストケース。
+- **テストスイート**: 81 テストファイル、647 テストケース。
 - **ゲストコーチの永続化**: Supabase の `guest_coach_usage` が端末／日単位の匿名コーチ利用を集計（`service_role` のみ）。IP 制限は不正対策用にインメモリのまま。
 - **碁盤モジュール**: コアは 4 ファイル（`board.ts`, `goRules.ts`, `judge.ts`, `sgf.ts`）に整理し、旧 `boardDisplay.ts` を削除。
 - **ドキュメント同期**：API リファレンスに `/api/health` と `/api/admin/*`、`POST /api/coach` を **SSE**（Server-Sent Events）として記載し、Postgres **RPC** での使用量加算も反映；DB 資料に `manual_grants`、`guest_coach_usage`、および **`0007_atomic_coach_usage_increment.sql`** を追記；各言語の **`CONCEPT.md` は実際の上限に整合**（無制限コーチではない — **`PRODUCT_SPECS`**）；README／索引も 9 ドメイン構成に一致。

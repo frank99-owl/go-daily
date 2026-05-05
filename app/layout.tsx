@@ -26,7 +26,7 @@ const inter = Inter({
 
 /** CJK font families per locale — loaded on-demand via non-blocking <link>. */
 const CJK_FONTS: Record<Locale, string[]> = {
-  zh: ["Noto+Sans+SC:wght@300;400;500", "Noto+Serif+SC:wght@400;600", "Zhi+Mang+Xing"],
+  zh: ["Noto+Sans+SC:wght@300;400;500", "Noto+Serif+SC:wght@400;600"],
   ja: ["Noto+Sans+JP:wght@300;400;500", "Shippori+Mincho:wght@400;600"],
   ko: ["Noto+Sans+KR:wght@300;400;500", "Gowun+Batang:wght@400;700"],
   en: [],
@@ -90,6 +90,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        {locale === "zh" && (
+          <link
+            rel="preload"
+            href="/fonts/ZhiMangXing-Regular.ttf"
+            as="font"
+            type="font/ttf"
+            crossOrigin="anonymous"
+          />
+        )}
         {cjkFontUrl(locale) && (
           <>
             <link rel="preconnect" href="https://fonts.googleapis.com" />

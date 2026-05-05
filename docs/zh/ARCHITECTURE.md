@@ -1,19 +1,19 @@
 # 技术架构与核心模块 (ARCHITECTURE)
 
-本文件描述了 go-daily 的内部结构，反映了 `lib/` 目录的”九域分域”重构以及集中式中间件逻辑。
+本文件描述了 go-daily 的内部结构，反映了 `lib/` 目录的”九域分域”重构以及根目录 `proxy.ts`（Next.js 16 应用级代理）的请求处理逻辑。
 
 ## 概述
 
-- **边缘与路由：** 页面流量经根 `proxy.ts` 做会话刷新、登录重定向与语言协商（`/{locale}/...`）。`app/api/` 路由不走该中间件链路，自行校验（Cookie、Stripe 签名、`parseMutationBody` 等）。
+- **边缘与路由：** 页面流量经根目录 `proxy.ts` 做会话刷新、登录重定向与语言协商（`/{locale}/...`）。`app/api/` 路由不走该全局代理，自行校验（Cookie、Stripe 签名、`parseMutationBody` 等）。
 - **模块化核心：** 业务逻辑位于 `lib/<domain>/`（棋盘、教练、题库、存储、Stripe 等），共享契约来自 `types/schemas.ts`。
 - **本文范围：** 请求生命周期、领域划分与安全相关边界。
 
 ## 1. 全局请求生命周期 (`proxy.ts`)
 
-所有用户侧请求都会经过 `proxy.ts` 中间件。它在单次传递中处理四个关键任务：
+所有用户侧请求都会经过根目录 `proxy.ts`（Next.js 16 应用级代理）。它在单次传递中处理四个关键任务：
 
 1.  **Manifest 特殊处理**：拦截 PWA Manifest 请求并返回对应的版本。
-2.  **豁免路径放行**：允许特定路径（静态资源、API Webhook 等）跳过所有中间件逻辑。
+2.  **豁免路径放行**：允许特定路径（静态资源、API Webhook 等）跳过全部代理逻辑。
 3.  **身份刷新与认证重定向 (Auth Refresh & Redirect)**：利用 `@supabase/ssr` 在每次导航时刷新 Session Cookie，确保服务端组件 (RSC) 始终持有最新的用户状态。已加前缀路径（如 `/en/account` 等）在此进行守卫——未登录用户访问 `/account` 会被重定向至 `/login?next=...`，已登录用户访问 `/login` 会被重定向至 `/account`。
 4.  **国际化协商 (Locale Negotiation)**：对于未加前缀的路径，处理 308 (永久) 重定向矩阵，确保所有路径都带有语言前缀 (`/{zh|en|ja|ko}/...`)。
 

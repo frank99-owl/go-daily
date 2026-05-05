@@ -1,2 +1,5 @@
 .next
 content/data
+
+# No inferred parser for KEY=value templates (explicit `prettier --write .env.example` would error).
+.env.example
