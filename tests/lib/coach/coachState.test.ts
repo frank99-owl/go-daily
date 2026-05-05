@@ -44,11 +44,13 @@ type UsageBehavior = {
 function buildAdminClient({
   profile = { data: { timezone: null }, error: null } as QueryResult,
   subscription = { data: null, error: null } as QueryResult,
+  manualGrant = { data: null, error: null } as QueryResult,
   devices = { data: [], error: null } as QueryResult,
   usage = {} as UsageBehavior,
 }: {
   profile?: QueryResult;
   subscription?: QueryResult;
+  manualGrant?: QueryResult;
   devices?: QueryResult;
   usage?: UsageBehavior;
 } = {}) {
@@ -68,6 +70,8 @@ function buildAdminClient({
           return query(profile);
         case "subscriptions":
           return query(subscription);
+        case "manual_grants":
+          return query(manualGrant);
         case "user_devices":
           return query(devices);
         case "coach_usage": {
@@ -227,10 +231,7 @@ describe("getCoachState — device limit", () => {
     const admin = buildAdminClient({
       subscription: { data: { status: null } },
       devices: {
-        data: [
-          { device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" },
-          { device_id: "second-device", last_seen: "2026-04-20T00:00:00Z" },
-        ],
+        data: [{ device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" }],
         error: null,
       },
     });
@@ -245,17 +246,47 @@ describe("getCoachState — device limit", () => {
     expect(result.usage).not.toBeNull();
   });
 
-  it("does not apply device limit for pro users (deviceLimit is null)", async () => {
+  it("allows a pro user to add the third registered device", async () => {
     const admin = buildAdminClient({
       subscription: { data: { status: "active" } },
+      devices: {
+        data: [
+          { device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" },
+          { device_id: "second-device", last_seen: "2026-04-20T00:00:00Z" },
+        ],
+        error: null,
+      },
     });
     const result = await getCoachState({
       admin: admin as never,
       userId: "user-1",
-      deviceId: "brand-new-device",
+      deviceId: "third-device",
       now: NOW,
     });
     expect(result.deviceLimited).toBe(false);
+  });
+
+  it("treats unexpired manual grants as pro for device limits", async () => {
+    const admin = buildAdminClient({
+      subscription: { data: { status: null } },
+      manualGrant: { data: { expires_at: "2999-01-01T00:00:00.000Z" }, error: null },
+      devices: {
+        data: [
+          { device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" },
+          { device_id: "second-device", last_seen: "2026-04-20T00:00:00Z" },
+        ],
+        error: null,
+      },
+    });
+    const result = await getCoachState({
+      admin: admin as never,
+      userId: "user-1",
+      deviceId: "third-device",
+      email: "manual@example.com",
+      now: NOW,
+    });
+    expect(result.deviceLimited).toBe(false);
+    expect(result.usage?.plan).toBe("pro");
   });
 
   it("skips device lookup when no deviceId is provided", async () => {

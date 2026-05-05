@@ -1,5 +1,6 @@
 import { getPuzzle } from "@/content/puzzles";
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
+import { DEVICE_ID_MAX_LENGTH } from "@/lib/auth/deviceRegistry";
 import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
 import { getCoachAccess } from "@/lib/coach/coachAccess";
@@ -82,7 +83,11 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   const guestDeviceId = request.headers.get(GUEST_DEVICE_ID_HEADER);
-  if (guestDeviceId && guestDeviceId.length > 128) {
+  const authDeviceId = request.headers.get(COACH_DEVICE_ID_HEADER);
+  if (
+    (guestDeviceId && guestDeviceId.length > DEVICE_ID_MAX_LENGTH) ||
+    (authDeviceId && authDeviceId.length > DEVICE_ID_MAX_LENGTH)
+  ) {
     return errorResponse("Invalid device ID.", 400);
   }
   const isGuest = !user && !!guestDeviceId;
@@ -173,7 +178,7 @@ export async function POST(request: Request) {
     coachState = await getCoachState({
       admin,
       userId: user!.id,
-      deviceId: request.headers.get(COACH_DEVICE_ID_HEADER),
+      deviceId: authDeviceId,
       email: user!.email,
       now,
     });
@@ -489,7 +494,15 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   const guestDeviceId = request.headers.get(GUEST_DEVICE_ID_HEADER);
+  const authDeviceId = request.headers.get(COACH_DEVICE_ID_HEADER);
   const countryCode = request.headers.get("cf-ipcountry");
+
+  if (
+    (guestDeviceId && guestDeviceId.length > DEVICE_ID_MAX_LENGTH) ||
+    (authDeviceId && authDeviceId.length > DEVICE_ID_MAX_LENGTH)
+  ) {
+    return errorResponse("Invalid device ID.", 400);
+  }
 
   // Guest usage query
   if (!user && guestDeviceId) {
@@ -508,7 +521,7 @@ export async function GET(request: Request) {
   const coachState = await getCoachState({
     admin: createServiceClient(),
     userId: user.id,
-    deviceId: request.headers.get(COACH_DEVICE_ID_HEADER),
+    deviceId: authDeviceId,
     email: user.email,
     now: new Date(),
   });

@@ -17,6 +17,8 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 除上表按设备的配额外，访客教练在服务端另有 **按 IP 的 UTC 自然日日上限**（`GUEST_IP_DAILY_LIMIT`，当前为每 IP 每日 **20** 次，见 `guestCoachUsage.ts`）。IP 计数在配置 Upstash 时落 **Redis**；否则为进程内 `Map`（1 万键上限、跨日清理后按插入顺序淘汰最旧键）。不改变表中按设备的计数。
 
+已登录浏览器通过 `POST /api/auth/device` 登记或刷新自己的 `user_devices` 记录。该端点会先合并 Stripe 订阅状态与 `manual_grants`，再执行 Free / Pro 设备限制。
+
 ### 缓存策略 (Next.js 16)
 
 我们利用 `'use cache'` 指令和 `cacheTag`。当 Stripe Webhook 更新订阅时，我们会调用 `revalidateTag('entitlements:' + userId)`，确保 UI 即时反映新状态。

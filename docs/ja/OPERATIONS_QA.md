@@ -39,7 +39,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自動化カバレッジ (Vitest)
 
-81 テストファイル、647 テストケースを維持しています：
+82 テストファイル、657 テストケースを維持しています：
 
 - **ロジック**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。

@@ -2,12 +2,19 @@ import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ClientInit } from "@/components/ClientInit";
-import { useCurrentUser } from "@/lib/auth/auth";
+import { signOut, useCurrentUser } from "@/lib/auth/auth";
+import { registerDevice } from "@/lib/auth/deviceRegistry";
 import { initGlobalErrorHandlers } from "@/lib/errorReporting";
+import { LocaleProvider } from "@/lib/i18n/i18n";
 import { createSyncStorage, flushSyncQueue } from "@/lib/storage/syncStorage";
 
 vi.mock("@/lib/auth/auth", () => ({
   useCurrentUser: vi.fn(),
+  signOut: vi.fn(),
+}));
+
+vi.mock("@/lib/auth/deviceRegistry", () => ({
+  registerDevice: vi.fn(),
 }));
 
 vi.mock("@/lib/errorReporting", () => ({
@@ -24,10 +31,24 @@ vi.mock("@/lib/storage/syncStorage", () => ({
 describe("ClientInit", () => {
   let originalServiceWorker: ServiceWorkerContainer | undefined;
 
+  function renderClientInit() {
+    return render(
+      <LocaleProvider initialLocale="zh">
+        <ClientInit />
+      </LocaleProvider>,
+    );
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     sync.mockResolvedValue({ pushed: 0, pulled: 0 });
     vi.mocked(flushSyncQueue).mockResolvedValue(0);
+    vi.mocked(registerDevice).mockResolvedValue({
+      access: "allow-existing",
+      deviceId: "device-1",
+      existingDeviceCount: 1,
+    });
+    vi.mocked(signOut).mockResolvedValue(undefined);
     vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false, error: null });
     originalServiceWorker = navigator.serviceWorker;
   });
@@ -40,7 +61,7 @@ describe("ClientInit", () => {
   });
 
   it("initializes global client handlers", () => {
-    render(<ClientInit />);
+    renderClientInit();
 
     expect(initGlobalErrorHandlers).toHaveBeenCalledTimes(1);
   });
@@ -52,9 +73,10 @@ describe("ClientInit", () => {
       error: null,
     });
 
-    render(<ClientInit />);
+    renderClientInit();
 
     await waitFor(() => {
+      expect(registerDevice).toHaveBeenCalledTimes(1);
       expect(createSyncStorage).toHaveBeenCalledWith("user-1");
       expect(sync).toHaveBeenCalledTimes(1);
     });
@@ -67,7 +89,7 @@ describe("ClientInit", () => {
       error: null,
     });
 
-    render(<ClientInit />);
+    renderClientInit();
     window.dispatchEvent(new Event("online"));
 
     await waitFor(() => {
@@ -91,7 +113,7 @@ describe("ClientInit", () => {
       error: null,
     });
 
-    render(<ClientInit />);
+    renderClientInit();
     window.dispatchEvent(new Event("online"));
 
     await waitFor(() => {
@@ -117,7 +139,7 @@ describe("ClientInit", () => {
       error: null,
     });
 
-    render(<ClientInit />);
+    renderClientInit();
     messageHandler?.(new MessageEvent("message", { data: { type: "go-daily.flush-sync-queue" } }));
 
     await waitFor(() => {
@@ -126,10 +148,29 @@ describe("ClientInit", () => {
   });
 
   it("does not flush sync queue for anonymous users", () => {
-    render(<ClientInit />);
+    renderClientInit();
     window.dispatchEvent(new Event("online"));
 
+    expect(registerDevice).not.toHaveBeenCalled();
     expect(createSyncStorage).not.toHaveBeenCalled();
     expect(flushSyncQueue).not.toHaveBeenCalled();
+  });
+
+  it("shows the device-limit modal and skips initial sync when registration is blocked", async () => {
+    vi.mocked(registerDevice).mockResolvedValueOnce({
+      access: "block-free-device-limit",
+      deviceId: "device-2",
+      existingDeviceCount: 1,
+    });
+    vi.mocked(useCurrentUser).mockReturnValue({
+      user: { id: "user-1" } as ReturnType<typeof useCurrentUser>["user"],
+      loading: false,
+      error: null,
+    });
+
+    const { findByText } = renderClientInit();
+
+    expect(await findByText("这个免费账号已经在另一台设备上使用中")).toBeInTheDocument();
+    expect(createSyncStorage).not.toHaveBeenCalled();
   });
 });

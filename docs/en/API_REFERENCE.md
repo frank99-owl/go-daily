@@ -12,7 +12,7 @@ AI coaching dialogue powered by DeepSeek.
 
 Send a user message and receive an AI coach reply as a streamed assistant message.
 
-**Auth**: Optional. Logged-in users use the Supabase session cookie **and should send `x-go-daily-device-id`** when the client tracks a device fingerprint (required for Free-plan device-seat logic in `getCoachState`). Guest users send `x-go-daily-guest-device-id` (lower quotas).
+**Auth**: Optional. Logged-in users use the Supabase session cookie **and should send `x-go-daily-device-id`** when the client tracks a device fingerprint (required for entitlement-aware device-seat logic in `getCoachState`). Guest users send `x-go-daily-guest-device-id` (lower quotas).
 
 **Request Body** (JSON, validated by `CoachRequestSchema`):
 
@@ -50,7 +50,7 @@ Counters are incremented **before** streaming begins, so aborted connections sti
 
 | Status          | Code / body             | Condition                                                                                                                        |
 | --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 400             | —                       | Invalid Content-Type, JSON, schema, malformed request, or `x-go-daily-guest-device-id` header exceeds 128 characters             |
+| 400             | —                       | Invalid Content-Type, JSON, schema, malformed request, or a device header exceeds 128 characters                                 |
 | 401             | `login_required`        | No session and no `x-go-daily-guest-device-id`                                                                                   |
 | 403             | `error: "forbidden"`    | Failed same-origin mutation / CSRF guard (`parseMutationBody`)                                                                   |
 | 403             | `device_limit`          | Free user exceeded device limit (`getCoachState`)                                                                                |
@@ -227,6 +227,30 @@ Delete the authenticated user's account and all associated data.
 **Auth**: Required.
 
 **Response** (`200`): `{ "ok": true }`
+
+### `POST /api/auth/device` (`app/api/auth/device/route.ts`)
+
+Register or refresh the signed-in browser device in `user_devices`, after resolving the effective plan from Stripe subscription state plus `manual_grants`.
+
+**Auth**: Required Supabase session. Same-origin JSON mutation.
+
+**Request Body**:
+
+```json
+{ "deviceId": "client-generated-device-id" }
+```
+
+**Response** (`200`):
+
+```json
+{
+  "access": "allow-existing | allow-new",
+  "deviceId": "string",
+  "existingDeviceCount": 1
+}
+```
+
+**Errors**: `400` invalid device ID (empty or over 128 characters); `401` unauthenticated; `403 error: "forbidden"` same-origin guard; `403 error: "device_limit"` when the resolved Free plan already has a registered device; `500` subscription, device lookup, or upsert failure.
 
 ---
 

@@ -55,6 +55,41 @@ describe("CoachDialogue", () => {
     });
   });
 
+  it("sends the browser device ID for authenticated coach requests", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ delta: "Coach reply" })}\n\n`),
+            );
+            controller.close();
+          },
+        });
+        return Promise.resolve({ ok: true, status: 200, body: stream } as Response);
+      }),
+    );
+
+    renderWithLocale();
+    const input = screen.getByPlaceholderText(/向 AI 提问/i);
+    const btn = screen.getByText(/发送/i);
+
+    fireEvent.change(input, { target: { value: "设备测试" } });
+    fireEvent.click(btn);
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
+    });
+
+    const init = vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit;
+    expect(init.headers).toMatchObject({
+      "x-go-daily-device-id": "test-device-id",
+    });
+    expect(init.headers).not.toHaveProperty("x-go-daily-guest-device-id");
+  });
+
   it("shows error when API returns non-ok", async () => {
     vi.stubGlobal(
       "fetch",

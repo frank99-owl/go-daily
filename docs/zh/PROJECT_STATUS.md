@@ -1,7 +1,7 @@
 # go-daily 项目状态与下一步路线图
 
-**生成日期**: 2026-05-05
-**仓库 HEAD**: `70d34b7`
+**生成日期**: 2026-05-06
+**仓库 HEAD**: `8103dd7`
 **版本状态**: v2.7 代码库优化版
 
 ---
@@ -29,10 +29,10 @@
 - **SEO hreflang**：`buildHreflangAlternates()` 辅助函数为所有页面路由添加 `alternates.languages`。
 - **无障碍**：Heatmap ARIA 语义（`role="grid"`、`aria-label`），UserMenu 键盘导航（方向键、Home/End）。
 - **路由边界**：today、result、review、puzzles 路由添加 `loading.tsx` + `error.tsx`。
-- **测试套件**：81 个测试文件，647 个测试用例，覆盖逻辑、UI 和 API 层。
+- **测试套件**：82 个测试文件，657 个测试用例，覆盖逻辑、UI 和 API 层。
 - **访客教练持久化**：Supabase `guest_coach_usage` 按设备/自然日累计匿名教练用量（仅 `service_role`）；IP 维度限制仍在内存中用于防滥用。
 - **棋盘模块**：核心逻辑收敛为四个模块（`board.ts`、`goRules.ts`、`judge.ts`、`sgf.ts`），已移除旧的 `boardDisplay.ts`。
-- **文档同步**：API 参考包含 `/api/health`、`/api/admin/*`，并写明 **`POST /api/coach` 为 SSE（Server‑Sent Events）** 以及 Postgres **RPC** 递增用量；数据库文档包含 `manual_grants`、`guest_coach_usage` 以及 **`0007_atomic_coach_usage_increment.sql`** 说明；多语言 **`CONCEPT.md`** 对 Pro 的表述与配额一致（并非「无限次」教练——见 **`PRODUCT_SPECS`**）；README / 文档索引与九大领域布局一致。
+- **文档同步**：API 参考包含 `/api/health`、`/api/admin/*`、`/api/auth/device`，并写明 **`POST /api/coach` 为 SSE（Server‑Sent Events）** 以及 Postgres **RPC** 递增用量；数据库文档包含按权益判定的 `user_devices`、`manual_grants`、`guest_coach_usage` 以及 **`0007_atomic_coach_usage_increment.sql`** 说明；多语言 **`CONCEPT.md`** 对 Pro 的表述与配额一致（并非「无限次」教练——见 **`PRODUCT_SPECS`**）；README / 文档索引与九大领域布局一致。
 
 ## 三（续）、近期改进 (v1.1 加固)
 

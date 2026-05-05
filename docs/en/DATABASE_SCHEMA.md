@@ -144,7 +144,7 @@ Webhook idempotency ledger. Prevents duplicate event processing.
 
 ### 7. `user_devices`
 
-Device registry for Free-plan single-device enforcement.
+Device registry for entitlement-aware device-seat enforcement (Free: 1 device, Pro: 3 devices; manual grants resolve as Pro on the server).
 
 | Column       | Type          | Constraints                     | Description                         |
 | ------------ | ------------- | ------------------------------- | ----------------------------------- |

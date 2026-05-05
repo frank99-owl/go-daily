@@ -1,4 +1,8 @@
-import { evaluateDeviceAccess, type DeviceSeat } from "@/lib/auth/deviceRegistry";
+import {
+  evaluateDeviceAccess,
+  getDeviceLimitForPlan,
+  type DeviceSeat,
+} from "@/lib/auth/deviceRegistry";
 import {
   formatDateInTimeZone,
   getAnchorDayFromFirstPaidAt,
@@ -163,6 +167,7 @@ export async function getCoachState({
     user: { id: userId },
     subscriptionStatus: subscription?.status ?? null,
     email,
+    admin,
   });
   const entitlements = { plan, ...PLAN_ENTITLEMENTS[plan] };
 
@@ -178,7 +183,7 @@ export async function getCoachState({
     const access = evaluateDeviceAccess({
       existingDevices: (devicesData ?? []) as DeviceSeat[],
       currentDeviceId: deviceId,
-      isPaid: false,
+      deviceLimit: getDeviceLimitForPlan(entitlements.plan),
     });
     deviceLimited = access === "block-free-device-limit";
   }

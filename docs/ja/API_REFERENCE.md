@@ -12,7 +12,7 @@ DeepSeekによるAIコーチング対話。
 
 アシスタントの返信は **SSE（Server-Sent Events）** でストリーミングされます。
 
-**認証**: 任意。ログインユーザーは Supabase セッション Cookie を使用。**端末フィンガープリントがあるクライアントは `x-go-daily-device-id` を送信**（フリープランの端末席ロジック `getCoachState`）。ゲストは **`x-go-daily-guest-device-id` が必要**（より低いクォータ）。
+**認証**: 任意。ログインユーザーは Supabase セッション Cookie を使用。**端末フィンガープリントがあるクライアントは `x-go-daily-device-id` を送信**（権限ベースの端末席ロジック `getCoachState`）。ゲストは **`x-go-daily-guest-device-id` が必要**（より低いクォータ）。
 
 **リクエストボディ**（JSON、`CoachRequestSchema`）:
 
@@ -50,7 +50,7 @@ DeepSeekによるAIコーチング対話。
 
 | ステータス      | 条件                                                                                            |
 | --------------- | ----------------------------------------------------------------------------------------------- |
-| 400             | Content-Type／JSON／スキーマ不正、または `x-go-daily-guest-device-id` ヘッダーが 128 文字超     |
+| 400             | Content-Type／JSON／スキーマ不正、または端末ヘッダーが 128 文字超                               |
 | 401             | `login_required` … セッションもゲストヘッダーも無い                                             |
 | 403             | `forbidden` … 同一オリジン／CSRF（`parseMutationBody`）                                         |
 | 403             | `device_limit` … `getCoachState` で端末制限                                                     |
@@ -219,6 +219,30 @@ Supabase OAuth／マジックリンクコールバック。認証コードをセ
 **認証**: 必須。
 
 **レスポンス**（`200`）: `{ "ok": true }`
+
+### `POST /api/auth/device`（`app/api/auth/device/route.ts`）
+
+Stripe の購読状態と `manual_grants` から実効プランを解決したうえで、ログイン中ブラウザの端末を `user_devices` に登録または更新する。
+
+**認証**: Supabase セッション必須。同一オリジンの JSON 変更リクエスト。
+
+**リクエストボディ**:
+
+```json
+{ "deviceId": "client-generated-device-id" }
+```
+
+**レスポンス**（`200`）:
+
+```json
+{
+  "access": "allow-existing | allow-new",
+  "deviceId": "string",
+  "existingDeviceCount": 1
+}
+```
+
+**エラー**: `400` 端末 ID 不正（空または 128 文字超）；`401` 未認証；`403 error: "forbidden"` 同一オリジンガード失敗；`403 error: "device_limit"` 実効プランが Free で既に端末席を使用中；`500` 購読・端末検索・upsert 失敗。
 
 ---
 

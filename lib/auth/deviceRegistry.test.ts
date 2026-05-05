@@ -13,7 +13,7 @@ describe("evaluateDeviceAccess", () => {
     const access = evaluateDeviceAccess({
       existingDevices: [{ device_id: "d1", last_seen: null }],
       currentDeviceId: "d1",
-      isPaid: false,
+      deviceLimit: FREE_TIER_DEVICE_LIMIT,
     });
     expect(access).toBe("allow-existing");
   });
@@ -22,7 +22,7 @@ describe("evaluateDeviceAccess", () => {
     const access = evaluateDeviceAccess({
       existingDevices: [],
       currentDeviceId: "d-new",
-      isPaid: false,
+      deviceLimit: FREE_TIER_DEVICE_LIMIT,
     });
     expect(access).toBe("allow-new");
   });
@@ -35,7 +35,7 @@ describe("evaluateDeviceAccess", () => {
     const access = evaluateDeviceAccess({
       existingDevices: seats,
       currentDeviceId: "d-brand-new",
-      isPaid: false,
+      deviceLimit: FREE_TIER_DEVICE_LIMIT,
     });
     expect(access).toBe("block-free-device-limit");
   });
@@ -48,7 +48,7 @@ describe("evaluateDeviceAccess", () => {
     const access = evaluateDeviceAccess({
       existingDevices: seats,
       currentDeviceId: "d-brand-new",
-      isPaid: true,
+      deviceLimit: PRO_TIER_DEVICE_LIMIT,
     });
     expect(access).toBe("allow-new");
   });
@@ -61,7 +61,7 @@ describe("evaluateDeviceAccess", () => {
     const access = evaluateDeviceAccess({
       existingDevices: seats,
       currentDeviceId: "d-brand-new",
-      isPaid: true,
+      deviceLimit: PRO_TIER_DEVICE_LIMIT,
     });
     expect(access).toBe("block-free-device-limit");
   });
@@ -72,7 +72,7 @@ describe("isPaidSubscription", () => {
     ["active", true],
     ["trialing", true],
     ["canceled", false],
-    ["past_due", false],
+    ["past_due", true],
     ["incomplete", false],
     [null, false],
     [undefined, false],

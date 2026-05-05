@@ -17,6 +17,8 @@ Public-facing docs round **Pro** limits this way; authoritative counters live on
 
 Beyond device quotas: guest coach requests also enforce an extra **per–IP-address daily cap** on the server (currently **20** requests per UTC calendar day in `GUEST_IP_DAILY_LIMIT`, `guestCoachUsage.ts`). IP counts live in **Upstash** when `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set; otherwise they use an in-process `Map` (10k-key cap, oldest-key eviction after day rollover). This does not change the per-device counts in the table above.
 
+Logged-in browsers register or refresh their `user_devices` row through `POST /api/auth/device`. That endpoint resolves Stripe subscription state plus `manual_grants` before applying the Free or Pro device limit.
+
 ### Cache Strategy (Next.js 16)
 
 We utilize the `'use cache'` directive and `cacheTag` for entitlements. When a Stripe webhook updates a subscription, we call `revalidateTag('entitlements:' + userId)` to ensure the UI reflects the new state without a full page reload.

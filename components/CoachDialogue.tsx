@@ -108,9 +108,8 @@ export function CoachDialogue({ puzzleId, userMove }: Props) {
       const headers: Record<string, string> = {
         "content-type": "application/json",
       };
-      if (!user) {
-        headers["x-go-daily-guest-device-id"] = getOrCreateDeviceId();
-      }
+      const deviceId = getOrCreateDeviceId();
+      headers[user ? "x-go-daily-device-id" : "x-go-daily-guest-device-id"] = deviceId;
       const res = await fetch("/api/coach", {
         method: "POST",
         headers,

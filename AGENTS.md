@@ -49,7 +49,7 @@ All core logic lives in `lib/` organized by domain:
 ## Testing
 
 ```bash
-npm run test          # Run all (81 files, 647 cases)
+npm run test          # Run all (82 files, 657 cases)
 npm run test:watch    # Watch mode
 npm run test:coverage # Coverage report (target: 70%+)
 ```

@@ -126,6 +126,7 @@ function query(result: QueryResult) {
 
 function buildAdminClient({
   subscription = null,
+  manualGrant = null,
   devices = [],
   usageRows = [],
   existingUsage = null,
@@ -135,6 +136,7 @@ function buildAdminClient({
     first_paid_at?: string | null;
     coach_anchor_day?: number | null;
   } | null;
+  manualGrant?: { expires_at: string } | null;
   devices?: Array<{ device_id: string; last_seen: string | null }>;
   usageRows?: Array<{ day: string; count: number }>;
   existingUsage?: { count: number } | null;
@@ -146,6 +148,8 @@ function buildAdminClient({
           return query({ data: { timezone: null }, error: null });
         case "subscriptions":
           return query({ data: subscription, error: null });
+        case "manual_grants":
+          return query({ data: manualGrant, error: null });
         case "user_devices":
           return query({ data: devices, error: null });
         case "coach_usage": {
@@ -176,7 +180,9 @@ function buildAdminClient({
   };
 }
 
-function buildServerSupabase(user: { id: string } | null = { id: "user-1" }) {
+function buildServerSupabase(
+  user: { id: string; email?: string | null } | null = { id: "user-1" },
+) {
   return {
     auth: {
       getUser: vi.fn(async () => ({
@@ -725,10 +731,7 @@ describe("/api/coach", () => {
       supabaseMocks.createServiceClient.mockReturnValue(
         buildAdminClient({
           subscription: { status: null },
-          devices: [
-            { device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" },
-            { device_id: "second-device", last_seen: "2026-04-20T00:00:00Z" },
-          ],
+          devices: [{ device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" }],
         }),
       );
 
@@ -757,7 +760,10 @@ describe("/api/coach", () => {
       supabaseMocks.createServiceClient.mockReturnValue(
         buildAdminClient({
           subscription: { status: "active" },
-          devices: [{ device_id: "other-device", last_seen: "2026-04-20T00:00:00Z" }],
+          devices: [
+            { device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" },
+            { device_id: "second-device", last_seen: "2026-04-20T00:00:00Z" },
+          ],
         }),
       );
 
@@ -770,7 +776,42 @@ describe("/api/coach", () => {
             isCorrect: false,
             history: [{ role: "user", content: "Why?", ts: 1 }],
           },
-          { headers: { "x-go-daily-device-id": "brand-new-device" } },
+          { headers: { "x-go-daily-device-id": "third-device" } },
+        ),
+      );
+
+      expect(response.status).toBe(200);
+      const events = await readSse(response);
+      const doneEvent = events.find((e) => e.done);
+      expect(doneEvent!.usage).toMatchObject({ plan: "pro" });
+    });
+
+    it("lets a manually granted pro user add devices using the pro limit", async () => {
+      createCompletionMock.mockReturnValue(mockStream("Coach reply"));
+      supabaseMocks.createServerClient.mockResolvedValue(
+        buildServerSupabase({ id: "user-1", email: "manual@example.com" }),
+      );
+      supabaseMocks.createServiceClient.mockReturnValue(
+        buildAdminClient({
+          subscription: { status: null },
+          manualGrant: { expires_at: "2999-01-01T00:00:00.000Z" },
+          devices: [
+            { device_id: "first-device", last_seen: "2026-04-20T00:00:00Z" },
+            { device_id: "second-device", last_seen: "2026-04-20T00:00:00Z" },
+          ],
+        }),
+      );
+
+      const response = await POST(
+        makeRequest(
+          {
+            puzzleId: "p-00001",
+            locale: "en",
+            userMove: { x: 3, y: 3 },
+            isCorrect: false,
+            history: [{ role: "user", content: "Why?", ts: 1 }],
+          },
+          { headers: { "x-go-daily-device-id": "third-device" } },
         ),
       );
 
@@ -1207,10 +1248,7 @@ describe("/api/coach GET", () => {
     supabaseMocks.createServiceClient.mockReturnValue(
       buildAdminClient({
         subscription: { status: null },
-        devices: [
-          { device_id: "dev-1", last_seen: "2026-04-20T00:00:00Z" },
-          { device_id: "dev-2", last_seen: "2026-04-20T00:00:00Z" },
-        ],
+        devices: [{ device_id: "dev-1", last_seen: "2026-04-20T00:00:00Z" }],
       }),
     );
 
