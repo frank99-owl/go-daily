@@ -6,7 +6,7 @@ returns integer
 language sql
 as $$
   insert into public.coach_usage (user_id, day, count)
-  values (p_user_id, p_day, 1)
+  values (p_user_id, p_day::date, 1)
   on conflict (user_id, day)
   do update set count = public.coach_usage.count + 1
   returning count;
