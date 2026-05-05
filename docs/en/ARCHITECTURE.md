@@ -4,7 +4,7 @@ This document describes the internal structure of go-daily, reflecting the nine-
 
 ## Overview
 
-- **Edge & routing:** Page traffic passes through root `proxy.ts` for session refresh, auth redirects, and locale negotiation (`/{locale}/...`). API routes under `app/api/` skip the global proxy and enforce their own validation (cookies, Stripe signatures, `parseMutationBody`, etc.).
+- **Edge & routing:** Page traffic passes through root `proxy.ts` for session refresh, auth redirects, and locale negotiation (`/{locale}/...`). API routes under `app/api/` skip the global proxy and enforce their own validation (cookies, Stripe signatures, same-origin / CSRF rules, and JSON body handling — including `parseMutationBody()` where applicable).
 - **Modular core:** Business logic lives in `lib/<domain>/` (board rules, coach, puzzle, storage, Stripe, …) with shared contracts from `types/schemas.ts`.
 - **This document:** Request lifecycle, domain map, and security-relevant boundaries.
 
@@ -17,7 +17,7 @@ Everything user-facing passes through root `proxy.ts` (the Next.js app-root prox
 3.  **Session Refresh & Auth Redirect**: Using `@supabase/ssr`, it refreshes the session cookie on every navigation to keep Server Components hydrated with fresh user state. Already-prefixed paths (`/en/account`, etc.) are guarded here — unauthenticated users hitting `/account` are redirected to `/login?next=...`, and authenticated users hitting `/login` are redirected to `/account`.
 4.  **Locale Negotiation**: For unprefixed paths, it handles the 308 (Permanent) redirect matrix to ensure every path is locale-prefixed (`/{zh|en|ja|ko}/...`).
 
-**Next.js 16 scope**: Global request handling lives in root `proxy.ts` (exported `proxy` + `config.matcher`; Node.js runtime). The matcher skips `/api/*` and `/auth/*`, so API routes and the Supabase auth callback implement their own checks (cookies, Stripe signatures, `parseMutationBody`, etc.). Locale negotiation and cookie refresh apply to **page** navigations, not those prefixes.
+**Next.js 16 scope**: Global request handling lives in root `proxy.ts` (exported `proxy` + `config.matcher`; Node.js runtime). The matcher skips `/api/*` and `/auth/*`, so API routes and the Supabase auth callback implement their own checks (cookies, Stripe signatures, same-origin / body validation, etc.). Locale negotiation and cookie refresh apply to **page** navigations, not those prefixes.
 
 ## 2. Core Domain Modules (`lib/`)
 
@@ -96,7 +96,7 @@ Legal requirements are treated as **Content Assets** rather than hardcoded logic
 - **PII Masking**: Sentry and PostHog are configured with `beforeSend` filters to redact user messages from AI coach dialogues before they leave the client.
 - **NFKC Normalization**: User-supplied text is normalized to NFKC form before processing to prevent homoglyph and Unicode normalization attacks.
 - **Route-level auth**: `proxy.ts` refreshes Supabase session cookies and guards locale-prefixed **pages** (e.g. `/account`, `/login`). `/api/*` is outside the proxy matcher; Stripe, coach, admin, and puzzle routes enforce sessions, tokens, or signatures themselves.
-- **Rate limiting**: `lib/rateLimit.ts` — `UpstashRateLimiter` when both `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set; otherwise `MemoryRateLimiter` in non-production. In **`NODE_ENV === "production"`**, missing Upstash variables make `createRateLimiter()` throw (distributed limiting is mandatory). `MemoryRateLimiter` caps tracked keys (50k) and drops the oldest key when over cap, plus periodic cleanup of idle keys.
+- **Rate limiting**: `lib/rateLimit.ts` — `UpstashRateLimiter` when both `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set; otherwise `MemoryRateLimiter` in non-production. In **`NODE_ENV === "production"`**, missing Upstash variables make `createRateLimiter()` return a **stub** whose `isLimited()` calls throw (first use when a route checks limits; build-time data collection can still run). `MemoryRateLimiter` caps tracked keys (50k) and drops the oldest key when over cap, plus periodic cleanup of idle keys.
 
 ---
 

@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "content/data/*.json",
     "scripts/**",
+    "**/*.py",
     "katago_spike.py",
   ]),
   {

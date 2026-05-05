@@ -4,7 +4,7 @@
 
 ## 概述
 
-- **边缘与路由：** 页面流量经根目录 `proxy.ts` 做会话刷新、登录重定向与语言协商（`/{locale}/...`）。`app/api/` 路由不走该全局代理，自行校验（Cookie、Stripe 签名、`parseMutationBody` 等）。
+- **边缘与路由：** 页面流量经根目录 `proxy.ts` 做会话刷新、登录重定向与语言协商（`/{locale}/...`）。`app/api/` 路由不走该全局代理，自行校验（Cookie、Stripe 签名、同源/CSRF 及 JSON 请求体处理，含按需使用的 `parseMutationBody()` 等）。
 - **模块化核心：** 业务逻辑位于 `lib/<domain>/`（棋盘、教练、题库、存储、Stripe 等），共享契约来自 `types/schemas.ts`。
 - **本文范围：** 请求生命周期、领域划分与安全相关边界。
 
@@ -17,7 +17,7 @@
 3.  **身份刷新与认证重定向 (Auth Refresh & Redirect)**：利用 `@supabase/ssr` 在每次导航时刷新 Session Cookie，确保服务端组件 (RSC) 始终持有最新的用户状态。已加前缀路径（如 `/en/account` 等）在此进行守卫——未登录用户访问 `/account` 会被重定向至 `/login?next=...`，已登录用户访问 `/login` 会被重定向至 `/account`。
 4.  **国际化协商 (Locale Negotiation)**：对于未加前缀的路径，处理 308 (永久) 重定向矩阵，确保所有路径都带有语言前缀 (`/{zh|en|ja|ko}/...`)。
 
-**Next.js 16 范围**：全局面请求逻辑在根目录 `proxy.ts`（导出 `proxy` + `config.matcher`；Node.js 运行时）。`config.matcher` 排除 `/api/*` 与 `/auth/*`，因此 API 与 Supabase 授权回调在各自路由内完成校验（会话、Stripe 签名、`parseMutationBody` 等）。语言协商与 Cookie 刷新主要针对**页面**导航，而非上述前缀路径。
+**Next.js 16 范围**：全局面请求逻辑在根目录 `proxy.ts`（导出 `proxy` + `config.matcher`；Node.js 运行时）。`config.matcher` 排除 `/api/*` 与 `/auth/*`，因此 API 与 Supabase 授权回调在各自路由内完成校验（会话、Stripe 签名、同源/请求体验证等）。语言协商与 Cookie 刷新主要针对**页面**导航，而非上述前缀路径。
 
 ## 2. 核心领域模块 (`lib/`)
 
@@ -96,7 +96,7 @@
 - **隐私脱敏**：Sentry 和 PostHog 配置了 `beforeSend` 过滤器，在 AI 对话离开客户端前对用户敏感信息进行脱敏处理。
 - **NFKC 规范化**：用户输入文本在处理前统一进行 NFKC 规范化，防止同形字攻击和 Unicode 规范化漏洞。
 - **路由层安全**：`proxy.ts` 刷新 Supabase 会话 Cookie，并守卫带语言前缀的**页面**（如 `/account`、`/login`）。`/api/*` 不在 proxy 的 matcher 内，Stripe、教练、管理与题目等路由自行校验会话、令牌或签名。
-- **速率限制**：`lib/rateLimit.ts` — 同时设置 `UPSTASH_REDIS_REST_URL` 与 `UPSTASH_REDIS_REST_TOKEN` 时使用 `UpstashRateLimiter`；非生产环境否则使用 `MemoryRateLimiter`。当 **`NODE_ENV === "production"`** 且缺少 Upstash 变量时，`createRateLimiter()` 会抛出错误（生产必须分布式限流）。`MemoryRateLimiter` 对键数量设上限（5 万），超出时淘汰最早插入的键，并定期清理空闲键。
+- **速率限制**：`lib/rateLimit.ts` — 同时设置 `UPSTASH_REDIS_REST_URL` 与 `UPSTASH_REDIS_REST_TOKEN` 时使用 `UpstashRateLimiter`；非生产环境否则使用 `MemoryRateLimiter`。当 **`NODE_ENV === "production"`** 且缺少 Upstash 变量时，`createRateLimiter()` 返回**桩**，其 `isLimited()` **首次被调用时抛出**（非模块加载时，便于构建期采集页面数据；有流量后须配置 Redis）。`MemoryRateLimiter` 对键数量设上限（5 万），超出时淘汰最早插入的键，并定期清理空闲键。
 
 ---
 

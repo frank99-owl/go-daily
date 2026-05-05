@@ -4,7 +4,7 @@
 
 ## 개요
 
-- **엣지·라우팅:** 페이지 트래픽은 루트 `proxy.ts`에서 세션 갱신·인증 리다이렉트·로케일 협상(`/{locale}/...`)을 처리한다. `app/api/` 라우트는 전역 프록시를 우회하고 Cookie·Stripe 서명·`parseMutationBody` 등을 직접 검증한다.
+- **엣지·라우팅:** 페이지 트래픽은 루트 `proxy.ts`에서 세션 갱신·인증 리다이렉트·로케일 협상(`/{locale}/...`)을 처리한다. `app/api/` 라우트는 전역 프록시를 우회하고 Cookie·Stripe 서명·동일 출처/CSRF 및 JSON 본문 처리(`parseMutationBody()` 등 해당 시)를 직접 검증한다.
 - **모듈형 코어:** 비즈니스 로직은 `lib/<domain>/`에 두며 공유 계약은 `types/schemas.ts`에서 정의한다.
 - **이 문서:** 요청 생명주기, 도메인 맵, 보안 경계.
 
@@ -17,7 +17,7 @@
 3.  **세션 갱신 및 인증 리다이렉트 (Auth Refresh & Redirect)**: `@supabase/ssr`을 사용하여 페이지 이동 시마다 세션 쿠키를 갱신함으로써, 서버 컴포넌트(RSC)가 항상 최신 사용자 상태를 유지하도록 합니다. 접두사가 붙은 경로(`/en/account` 등)는 여기서 보호되며, 인증되지 않은 사용자가 `/account`에 접근하면 `/login?next=...`로 리다이렉트되고, 인증된 사용자가 `/login`에 접근하면 `/account`로 리다이렉트됩니다.
 4.  **로케일 협상 (Locale Negotiation)**: 접두사가 없는 경로에 대해 모든 경로에 언어 접두사(`/{zh|en|ja|ko}/...`)가 포함되도록 308(영구) 리다이렉트 매트릭스를 처리합니다.
 
-**Next.js 16 범위**: 전역 요청 처리는 프로젝트 루트의 `proxy.ts`에 있습니다(`proxy` 및 `config.matcher` 내보내기, Node.js 런타임). `config.matcher`는 `/api/*`와 `/auth/*`를 제외하므로, API와 Supabase 인증 콜백은 각 라우트에서 세션·Stripe 서명·`parseMutationBody` 등을 검증합니다. 로케일 협상과 쿠키 갱신은 주로 **페이지** 내비게이션용입니다.
+**Next.js 16 범위**: 전역 요청 처리는 프로젝트 루트의 `proxy.ts`에 있습니다(`proxy` 및 `config.matcher` 내보내기, Node.js 런타임). `config.matcher`는 `/api/*`와 `/auth/*`를 제외하므로, API와 Supabase 인증 콜백은 각 라우트에서 세션·Stripe 서명·동일 출처/본문 검증 등을 수행합니다. 로케일 협상과 쿠키 갱신은 주로 **페이지** 내비게이션용입니다.
 
 ## 2. 핵심 도메인 모듈 (`lib/`)
 
@@ -96,7 +96,7 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 - **PII 마스킹**: Sentry 및 PostHog는 `beforeSend` 필터로 구성되어 있으며, AI 코치와의 대화 내용이 클라이언트를 떠나기 전에 개인정보를 비식별화합니다.
 - **NFKC 정규화**: 사용자 입력 텍스트는 처리 전 NFKC 정규화를 적용하여 동형 문자 공격 및 Unicode 정규화 취약점을 방지합니다.
 - **라우트 계층 인증**: `proxy.ts`는 Supabase 세션 쿠키를 갱신하고 로케일이 붙은 **페이지**(예: `/account`, `/login`)를 보호합니다. `/api/*`는 프록시 matcher 밖이므로 Stripe·코치·관리·퍼즐 라우트가 세션·서명 등을 각자 검증합니다.
-- **속도 제한**: `lib/rateLimit.ts` — `UPSTASH_REDIS_REST_URL`과 `UPSTASH_REDIS_REST_TOKEN`이 모두 있으면 `UpstashRateLimiter`, 비프로덕션에서는 `MemoryRateLimiter`。**`NODE_ENV === "production"`**에서 Upstash가 없으면 `createRateLimiter()`가 예외를 던집니다(프로덕션에서는 분산 제한 필수). `MemoryRateLimiter`는 키 상한 5만 개, 초과 시 가장 오래된 키를 제거하고 주기적으로 유휴 키를 정리합니다.
+- **속도 제한**: `lib/rateLimit.ts` — `UPSTASH_REDIS_REST_URL`과 `UPSTASH_REDIS_REST_TOKEN`이 모두 있으면 `UpstashRateLimiter`, 비프로덕션에서는 `MemoryRateLimiter`。**`NODE_ENV === "production"`**에서 Upstash가 없으면 `createRateLimiter()`는 **스텁**을 반환하고 **`isLimited()` 첫 호출에서 예외**를 던집니다(모듈 로드 시가 아니며 `next build` 가능. 프로덕션 트래픽은 Redis 필요). `MemoryRateLimiter`는 키 상한 5만 개, 초과 시 가장 오래된 키를 제거하고 주기적으로 유휴 키를 정리합니다.
 
 ---
 

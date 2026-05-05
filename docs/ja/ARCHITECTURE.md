@@ -4,7 +4,7 @@
 
 ## 概要
 
-- **エッジとルーティング:** ページ向けトラフィックはルートの `proxy.ts` でセッション更新・認証リダイレクト・ロケールネゴシエーション（`/{locale}/...`）を行う。`app/api/` のルートはグローバルプロキシを迂回し、Cookie・Stripe 署名・`parseMutationBody` など独自検証を行う。
+- **エッジとルーティング:** ページ向けトラフィックはルートの `proxy.ts` でセッション更新・認証リダイレクト・ロケールネゴシエーション（`/{locale}/...`）を行う。`app/api/` のルートはグローバルプロキシを迂回し、Cookie・Stripe 署名・同一オリジン/CSRF と JSON ボディ処理（必要に応じ `parseMutationBody()` 等）で独自検証を行う。
 - **モジュール中心:** ロジックは `lib/<domain>/` に配置し、共有契約は `types/schemas.ts` から。
 - **本書の範囲:** ライフサイクル、ドメイン対応表、セキュリティ上の境界。
 
@@ -17,7 +17,7 @@
 3.  **セッション更新と認証リダイレクト (Auth Refresh & Redirect)**：`@supabase/ssr` を利用して、ナビゲーションごとにセッション Cookie を更新し、サーバーコンポーネント (RSC) が常に最新のユーザー状態を保持できるようにします。プレフィックス付きパス（`/en/account` など）はここでガードされ、未認証ユーザーが `/account` にアクセスすると `/login?next=...` にリダイレクトされ、認証済みユーザーが `/login` にアクセスすると `/account` にリダイレクトされます。
 4.  **ロケール交渉 (Locale Negotiation)**：プレフィックスなしのパスに対して、すべてのパスに言語プレフィックス (`/{zh|en|ja|ko}/...`) が付与されるよう 308（永久リダイレクト）マトリックスを処理します。
 
-**Next.js 16 の範囲**: グローバルなリクエスト処理はルートの `proxy.ts`（`proxy` と `config.matcher` のエクスポート、Node.js ランタイム）。`config.matcher` は `/api/*` と `/auth/*` を除外するため、API と Supabase 認証コールバックは各ルートで検証（セッション、Stripe 署名、`parseMutationBody` など）を行います。ロケール交渉と Cookie 更新は主に**ページ**遷移向けです。
+**Next.js 16 の範囲**: グローバルなリクエスト処理はルートの `proxy.ts`（`proxy` と `config.matcher` のエクスポート、Node.js ランタイム）。`config.matcher` は `/api/*` と `/auth/*` を除外するため、API と Supabase 認証コールバックは各ルートで検証（セッション、Stripe 署名、同一オリジン/ボディ検証など）を行います。ロケール交渉と Cookie 更新は主に**ページ**遷移向けです。
 
 ## 2. コアドメイン・モジュール (`lib/`)
 
@@ -96,7 +96,7 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 - **PII マスキング**：Sentry と PostHog は `beforeSend` フィルタで構成されており、AI コーチとの対話がクライアントを離れる前に個人情報を匿名化します。
 - **NFKC 正規化**: ユーザー入力テキストは処理前に NFKC 正規化を適用し、同形文字攻撃や Unicode 正規化の脆弱性を防止します。
 - **ルート層の認証**: `proxy.ts` は Supabase セッション Cookie を更新し、ロケール付き**ページ**（例: `/account`, `/login`）をガードします。`/api/*` はプロキシの matcher 外のため、Stripe・コーチ・管理・パズル各ルートがセッションや署名を独自に検証します。
-- **レート制限**: `lib/rateLimit.ts` — `UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の両方があれば `UpstashRateLimiter`、非本番ではなければ `MemoryRateLimiter`。**`NODE_ENV === "production"`** で Upstash が欠けると `createRateLimiter()` はスローします（本番では分散制限が必須）。`MemoryRateLimiter` はキー上限 5 万件で、超過時は最古キーを削除し、定期的にアイドルキーを掃除します。
+- **レート制限**: `lib/rateLimit.ts` — `UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の両方があれば `UpstashRateLimiter`、非本番ではなければ `MemoryRateLimiter`。**`NODE_ENV === "production"`** で Upstash が欠けると `createRateLimiter()` は **スタブ**を返し、**最初の `isLimited()` 呼び出しで例外を投げる**（インポート時ではないため `next build` 可能。本番トラフィックでは Redis 必須）。`MemoryRateLimiter` はキー上限 5 万件で、超過時は最古キーを削除し、定期的にアイドルキーを掃除します。
 
 ---
 

@@ -6,7 +6,7 @@ This document catalogs every API route in go-daily, organized by domain. All rou
 
 ## 1. Coach API (`app/api/coach/route.ts`)
 
-AI coaching dialogue powered by DeepSeek.
+AI coaching via an **OpenAI-compatible** HTTP API (defaults to DeepSeek: `COACH_API_URL`, `DEEPSEEK_API_KEY`; see `lib/env.ts`).
 
 ### `POST /api/coach`
 
@@ -266,7 +266,7 @@ Unsubscribe from daily puzzle emails using a one-time token.
 
 Vercel Cron handler for sending daily puzzle reminder emails.
 
-**Auth**: Cron secret (`CRON_SECRET` env var).
+**Auth**: `Authorization: Bearer <CRON_SECRET>` must match the server’s `CRON_SECRET` (never send this token from browsers or embed it in client bundles).
 
 ---
 
@@ -276,7 +276,7 @@ Vercel Cron handler for sending daily puzzle reminder emails.
 
 Client-side error reporting endpoint. Accepts structured error reports from browser `error`/`unhandledrejection` handlers.
 
-**Auth**: Not required (public, rate-limited).
+**Auth**: Not required (public, rate-limited). Payloads may include **stack traces** and URLs — use only for automated technical telemetry; do not submit end-user secrets or highly sensitive personal data through this endpoint.
 
 **Request Body** (validated by `ClientErrorReportSchema`):
 
@@ -312,25 +312,29 @@ Lightweight uptime probe for monitoring.
 
 ## 8. Admin API (`app/api/admin/`)
 
-Operational routes protected by `ADMIN_EMAILS` (comma-separated allowlist) and `ADMIN_PIN`. Intended for trusted operators only.
+Operator-only routes used from the in-app `/admin` experience. They depend on **server-only** environment configuration. Never ship PINs, ID allowlists, or cron secrets in client code, public issues, or front-end bundles.
 
 ### `POST /api/admin/verify` (`verify/route.ts`)
 
-Verify the configured admin PIN after the user’s email is confirmed as an admin.
+Verify a **PIN** after the signed-in user’s email is on the `ADMIN_EMAILS` allowlist (comma-separated, case-insensitive).
 
-**Auth**: Required (session; `user.email` must appear in `ADMIN_EMAILS`).
+**Auth**: Supabase session required; `user.email` must match `ADMIN_EMAILS`.
 
-**Same-origin**: Required (`isSameOriginMutationRequest`).
+**Same-origin**: Required.
 
-**Request Body** (JSON): `{ "pin": string }` — must equal `ADMIN_PIN`.
+**Request Body** (JSON): `{ "pin": string }` — must match the server-configured `ADMIN_PIN` (treat as a confidential operator secret).
 
-**Responses**: `200` `{ "ok": true }`; `401` if not signed in; `403` wrong PIN or not allowlisted; `500` if `ADMIN_PIN` is unset.
+**Responses**: `200` `{ "ok": true }`; `401` if not signed in; `403` wrong PIN or email not allowlisted; `500` if `ADMIN_PIN` is unset.
 
-### `GET /api/admin/grants` (`grants/route.ts`)
+### Manual Pro grants (`grants/route.ts`)
 
-List manual Pro grants (`manual_grants` table).
+`GET` / `POST` / `DELETE` `/api/admin/grants` are **separate** from PIN verification: the signed-in user’s **`user.id` (UUID)** must appear in `ADMIN_USER_IDS` (comma-separated Supabase auth user IDs). These endpoints do **not** read `ADMIN_PIN`.
 
-**Auth**: Session email must be in `ADMIN_EMAILS`.
+### `GET /api/admin/grants`
+
+List manual Pro grants (`manual_grants`).
+
+**Auth**: Session user id must be listed in `ADMIN_USER_IDS`.
 
 **Response** (`200`): `{ "grants": [{ "email", "expires_at", "granted_by", "created_at" }, ...] }`
 
@@ -338,7 +342,7 @@ List manual Pro grants (`manual_grants` table).
 
 Upsert a manual grant by email (`onConflict: email`).
 
-**Auth**: Admin session. Same-origin POST.
+**Auth**: Session `user.id` must be in `ADMIN_USER_IDS`. Same-origin POST.
 
 **Request Body**: `{ "email": string, "days": number /* 1–3650 */, "granted_by"?: string }`
 
@@ -348,7 +352,7 @@ Upsert a manual grant by email (`onConflict: email`).
 
 Remove a manual grant.
 
-**Auth**: Admin session. Same-origin mutation.
+**Auth**: Session `user.id` must be in `ADMIN_USER_IDS`. Same-origin mutation.
 
 **Request Body**: `{ "email": string }`
 
@@ -364,13 +368,13 @@ Write endpoints use `createRateLimiter()`, which behaves as follows:
 
 - When **`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are both set**: `UpstashRateLimiter` (Redis-backed, multi-instance).
 - When **either is missing** and `NODE_ENV !== "production"`: `MemoryRateLimiter` (in-process only).
-- When **either is missing** and `NODE_ENV === "production"`: `createRateLimiter()` **throws** when the route module loads — production deploys must configure Upstash (see `lib/rateLimit.ts`).
+- When **either is missing** and `NODE_ENV === "production"`: `createRateLimiter()` returns a **stub** whose `isLimited()` **throws** — production deploys must configure Upstash (see `lib/rateLimit.ts`; not at import time, so `next build` can complete without these vars).
 
 `MemoryRateLimiter` caps tracked keys at 50,000; when over cap it deletes the oldest key by insertion order, and a periodic sweep drops idle keys. Default window: 10 requests per 60-second window per key (override via `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX`).
 
 ### Body Parsing
 
-All mutation routes use `parseMutationBody()` from `lib/apiHeaders.ts` for shared Content-Type, Content-Length, CSRF, and JSON parsing.
+Routes that accept JSON bodies use either `parseMutationBody()` (shared Content-Type / Content-Length / CSRF / JSON parsing) or equivalent same-origin + JSON parsing. Default body cap when using `parseMutationBody()` is **2 KB**; `/api/coach` allows **8 KB**; `/api/puzzle/reveal` allows **3 KB**. Endpoints such as `/api/stripe/checkout` use route-specific parsing instead of `parseMutationBody()`.
 
 ### API Response Headers
 

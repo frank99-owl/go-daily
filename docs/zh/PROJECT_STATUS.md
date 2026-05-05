@@ -1,7 +1,7 @@
 # go-daily 项目状态与下一步路线图
 
 **生成日期**: 2026-05-06
-**仓库 HEAD**: `8103dd7`
+**仓库 HEAD**: `a76d9f0`
 **版本状态**: v2.7 代码库优化版
 
 ---
@@ -18,7 +18,7 @@
 
 ## 三、近期进展 (v2.8)
 
-- **Upstash Redis 限流**：生产环境使用 Upstash Redis 做跨实例限流。当 `NODE_ENV === "production"` 且未设置 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` 时，`createRateLimiter()` 返回的桩实现会在首次执行限流检查时抛出错误（开发环境可同时省略两者并使用 `MemoryRateLimiter`）。
+- **Upstash Redis 限流**：生产环境使用 Upstash Redis 做跨实例限流。当 `NODE_ENV === "production"` 且未设置 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` 时，`createRateLimiter()` 返回桩实现，**首次**调用 `isLimited()` 时抛出错误（便于无 Upstash 凭证也能完成 `next build`；开发环境可同时省略两者并使用 `MemoryRateLimiter`）。
 - **PWA 图标**：新增 192×192 和 512×512 PNG 图标，支持 Android/Chrome 安装提示。
 - **OG 图片本地化**：社交分享图片现在根据用户语言环境（zh/en/ja/ko）渲染。
 - **ja.json 翻译修复**：移除了 3 条日语 UI 字符串中混入的韩文和中文字符。
@@ -32,12 +32,12 @@
 - **测试套件**：82 个测试文件，658 个测试用例，覆盖逻辑、UI 和 API 层。
 - **访客教练持久化**：Supabase `guest_coach_usage` 按设备/自然日累计匿名教练用量（仅 `service_role`）；IP 维度限制仍在内存中用于防滥用。
 - **棋盘模块**：核心逻辑收敛为四个模块（`board.ts`、`goRules.ts`、`judge.ts`、`sgf.ts`），已移除旧的 `boardDisplay.ts`。
-- **文档同步**：API 参考包含 `/api/health`、`/api/admin/*`、`/api/auth/device`，并写明 **`POST /api/coach` 为 SSE（Server‑Sent Events）** 以及 Postgres **RPC** 递增用量；数据库文档包含按权益判定的 `user_devices`、`manual_grants`、`guest_coach_usage` 以及 **`0007_atomic_coach_usage_increment.sql`** 说明；多语言 **`CONCEPT.md`** 对 Pro 的表述与配额一致（并非「无限次」教练——见 **`PRODUCT_SPECS`**）；README / 文档索引与九大领域布局一致。
+- **文档同步**：API 参考包含 `/api/health`、`/api/admin/*`、`/api/auth/device`，并写明 **`POST /api/coach` 为 SSE（Server‑Sent Events）** 以及 Postgres **RPC** 递增用量；**管理接口**：`/api/admin/verify` 使用 `ADMIN_EMAILS` + `ADMIN_PIN`，**`/api/admin/grants` 使用 `ADMIN_USER_IDS`**；数据库文档包含按权益判定的 `user_devices`、`manual_grants`、`guest_coach_usage` 以及 **`0007_atomic_coach_usage_increment.sql`** 说明；多语言 **`CONCEPT.md`** 对 Pro 的表述与配额一致（并非「无限次」教练——见 **`PRODUCT_SPECS`**）；README / 文档索引与九大领域布局一致；`docs/README.md` 说明仓库公开时的密钥与隐私注意。
 
 ## 三（续）、近期改进 (v1.1 加固)
 
 - **内存安全限流**：`MemoryRateLimiter`（5 万条上限）和访客 IP 计数器（1 万条上限）现在会淘汰过期条目，防止 serverless 实例内存无限增长。
-- **统一请求体解析**：所有写入 API 路由使用 `lib/apiHeaders.ts` 的 `parseMutationBody()` —— CSRF、Content-Type、大小限制和 JSON 校验的单一来源。
+- **统一请求体解析**：主要 JSON 写入路由（`/api/coach`、`/api/auth/device`、`/api/puzzle/attempt`、`/api/puzzle/reveal`）使用 `lib/apiHeaders.ts` 的 `parseMutationBody()`（默认 **2 KB**，教练 **8 KB**、reveal **3 KB**）。Stripe 等路由另行做同源与 JSON 解析。
 - **Unicode 注入防御**：`promptGuard.ts` 在模式匹配前应用 NFKC 归一化，折叠全角和同形字符。
 - **Coach 体验优化**：通用错误增加重试按钮、思考状态动画指示器、切换导师时骨架屏加载。
 - **Stripe Webhook 加固**：读取请求体前校验 1 MB 大小限制（HTTP 413）。

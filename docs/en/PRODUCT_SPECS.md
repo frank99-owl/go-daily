@@ -25,7 +25,7 @@ We utilize the `'use cache'` directive and `cacheTag` for entitlements. When a S
 
 ### Manual Pro grants (`manual_grants` / `lib/entitlementsServer.ts`)
 
-Operators can grant Pro by email without Stripe using the `manual_grants` table and `/api/admin/grants`. `resolveViewerPlan()` (`lib/entitlementsServer.ts`) starts from `getViewerPlan()` (Stripe subscription status); if the user is not already Pro, an unexpired manual grant upgrades them to Pro.
+Operators can grant Pro by email without Stripe using the `manual_grants` table and `/api/admin/grants`. `resolveViewerPlan()` (`lib/entitlementsServer.ts`) starts from `getViewerPlan()` (Stripe subscription status); if the user is not already Pro, an unexpired manual grant upgrades them to Pro. The grants API authenticates operators via `ADMIN_USER_IDS` (session user UUID allowlist); PIN verification and email allowlists for the admin UI are separate (see `API_REFERENCE`).
 
 ## 2. Spaced Repetition (SRS) Logic (`lib/puzzle/srs.ts`)
 

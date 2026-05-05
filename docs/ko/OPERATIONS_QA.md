@@ -17,7 +17,7 @@
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Stripe 구성 요소와 `/pricing` 페이지를 활성화하려면 `true`로 설정합니다.
 - `COACH_MODEL`: 기본값은 `deepseek-chat`입니다. 필요한 경우 `deepseek-reasoner`로 교체할 수 있습니다.
 - `COACH_MONTHLY_TOKEN_BUDGET`: 예기치 않은 비용 급증을 방지하기 위한 애플리케이션 레벨의 엄격한 월간 제한.
-- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **프로덕션에서 필수** — `NODE_ENV === "production"`일 때 둘 중 하나라도 없으면 라우트 모듈 로드 시점에 `createRateLimiter()`가 예외를 던집니다. **개발**에서는 둘 다 생략해 `MemoryRateLimiter`(단일 프로세스 전용)를 쓸 수 있습니다.
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **프로덕션에서 필수** — `NODE_ENV === "production"`이고 둘 중 하나라도 없으면 `createRateLimiter()`가 스텁을 반환하고 **첫 `isLimited()`**에서 예외를 던집니다(`lib/rateLimit.ts` 참고; `next build`는 자격 증명 없이 가능). **개발**에서는 둘 다 생략해 `MemoryRateLimiter`(단일 프로세스 전용)를 쓸 수 있습니다.
 
 ### OG / Twitter 미리보기 이미지 (`next/og`)
 

@@ -1,7 +1,7 @@
 # go-daily プロジェクトステータスと次なるロードマップ
 
 **生成日**: 2026-05-06
-**リポジトリ HEAD**: `8103dd7`
+**リポジトリ HEAD**: `a76d9f0`
 **ステータス**: v2.7 コードベース最適化版
 
 ---
@@ -18,7 +18,7 @@
 
 ## 3. 最近の進捗 (v2.8)
 
-- **Upstash Redis レート制限**: 本番では Upstash Redis でマルチインスタンスのレート制限を行う。`NODE_ENV === "production"` かつ `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` が未設定のとき、`createRateLimiter()` はスタブを返し、初回の `isLimited` で例外を投げる（開発では両方省略して `MemoryRateLimiter`）。
+- **Upstash Redis レート制限**: 本番では Upstash Redis でマルチインスタンスのレート制限を行う。`NODE_ENV === "production"` かつ `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` が未設定のとき、`createRateLimiter()` はスタブを返し、初回の `isLimited()` で例外を投げる（`next build` は Upstash なしでも可。開発では両方省略して `MemoryRateLimiter`）。
 - **PWA アイコン**: Android/Chrome のインストールプロンプト用に 192×192、512×512 PNG アイコンを追加。
 - **OG 画像のローカライズ**: SNS 共有画像が閲覧者のロケール（zh/en/ja/ko）で表示されるように変更。
 - **ja.json 翻訳修正**: 3 つの日本語 UI 文字列から混入した韓国語・中国語文字を除去。
@@ -32,12 +32,12 @@
 - **テストスイート**: 82 テストファイル、658 テストケース。
 - **ゲストコーチの永続化**: Supabase の `guest_coach_usage` が端末／日単位の匿名コーチ利用を集計（`service_role` のみ）。IP 制限は不正対策用にインメモリのまま。
 - **碁盤モジュール**: コアは 4 ファイル（`board.ts`, `goRules.ts`, `judge.ts`, `sgf.ts`）に整理し、旧 `boardDisplay.ts` を削除。
-- **ドキュメント同期**：API リファレンスに `/api/health`、`/api/admin/*`、`/api/auth/device`、`POST /api/coach` を **SSE**（Server-Sent Events）として記載し、Postgres **RPC** での使用量加算も反映；DB 資料に権限ベースの `user_devices`、`manual_grants`、`guest_coach_usage`、および **`0007_atomic_coach_usage_increment.sql`** を追記；各言語の **`CONCEPT.md` は実際の上限に整合**（無制限コーチではない — **`PRODUCT_SPECS`**）；README／索引も 9 ドメイン構成に一致。
+- **ドキュメント同期**：API リファレンスに `/api/health`、`/api/admin/*`、`/api/auth/device`、`POST /api/coach` を **SSE**（Server-Sent Events）として記載し、Postgres **RPC** での使用量加算も反映；**管理系**: `/api/admin/verify` は `ADMIN_EMAILS` + `ADMIN_PIN`、**`/api/admin/grants` は `ADMIN_USER_IDS`**；DB 資料に権限ベースの `user_devices`、`manual_grants`、`guest_coach_usage`、および **`0007_atomic_coach_usage_increment.sql`** を追記；各言語の **`CONCEPT.md` は実際の上限に整合**（無制限コーチではない — **`PRODUCT_SPECS`**）；README／索引も 9 ドメイン構成に一致；`docs/README.md` に公開リポジトリ向けの秘密情報取り扱いを記載。
 
 ## 3b. 最近の改善 (v1.1 ハードニング)
 
 - **メモリ安全なレート制限**: `MemoryRateLimiter`（5 万件上限）とゲスト IP カウンタ（1 万件上限）が期限切れエントリを削除し、サーバーレスインスタンスのメモリ無制限増加を防止します。
-- **共通ボディパース**: すべてのミュテーション API ルートが `lib/apiHeaders.ts` の `parseMutationBody()` を使用 —— CSRF、Content-Type、サイズ制限、JSON バリデーションの一元管理。
+- **共通ボディパース**: 主要な JSON ミュテーション（`/api/coach`、`/api/auth/device`、`/api/puzzle/attempt`、`/api/puzzle/reveal`）は `lib/apiHeaders.ts` の `parseMutationBody()` を使用（既定 **2 KB**、コーチ **8 KB**、reveal **3 KB**）。Stripe などは同一オリジンとルート固有の JSON 解析。
 - **Unicode プロンプトインジェクション防御**: `promptGuard.ts` がパターンマッチング前に NFKC 正規化を適用し、全角文字や同形文字を折りたたみます。
 - **Coach UX の改善**: 汎用エラー時のリトライボタン、思考中のアニメーション表示、メンター切り替え時のスケルトンローディング。
 - **Stripe Webhook のハードニング**: ボディ読み込み前に 1 MB のペイロードサイズ制限（HTTP 413）を検証。

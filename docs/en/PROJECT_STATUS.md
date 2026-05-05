@@ -1,7 +1,7 @@
 # go-daily Project Status & Roadmap
 
 **Generated At**: May 6, 2026
-**Repository HEAD**: `8103dd7`
+**Repository HEAD**: `a76d9f0`
 **Status**: v2.7 Codebase Optimization Edition
 
 ---
@@ -18,7 +18,7 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 
 ## 3. Recent Progress (v2.8)
 
-- **Upstash Redis Rate Limiting**: Production uses Upstash Redis for cross-instance rate limiting. When `NODE_ENV === "production"`, missing `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` makes `createRateLimiter()` return a stub that throws on the first rate-limit check (dev omits both vars and uses `MemoryRateLimiter`).
+- **Upstash Redis Rate Limiting**: Production uses Upstash Redis for cross-instance rate limiting. When `NODE_ENV === "production"`, missing `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` makes `createRateLimiter()` return a stub whose first `isLimited()` call throws (so `next build` can run without Upstash; dev omits both vars and uses `MemoryRateLimiter`).
 - **PWA Icons**: 192×192 and 512×512 PNG icons added for Android/Chrome install prompts.
 - **Localized OG Images**: Social share images now render in the viewer's locale (zh/en/ja/ko).
 - **ja.json Translation Fix**: Removed Korean/Chinese character contamination from 3 Japanese UI strings.
@@ -32,12 +32,12 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **Test Suite**: 82 test files, 658 test cases covering logic, UI, and API layers.
 - **Guest coach persistence**: `guest_coach_usage` in Supabase stores anonymous coach message counts per device/day (`service_role` only); IP caps stay in-memory for abuse control.
 - **Board module**: Core logic consolidated into four modules (`board.ts`, `goRules.ts`, `judge.ts`, `sgf.ts`); legacy `boardDisplay.ts` removed.
-- **Documentation sync**: API reference covers `/api/health`, `/api/admin/*`, and `/api/auth/device`; includes **`POST /api/coach` as Server-Sent Events** and Postgres **RPC** usage increments; database docs include entitlement-aware `user_devices`, `manual_grants`, `guest_coach_usage`, and **`0007_atomic_coach_usage_increment.sql`** notes; multilingual **`CONCEPT.md`** Pro wording matches entitlement quotas (**not** “unlimited” coach — see **`PRODUCT_SPECS`**); README/docs index aligned with the nine-domain layout.
+- **Documentation sync**: API reference covers `/api/health`, `/api/admin/*`, and `/api/auth/device`; includes **`POST /api/coach` as Server-Sent Events** and Postgres **RPC** usage increments; **admin**: `/api/admin/verify` uses `ADMIN_EMAILS` + `ADMIN_PIN`, while **`/api/admin/grants` uses `ADMIN_USER_IDS`**; database docs include entitlement-aware `user_devices`, `manual_grants`, `guest_coach_usage`, and **`0007_atomic_coach_usage_increment.sql`** notes; multilingual **`CONCEPT.md`** Pro wording matches entitlement quotas (**not** “unlimited” coach — see **`PRODUCT_SPECS`**); README/docs index aligned with the nine-domain layout; `docs/README.md` states public-disclosure hygiene for secrets.
 
 ## 3b. Recent Improvements (v1.1 Hardening)
 
 - **Memory-safe rate limiting**: `MemoryRateLimiter` (50k entry cap) and guest IP counters (10k cap) now evict stale entries to prevent unbounded memory growth on serverless instances.
-- **Shared body parsing**: All mutation API routes use `parseMutationBody()` from `lib/apiHeaders.ts` — single source of truth for CSRF, Content-Type, size, and JSON validation.
+- **Shared body parsing**: Core JSON mutation routes (`/api/coach`, `/api/auth/device`, `/api/puzzle/attempt`, `/api/puzzle/reveal`) use `parseMutationBody()` from `lib/apiHeaders.ts` (defaults **2 KB** body unless the route overrides—coach **8 KB**, reveal **3 KB**). Other routes (e.g. Stripe checkout) use same-origin checks and route-specific JSON parsing.
 - **Unicode prompt injection defense**: `promptGuard.ts` applies NFKC normalization to collapse fullwidth and homoglyph characters before pattern matching.
 - **Coach UX improvements**: Retry button on generic errors, animated thinking indicator, skeleton loading on mentor switch.
 - **Stripe webhook hardening**: 1 MB payload size limit (HTTP 413) before body read.

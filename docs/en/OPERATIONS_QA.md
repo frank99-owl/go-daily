@@ -17,7 +17,7 @@ Configuration is managed via Vercel Environment Variables. The most critical tog
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Set to `true` to enable Stripe elements and the `/pricing` page.
 - `COACH_MODEL`: Defaults to `deepseek-chat`. Can be swapped to `deepseek-reasoner` for higher accuracy.
 - `COACH_MONTHLY_TOKEN_BUDGET`: Hard application-level limit to prevent billing spikes.
-- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **Required in production** — `createRateLimiter()` throws if either is missing when `NODE_ENV === "production"` (route modules import the limiter at load time). In **development**, omit both to use `MemoryRateLimiter` (single-process only).
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **Required in production** — when `NODE_ENV === "production"` and either is missing, `createRateLimiter()` returns a stub whose first `isLimited()` call throws (see `lib/rateLimit.ts`; this deferral allows `next build` without Upstash credentials). In **development**, omit both to use `MemoryRateLimiter` (single-process only).
 
 ### OG & Twitter preview images (`next/og`)
 

@@ -76,8 +76,9 @@ CI pipeline (`.github/workflows/ci.yml`): format:check → lint → validate:puz
 - **Stripe webhook idempotency**: Events are logged in `stripe_events` before processing. Never bypass this.
 - **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
 - **Environment variables**: See `.env.example` for the full list. Never commit `.env.local`. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.
-- **Manual Pro grants**: Email-based grants live in `manual_grants` and are merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). Admin APIs are under `/api/admin/*`; keep `ADMIN_PIN` server-only and do not add permissive RLS policies to `manual_grants`.
+- **Manual Pro grants**: Email-based grants live in `manual_grants` and are merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). **`/api/admin/grants`** checks `ADMIN_USER_IDS` (session user UUID allowlist); **`/api/admin/verify`** uses `ADMIN_EMAILS` + `ADMIN_PIN`. Keep all of these server-only; do not add permissive RLS policies to `manual_grants`.
 - **Guest coach counters**: `guest_coach_usage` is written only via `service_role` in `guestCoachUsage.ts`; clients never query it directly.
+- **Production rate limiting**: When `NODE_ENV === "production"`, missing `UPSTASH_REDIS_*` makes `createRateLimiter()` return a stub that throws on the first `isLimited()` call—configure Upstash for real traffic (`lib/rateLimit.ts`; `next build` can still run without it).
 - **`next/og` (Satori)**: Avoid `z-index` in OG/Twitter JSX—layer gradients on the root wrapper `background` instead. Root OG routes intentionally use **`runtime = "nodejs"`** (not Edge) so build output stays clean and those routes prerender statically.
 
 ## Documentation

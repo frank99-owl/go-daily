@@ -25,7 +25,7 @@ go-daily는 분산된 불리언(boolean) 체크 대신 중앙 집중식 **조회
 
 ### 수동 Pro 부여(`manual_grants` / `lib/entitlementsServer.ts`)
 
-Stripe 없이 이메일로 Pro를 부여할 때는 `manual_grants` 테이블과 `/api/admin/grants`를 사용합니다. `lib/entitlementsServer.ts`의 `resolveViewerPlan()`은 먼저 `getViewerPlan()`(Stripe 구독 상태)으로 기본 플랜을 정하고, 아직 Pro가 아닐 때만 유효한 `expires_at`의 수동 부여로 Pro로 승격합니다.
+Stripe 없이 이메일로 Pro를 부여할 때는 `manual_grants` 테이블과 `/api/admin/grants`를 사용합니다. `lib/entitlementsServer.ts`의 `resolveViewerPlan()`은 먼저 `getViewerPlan()`(Stripe 구독 상태)으로 기본 플랜을 정하고, 아직 Pro가 아닐 때만 유효한 `expires_at`의 수동 부여로 Pro로 승격합니다. `/api/admin/grants`는 세션 사용자 UUID가 `ADMIN_USER_IDS`에 있어야 합니다(관리 UI 이메일 허용 목록·PIN과 별개 — `API_REFERENCE` 참고).
 
 ## 2. 간격 반복 (SRS) 로직 (`lib/puzzle/srs.ts`)
 

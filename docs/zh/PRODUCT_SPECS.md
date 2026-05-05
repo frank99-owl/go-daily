@@ -25,7 +25,7 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 ### 手动授予 Pro（`manual_grants` / `lib/entitlementsServer.ts`）
 
-运营可通过 `manual_grants` 表与 `/api/admin/grants` 在不经 Stripe 的情况下按邮箱授予 Pro。`lib/entitlementsServer.ts` 的 `resolveViewerPlan()` 先用 `getViewerPlan()`（Stripe 订阅状态）得到基础档位；若用户尚非 Pro，且存在未过期的手动授予，则升为 Pro。
+运营可通过 `manual_grants` 表与 `/api/admin/grants` 在不经 Stripe 的情况下按邮箱授予 Pro。`lib/entitlementsServer.ts` 的 `resolveViewerPlan()` 先用 `getViewerPlan()`（Stripe 订阅状态）得到基础档位；若用户尚非 Pro，且存在未过期的手动授予，则升为 Pro。`/api/admin/grants` 对运营账号校验 `ADMIN_USER_IDS`（会话用户 UUID 白名单）；`/admin` 界面的邮箱白名单与 PIN 校验为另一套机制（见 `API_REFERENCE`）。
 
 ## 2. 间隔复习 (SRS) 逻辑 (`lib/puzzle/srs.ts`)
 

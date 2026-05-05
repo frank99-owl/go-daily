@@ -17,7 +17,7 @@
 - `NEXT_PUBLIC_IS_COMMERCIAL`: 设为 `true` 以开启 Stripe 组件和 `/pricing` 页面。
 - `COACH_MODEL`: 默认为 `deepseek-chat`。可切换为 `deepseek-reasoner`。
 - `COACH_MONTHLY_TOKEN_BUDGET`: 应用层硬性限制，防止账单意外激增。
-- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`：**生产环境必填** — 当 `NODE_ENV === "production"` 时，若缺少任一变量，`createRateLimiter()` 会在模块加载时抛出错误。**开发环境**可两者都不配置以使用 `MemoryRateLimiter`（仅适合单进程）。
+- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`：**生产环境必填** — 当 `NODE_ENV === "production"` 且缺少任一时，`createRateLimiter()` 返回桩，**首次**调用 `isLimited()` 时抛出错误（见 `lib/rateLimit.ts`；`next build` 可不配凭证）。**开发环境**可两者都不配置以使用 `MemoryRateLimiter`（仅适合单进程）。
 
 ### OG / Twitter 预览图（`next/og`）
 
