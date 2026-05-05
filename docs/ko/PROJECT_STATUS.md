@@ -29,7 +29,7 @@
 - **SEO hreflang**: `buildHreflangAlternates()` 헬퍼가 모든 페이지 라우트에 `alternates.languages`를 추가.
 - **접근성**: Heatmap ARIA 시맨틱(`role="grid"`, `aria-label`), UserMenu 키보드 내비게이션(방향키, Home/End).
 - **라우트 바운더리**: today, result, review, puzzles 라우트에 `loading.tsx` + `error.tsx` 추가.
-- **테스트 스위트**: 82개 테스트 파일, 657개 테스트 케이스.
+- **테스트 스위트**: 82개 테스트 파일, 658개 테스트 케이스.
 - **게스트 코치 영속화**: Supabase `guest_coach_usage`가 기기/일 단위 익명 코치 사용량을 저장(`service_role` 전용). IP 제한은 남용 방지용으로 인메모리 유지.
 - **바둑판 모듈**: 핵심 로직을 네 모듈(`board.ts`, `goRules.ts`, `judge.ts`, `sgf.ts`)로 정리하고 레거시 `boardDisplay.ts` 제거.
 - **문서 동기화**: API 레퍼런스에 `/api/health`, `/api/admin/*`, `/api/auth/device` 반영 및 **`POST /api/coach`의 SSE(Server-Sent Events)**·Postgres **RPC** 사용량 처리 명시；DB 문서에 권한 기반 `user_devices`, `manual_grants`, `guest_coach_usage`, **`0007_atomic_coach_usage_increment.sql`** 포함；다국어 **`CONCEPT.md`의 Pro 설명은 실제 할당량과 일치**(「무제한」 코치 아님 — **`PRODUCT_SPECS`** 참고)；README·색인은 9개 도메인 레이아웃에 맞춤.

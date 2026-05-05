@@ -39,7 +39,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自动化覆盖 (Vitest)
 
-我们维护 82 个测试文件，657 个测试用例，涵盖：
+我们维护 82 个测试文件，658 个测试用例，涵盖：
 
 - **逻辑**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。

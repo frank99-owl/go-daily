@@ -19,7 +19,15 @@ type CheckoutState =
 
 type PortalState = { kind: "idle" } | { kind: "redirecting" } | { kind: "error" };
 
-export function PricingClient({ viewerPlan, locale }: { viewerPlan: ViewerPlan; locale: Locale }) {
+export function PricingClient({
+  viewerPlan,
+  locale,
+  hasBillingPortal = false,
+}: {
+  viewerPlan: ViewerPlan;
+  locale: Locale;
+  hasBillingPortal?: boolean;
+}) {
   const { t } = useLocale();
   const copy = t.pricing;
 
@@ -132,7 +140,13 @@ export function PricingClient({ viewerPlan, locale }: { viewerPlan: ViewerPlan; 
           {viewerPlan === "guest" ? (
             <GuestCta copy={copy} locale={locale} />
           ) : viewerPlan === "pro" ? (
-            <ProBlock copy={copy} onManage={handlePortal} disabled={redirecting} state={portal} />
+            <ProBlock
+              copy={copy}
+              onManage={handlePortal}
+              disabled={redirecting}
+              state={portal}
+              hasBillingPortal={hasBillingPortal}
+            />
           ) : (
             <FreeCta
               copy={copy}
@@ -289,30 +303,38 @@ function ProBlock({
   onManage,
   disabled,
   state,
+  hasBillingPortal,
 }: {
   copy: ReturnType<typeof useLocale>["t"]["pricing"];
   onManage: () => void;
   disabled: boolean;
   state: PortalState;
+  hasBillingPortal: boolean;
 }) {
   return (
     <>
       <div className="rounded-xl border border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/5 p-4">
         <p className="text-sm font-semibold text-[var(--color-accent)]">{copy.alreadyPro}</p>
-        <p className="mt-1 text-sm text-white/65">{copy.alreadyProBody}</p>
-      </div>
-      <button
-        type="button"
-        onClick={onManage}
-        disabled={disabled}
-        className="self-start rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {state.kind === "redirecting" ? copy.processing : copy.managePortal}
-      </button>
-      {state.kind === "error" ? (
-        <p role="alert" className="text-sm text-[color:var(--color-warn)]">
-          {copy.error}
+        <p className="mt-1 text-sm text-white/65">
+          {hasBillingPortal ? copy.alreadyProBody : copy.manualProBody}
         </p>
+      </div>
+      {hasBillingPortal ? (
+        <>
+          <button
+            type="button"
+            onClick={onManage}
+            disabled={disabled}
+            className="self-start rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {state.kind === "redirecting" ? copy.processing : copy.managePortal}
+          </button>
+          {state.kind === "error" ? (
+            <p role="alert" className="text-sm text-[color:var(--color-warn)]">
+              {copy.portalError}
+            </p>
+          ) : null}
+        </>
       ) : null}
     </>
   );

@@ -29,7 +29,7 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **SEO Hreflang**: `buildHreflangAlternates()` helper with `alternates.languages` on all page routes.
 - **Accessibility**: Heatmap ARIA semantics (`role="grid"`, `aria-label`), UserMenu keyboard navigation (Arrow keys, Home/End).
 - **Route Boundaries**: `loading.tsx` + `error.tsx` for today, result, review, and puzzles routes.
-- **Test Suite**: 82 test files, 657 test cases covering logic, UI, and API layers.
+- **Test Suite**: 82 test files, 658 test cases covering logic, UI, and API layers.
 - **Guest coach persistence**: `guest_coach_usage` in Supabase stores anonymous coach message counts per device/day (`service_role` only); IP caps stay in-memory for abuse control.
 - **Board module**: Core logic consolidated into four modules (`board.ts`, `goRules.ts`, `judge.ts`, `sgf.ts`); legacy `boardDisplay.ts` removed.
 - **Documentation sync**: API reference covers `/api/health`, `/api/admin/*`, and `/api/auth/device`; includes **`POST /api/coach` as Server-Sent Events** and Postgres **RPC** usage increments; database docs include entitlement-aware `user_devices`, `manual_grants`, `guest_coach_usage`, and **`0007_atomic_coach_usage_increment.sql`** notes; multilingual **`CONCEPT.md`** Pro wording matches entitlement quotas (**not** “unlimited” coach — see **`PRODUCT_SPECS`**); README/docs index aligned with the nine-domain layout.

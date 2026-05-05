@@ -39,6 +39,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   const { locale } = await params;
 
   let viewerPlan: ViewerPlan = "guest";
+  let hasBillingPortal = false;
 
   try {
     const supabase = await createClient();
@@ -54,7 +55,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
     if (user) {
       const { data: subscription, error: subErr } = await supabase
         .from("subscriptions")
-        .select("status")
+        .select("status, stripe_customer_id")
         .eq("user_id", user.id)
         .maybeSingle();
       if (subErr) {
@@ -65,6 +66,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         subscriptionStatus: subscription?.status ?? null,
         email: user.email,
       });
+      hasBillingPortal = Boolean(subscription?.stripe_customer_id);
     }
   } catch (error) {
     console.error("[pricing] supabase check failed", error);
@@ -72,7 +74,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-16 pt-24 sm:px-6 sm:pt-32">
-      <PricingClient viewerPlan={viewerPlan} locale={locale} />
+      <PricingClient viewerPlan={viewerPlan} locale={locale} hasBillingPortal={hasBillingPortal} />
     </div>
   );
 }

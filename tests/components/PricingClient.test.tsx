@@ -15,10 +15,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock, replace: vi.fn(), refresh: vi.fn() }),
 }));
 
-function renderPricing(viewerPlan: "guest" | "free" | "pro") {
+function renderPricing(viewerPlan: "guest" | "free" | "pro", hasBillingPortal = false) {
   return render(
     <LocaleProvider initialLocale="zh">
-      <PricingClient viewerPlan={viewerPlan} locale="zh" />
+      <PricingClient viewerPlan={viewerPlan} locale="zh" hasBillingPortal={hasBillingPortal} />
     </LocaleProvider>,
   );
 }
@@ -143,7 +143,7 @@ describe("PricingClient", () => {
       const { fetchFn } = deferredFetchMock();
       vi.stubGlobal("fetch", fetchFn);
 
-      renderPricing("pro");
+      renderPricing("pro", true);
       expect(screen.getByText("你已经是 Pro 用户啦")).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole("button", { name: "管理订阅" }));
@@ -156,6 +156,15 @@ describe("PricingClient", () => {
         expect.objectContaining({ method: "POST" }),
       );
       // Checkout CTAs should not exist for pro users.
+      expect(screen.queryByRole("button", { name: /开始月付计划/ })).toBeNull();
+    });
+
+    it("does not show Stripe portal controls for manually granted Pro", () => {
+      renderPricing("pro");
+
+      expect(screen.getByText("你已经是 Pro 用户啦")).toBeInTheDocument();
+      expect(screen.getByText(/这个账号是手动授予的 Pro/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "管理订阅" })).toBeNull();
       expect(screen.queryByRole("button", { name: /开始月付计划/ })).toBeNull();
     });
   });
