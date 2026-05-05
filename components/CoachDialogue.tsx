@@ -112,6 +112,8 @@ export function CoachDialogue({ puzzleId, userMove }: Props) {
       headers[user ? "x-go-daily-device-id" : "x-go-daily-guest-device-id"] = deviceId;
       const res = await fetch("/api/coach", {
         method: "POST",
+        credentials: "include",
+        cache: "no-store",
         headers,
         body: JSON.stringify({
           puzzleId,

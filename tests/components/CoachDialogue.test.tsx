@@ -84,6 +84,8 @@ describe("CoachDialogue", () => {
     });
 
     const init = vi.mocked(fetch).mock.calls[0]?.[1] as RequestInit;
+    expect(init.credentials).toBe("include");
+    expect(init.cache).toBe("no-store");
     expect(init.headers).toMatchObject({
       "x-go-daily-device-id": "test-device-id",
     });
