@@ -262,7 +262,7 @@ Unsubscribe from daily puzzle emails using a one-time token.
 
 **Query Params**: `token` (from `profiles.email_unsubscribe_token`).
 
-**Behavior**: `GET` is the visible footer link and redirects back to `/en` with an email status query. `POST` supports RFC 8058 one-click unsubscribe from mail clients via the `List-Unsubscribe` and `List-Unsubscribe-Post` headers and returns an empty response after setting `profiles.email_opt_out = true`.
+**Behavior**: `GET` is the visible footer link and returns a localized confirmation page after setting `profiles.email_opt_out = true`. `POST` supports RFC 8058 one-click unsubscribe from mail clients via the `List-Unsubscribe` and `List-Unsubscribe-Post` headers and returns an empty response after setting `profiles.email_opt_out = true`.
 
 ### `GET /api/cron/daily-email` (`app/api/cron/daily-email/route.ts`)
 

@@ -52,14 +52,16 @@ describe("/email/unsubscribe", () => {
     vi.clearAllMocks();
   });
 
-  it("GET marks the profile opted out and redirects to the success state", async () => {
+  it("GET marks the profile opted out and renders the success confirmation page", async () => {
     const admin = buildAdminClient();
     supabaseMocks.createServiceClient.mockReturnValue(admin.client);
 
     const response = await GET(request("/email/unsubscribe?token=tok-123"));
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://go-daily.app/en?email=unsubscribed");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/html");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.text()).toContain("You're unsubscribed");
     expect(admin.fromSpy).toHaveBeenCalledWith("profiles");
     expect(admin.updateSpy).toHaveBeenCalledWith({
       email_opt_out: true,
@@ -72,10 +74,8 @@ describe("/email/unsubscribe", () => {
   it("GET treats a missing token as invalid without touching Supabase", async () => {
     const response = await GET(request("/email/unsubscribe"));
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://go-daily.app/en?email=unsubscribe_invalid",
-    );
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("This unsubscribe link is invalid");
     expect(supabaseMocks.createServiceClient).not.toHaveBeenCalled();
   });
 
@@ -85,10 +85,22 @@ describe("/email/unsubscribe", () => {
 
     const response = await GET(request("/email/unsubscribe?token=unknown"));
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://go-daily.app/en?email=unsubscribe_invalid",
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("This unsubscribe link is invalid");
+  });
+
+  it("GET localizes the confirmation page from Accept-Language", async () => {
+    const admin = buildAdminClient();
+    supabaseMocks.createServiceClient.mockReturnValue(admin.client);
+
+    const response = await GET(
+      request("/email/unsubscribe?token=tok-123", {
+        headers: { "accept-language": "zh-CN,zh;q=0.9,en;q=0.5" },
+      }),
     );
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("已退订邮件提醒");
   });
 
   it("POST supports one-click List-Unsubscribe without redirecting", async () => {
