@@ -91,6 +91,10 @@ describe("sendWelcomeEmail — success path", () => {
     expect(payload.html).toContain("https://go-daily.app/zh/today"); // CTA URL
     expect(payload.html).toContain("https://go-daily.app/email/unsubscribe?token=tok123"); // unsubscribe
     expect(payload.text).toContain("https://go-daily.app/zh/today");
+    expect(payload.headers).toEqual({
+      "List-Unsubscribe": "<https://go-daily.app/email/unsubscribe?token=tok123>",
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    });
   });
 
   it("omits unsubscribe when token absent", async () => {
@@ -101,6 +105,7 @@ describe("sendWelcomeEmail — success path", () => {
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
     expect(body.html).not.toContain("/email/unsubscribe");
     expect(body.text).not.toContain("Unsubscribe:");
+    expect(body.headers).toBeUndefined();
   });
 
   it("honors EMAIL_FROM override", async () => {

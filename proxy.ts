@@ -135,6 +135,7 @@ function isExemptPath(pathname: string): boolean {
   if (
     pathname.startsWith("/api/") ||
     pathname.startsWith("/auth/") ||
+    pathname.startsWith("/email/") ||
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico" ||
     pathname === "/manifest.webmanifest" ||
@@ -156,7 +157,7 @@ function isExemptPath(pathname: string): boolean {
 // session handling.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|api|auth|favicon.ico|opengraph-image|robots.txt|sitemap.xml|twitter-image).*)",
+    "/((?!_next/static|_next/image|api|auth|email|favicon.ico|opengraph-image|robots.txt|sitemap.xml|twitter-image).*)",
   ],
 };
 

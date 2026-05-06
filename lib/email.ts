@@ -214,11 +214,13 @@ async function sendTransactionalEmail({
   subject,
   html,
   text,
+  unsubscribe,
 }: {
   to: string | null | undefined;
   subject: string;
   html: string;
   text: string;
+  unsubscribe?: string;
 }): Promise<EmailSendResult> {
   const trimmedTo = to?.trim();
   if (!trimmedTo) return { sent: false, reason: "missing_recipient" };
@@ -244,6 +246,12 @@ async function sendTransactionalEmail({
         html,
         text,
         reply_to: replyTo(),
+        headers: unsubscribe
+          ? {
+              "List-Unsubscribe": `<${unsubscribe}>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            }
+          : undefined,
       }),
       signal: controller.signal,
     });
@@ -289,13 +297,14 @@ export async function sendWelcomeEmail({
   unsubscribeToken?: string | null;
 }): Promise<EmailSendResult> {
   const copy = WELCOME_COPY[locale];
+  const unsubscribe = unsubscribeUrl(unsubscribeToken);
   const { html, text } = renderEmail({
     copy,
     ctaUrl: absoluteUrl(localePath(locale, "/today")),
-    unsubscribe: unsubscribeUrl(unsubscribeToken),
+    unsubscribe,
   });
 
-  return sendTransactionalEmail({ to, subject: copy.subject, html, text });
+  return sendTransactionalEmail({ to, subject: copy.subject, html, text, unsubscribe });
 }
 
 export async function sendPaymentFailedEmail({
@@ -310,13 +319,14 @@ export async function sendPaymentFailedEmail({
   unsubscribeToken?: string | null;
 }): Promise<EmailSendResult> {
   const copy = PAYMENT_FAILED_COPY[locale];
+  const unsubscribe = unsubscribeUrl(unsubscribeToken);
   const { html, text } = renderEmail({
     copy,
     ctaUrl: portalUrl,
-    unsubscribe: unsubscribeUrl(unsubscribeToken),
+    unsubscribe,
   });
 
-  return sendTransactionalEmail({ to, subject: copy.subject, html, text });
+  return sendTransactionalEmail({ to, subject: copy.subject, html, text, unsubscribe });
 }
 
 export async function sendDailyPuzzleEmail({
@@ -335,11 +345,12 @@ export async function sendDailyPuzzleEmail({
     ...partialCopy,
     body: localizedText(puzzle.prompt, locale),
   };
+  const unsubscribe = unsubscribeUrl(unsubscribeToken);
   const { html, text } = renderEmail({
     copy,
     ctaUrl: absoluteUrl(localePath(locale, `/puzzles/${encodeURIComponent(puzzle.id)}`)),
-    unsubscribe: unsubscribeUrl(unsubscribeToken),
+    unsubscribe,
   });
 
-  return sendTransactionalEmail({ to, subject: copy.subject, html, text });
+  return sendTransactionalEmail({ to, subject: copy.subject, html, text, unsubscribe });
 }

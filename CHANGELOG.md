@@ -113,5 +113,6 @@ Implementation-level closure detail for v1.1 now lives in the pillar docs on `ma
 - **Stripe integration**: Adaptive pricing (JPY/KRW), 7-day trial, monthly/yearly plans.
 - **SM-2 spaced repetition**: Pro users get personalized review schedules.
 - **Daily puzzle emails**: Vercel Cron + Resend integration with one-click unsubscribe.
+- **Email unsubscribe**: The `/email/unsubscribe` route is excluded from locale redirects and supports RFC 8058 `POST` one-click unsubscribe headers, so both footer links and mail-client unsubscribe buttons persist `email_opt_out`.
 - **Legal compliance**: Privacy policy, terms of service, and refund policy for 10 jurisdictions.
 - **Deployment preflight**: 47-point production readiness checklist script.

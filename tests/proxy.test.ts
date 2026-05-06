@@ -166,6 +166,7 @@ describe("proxy exemptions and matcher", () => {
   it.each([
     ["/api/coach"],
     ["/auth/callback"],
+    ["/email/unsubscribe?token=tok-123"],
     ["/_next/static/chunk.js"],
     ["/_next/image?url=%2Fstone.png&w=64&q=75"],
     ["/opengraph-image"],
@@ -185,7 +186,7 @@ describe("proxy exemptions and matcher", () => {
 
   it("keeps the Next matcher aligned with API/auth/static exclusions", () => {
     expect(config.matcher).toEqual([
-      "/((?!_next/static|_next/image|api|auth|favicon.ico|opengraph-image|robots.txt|sitemap.xml|twitter-image).*)",
+      "/((?!_next/static|_next/image|api|auth|email|favicon.ico|opengraph-image|robots.txt|sitemap.xml|twitter-image).*)",
     ]);
   });
 });

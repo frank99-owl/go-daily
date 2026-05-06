@@ -256,11 +256,13 @@ Register or refresh the signed-in browser device in `user_devices`, after resolv
 
 ## 5. Email API
 
-### `GET /email/unsubscribe` (`app/email/unsubscribe/route.ts`)
+### `GET|POST /email/unsubscribe` (`app/email/unsubscribe/route.ts`)
 
 Unsubscribe from daily puzzle emails using a one-time token.
 
 **Query Params**: `token` (from `profiles.email_unsubscribe_token`).
+
+**Behavior**: `GET` is the visible footer link and redirects back to `/en` with an email status query. `POST` supports RFC 8058 one-click unsubscribe from mail clients via the `List-Unsubscribe` and `List-Unsubscribe-Post` headers and returns an empty response after setting `profiles.email_opt_out = true`.
 
 ### `GET /api/cron/daily-email` (`app/api/cron/daily-email/route.ts`)
 
