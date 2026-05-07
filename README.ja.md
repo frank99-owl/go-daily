@@ -11,6 +11,8 @@
 ![Supabase](https://img.shields.io/badge/Supabase-auth%2Bdb-3ecf8e?logo=supabase)
 ![Stripe](https://img.shields.io/badge/Stripe-payments-626cd9?logo=stripe)
 
+▶️ **[YouTube で製品デモを見る](https://youtu.be/3uuFm-bnrSc)**
+
 ## 概要
 
 **go-daily** は、毎日ひとつの厳選された死活問題に取り組む **習慣化** に特化した囲碁プラットフォームです。**中国語・英語・日本語・韓国語** 対応の製品体験と、**`coachPrompt.ts`** で問題ごとの解説・局面を起点に応答を拘束する **DeepSeek ストリーミング AI コーチ**（ペルソナ・利用枠あり）を備えています。

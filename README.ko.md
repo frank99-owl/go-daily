@@ -11,6 +11,8 @@
 ![Supabase](https://img.shields.io/badge/Supabase-auth%2Bdb-3ecf8e?logo=supabase)
 ![Stripe](https://img.shields.io/badge/Stripe-payments-626cd9?logo=stripe)
 
+▶️ **[YouTube에서 제품 데모 시청하기](https://youtu.be/3uuFm-bnrSc)**
+
 ## 개요
 
 **go-daily**는 매일 하나의 사활 문제에 집중하는 **습관형** 바둑 학습 플랫폼입니다. **중·영·일·한** 네 로케일 전체 UX와, **`coachPrompt.ts`**로 각 문제의 해설·국면을 근거로 응답을 묶는 **DeepSeek 스트리밍 AI 코치**(페르소나·쿼터)를 제공합니다.

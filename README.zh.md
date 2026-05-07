@@ -11,6 +11,8 @@
 ![Supabase](https://img.shields.io/badge/Supabase-auth%2Bdb-3ecf8e?logo=supabase)
 ![Stripe](https://img.shields.io/badge/Stripe-payments-626cd9?logo=stripe)
 
+▶️ **[在 YouTube 上观看产品演示](https://youtu.be/3uuFm-bnrSc)**
+
 ## 概览
 
 **go-daily** 是面向习惯养成的 **每日围棋死活** 学习产品：每天一题、**中 / 英 / 日 / 韩** 全链路本地化，以及基于 **`coachPrompt.ts`** 约束的 **DeepSeek 流式 AI 教练**（以题库解析与盘面信息为准；人设语气与配额见产品与规格文档）。

@@ -11,6 +11,8 @@
 ![Supabase](https://img.shields.io/badge/Supabase-auth%2Bdb-3ecf8e?logo=supabase)
 ![Stripe](https://img.shields.io/badge/Stripe-payments-626cd9?logo=stripe)
 
+▶️ **[Watch the Product Demo on YouTube](https://youtu.be/3uuFm-bnrSc)**
+
 ## Overview
 
 **go-daily** is a production-oriented daily tsumego (Go life-and-death) platform: one focused puzzle per day, full **Chinese / English / Japanese / Korean** UX, and **streaming AI coaching** via DeepSeek (`coachPrompt.ts` anchors replies to curated explanations and board metadata; persona voices and fair-use quotas apply).
