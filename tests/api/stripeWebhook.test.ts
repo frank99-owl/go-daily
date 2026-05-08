@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   constructEvent: vi.fn(),
   retrieveSubscription: vi.fn(),
   sendPaymentFailedEmail: vi.fn(),
+  sendSubscriptionStartedEmail: vi.fn(),
   captureServerEvent: vi.fn(),
 }));
 
@@ -28,6 +29,7 @@ vi.mock("@/lib/stripe/server", () => ({
 
 vi.mock("@/lib/email", () => ({
   sendPaymentFailedEmail: mocks.sendPaymentFailedEmail,
+  sendSubscriptionStartedEmail: mocks.sendSubscriptionStartedEmail,
 }));
 
 vi.mock("@/lib/posthog/server", () => ({
@@ -102,6 +104,7 @@ describe("/api/stripe/webhook", () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
     mocks.createPortalSession.mockResolvedValue({ url: "https://billing.stripe.test/session_1" });
     mocks.sendPaymentFailedEmail.mockResolvedValue({ sent: true, id: "email_1" });
+    mocks.sendSubscriptionStartedEmail.mockResolvedValue({ sent: true, id: "email_2" });
   });
 
   it("skips already processed duplicate events before running subscription work", async () => {
@@ -140,13 +143,26 @@ describe("/api/stripe/webhook", () => {
     mocks.retrieveSubscription.mockResolvedValue(makeSubscription());
 
     const subscriptionQ = query({ error: null });
+    const profileQ = query({
+      data: { locale: "zh", email_opt_out: false, email_unsubscribe_token: "tok_started" },
+      error: null,
+    });
     const admin = {
+      auth: {
+        admin: {
+          getUserById: vi.fn().mockResolvedValue({
+            data: { user: { email: "user@example.com" } },
+            error: null,
+          }),
+        },
+      },
       from: vi
         .fn()
         .mockReturnValueOnce(query({ error: null })) // stripe_events insert claim
         .mockReturnValueOnce(subscriptionQ) // subscriptions select existing
         .mockReturnValueOnce(subscriptionQ) // subscriptions upsert
-        .mockReturnValueOnce(query({ error: null })), // stripe_events mark processed
+        .mockReturnValueOnce(query({ error: null })) // stripe_events mark processed
+        .mockReturnValueOnce(profileQ), // profiles email state
     };
     mocks.createServiceClient.mockReturnValue(admin);
 
@@ -164,6 +180,13 @@ describe("/api/stripe/webhook", () => {
       }),
       { onConflict: "user_id" },
     );
+    expect(admin.auth.admin.getUserById).toHaveBeenCalledWith("user_1");
+    expect(mocks.sendSubscriptionStartedEmail).toHaveBeenCalledWith({
+      to: "user@example.com",
+      locale: "zh",
+      trialing: false,
+      unsubscribeToken: "tok_started",
+    });
   });
 
   it("captures trial_started for Checkout sessions that create a trial subscription", async () => {
@@ -178,12 +201,26 @@ describe("/api/stripe/webhook", () => {
     );
 
     const admin = {
+      auth: {
+        admin: {
+          getUserById: vi.fn().mockResolvedValue({
+            data: { user: { email: "trial@example.com" } },
+            error: null,
+          }),
+        },
+      },
       from: vi
         .fn()
         .mockReturnValueOnce(query({ error: null }))
         .mockReturnValueOnce(query({ data: null, error: null }))
         .mockReturnValueOnce(query({ error: null }))
-        .mockReturnValueOnce(query({ error: null })),
+        .mockReturnValueOnce(query({ error: null }))
+        .mockReturnValueOnce(
+          query({
+            data: { locale: "en", email_opt_out: false, email_unsubscribe_token: null },
+            error: null,
+          }),
+        ),
     };
     mocks.createServiceClient.mockReturnValue(admin);
 
@@ -201,6 +238,44 @@ describe("/api/stripe/webhook", () => {
         trialEnd: "2026-05-01T00:00:00.000Z",
       }),
     });
+    expect(mocks.sendSubscriptionStartedEmail).toHaveBeenCalledWith({
+      to: "trial@example.com",
+      locale: "en",
+      trialing: true,
+      unsubscribeToken: null,
+    });
+  });
+
+  it("does not send subscription-started email when the profile is opted out", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_checkout_optout",
+      type: "checkout.session.completed",
+      data: { object: { subscription: "sub_1", client_reference_id: "user_1" } },
+    });
+    mocks.retrieveSubscription.mockResolvedValue(makeSubscription());
+
+    const admin = {
+      auth: { admin: { getUserById: vi.fn() } },
+      from: vi
+        .fn()
+        .mockReturnValueOnce(query({ error: null }))
+        .mockReturnValueOnce(query({ data: null, error: null }))
+        .mockReturnValueOnce(query({ error: null }))
+        .mockReturnValueOnce(query({ error: null }))
+        .mockReturnValueOnce(
+          query({
+            data: { locale: "en", email_opt_out: true, email_unsubscribe_token: "tok_started" },
+            error: null,
+          }),
+        ),
+    };
+    mocks.createServiceClient.mockReturnValue(admin);
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(mocks.sendSubscriptionStartedEmail).not.toHaveBeenCalled();
+    expect(admin.auth.admin.getUserById).not.toHaveBeenCalled();
   });
 
   describe("invoice.paid", () => {

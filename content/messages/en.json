@@ -52,9 +52,53 @@
     "difficulty": "Difficulty",
     "submit": "Confirm move",
     "reset": "Reset",
+    "randomPractice": "Random practice",
+    "randomPracticeTitle": "Practice a random puzzle",
     "hint": "Tap an empty intersection to place a stone",
     "boardCoordinateHint": "Coordinates use (x,y) with the top-left as (0,0). 19x19 puzzles may show only a local corner.",
     "keyboardShortcuts": "Shortcuts: Arrow keys move the cursor · Enter or Space places a stone · R resets · Esc clears the current move"
+  },
+  "onboarding": {
+    "pageTitle": "First Training Session",
+    "metaLabel": "Starter pool · {{count}} coach-ready puzzles",
+    "practiceEyebrow": "3-minute start",
+    "practiceTitle": "Solve one puzzle, then let AI explain why",
+    "practiceSubtitle": "No registration wall and no long tutorial. Pick a starter level, place one move, review the feedback, ask the coach, and turn this session into tomorrow's review.",
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "levelRanges": {
+      "beginner": "25 kyu - 3 kyu",
+      "intermediate": "1 kyu / 2 kyu / 1 dan / 2 dan",
+      "advanced": "3 dan - 7 dan"
+    },
+    "stepThink": "Find the group under pressure",
+    "stepMove": "Place one candidate move",
+    "stepReview": "Review and save it",
+    "valueProps": [
+      "Try the core loop first",
+      "AI explains from board context",
+      "Mistakes become review material"
+    ],
+    "hintTitle": "Layered hint",
+    "hints": [
+      "First identify the target shape: which group needs to live, die, or find a tesuji?",
+      "Then inspect liberties and eye shape: which points reduce eye space or keep your follow-up threats alive?",
+      "Finally look for the vital point: prefer a move that creates two threats or leaves the opponent with fewer replies."
+    ],
+    "nextHint": "Give me another hint",
+    "lastHint": "Final hint shown",
+    "submitFirst": "Submit first move",
+    "resultEyebrow": "First puzzle complete",
+    "resultTitleCorrect": "Good. The first learning loop is complete",
+    "resultTitleWrong": "This is exactly the right puzzle to review",
+    "resultBodyCorrect": "Do not rush to the next puzzle yet. First understand why this move works, then ask AI to turn the shape into a reusable rule of thumb.",
+    "resultBodyWrong": "A mistake is not a failed session; it is the best training sample. Read the key explanation, then ask AI what opportunity your move gave the opponent.",
+    "resultStepSubmitted": "1 Answer submitted",
+    "resultStepExplanation": "2 Read the answer explanation",
+    "resultStepReview": "3 Save it for review"
   },
   "result": {
     "correct": "Correct!",
@@ -65,6 +109,7 @@
     "retry": "Try again",
     "backToToday": "Back to today",
     "backToHome": "Back to home",
+    "openReview": "Open review",
     "coachTitle": "AI Coach",
     "selectMentor": "Select Your Mentor",
     "coachStatAggression": "Aggression",
@@ -90,6 +135,18 @@
     "coachSignInCta": "Sign in for AI Coach",
     "coachSignUpCta": "Sign up for free",
     "curatedNote": "Solution note",
+    "explanationTitle": "Answer explanation",
+    "explanationCorrectLead": "The point is not only that the move is correct; it changes the opponent's next choices.",
+    "explanationWrongLead": "Do not rush the retry. Understanding why this move falls short is what makes the shape recognizable next time.",
+    "explanationLoading": "Loading the puzzle explanation…",
+    "saveTitle": "Keep this training session",
+    "saveBodyGuest": "Guest progress is saved on this device. Sign in to sync mistakes, preserve the review plan, and continue elsewhere.",
+    "saveBodySignedIn": "This attempt is in your training history. Missed puzzles will appear in Review and the spaced practice path.",
+    "saveCtaGuest": "Sign in and save",
+    "coachPromptTitle": "Ask AI to go deeper",
+    "coachPromptWhyWrong": "Why was my move not good enough?",
+    "coachPromptCorrectLine": "What is the continuation after the correct move?",
+    "coachPromptPattern": "How do I recognize this shape next time?",
     "boardCoordinateHint": "The AI coach uses the same (x,y) coordinates as the page, with the top-left as (0,0).",
     "keyboardShortcuts": "Shortcuts: R retries · Left and right arrows step through the solution · Esc closes the current solution view",
     "attemptCount": "Attempt #{{count}}",
@@ -226,7 +283,7 @@
     "titleLine1": "The Intelligence",
     "titleLine2": "of the Grid",
     "subtitle": "Experience the silent battle of the ancient game. Hone your skill with every stone, and feel the wisdom of millennia unfold.",
-    "getStarted": "Get Started",
+    "getStarted": "Today's Puzzle",
     "watchMatch": "Watch Match"
   },
   "boardShowcase": {
@@ -252,6 +309,10 @@
     "today": {
       "title": "Today's Puzzle — go-daily",
       "description": "Challenge yourself with today's hand-picked Go puzzle and improve your reading with AI coaching."
+    },
+    "onboarding": {
+      "title": "First Training Session — go-daily",
+      "description": "Complete your first Go puzzle in 3 minutes: play a move, get feedback, let AI explain why, and save the review path."
     },
     "puzzles": {
       "title": "Puzzle Library — go-daily",
@@ -294,7 +355,7 @@
     "login": {
       "eyebrow": "Welcome back",
       "title": "Sign in to go-daily",
-      "subtitle": "Sync your progress and mistake log across devices. We won't post, mine, or sell anything — ever.",
+      "subtitle": "Save your mistakes, review plan, and AI explanations so you can keep training across devices. We won't post, mine, or sell anything — ever.",
       "google": "Continue with Google",
       "dividerOr": "or",
       "emailLabel": "Email address",

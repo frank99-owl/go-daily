@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pickRandomPuzzle } from "@/lib/random";
+import { pickRandomPuzzle, pickRandomPuzzlePreferUnattempted } from "@/lib/random";
 import type { AttemptRecord } from "@/types";
 
 describe("random", () => {
@@ -44,5 +44,15 @@ describe("random", () => {
     const noMistakesAttempts: AttemptRecord[] = [];
     const p = pickRandomPuzzle(puzzles, noMistakesAttempts, "wrong");
     expect(p).toBeNull();
+  });
+
+  it("prefers unattempted ids when picking random practice", () => {
+    expect(pickRandomPuzzlePreferUnattempted(puzzles, ["p1", "p2"])?.id).toBe("p3");
+  });
+
+  it("falls back to the full pool when every puzzle was attempted", () => {
+    const p = pickRandomPuzzlePreferUnattempted(puzzles, ["p1", "p2", "p3"]);
+    expect(p).not.toBeNull();
+    expect(puzzles.map((x) => x.id)).toContain(p!.id);
   });
 });

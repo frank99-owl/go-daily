@@ -24,3 +24,16 @@ export function pickRandomPuzzle<T extends { id: string }>(
   const idx = Math.floor(Math.random() * candidates.length);
   return candidates[idx];
 }
+
+export function pickRandomPuzzlePreferUnattempted<T extends { id: string }>(
+  puzzles: T[],
+  attemptedPuzzleIds: string[],
+): T | null {
+  if (puzzles.length === 0) return null;
+
+  const attempted = new Set(attemptedPuzzleIds);
+  const unattempted = puzzles.filter((puzzle) => !attempted.has(puzzle.id));
+  const candidates = unattempted.length > 0 ? unattempted : puzzles;
+  const idx = Math.floor(Math.random() * candidates.length);
+  return candidates[idx];
+}

@@ -31,19 +31,45 @@ const summaries: PuzzleSummary[] = [
     boardSize: 9,
     tag: "tesuji",
   },
+  {
+    id: "p-00003",
+    difficulty: 2,
+    source: "Classical",
+    date: "2026-04-20",
+    prompt: { zh: "黑先", en: "Black to play", ja: "黒番", ko: "흑 차례" },
+    boardSize: 19,
+    tag: "life-death",
+  },
+  {
+    id: "p-00004",
+    difficulty: 5,
+    source: "Classical",
+    date: "2026-04-21",
+    prompt: { zh: "白先", en: "White to play", ja: "白番", ko: "백 차례" },
+    boardSize: 19,
+    tag: "tesuji",
+  },
 ];
 
 let ipCounter = 0;
 
-function request(headers?: HeadersInit): Request {
+function request({
+  body = { attemptedPuzzleIds: [], level: "beginner" },
+  headers,
+}: {
+  body?: unknown;
+  headers?: HeadersInit;
+} = {}): Request {
   ipCounter += 1;
   return new Request("http://localhost/api/puzzle/random", {
     method: "POST",
     headers: {
       origin: "http://localhost",
+      "content-type": "application/json",
       "x-forwarded-for": `10.1.0.${ipCounter}`,
       ...(headers ?? {}),
     },
+    body: JSON.stringify(body),
   });
 }
 
@@ -53,19 +79,43 @@ describe("/api/puzzle/random", () => {
     getAllSummariesMock.mockResolvedValue(summaries);
   });
 
-  it("returns one puzzle id without returning the full id list", async () => {
+  it("returns one puzzle id for the requested level without returning the full id list", async () => {
     vi.spyOn(Math, "random").mockReturnValue(0.75);
 
-    const response = await POST(request());
+    const response = await POST(request({ body: { attemptedPuzzleIds: [], level: "beginner" } }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toEqual({ puzzleId: "p-00002" });
+    expect(body).toEqual({ puzzleId: "p-00001", level: "beginner" });
     expect(body).not.toHaveProperty("puzzleIds");
   });
 
+  it("prefers puzzles the user has not attempted", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const response = await POST(
+      request({ body: { attemptedPuzzleIds: ["p-00002"], level: "intermediate" } }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ puzzleId: "p-00003", level: "intermediate" });
+  });
+
+  it("falls back to the level pool when all matching puzzles were attempted", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const response = await POST(
+      request({ body: { attemptedPuzzleIds: ["p-00002", "p-00003"], level: "intermediate" } }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ puzzleId: "p-00002", level: "intermediate" });
+  });
+
   it("rejects cross-origin random requests", async () => {
-    const response = await POST(request({ origin: "https://evil.example" }));
+    const response = await POST(request({ headers: { origin: "https://evil.example" } }));
 
     expect(response.status).toBe(403);
   });

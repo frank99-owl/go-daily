@@ -16,6 +16,8 @@ import type { CoachMessage, Coord, Locale } from "@/types";
 type Props = {
   puzzleId: string;
   userMove: Coord;
+  suggestedPrompts?: string[];
+  suggestedPromptSource?: "result" | "onboarding_result";
 };
 
 type CoachError = { kind: CoachErrorCode } | { kind: "generic"; message: string };
@@ -25,7 +27,16 @@ const PERSONA_SWITCH_DELAY_MS = 300;
 const historyKey = (puzzleId: string, locale: Locale, personaId: string) =>
   `go-daily.coach.${puzzleId}.${locale}.${personaId}`;
 
-export function CoachDialogue({ puzzleId, userMove }: Props) {
+function timestampMs(): number {
+  return Date.now();
+}
+
+export function CoachDialogue({
+  puzzleId,
+  userMove,
+  suggestedPrompts = [],
+  suggestedPromptSource = "result",
+}: Props) {
   const { t, locale } = useLocale();
   const pathname = usePathname();
   const { user } = useCurrentUser();
@@ -226,13 +237,40 @@ export function CoachDialogue({ puzzleId, userMove }: Props) {
     }
   }
 
-  const send = async () => {
-    const text = input.trim();
-    if (!text || pending) return;
-    const next: CoachMessage[] = [...messages, { role: "user", content: text, ts: Date.now() }];
+  const sendText = async (text: string, promptKey = "freeform") => {
+    const normalizedText = text.trim();
+    if (!normalizedText || pending) return;
+    if (messages.length === 0) {
+      track("coach_first_prompt_used", {
+        puzzleId,
+        promptKey,
+        source: promptKey === "freeform" ? "composer" : suggestedPromptSource,
+      });
+    }
+    const next: CoachMessage[] = [
+      ...messages,
+      { role: "user", content: normalizedText, ts: timestampMs() },
+    ];
+    track("coach_message_sent", { puzzleId, messageIndex: next.length });
     setMessages(next);
     setInput("");
     await requestReply(next);
+  };
+
+  const send = async () => {
+    const text = input.trim();
+    if (!text || pending) return;
+    await sendText(text);
+  };
+
+  const sendSuggestedPrompt = async (prompt: string, index: number) => {
+    const promptKey = `suggested_${index}`;
+    track("coach_suggested_prompt_clicked", {
+      puzzleId,
+      promptKey,
+      source: suggestedPromptSource,
+    });
+    await sendText(prompt, promptKey);
   };
 
   const retry = async () => {
@@ -270,7 +308,26 @@ export function CoachDialogue({ puzzleId, userMove }: Props) {
           </div>
         )}
         {!switching && messages.length === 0 && !pending && !error && (
-          <p className="text-sm text-white/50">{t.result.coachEmpty}</p>
+          <div className="space-y-3">
+            <p className="text-sm text-white/50">{t.result.coachEmpty}</p>
+            {suggestedPrompts.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {suggestedPrompts.map((prompt, index) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => {
+                      void sendSuggestedPrompt(prompt, index);
+                    }}
+                    disabled={pending || switching}
+                    className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/65 transition-colors hover:border-[color:var(--color-accent)]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
         {!switching &&
           messages.map((m, i) => (

@@ -17,6 +17,7 @@
 | `timezone`                 | `text`        | NOT NULL, DEFAULT `'UTC'`                                                                                          | 日付計算に使用する IANA タイムゾーン     |
 | `kyu_rank`                 | `integer`     | nullable                                                                                                           | 自己申告の囲碁級位                       |
 | `display_name`             | `text`        | nullable                                                                                                           | 公開表示名                               |
+| `training_level`           | `text`        | nullable, CHECK IN (`beginner`,`intermediate`,`advanced`)                                                          | アカウント単位の問題難度帯               |
 | `email_opt_out`            | `boolean`     | NOT NULL, DEFAULT `false`                                                                                          | 全メールのオプトアウト                   |
 | `deleted_at`               | `timestamptz` | nullable                                                                                                           | 論理削除タイムスタンプ                   |
 | `welcome_email_sent_at`    | `timestamptz` | nullable                                                                                                           | ウェルカムメール送信日時                 |

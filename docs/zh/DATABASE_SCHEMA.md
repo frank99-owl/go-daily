@@ -17,6 +17,7 @@
 | `timezone`                 | `text`        | NOT NULL, DEFAULT `'UTC'`                                                                                          | IANA 时区，用于日期计算  |
 | `kyu_rank`                 | `integer`     | 可空                                                                                                               | 自报围棋段位             |
 | `display_name`             | `text`        | 可空                                                                                                               | 公开显示名               |
+| `training_level`           | `text`        | 可空，CHECK IN (`beginner`,`intermediate`,`advanced`)                                                              | 账号级出题难度档位       |
 | `email_opt_out`            | `boolean`     | NOT NULL, DEFAULT `false`                                                                                          | 退订所有邮件             |
 | `deleted_at`               | `timestamptz` | 可空                                                                                                               | 软删除时间戳             |
 | `welcome_email_sent_at`    | `timestamptz` | 可空                                                                                                               | 欢迎邮件发送时间         |

@@ -131,6 +131,36 @@ describe("/auth/callback", () => {
     expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
   });
 
+  it("persists the onboarding level cookie after login", async () => {
+    const profileUpdate = query({ error: null });
+    mocks.createClient.mockResolvedValue({
+      auth: {
+        exchangeCodeForSession: mocks.exchangeCodeForSession,
+        getUser: mocks.getUser,
+      },
+      from: vi.fn().mockReturnValue(profileUpdate),
+    });
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: "user_1", email: null } },
+      error: null,
+    });
+
+    const response = await GET(
+      new Request("https://go-daily.app/auth/callback?code=abc&locale=en&next=%2Fen%2Ftoday", {
+        headers: {
+          cookie: "go-daily.onboarding-level=advanced",
+        },
+      }),
+    );
+
+    expect(response.headers.get("location")).toBe("https://go-daily.app/en/today");
+    expect(profileUpdate.update).toHaveBeenCalledWith({
+      training_level: "advanced",
+      updated_at: expect.any(String),
+    });
+    expect(profileUpdate.eq).toHaveBeenCalledWith("user_id", "user_1");
+  });
+
   it("keeps exchange errors on the localized login page", async () => {
     mocks.exchangeCodeForSession.mockResolvedValue({ error: new Error("bad verifier") });
 

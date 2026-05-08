@@ -22,6 +22,16 @@ vi.mock("@/lib/storage/storage", () => ({
   replaceAttempts: vi.fn(),
 }));
 
+const trackMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/posthog/events", () => ({
+  track: trackMock,
+}));
+
+vi.mock("@/lib/auth/auth", () => ({
+  useCurrentUser: () => ({ user: null, loading: false, error: null }),
+}));
+
 vi.mock("@/components/CoachDialogue", () => ({
   CoachDialogue: () => <div data-testid="coach-dialogue" />,
 }));
@@ -35,6 +45,7 @@ describe("ResultClient keyboard support", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    trackMock.mockClear();
     vi.mocked(useRouter).mockReturnValue({ push } as unknown as ReturnType<typeof useRouter>);
     vi.mocked(getAttemptFor).mockReturnValue({
       puzzleId: "cld-001",
@@ -276,5 +287,48 @@ describe("ResultClient keyboard support", () => {
         }),
       }),
     );
+  });
+
+  it("frames onboarding results around explanation and saved review", async () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <ResultClient
+          initialPuzzle={{
+            id: "cld-001",
+            date: "2026-04-21",
+            boardSize: 9,
+            stones: [],
+            toPlay: "black",
+            tag: "life-death",
+            difficulty: 1,
+            prompt: {
+              zh: "黑先活",
+              en: "Black to live",
+              ja: "黒先活",
+              ko: "흑선활",
+            },
+            source: "2026-04-21",
+            coachAvailable: false,
+          }}
+          todayPuzzleId="cld-999"
+          source="onboarding"
+        />
+      </LocaleProvider>,
+    );
+
+    expect(screen.getByText("First puzzle complete")).toBeInTheDocument();
+    expect(screen.getByText("Keep this training session")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText("Take the vital point.")).toBeInTheDocument();
+    });
+
+    const saveLink = screen.getByRole("link", { name: "Sign in and save" });
+    expect(saveLink.getAttribute("href")).toContain("/en/login");
+    expect(saveLink.getAttribute("href")).toContain(encodeURIComponent("/en/result?id=cld-001"));
+    expect(trackMock).toHaveBeenCalledWith("result_signup_prompt_view", {
+      puzzleId: "cld-001",
+      source: "onboarding_result",
+    });
   });
 });

@@ -96,6 +96,81 @@ const PAYMENT_FAILED_COPY: Record<Locale, EmailCopy> = {
   },
 };
 
+const SUBSCRIPTION_STARTED_COPY: Record<Locale, { active: EmailCopy; trialing: EmailCopy }> = {
+  zh: {
+    active: {
+      subject: "go-daily Pro 已开通",
+      preheader: "你的 Pro 权益已经生效。",
+      heading: "Pro 已开通",
+      body: "你好，\n\n你的 go-daily Pro 权益已经生效。\n\n从现在开始，你可以继续使用完整的 AI 教练、复盘与训练功能。今天的题目已经准备好了，直接回到棋盘开始训练吧。",
+      cta: "开始今日题目",
+      footer: "这是一封与订阅开通相关的服务邮件。",
+    },
+    trialing: {
+      subject: "go-daily Pro 试用已开始",
+      preheader: "你的 Pro 试用已经开启。",
+      heading: "Pro 试用已开始",
+      body: "你好，\n\n你的 go-daily Pro 试用已经开启。\n\n试用期间，你可以体验完整的 AI 教练、复盘与训练功能。今天的题目已经准备好了，直接回到棋盘开始训练吧。",
+      cta: "开始今日题目",
+      footer: "这是一封与订阅试用开通相关的服务邮件。",
+    },
+  },
+  en: {
+    active: {
+      subject: "go-daily Pro is active",
+      preheader: "Your Pro access is now active.",
+      heading: "Pro is active",
+      body: "Your go-daily Pro access is now active.\n\nYou can use the full AI coaching, review, and training experience from here. Today's puzzle is ready when you are.",
+      cta: "Start today's puzzle",
+      footer: "This is a service email about your subscription activation.",
+    },
+    trialing: {
+      subject: "Your go-daily Pro trial has started",
+      preheader: "Your Pro trial is now active.",
+      heading: "Pro trial started",
+      body: "Your go-daily Pro trial has started.\n\nDuring the trial, you can use the full AI coaching, review, and training experience. Today's puzzle is ready when you are.",
+      cta: "Start today's puzzle",
+      footer: "This is a service email about your subscription trial.",
+    },
+  },
+  ja: {
+    active: {
+      subject: "go-daily Pro が有効になりました",
+      preheader: "Pro の利用が開始されました。",
+      heading: "Pro が有効になりました",
+      body: "go-daily Pro が有効になりました。\n\nこれから AI コーチ、復習、トレーニング機能をすべて利用できます。今日の問題から始めましょう。",
+      cta: "今日の問題を解く",
+      footer: "これはサブスクリプション開始に関するサービスメールです。",
+    },
+    trialing: {
+      subject: "go-daily Pro のトライアルが始まりました",
+      preheader: "Pro トライアルが有効になりました。",
+      heading: "Pro トライアルが始まりました",
+      body: "go-daily Pro のトライアルが始まりました。\n\nトライアル期間中は、AI コーチ、復習、トレーニング機能をすべて利用できます。今日の問題から始めましょう。",
+      cta: "今日の問題を解く",
+      footer: "これはサブスクリプショントライアルに関するサービスメールです。",
+    },
+  },
+  ko: {
+    active: {
+      subject: "go-daily Pro가 활성화되었습니다",
+      preheader: "Pro 이용 권한이 활성화되었습니다.",
+      heading: "Pro가 활성화되었습니다",
+      body: "go-daily Pro 이용 권한이 활성화되었습니다.\n\n이제 AI 코치, 복습, 훈련 기능을 모두 사용할 수 있습니다. 오늘의 문제부터 시작해 보세요.",
+      cta: "오늘의 문제 풀기",
+      footer: "구독 활성화와 관련된 서비스 메일입니다.",
+    },
+    trialing: {
+      subject: "go-daily Pro 체험이 시작되었습니다",
+      preheader: "Pro 체험 권한이 활성화되었습니다.",
+      heading: "Pro 체험이 시작되었습니다",
+      body: "go-daily Pro 체험이 시작되었습니다.\n\n체험 기간 동안 AI 코치, 복습, 훈련 기능을 모두 사용할 수 있습니다. 오늘의 문제부터 시작해 보세요.",
+      cta: "오늘의 문제 풀기",
+      footer: "구독 체험과 관련된 서비스 메일입니다.",
+    },
+  },
+};
+
 const DAILY_PUZZLE_COPY: Record<Locale, Omit<EmailCopy, "body">> = {
   zh: {
     subject: "今天的 go-daily 围棋题",
@@ -323,6 +398,28 @@ export async function sendPaymentFailedEmail({
   const { html, text } = renderEmail({
     copy,
     ctaUrl: portalUrl,
+    unsubscribe,
+  });
+
+  return sendTransactionalEmail({ to, subject: copy.subject, html, text, unsubscribe });
+}
+
+export async function sendSubscriptionStartedEmail({
+  to,
+  locale,
+  trialing,
+  unsubscribeToken,
+}: {
+  to: string | null | undefined;
+  locale: Locale;
+  trialing: boolean;
+  unsubscribeToken?: string | null;
+}): Promise<EmailSendResult> {
+  const copy = SUBSCRIPTION_STARTED_COPY[locale][trialing ? "trialing" : "active"];
+  const unsubscribe = unsubscribeUrl(unsubscribeToken);
+  const { html, text } = renderEmail({
+    copy,
+    ctaUrl: absoluteUrl(localePath(locale, "/today")),
     unsubscribe,
   });
 

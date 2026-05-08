@@ -1,18 +1,54 @@
 import type { CoachErrorCode } from "@/lib/coach/coachErrorCodes";
+import type { OnboardingLevel } from "@/lib/puzzle/onboardingLevels";
 
 export type ViewerPlanForAnalytics = "guest" | "free" | "pro";
 
 export type EventMap = {
-  puzzle_started: { puzzleId: string; source: "today" | "library" | "random" | "retry" };
-  puzzle_solved: { puzzleId: string; correct: boolean; durationMs: number };
-  puzzle_hint_requested: { puzzleId: string };
+  onboarding_started: { puzzleId: string; level: OnboardingLevel };
+  first_move_played: { puzzleId: string; level: OnboardingLevel };
+  first_puzzle_submitted: {
+    puzzleId: string;
+    level: OnboardingLevel;
+    correct: boolean;
+  };
+  result_signup_prompt_view: { puzzleId: string; source: "result" | "onboarding_result" };
+  review_saved_prompt_clicked: { puzzleId: string; source: "result" | "onboarding_result" };
+  coach_suggested_prompt_clicked: {
+    puzzleId: string;
+    promptKey: string;
+    source: "result" | "onboarding_result";
+  };
+  coach_first_prompt_used: {
+    puzzleId: string;
+    promptKey: string;
+    source: "result" | "onboarding_result" | "composer";
+  };
+  puzzle_started: {
+    puzzleId: string;
+    source: "today" | "library" | "random" | "retry" | "onboarding";
+  };
+  puzzle_solved: {
+    puzzleId: string;
+    correct: boolean;
+    durationMs: number;
+    source?: "today" | "library" | "random" | "retry" | "onboarding";
+  };
+  puzzle_hint_requested: {
+    puzzleId: string;
+    source?: "today" | "library" | "random" | "retry" | "onboarding";
+    hintIndex?: number;
+  };
   coach_message_sent: { puzzleId: string; messageIndex: number };
   coach_message_received: { puzzleId: string; messageIndex: number; durationMs: number };
   solution_viewed: { puzzleId: string };
   language_changed: { from: string; to: string };
   share_card_generated: { puzzleId: string };
   share_card_downloaded: { puzzleId: string };
-  random_puzzle_picked: { puzzleId: string };
+  random_puzzle_picked: {
+    puzzleId: string;
+    source?: "nav" | "today";
+    level?: OnboardingLevel;
+  };
   review_page_viewed: { wrongCount: number };
   stats_page_viewed: { totalAttempts: number };
   paywall_view: { viewerPlan: ViewerPlanForAnalytics; source: "pricing" };

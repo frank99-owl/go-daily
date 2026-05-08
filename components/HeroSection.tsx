@@ -2,14 +2,44 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
-import { useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
-import { LocalizedLink } from "@/components/LocalizedLink";
+import { useCurrentUser } from "@/lib/auth/auth";
 import { useLocale } from "@/lib/i18n/i18n";
+import { localePath } from "@/lib/i18n/localePath";
+import { loadAttempts } from "@/lib/storage/storage";
+import { createSyncStorage } from "@/lib/storage/syncStorage";
+
+type PrimaryHeroPath = "/onboarding" | "/today";
+
+async function resolvePrimaryHeroPath({
+  loading,
+  userId,
+}: {
+  loading: boolean;
+  userId?: string;
+}): Promise<PrimaryHeroPath> {
+  if (loadAttempts().length > 0) return "/today";
+  if (loading || !userId) return "/onboarding";
+
+  try {
+    await createSyncStorage(userId).sync();
+  } catch (err) {
+    console.error("[onboarding] failed to sync attempt history before hero CTA", err);
+  }
+
+  return loadAttempts().length > 0 ? "/today" : "/onboarding";
+}
 
 export function HeroSection() {
   const { t, locale } = useLocale();
+  const router = useRouter();
+  const { user, loading } = useCurrentUser();
+  const userId = user?.id;
   const sectionRef = useRef<HTMLElement>(null);
+  const [primaryPath, setPrimaryPath] = useState<PrimaryHeroPath>("/onboarding");
+  const [resolvingPrimaryPath, setResolvingPrimaryPath] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -38,6 +68,35 @@ export function HeroSection() {
     };
 
     requestAnimationFrame(step);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshPrimaryPath() {
+      const nextPath = await resolvePrimaryHeroPath({ loading, userId });
+      if (!cancelled) {
+        setPrimaryPath(nextPath);
+      }
+    }
+
+    void refreshPrimaryPath();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, userId]);
+
+  const handlePrimaryCta = async () => {
+    if (resolvingPrimaryPath) return;
+    setResolvingPrimaryPath(true);
+    try {
+      const nextPath = await resolvePrimaryHeroPath({ loading, userId });
+      setPrimaryPath(nextPath);
+      router.push(localePath(locale, nextPath));
+    } finally {
+      setResolvingPrimaryPath(false);
+    }
   };
 
   const titleFont = "font-[family-name:var(--font-headline)]";
@@ -107,14 +166,19 @@ export function HeroSection() {
             {t.hero.subtitle}
           </p>
           <div className="pt-8 flex items-center gap-10">
-            <LocalizedLink
-              href="/today"
+            <button
+              type="button"
+              onClick={() => {
+                void handlePrimaryCta();
+              }}
+              disabled={resolvingPrimaryPath}
               data-hover-target
-              className="group flex items-center gap-4 text-white font-[family-name:var(--font-sans)] font-light text-sm tracking-[0.2em] uppercase transition-all"
+              data-onboarding-target={primaryPath}
+              className="group flex items-center gap-4 text-white font-[family-name:var(--font-sans)] font-light text-sm tracking-[0.2em] uppercase transition-all disabled:cursor-wait disabled:opacity-70"
             >
               <span className="w-12 h-px bg-white/30 group-hover:w-16 group-hover:bg-white transition-all duration-500" />
               {t.hero.getStarted}
-            </LocalizedLink>
+            </button>
             <button
               type="button"
               onClick={scrollToBoard}

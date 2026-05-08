@@ -52,9 +52,49 @@
     "difficulty": "难度",
     "submit": "确认落子",
     "reset": "重新选择",
+    "randomPractice": "随机练习",
+    "randomPracticeTitle": "随机练习一题",
     "hint": "点击空交叉点落子",
     "boardCoordinateHint": "坐标统一使用 (x,y)，左上角是 (0,0)。19 路题目可能只显示局部。",
     "keyboardShortcuts": "快捷键：方向键移动光标 · Enter 或 Space 落子 · R 重置 · Esc 清除当前选择"
+  },
+  "onboarding": {
+    "pageTitle": "第一次训练",
+    "metaLabel": "首题池 · {{count}} 道 coach-ready 题",
+    "practiceEyebrow": "3 分钟上手",
+    "practiceTitle": "先做一题，再让 AI 讲清为什么",
+    "practiceSubtitle": "不用先注册，也不用读长教程。选一个接近你水平的首题，落子、看反馈、追问 AI，然后把这次训练沉淀成明天的复习。",
+    "levels": {
+      "beginner": "初级",
+      "intermediate": "中级",
+      "advanced": "高级"
+    },
+    "levelRanges": {
+      "beginner": "25级 - 3级",
+      "intermediate": "1级 / 2级 / 1段 / 2段",
+      "advanced": "3段 - 7段"
+    },
+    "stepThink": "判断哪块棋最危险",
+    "stepMove": "落下一手候选",
+    "stepReview": "看讲解并保存复习",
+    "valueProps": ["先体验核心价值", "AI 基于题目上下文讲解", "错题自动进入复习路径"],
+    "hintTitle": "分层提示",
+    "hints": [
+      "先判断目标棋形：哪一块棋需要活、杀或做出关键手筋？",
+      "再看气和眼形：哪些落点会压缩对方做眼空间，或保留你的后续手段？",
+      "最后找急所：优先选择能同时制造两个威胁、或让对方应手变少的一手。"
+    ],
+    "nextHint": "再给一点提示",
+    "lastHint": "已到最后提示",
+    "submitFirst": "提交第一手",
+    "resultEyebrow": "首题完成",
+    "resultTitleCorrect": "很好，第一轮学习闭环已经完成",
+    "resultTitleWrong": "这正是最适合复盘的一题",
+    "resultBodyCorrect": "接下来不要急着刷下一题。先看这手为什么成立，再让 AI 帮你把这个棋形记成可复用的判断方法。",
+    "resultBodyWrong": "错题不是失败，而是最有价值的训练样本。先看答案讲解，再追问 AI：你的落点给了对方什么机会。",
+    "resultStepSubmitted": "1 已提交答案",
+    "resultStepExplanation": "2 先看答案讲解",
+    "resultStepReview": "3 保存后明天复习"
   },
   "result": {
     "correct": "正确！",
@@ -65,6 +105,7 @@
     "retry": "再做一次",
     "backToToday": "返回今日",
     "backToHome": "返回首页",
+    "openReview": "打开错题本",
     "coachTitle": "AI 教练",
     "selectMentor": "选择你的导师",
     "coachStatAggression": "攻击性",
@@ -90,6 +131,18 @@
     "coachSignInCta": "登录后使用 AI 教练",
     "coachSignUpCta": "免费注册",
     "curatedNote": "题目讲解",
+    "explanationTitle": "答案讲解",
+    "explanationCorrectLead": "这手成立的重点不只是位置正确，而是它改变了后续应手的选择。",
+    "explanationWrongLead": "先别急着重做。看清这手为什么不够，是下次识别棋形的关键。",
+    "explanationLoading": "正在读取题目讲解…",
+    "saveTitle": "把这次训练留下来",
+    "saveBodyGuest": "游客记录已保存在当前设备。登录后可以同步错题、保留复习计划，并在其他设备继续。",
+    "saveBodySignedIn": "这次提交已进入你的训练记录；做错的题会出现在错题本和复习路径中。",
+    "saveCtaGuest": "登录并保存",
+    "coachPromptTitle": "让 AI 继续追问这题",
+    "coachPromptWhyWrong": "为什么我这手不够好？",
+    "coachPromptCorrectLine": "正解后续变化是什么？",
+    "coachPromptPattern": "这个棋形下次怎么识别？",
     "boardCoordinateHint": "AI 教练提到的坐标与页面一致：使用 (x,y)，左上角为 (0,0)。",
     "keyboardShortcuts": "快捷键：R 重新挑战 · 左右方向键查看解答步骤 · Esc 关闭当前解答视图",
     "attemptCount": "第 {{count}} 次尝试",
@@ -226,7 +279,7 @@
     "titleLine1": "围棋智慧",
     "titleLine2": "纵横之间",
     "subtitle": "体验这场古老游戏的静默博弈。在落子之间精进技艺，感受千年智慧的沉淀。",
-    "getStarted": "开始挑战",
+    "getStarted": "开始今日题目",
     "watchMatch": "观看对局"
   },
   "boardShowcase": {
@@ -252,6 +305,10 @@
     "today": {
       "title": "今日一题 — go-daily",
       "description": "挑战今日精选围棋死活题，卡住了就向 AI 教练求助。"
+    },
+    "onboarding": {
+      "title": "第一次训练 — go-daily",
+      "description": "用 3 分钟完成第一道围棋题：落子、看反馈、让 AI 讲清为什么，并保存复习路径。"
     },
     "puzzles": {
       "title": "题库 — go-daily",
@@ -294,7 +351,7 @@
     "login": {
       "eyebrow": "欢迎回来",
       "title": "登录 go-daily",
-      "subtitle": "跨设备同步你的战绩与错题本。我们不会发帖、不会挖你数据、更不会卖给任何人。",
+      "subtitle": "保存你的错题、复习计划和 AI 讲解记录，并在不同设备上继续训练。我们不会发帖、不会挖你数据、更不会卖给任何人。",
       "google": "使用 Google 登录",
       "dividerOr": "或",
       "emailLabel": "邮箱",

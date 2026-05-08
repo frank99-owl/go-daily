@@ -17,6 +17,7 @@
 | `timezone`                 | `text`        | NOT NULL, DEFAULT `'UTC'`                                                                                          | 날짜 계산에 사용하는 IANA 타임존 |
 | `kyu_rank`                 | `integer`     | nullable                                                                                                           | 사용자 자기 보고 바둑 급수       |
 | `display_name`             | `text`        | nullable                                                                                                           | 공개 표시 이름                   |
+| `training_level`           | `text`        | nullable, CHECK IN (`beginner`,`intermediate`,`advanced`)                                                          | 계정 단위 문제 난이도 구간       |
 | `email_opt_out`            | `boolean`     | NOT NULL, DEFAULT `false`                                                                                          | 전체 이메일 수신 거부 여부       |
 | `deleted_at`               | `timestamptz` | nullable                                                                                                           | 소프트 삭제 시각                 |
 | `welcome_email_sent_at`    | `timestamptz` | nullable                                                                                                           | 환영 이메일 발송 시각            |

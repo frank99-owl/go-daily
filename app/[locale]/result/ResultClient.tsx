@@ -1,16 +1,25 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import {
+  BookOpenCheck,
+  ChevronLeft,
+  ChevronRight,
+  Cloud,
+  MessageCircleQuestion,
+  Play,
+} from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { GoBoard } from "@/components/GoBoard";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { useCurrentUser } from "@/lib/auth/auth";
 import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
+import { track } from "@/lib/posthog/events";
 import { attemptKey } from "@/lib/storage/attemptKey";
 import {
   getAttemptFor,
@@ -29,6 +38,8 @@ const CoachDialogue = dynamic(
 const ShareCard = dynamic(() => import("@/components/ShareCard").then((m) => m.ShareCard), {
   loading: () => <div className="h-64 animate-pulse rounded-lg bg-ink/5" />,
 });
+
+export type ResultSource = "result" | "onboarding";
 
 type PuzzleRevealResponse = Partial<PuzzleReveal> & {
   error?: string;
@@ -90,16 +101,25 @@ async function refreshAttemptToken(
 export function ResultClient({
   initialPuzzle,
   todayPuzzleId,
+  source = "result",
 }: {
   initialPuzzle: PublicPuzzle;
   todayPuzzleId: string;
+  source?: ResultSource;
 }) {
   const router = useRouter();
   const puzzle = initialPuzzle;
   const { t, locale } = useLocale();
+  const { user, loading: userLoading } = useCurrentUser();
+  const resultAnalyticsSource = source === "onboarding" ? "onboarding_result" : "result";
   const retryPath =
     puzzle.id === todayPuzzleId ? "/today" : `/puzzles/${encodeURIComponent(puzzle.id)}`;
   const retryHref = localePath(locale, retryPath);
+  const resultPath =
+    source === "onboarding"
+      ? `/result?id=${encodeURIComponent(puzzle.id)}&source=onboarding`
+      : `/result?id=${encodeURIComponent(puzzle.id)}`;
+  const loginHref = `/login?next=${encodeURIComponent(localePath(locale, resultPath))}`;
   const [attempt, setAttempt] = useState<AttemptRecord | null>(null);
   const [history, setHistory] = useState<AttemptRecord[]>([]);
   const [reveal, setReveal] = useState<PuzzleReveal | null>(null);
@@ -107,6 +127,7 @@ export function ResultClient({
   const [solutionStep, setSolutionStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const signupPromptTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!puzzle) return;
@@ -214,6 +235,12 @@ export function ResultClient({
     containerRef.current?.focus();
   }, []);
 
+  useEffect(() => {
+    if (userLoading || user || signupPromptTrackedRef.current) return;
+    signupPromptTrackedRef.current = true;
+    track("result_signup_prompt_view", { puzzleId: puzzle.id, source: resultAnalyticsSource });
+  }, [puzzle.id, resultAnalyticsSource, user, userLoading]);
+
   // Auto-advance when playing.
   useEffect(() => {
     if (!isPlaying || !reveal?.solutionSequence) return;
@@ -233,6 +260,11 @@ export function ResultClient({
   const correct = attempt?.correct ?? false;
   const hasReveal = !!reveal;
   const hasSolution = !!reveal?.solutionSequence?.length;
+  const coachPrompts = [
+    t.result.coachPromptWhyWrong,
+    t.result.coachPromptCorrectLine,
+    t.result.coachPromptPattern,
+  ];
 
   // History tally across ALL attempts on this puzzle (not just today). Shows
   // the "Attempt N · X correct, Y wrong" banner — LeetCode-style submission count.
@@ -338,6 +370,30 @@ export function ResultClient({
         )}
       </motion.div>
 
+      {source === "onboarding" && (
+        <section className="rounded-xl border border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/[0.06] p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-[color:var(--color-accent)]">
+                <BookOpenCheck className="h-3.5 w-3.5" />
+                {t.onboarding.resultEyebrow}
+              </div>
+              <h2 className="font-[family-name:var(--font-display)] text-2xl text-white">
+                {correct ? t.onboarding.resultTitleCorrect : t.onboarding.resultTitleWrong}
+              </h2>
+              <p className="max-w-2xl text-sm leading-relaxed text-white/60">
+                {correct ? t.onboarding.resultBodyCorrect : t.onboarding.resultBodyWrong}
+              </p>
+            </div>
+            <div className="grid min-w-[12rem] gap-2 text-xs text-white/55">
+              <span>{t.onboarding.resultStepSubmitted}</span>
+              <span>{t.onboarding.resultStepExplanation}</span>
+              <span>{t.onboarding.resultStepReview}</span>
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className="mx-auto">
         <GoBoard
           size={puzzle.boardSize}
@@ -354,6 +410,29 @@ export function ResultClient({
         <p>{t.result.boardCoordinateHint}</p>
         <p>{t.result.keyboardShortcuts}</p>
       </div>
+
+      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+        <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[color:var(--color-accent)]/75">
+          <BookOpenCheck className="h-3.5 w-3.5" />
+          {t.result.explanationTitle}
+        </div>
+        {hasReveal ? (
+          <div className="space-y-3">
+            <p className="text-sm leading-relaxed text-white/70">
+              {correct ? t.result.explanationCorrectLead : t.result.explanationWrongLead}
+            </p>
+            <p className="text-sm leading-relaxed text-white/60">
+              {localized(reveal.solutionNote, locale).replace(/^\[SYSTEM ANCHOR\]\s*/, "")}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2" aria-live="polite">
+            <div className="h-3 w-3/4 animate-pulse rounded bg-white/10" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-white/10" />
+            <p className="pt-1 text-sm text-white/45">{t.result.explanationLoading}</p>
+          </div>
+        )}
+      </section>
 
       <div className="flex items-center justify-center gap-3 flex-wrap">
         {!correct && (
@@ -421,12 +500,40 @@ export function ResultClient({
         )}
 
         <LocalizedLink
-          href="/"
+          href={source === "onboarding" ? "/review" : "/"}
           className="px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-[var(--color-accent)] hover:text-black transition-colors"
         >
-          {t.result.backToHome}
+          {source === "onboarding" ? t.result.openReview : t.result.backToHome}
         </LocalizedLink>
       </div>
+
+      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 text-[color:var(--color-accent)]">
+              <Cloud className="h-4 w-4" />
+            </span>
+            <div className="space-y-1">
+              <h2 className="text-sm font-medium text-white">{t.result.saveTitle}</h2>
+              <p className="text-sm leading-relaxed text-white/55">
+                {user ? t.result.saveBodySignedIn : t.result.saveBodyGuest}
+              </p>
+            </div>
+          </div>
+          <LocalizedLink
+            href={user ? "/review" : loginHref}
+            onClick={() =>
+              track("review_saved_prompt_clicked", {
+                puzzleId: puzzle.id,
+                source: resultAnalyticsSource,
+              })
+            }
+            className="self-start rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 sm:self-center"
+          >
+            {user ? t.result.openReview : t.result.saveCtaGuest}
+          </LocalizedLink>
+        </div>
+      </section>
 
       <div className="flex items-center justify-center">
         <ShareCard puzzle={puzzle} correct={correct} />
@@ -445,7 +552,18 @@ export function ResultClient({
       )}
 
       {attempt?.userMove && puzzle.coachAvailable && (
-        <CoachDialogue puzzleId={puzzle.id} userMove={attempt.userMove} />
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-white">
+            <MessageCircleQuestion className="h-4 w-4 text-[color:var(--color-accent)]" />
+            {t.result.coachPromptTitle}
+          </div>
+          <CoachDialogue
+            puzzleId={puzzle.id}
+            userMove={attempt.userMove}
+            suggestedPrompts={coachPrompts}
+            suggestedPromptSource={resultAnalyticsSource}
+          />
+        </section>
       )}
 
       {attempt?.userMove && !puzzle.coachAvailable && (

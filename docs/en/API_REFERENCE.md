@@ -159,17 +159,28 @@ Reveal the full solution for a puzzle using a valid reveal token.
 
 ### `POST /api/puzzle/random` (`app/api/puzzle/random/route.ts`)
 
-Get a random puzzle for the "Random" page.
+Pick a random practice puzzle, used from the Today page random-practice action.
 
 **Auth**: Not required.
+
+**Request Body**:
+
+```json
+{
+  "attemptedPuzzleIds": ["p-00001"],
+  "level": "beginner | intermediate | advanced"
+}
+```
+
+Both fields are optional. `attemptedPuzzleIds` lets the route prefer puzzles the current browser has not attempted. `level` filters the pool by onboarding difficulty band; missing or invalid levels fall back to `beginner`.
 
 **Response** (`200`):
 
 ```json
-{ "puzzleId": "string" }
+{ "puzzleId": "string", "level": "beginner" }
 ```
 
-Returns the ID of a randomly selected puzzle. The client then fetches the full puzzle data separately.
+Returns the ID of a randomly selected puzzle. If all puzzles in the requested band were attempted, the route falls back to the full level pool. The client then fetches the full puzzle data separately.
 
 ---
 
@@ -209,6 +220,7 @@ Stripe webhook receiver. Handles `checkout.session.completed`, `customer.subscri
 
 - Idempotency via `stripe_events` table (claims event before processing).
 - Upserts subscription state into `subscriptions` table.
+- Sends a Pro activation / trial-started service email after `checkout.session.completed`.
 - Sends payment-failed email on `invoice.payment_failed`.
 - Requests with `Content-Length > 1 MB` are rejected with HTTP 413 before reading the body.
 
@@ -251,6 +263,26 @@ Register or refresh the signed-in browser device in `user_devices`, after resolv
 ```
 
 **Errors**: `400` invalid device ID (empty or over 128 characters); `401` unauthenticated; `403 error: "forbidden"` same-origin guard; `403 error: "device_limit"` when the resolved Free plan already has a registered device; `500` subscription, device lookup, or upsert failure.
+
+### `POST /api/profile/training-level` (`app/api/profile/training-level/route.ts`)
+
+Persist the authenticated user's onboarding difficulty band to `profiles.training_level`, so Today's Puzzle can stay level-aware across devices.
+
+**Auth**: Required Supabase session. Same-origin JSON mutation.
+
+**Request Body**:
+
+```json
+{ "level": "beginner | intermediate | advanced" }
+```
+
+**Response** (`200`):
+
+```json
+{ "ok": true, "level": "advanced" }
+```
+
+**Errors**: `400` invalid level; `401` unauthenticated; `403 error: "forbidden"` same-origin guard; `500` profile upsert failure.
 
 ---
 

@@ -26,6 +26,7 @@ vi.mock("@/lib/auth/deviceId", () => ({
 describe("CoachDialogue", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    trackMock.mockReset();
     sessionStorage.clear();
   });
 
@@ -179,6 +180,52 @@ describe("CoachDialogue", () => {
       expect(screen.getByText("Enter test")).toBeInTheDocument();
     });
   });
+
+  it("sends suggested prompts and tracks first coach prompt usage", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ delta: "Suggested reply" })}\n\n`),
+            );
+            controller.close();
+          },
+        });
+        return Promise.resolve({ ok: true, status: 200, body: stream } as Response);
+      }),
+    );
+
+    render(
+      <LocaleProvider initialLocale="zh">
+        <CoachDialogue
+          puzzleId="test-puzzle"
+          userMove={{ x: 3, y: 3 }}
+          suggestedPrompts={["为什么我这手不够好？"]}
+          suggestedPromptSource="onboarding_result"
+        />
+      </LocaleProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "为什么我这手不够好？" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Suggested reply")).toBeInTheDocument();
+    });
+
+    expect(trackMock).toHaveBeenCalledWith("coach_suggested_prompt_clicked", {
+      puzzleId: "test-puzzle",
+      promptKey: "suggested_0",
+      source: "onboarding_result",
+    });
+    expect(trackMock).toHaveBeenCalledWith("coach_first_prompt_used", {
+      puzzleId: "test-puzzle",
+      promptKey: "suggested_0",
+      source: "onboarding_result",
+    });
+  });
 });
 
 describe("CoachDialogue — error-code routing", () => {
@@ -299,7 +346,7 @@ describe("CoachDialogue — error-code routing", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("boom");
     });
 
-    expect(trackMock).not.toHaveBeenCalled();
+    expect(trackMock).not.toHaveBeenCalledWith("coach_limit_hit", expect.anything());
   });
 
   it("renders the monthly-limit CTA for monthly_limit_reached", async () => {

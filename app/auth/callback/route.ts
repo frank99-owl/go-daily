@@ -15,6 +15,8 @@ import {
   stripLocalePrefix,
   SUPPORTED_LOCALES,
 } from "@/lib/i18n/localePath";
+import { parseOnboardingLevel } from "@/lib/puzzle/onboardingLevels";
+import { ONBOARDING_LEVEL_COOKIE } from "@/lib/puzzle/onboardingPreference";
 import { createClient } from "@/lib/supabase/server";
 import type { Locale } from "@/types";
 
@@ -77,6 +79,7 @@ export async function GET(request: Request) {
     }
 
     await sendWelcomeEmailIfNeeded(supabase, locale);
+    await persistOnboardingLevelFromCookieIfNeeded(supabase, request.headers.get("cookie"));
   } catch (error) {
     const message = error instanceof Error ? error.message : "callback_failed";
     console.error("[auth/callback] session exchange failed", message);
@@ -84,6 +87,36 @@ export async function GET(request: Request) {
   }
 
   return redirect(`${origin}${next}`);
+}
+
+async function persistOnboardingLevelFromCookieIfNeeded(
+  supabase: ServerSupabaseClient,
+  cookieHeader: string | null,
+): Promise<void> {
+  const level = parseOnboardingLevel(readCookieValue(cookieHeader, ONBOARDING_LEVEL_COOKIE));
+  if (!level) return;
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user?.id) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ training_level: level, updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.warn("[auth/callback] failed to persist onboarding level", {
+        userId: user.id,
+        message: error.message,
+      });
+    }
+  } catch (error) {
+    console.warn("[auth/callback] onboarding level persistence skipped", error);
+  }
 }
 
 /**

@@ -16,6 +16,12 @@ vi.mock("@/lib/auth/auth", () => ({
   useCurrentUser: vi.fn(),
 }));
 
+const trackMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/posthog/events", () => ({
+  track: trackMock,
+}));
+
 const saveAttempt = vi.fn(async () => {});
 
 vi.mock("@/lib/storage/syncStorage", () => ({
@@ -47,6 +53,7 @@ describe("TodayClient keyboard support", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    trackMock.mockClear();
     vi.mocked(useRouter).mockReturnValue({ push } as unknown as ReturnType<typeof useRouter>);
     vi.mocked(useCurrentUser).mockReturnValue({ user: null, loading: false, error: null });
     vi.stubGlobal(
@@ -129,5 +136,110 @@ describe("TodayClient keyboard support", () => {
 
     await waitFor(() => expect(saveAttempt).toHaveBeenCalledTimes(1));
     expect(createSyncStorage).toHaveBeenCalledWith("user-123");
+  });
+
+  it("renders onboarding guidance and routes the first submission as onboarding", async () => {
+    const { container } = render(
+      <LocaleProvider initialLocale="en">
+        <TodayClient puzzle={puzzle} mode="onboarding" onboardingLevel="intermediate" />
+      </LocaleProvider>,
+    );
+
+    expect(screen.getByText("Solve one puzzle, then let AI explain why")).toBeInTheDocument();
+    expect(screen.getByText("1 kyu / 2 kyu / 1 dan / 2 dan")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Intermediate/ })).toHaveAttribute(
+      "href",
+      "/en/onboarding?level=intermediate",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Give me another hint" }));
+    expect(screen.getByText(/Then inspect liberties/)).toBeInTheDocument();
+    expect(trackMock).toHaveBeenCalledWith("puzzle_hint_requested", {
+      puzzleId: "cld-001",
+      source: "onboarding",
+      hintIndex: 1,
+    });
+
+    const boardWrapper = container.querySelector('[tabindex="0"]') as HTMLDivElement | null;
+    fireEvent.keyDown(boardWrapper!, { key: "Enter" });
+    fireEvent.click(screen.getByRole("button", { name: "Submit first move" }));
+
+    await waitFor(() => expect(saveAttempt).toHaveBeenCalledTimes(1));
+    expect(push).toHaveBeenCalledWith("/en/result?id=cld-001&source=onboarding&level=intermediate");
+    expect(trackMock).toHaveBeenCalledWith("first_puzzle_submitted", {
+      puzzleId: "cld-001",
+      level: "intermediate",
+      correct: true,
+    });
+  });
+
+  it("saves logged-in onboarding level to the account profile", async () => {
+    vi.mocked(useCurrentUser).mockReturnValue({
+      user: { id: "user-123" } as ReturnType<typeof useCurrentUser>["user"],
+      loading: false,
+      error: null,
+    });
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <TodayClient puzzle={puzzle} mode="onboarding" onboardingLevel="advanced" />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/profile/training-level",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ level: "advanced" }),
+        }),
+      ),
+    );
+  });
+
+  it("offers random practice from today's puzzle and requests unattempted puzzles by level", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input) === "/api/puzzle/random") {
+          return Response.json({ puzzleId: "p-random", level: "advanced" });
+        }
+        return Response.json({
+          puzzleId: "cld-001",
+          userMove: { x: 4, y: 4 },
+          correct: true,
+          revealToken: "reveal-token",
+        });
+      }),
+    );
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <TodayClient
+          puzzle={puzzle}
+          metaLabel="2026-05-08"
+          dailyLevel="advanced"
+          showRandomAction
+        />
+      </LocaleProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Practice a random puzzle" }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/puzzle/random",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ attemptedPuzzleIds: ["cld-001"], level: "advanced" }),
+        }),
+      ),
+    );
+    expect(push).toHaveBeenCalledWith("/en/puzzles/p-random");
+    expect(trackMock).toHaveBeenCalledWith("random_puzzle_picked", {
+      puzzleId: "p-random",
+      source: "today",
+      level: "advanced",
+    });
   });
 });

@@ -52,9 +52,49 @@
     "difficulty": "난이도",
     "submit": "착수 확인",
     "reset": "다시 선택",
+    "randomPractice": "랜덤 연습",
+    "randomPracticeTitle": "랜덤 문제로 연습",
     "hint": "빈 교차점을 눌러 돌을 놓으세요",
     "boardCoordinateHint": "좌표는 (x,y) 형식이며 왼쪽 위가 (0,0)입니다. 19로 문제는 일부만 보일 수 있습니다.",
     "keyboardShortcuts": "단축키: 방향키로 커서 이동 · Enter 또는 Space로 착수 · R로 초기화 · Esc로 현재 착수 해제"
+  },
+  "onboarding": {
+    "pageTitle": "첫 훈련",
+    "metaLabel": "첫 문제 풀 · coach-ready {{count}}문제",
+    "practiceEyebrow": "3분 시작",
+    "practiceTitle": "한 문제를 풀고, AI가 이유를 설명합니다",
+    "practiceSubtitle": "가입부터 요구하지 않고 긴 튜토리얼도 없습니다. 내 수준에 가까운 첫 문제를 고르고, 한 수를 두고, 피드백을 본 뒤 AI에게 물어보며 내일 복습으로 이어갑니다.",
+    "levels": {
+      "beginner": "입문",
+      "intermediate": "중급",
+      "advanced": "고급"
+    },
+    "levelRanges": {
+      "beginner": "25급 - 3급",
+      "intermediate": "1급 / 2급 / 1단 / 2단",
+      "advanced": "3단 - 7단"
+    },
+    "stepThink": "위험한 돌 찾기",
+    "stepMove": "후보 수 두기",
+    "stepReview": "해설을 보고 저장",
+    "valueProps": ["핵심 흐름 먼저 체험", "AI가 판면 기준으로 설명", "오답은 복습 자료로 전환"],
+    "hintTitle": "단계별 힌트",
+    "hints": [
+      "먼저 목표 형태를 보세요. 어느 돌을 살리거나 잡거나, 수법으로 처리해야 하나요?",
+      "다음으로 활로와 눈 모양을 보세요. 상대의 눈 공간을 줄이거나 내 후속 수단을 남기는 지점은 어디인가요?",
+      "마지막으로 급소를 찾으세요. 두 가지 위협을 동시에 만들거나 상대의 응수를 줄이는 수를 우선합니다."
+    ],
+    "nextHint": "힌트 더 보기",
+    "lastHint": "마지막 힌트입니다",
+    "submitFirst": "첫 수 제출",
+    "resultEyebrow": "첫 문제 완료",
+    "resultTitleCorrect": "좋습니다. 첫 학습 루프가 완성되었습니다",
+    "resultTitleWrong": "복습하기에 딱 좋은 문제입니다",
+    "resultBodyCorrect": "바로 다음 문제로 넘어가지 마세요. 이 수가 성립하는 이유를 확인하고, AI에게 이 형태를 다음에도 쓸 수 있는 판단법으로 정리해 달라고 하세요.",
+    "resultBodyWrong": "오답은 실패가 아니라 가장 좋은 훈련 자료입니다. 핵심 해설을 읽고, 내 수가 상대에게 어떤 기회를 줬는지 AI에게 물어보세요.",
+    "resultStepSubmitted": "1 답안 제출",
+    "resultStepExplanation": "2 정답 해설 확인",
+    "resultStepReview": "3 저장 후 복습"
   },
   "result": {
     "correct": "맞았어요！",
@@ -65,6 +105,7 @@
     "retry": "다시 풀기",
     "backToToday": "오늘로 돌아가기",
     "backToHome": "홈으로 돌아가기",
+    "openReview": "오답노트 열기",
     "coachTitle": "AI 멘토",
     "selectMentor": "멘토 선택",
     "coachStatAggression": "공격성",
@@ -90,6 +131,18 @@
     "coachSignInCta": "로그인하고 AI 코치 사용하기",
     "coachSignUpCta": "무료 가입",
     "curatedNote": "문제 해설",
+    "explanationTitle": "정답 해설",
+    "explanationCorrectLead": "이 수의 가치는 올바른 위치에 둔 것뿐 아니라, 상대의 다음 선택지를 바꾸는 데 있습니다.",
+    "explanationWrongLead": "바로 다시 두기 전에 이 수가 왜 부족한지 확인하면, 다음에 같은 형태를 더 잘 알아볼 수 있습니다.",
+    "explanationLoading": "문제 해설을 불러오는 중…",
+    "saveTitle": "이번 훈련 남기기",
+    "saveBodyGuest": "게스트 기록은 이 기기에 저장됩니다. 로그인하면 오답, 복습 계획, 진행 상황을 동기화할 수 있습니다.",
+    "saveBodySignedIn": "이번 시도는 훈련 기록에 저장되었습니다. 틀린 문제는 오답노트와 간격 복습에 들어갑니다.",
+    "saveCtaGuest": "로그인하고 저장",
+    "coachPromptTitle": "AI에게 더 깊게 물어보기",
+    "coachPromptWhyWrong": "내 수는 왜 부족했나요?",
+    "coachPromptCorrectLine": "정답 이후 변화는 무엇인가요?",
+    "coachPromptPattern": "다음에 이 형태를 어떻게 알아보나요?",
     "boardCoordinateHint": "AI 코치의 좌표는 페이지와 같은 (x,y) 형식이며 왼쪽 위가 (0,0)입니다.",
     "keyboardShortcuts": "단축키: R로 다시 도전 · 좌우 방향키로 해설 수순 이동 · Esc로 현재 해설 보기 닫기",
     "attemptCount": "{{count}}번째 시도",
@@ -226,7 +279,7 @@
     "titleLine1": "반상의 우주",
     "titleLine2": "흑백의 대화",
     "subtitle": "고요한 반상에 귀를 기울이면, 한 수마다 천 년의 지혜가 숨 쉰다. 흑과 백의 대화에, 당신도 함께하세요.",
-    "getStarted": "시작하기",
+    "getStarted": "오늘의 문제",
     "watchMatch": "관전하기"
   },
   "boardShowcase": {
@@ -252,6 +305,10 @@
     "today": {
       "title": "오늘의 문제 — go-daily",
       "description": "오늘의 엄선된 바둑 문제에 도전하고 막히면 AI 코치에게 물어보세요."
+    },
+    "onboarding": {
+      "title": "첫 훈련 — go-daily",
+      "description": "3분 안에 첫 바둑 문제를 완료하세요. 한 수를 두고, 피드백을 받고, AI에게 이유를 물어보고 복습 경로를 저장합니다."
     },
     "puzzles": {
       "title": "문제집 — go-daily",
@@ -294,7 +351,7 @@
     "login": {
       "eyebrow": "다시 오신 걸 환영합니다",
       "title": "go-daily 로그인",
-      "subtitle": "기록과 오답노트를 여러 기기에서 동기화합니다. 게시·데이터 수집·판매는 절대 하지 않습니다.",
+      "subtitle": "오답, 복습 계획, AI 해설을 저장하고 여러 기기에서 계속 훈련하세요. 게시·데이터 수집·판매는 절대 하지 않습니다.",
       "google": "Continue with Google",
       "dividerOr": "또는",
       "emailLabel": "이메일",

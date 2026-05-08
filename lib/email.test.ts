@@ -8,6 +8,7 @@ process.env.NEXT_PUBLIC_SITE_URL = "https://go-daily.app";
 import {
   sendDailyPuzzleEmail,
   sendPaymentFailedEmail,
+  sendSubscriptionStartedEmail,
   sendWelcomeEmail,
   unsubscribeUrl,
 } from "./email";
@@ -166,6 +167,45 @@ describe("sendPaymentFailedEmail", () => {
     expect(body.subject).toBe("go-daily のお支払いに失敗しました");
     expect(body.html).toContain("https://billing.stripe.com/p/session_xyz");
     expect(body.html).not.toContain("/ja/today");
+  });
+});
+
+describe("sendSubscriptionStartedEmail", () => {
+  it("sends trial-start copy with the localized today CTA", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ id: "em_trial" }));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await sendSubscriptionStartedEmail({
+      to: "a@b.com",
+      locale: "en",
+      trialing: true,
+      unsubscribeToken: "tok_sub",
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.subject).toBe("Your go-daily Pro trial has started");
+    expect(body.html).toContain("https://go-daily.app/en/today");
+    expect(body.text).toContain("Pro trial started");
+    expect(body.headers).toEqual({
+      "List-Unsubscribe": "<https://go-daily.app/email/unsubscribe?token=tok_sub>",
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    });
+  });
+
+  it("sends active-subscription copy when there is no trial", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ id: "em_active" }));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await sendSubscriptionStartedEmail({
+      to: "player@example.com",
+      locale: "zh",
+      trialing: false,
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.subject).toBe("go-daily Pro 已开通");
+    expect(body.html).toContain("https://go-daily.app/zh/today");
+    expect(body.headers).toBeUndefined();
   });
 });
 

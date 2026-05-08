@@ -20,6 +20,7 @@ vi.mock("../../../../../lib/posthog/server", () => ({
 
 vi.mock("../../../../../lib/email", () => ({
   sendPaymentFailedEmail: vi.fn(),
+  sendSubscriptionStartedEmail: vi.fn(),
 }));
 
 describe("Stripe Webhook Idempotency", () => {

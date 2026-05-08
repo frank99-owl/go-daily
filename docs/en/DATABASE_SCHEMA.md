@@ -17,6 +17,7 @@ User profile, auto-created on signup via `handle_new_user()` trigger.
 | `timezone`                 | `text`        | NOT NULL, DEFAULT `'UTC'`                                                                                          | IANA timezone for date calculations |
 | `kyu_rank`                 | `integer`     | nullable                                                                                                           | Self-reported Go rank               |
 | `display_name`             | `text`        | nullable                                                                                                           | Public display name                 |
+| `training_level`           | `text`        | nullable, CHECK IN (`beginner`,`intermediate`,`advanced`)                                                          | Account-level puzzle difficulty     |
 | `email_opt_out`            | `boolean`     | NOT NULL, DEFAULT `false`                                                                                          | Opt out of all emails               |
 | `deleted_at`               | `timestamptz` | nullable                                                                                                           | Soft-delete timestamp               |
 | `welcome_email_sent_at`    | `timestamptz` | nullable                                                                                                           | When welcome email was sent         |

@@ -52,9 +52,49 @@
     "difficulty": "難易度",
     "submit": "着手確定",
     "reset": "やり直す",
+    "randomPractice": "ランダム練習",
+    "randomPracticeTitle": "ランダムな問題で練習",
     "hint": "空いている交点をタップして打ってください",
     "boardCoordinateHint": "座標は (x,y) で統一され、左上が (0,0) です。19路の問題は一部だけ表示されることがあります。",
     "keyboardShortcuts": "ショートカット: 矢印キーでカーソル移動 · Enter または Space で着手 · R でリセット · Esc で現在の着手を解除"
+  },
+  "onboarding": {
+    "pageTitle": "はじめてのトレーニング",
+    "metaLabel": "入門プール · coach-ready {{count}} 問",
+    "practiceEyebrow": "3分で開始",
+    "practiceTitle": "まず一問解き、AI が理由を説明します",
+    "practiceSubtitle": "登録や長いチュートリアルは不要です。近いレベルを選び、一手打ち、結果を確認し、AI に質問して、明日の復習につなげます。",
+    "levels": {
+      "beginner": "入門",
+      "intermediate": "中級",
+      "advanced": "上級"
+    },
+    "levelRanges": {
+      "beginner": "25級 - 3級",
+      "intermediate": "1級 / 2級 / 初段 / 2段",
+      "advanced": "3段 - 7段"
+    },
+    "stepThink": "危ない石を見つける",
+    "stepMove": "候補の一手を打つ",
+    "stepReview": "解説を見て保存する",
+    "valueProps": ["まず核心体験を試す", "AI が盤面から説明", "ミスを復習材料にする"],
+    "hintTitle": "段階ヒント",
+    "hints": [
+      "まず目標の形を見ます。どの石を生きる、殺す、または手筋で処理する必要がありますか？",
+      "次にダメと眼形を確認します。相手の眼を狭める点、または自分の次の狙いを残す点はどこですか？",
+      "最後に急所を探します。二つの狙いを同時に作る手、または相手の応手を減らす手を優先します。"
+    ],
+    "nextHint": "もう少しヒント",
+    "lastHint": "最後のヒントです",
+    "submitFirst": "最初の一手を送信",
+    "resultEyebrow": "一問目完了",
+    "resultTitleCorrect": "よいです。最初の学習ループが完了しました",
+    "resultTitleWrong": "これは復習に最適な一問です",
+    "resultBodyCorrect": "すぐ次へ進まず、この手が成立する理由を確認しましょう。AI に、この形を次回使える判断法にしてもらえます。",
+    "resultBodyWrong": "ミスは失敗ではなく、最も価値のある教材です。要点を読み、あなたの手が相手に何を許したか AI に聞いてみましょう。",
+    "resultStepSubmitted": "1 解答を送信",
+    "resultStepExplanation": "2 解答解説を確認",
+    "resultStepReview": "3 保存して復習"
   },
   "result": {
     "correct": "当たり！",
@@ -65,6 +105,7 @@
     "retry": "もう一度解く",
     "backToToday": "今日に戻る",
     "backToHome": "ホームへ戻る",
+    "openReview": "復習を開く",
     "coachTitle": "AI メンター",
     "selectMentor": "メンターを選択",
     "coachStatAggression": "攻撃性",
@@ -90,6 +131,18 @@
     "coachSignInCta": "ログインして AI コーチを使う",
     "coachSignUpCta": "無料で登録",
     "curatedNote": "問題解説",
+    "explanationTitle": "解答解説",
+    "explanationCorrectLead": "この手の価値は、正しい場所に打っただけでなく、相手の次の選択肢を変える点にあります。",
+    "explanationWrongLead": "すぐに打ち直す前に、この手が足りない理由を確認すると、次に形を見分けやすくなります。",
+    "explanationLoading": "問題の解説を読み込み中…",
+    "saveTitle": "この練習を残す",
+    "saveBodyGuest": "ゲスト記録はこの端末に保存されています。ログインするとミス、復習計画、進捗を同期できます。",
+    "saveBodySignedIn": "この解答は練習履歴に保存されました。間違えた問題は復習と間隔練習に入ります。",
+    "saveCtaGuest": "ログインして保存",
+    "coachPromptTitle": "AI にさらに聞く",
+    "coachPromptWhyWrong": "私の手はなぜ不十分ですか？",
+    "coachPromptCorrectLine": "正解後の変化を見せてください",
+    "coachPromptPattern": "次回この形をどう見分けますか？",
     "boardCoordinateHint": "AI コーチの座標はページ表示と同じ (x,y) 形式で、左上が (0,0) です。",
     "keyboardShortcuts": "ショートカット: R で再挑戦 · 左右キーで解答手順を送る/戻す · Esc で現在の解答表示を閉じる",
     "attemptCount": "{{count}} 回目",
@@ -226,7 +279,7 @@
     "titleLine1": "盤上の宇宙",
     "titleLine2": "手談の道",
     "subtitle": "盤上の静寂に耳を澄ませば、一手ごとに千年の叡智が息づく。黒と白の対話、あなたも加わってみよう。",
-    "getStarted": "はじめる",
+    "getStarted": "今日の問題",
     "watchMatch": "観戦する"
   },
   "boardShowcase": {
@@ -252,6 +305,10 @@
     "today": {
       "title": "今日の問題 — go-daily",
       "description": "今日の厳選囲碁問題に挑戦し、行き詰まったらAIコーチに聞こう。"
+    },
+    "onboarding": {
+      "title": "はじめてのトレーニング — go-daily",
+      "description": "3分で最初の囲碁問題を完了。一手打ち、結果を見て、AI に理由を聞き、復習につなげます。"
     },
     "puzzles": {
       "title": "問題集 — go-daily",
@@ -294,7 +351,7 @@
     "login": {
       "eyebrow": "おかえりなさい",
       "title": "go-daily にログイン",
-      "subtitle": "戦績と復習帳を端末間で同期します。投稿や広告、データの転売は一切行いません。",
+      "subtitle": "ミス、復習計画、AI 解説を保存し、端末をまたいで練習を続けられます。投稿や広告、データの転売は一切行いません。",
       "google": "Google でログイン",
       "dividerOr": "または",
       "emailLabel": "メールアドレス",
