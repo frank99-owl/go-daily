@@ -56,6 +56,24 @@ describe("checkCoachEligibility", () => {
     });
   });
 
+  it("keeps well-explained puzzles without variations below coach-ready", () => {
+    const puzzle = makeBasePuzzle({
+      solutionNote: {
+        zh: "黑先占住急所，因为这一手会先压缩白棋的眼位，再让黑棋获得稳定形状。如果黑先脱先，白棋随后补强，黑棋就很难再做出两只眼。",
+        en: "Black must take the vital point first because this move reduces White's eye space and stabilizes Black's shape. If Black plays elsewhere, White reinforces next and Black loses the clean route to two eyes.",
+        ja: "黒は急所を先に取るべきです。なぜなら、この一手で白の眼形を縮めながら黒の形も安定するからです。黒が別の場所に回ると、白に補強されて二眼への道が狭くなります。",
+        ko: "흑은 급소를 먼저 차지해야 합니다. 이 수가 백의 눈 모양을 줄이면서 흑의 형태도 안정시키기 때문입니다. 흑이 다른 곳에 두면 백이 보강하고 두 눈을 만드는 길이 좁아집니다.",
+      },
+    });
+
+    expect(checkCoachEligibility(puzzle)).toMatchObject({
+      eligible: true,
+      reason: "eligible",
+      qualityTier: "explained",
+      hasVariationSupport: false,
+    });
+  });
+
   it("rejects imported-style generic notes", () => {
     const puzzle = makeBasePuzzle({
       id: "cho-e-001",

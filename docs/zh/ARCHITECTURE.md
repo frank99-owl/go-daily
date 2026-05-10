@@ -94,7 +94,7 @@
 
 - **行级安全 (RLS)**：所有 Postgres 表都强制执行 `auth.uid() = user_id` 策略，从数据库层面杜绝数据泄露。
 - **隐私脱敏**：Sentry 和 PostHog 配置了 `beforeSend` 过滤器，在 AI 对话离开客户端前对用户敏感信息进行脱敏处理。
-- **NFKC 规范化**：用户输入文本在处理前统一进行 NFKC 规范化，防止同形字攻击和 Unicode 规范化漏洞。
+- **Unicode 规范化**：提示词防护会在模式匹配前进行 NFKC 规范化，并折叠常见 Cyrillic/Greek 同形字符。
 - **路由层安全**：`proxy.ts` 刷新 Supabase 会话 Cookie，并守卫带语言前缀的**页面**（如 `/account`、`/login`）。`/api/*` 不在 proxy 的 matcher 内，Stripe、教练、管理与题目等路由自行校验会话、令牌或签名。
 - **速率限制**：`lib/rateLimit.ts` — 同时设置 `UPSTASH_REDIS_REST_URL` 与 `UPSTASH_REDIS_REST_TOKEN` 时使用 `UpstashRateLimiter`；非生产环境否则使用 `MemoryRateLimiter`。当 **`NODE_ENV === "production"`** 且缺少 Upstash 变量时，`createRateLimiter()` 返回**桩**，其 `isLimited()` **首次被调用时抛出**（非模块加载时，便于构建期采集页面数据；有流量后须配置 Redis）。`MemoryRateLimiter` 对键数量设上限（5 万），超出时淘汰最早插入的键，并定期清理空闲键。
 

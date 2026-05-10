@@ -38,7 +38,7 @@
 
 - **内存安全限流**：`MemoryRateLimiter`（5 万条上限）和访客 IP 计数器（1 万条上限）现在会淘汰过期条目，防止 serverless 实例内存无限增长。
 - **统一请求体解析**：主要 JSON 写入路由（`/api/coach`、`/api/auth/device`、`/api/puzzle/attempt`、`/api/puzzle/reveal`）使用 `lib/apiHeaders.ts` 的 `parseMutationBody()`（默认 **2 KB**，教练 **8 KB**、reveal **3 KB**）。Stripe 等路由另行做同源与 JSON 解析。
-- **Unicode 注入防御**：`promptGuard.ts` 在模式匹配前应用 NFKC 归一化，折叠全角和同形字符。
+- **Unicode 注入防御**：`promptGuard.ts` 在模式匹配前应用 NFKC 归一化，并折叠常见 Cyrillic/Greek 同形字符。
 - **Coach 体验优化**：通用错误增加重试按钮、思考状态动画指示器、切换导师时骨架屏加载。
 - **Stripe Webhook 加固**：读取请求体前校验 1 MB 大小限制（HTTP 413）。
 - **GoBoard 禁用状态**：棋盘不可交互时以 50% 透明度渲染。

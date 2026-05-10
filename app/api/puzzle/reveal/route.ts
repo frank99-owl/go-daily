@@ -2,7 +2,7 @@ import { getPuzzle } from "@/content/puzzles";
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { verifyRevealToken } from "@/lib/puzzle/revealToken";
-import { createRateLimiter } from "@/lib/rateLimit";
+import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import { PuzzleRevealRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
@@ -37,6 +37,10 @@ export async function POST(request: Request) {
       return error("Too many requests, slow down.", 429);
     }
   } catch (err) {
+    if (isRateLimiterConfigurationError(err)) {
+      console.error("[puzzle-reveal] rate limiter unavailable", { ip, puzzleId, err });
+      return error("Rate limiter unavailable.", 503);
+    }
     console.warn("[puzzle-reveal] rate limiter failed open", { ip, puzzleId, err });
   }
 

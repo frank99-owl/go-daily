@@ -35,6 +35,61 @@ const INJECTION_PATTERNS = [
 
 const MAX_MESSAGE_LENGTH = 2000;
 const SUSPICIOUS_KEYWORD_COUNT = 3;
+const COMMON_CONFUSABLES: Record<string, string> = {
+  А: "A",
+  а: "a",
+  В: "B",
+  Е: "E",
+  е: "e",
+  І: "I",
+  і: "i",
+  Ј: "J",
+  ј: "j",
+  К: "K",
+  к: "k",
+  М: "M",
+  м: "m",
+  Н: "H",
+  н: "h",
+  О: "O",
+  о: "o",
+  Р: "P",
+  р: "p",
+  С: "C",
+  с: "c",
+  Т: "T",
+  т: "t",
+  У: "Y",
+  у: "y",
+  Х: "X",
+  х: "x",
+  Ѕ: "S",
+  ѕ: "s",
+  Α: "A",
+  α: "a",
+  Β: "B",
+  β: "b",
+  Ε: "E",
+  ε: "e",
+  Ι: "I",
+  ι: "i",
+  Κ: "K",
+  κ: "k",
+  Μ: "M",
+  μ: "m",
+  Ν: "N",
+  ν: "v",
+  Ο: "O",
+  ο: "o",
+  Ρ: "P",
+  ρ: "p",
+  Τ: "T",
+  τ: "t",
+  Υ: "Y",
+  υ: "y",
+  Χ: "X",
+  χ: "x",
+};
 
 interface GuardResult {
   ok: boolean;
@@ -58,10 +113,18 @@ function countSuspiciousKeywords(text: string): number {
   return suspicious.filter((kw) => lower.includes(kw)).length;
 }
 
+function foldCommonConfusables(input: string): string {
+  return Array.from(input, (char) => COMMON_CONFUSABLES[char] ?? char).join("");
+}
+
+function normalizeForGuard(input: string): string {
+  return foldCommonConfusables(input.normalize("NFKC"));
+}
+
 export function guardUserMessage(message: string): GuardResult {
-  // NFKC-normalize first so homoglyph bypasses (Cyrillic "а" → Latin "a",
-  // fullwidth "Ｓ" → "S", etc.) are collapsed before pattern matching.
-  const normalized = message.normalize("NFKC");
+  // NFKC handles fullwidth and compatibility forms. A small confusable fold
+  // catches common Cyrillic/Greek lookalikes used in English injection terms.
+  const normalized = normalizeForGuard(message);
 
   // Length check (on normalized form)
   if (normalized.length > MAX_MESSAGE_LENGTH) {
@@ -85,9 +148,7 @@ export function guardUserMessage(message: string): GuardResult {
 
 /**
  * Sanitize user input by stripping control characters, normalizing Unicode
- * (NFKC collapses Cyrillic/Greek lookalikes to their ASCII equivalents,
- * closing the homoglyph bypass vector in promptGuard), and normalizing
- * whitespace.
+ * (NFKC collapses fullwidth and compatibility forms), and normalizing whitespace.
  */
 export function sanitizeInput(input: string): string {
   return (

@@ -18,7 +18,7 @@
  *     credentials is accepted.
  */
 import { createApiResponse } from "@/lib/apiHeaders";
-import { createRateLimiter } from "@/lib/rateLimit";
+import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -48,6 +48,10 @@ export async function POST(request: Request) {
       return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
     }
   } catch (error) {
+    if (isRateLimiterConfigurationError(error)) {
+      console.error("[account/delete] rate limiter unavailable", { userId: user.id, error });
+      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
+    }
     console.warn("[account/delete] rate limiter failed open", { userId: user.id, error });
   }
 

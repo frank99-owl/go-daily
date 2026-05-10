@@ -38,7 +38,7 @@
 
 - **메모리 안전 속도 제한**: `MemoryRateLimiter`(5만 항목 상한)와 게스트 IP 카운터(1만 항목 상한)가 만료된 항목을 제거하여 서버리스 인스턴스의 무제한 메모리 증가를 방지합니다.
 - **공통 요청 본문 파싱**: 주요 JSON 변경 라우트(`/api/coach`, `/api/auth/device`, `/api/puzzle/attempt`, `/api/puzzle/reveal`)가 `lib/apiHeaders.ts`의 `parseMutationBody()`를 사용(기본 **2KB**, 코치 **8KB**, reveal \*\*3KB`). Stripe 등은 동일 출처·라우트별 JSON 파싱.
-- **Unicode 프롬프트 인젝션 방어**: `promptGuard.ts`가 패턴 매칭 전에 NFKC 정규화를 적용하여 전각 문자 및 동형 문자를 접습니다.
+- **Unicode 프롬프트 인젝션 방어**: `promptGuard.ts`가 패턴 매칭 전에 NFKC 정규화와 일반적인 Cyrillic/Greek 동형 문자 접기를 적용합니다.
 - **Coach UX 개선**: 일반 오류 시 재시도 버튼, 사고 중 애니메이션 표시, 멘터 전환 시 스켈레톤 로딩.
 - **Stripe Webhook 하드닝**: 본문 읽기 전에 1MB 페이로드 크기 제한(HTTP 413) 검증.
 - **GoBoard 비활성 상태**: 상호작용 불가 시 판을 50% 투명도로 렌더링.

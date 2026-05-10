@@ -1,6 +1,6 @@
 const SHELL_CACHE = "go-daily-shell-v2";
 const STATIC_CACHE = "go-daily-static-v2";
-const PRECACHE_URLS = ["/offline.html", "/manifest.json", "/favicon.ico"];
+const PRECACHE_URLS = ["/offline.html", "/manifest.webmanifest", "/icon.svg"];
 const CLIENT_ONLINE_MESSAGE = "go-daily.client-online";
 const FLUSH_SYNC_QUEUE_MESSAGE = "go-daily.flush-sync-queue";
 
@@ -21,7 +21,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(SHELL_CACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then((cache) => Promise.all(PRECACHE_URLS.map((url) => cache.add(url).catch(() => {}))))
       .catch(() => {}),
   );
   self.skipWaiting();

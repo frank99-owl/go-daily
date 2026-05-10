@@ -94,9 +94,9 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
     LOCALES.reduce((sum, locale) => sum + noteLengths[locale], 0) / LOCALES.length,
   );
 
-  const hasVariationSupport = Boolean(
-    (puzzle.solutionSequence?.length ?? 0) > 0 || (puzzle.wrongBranches?.length ?? 0) > 0,
-  );
+  const hasSolutionSequence = (puzzle.solutionSequence?.length ?? 0) > 0;
+  const hasWrongBranches = (puzzle.wrongBranches?.length ?? 0) > 0;
+  const hasVariationSupport = hasSolutionSequence && hasWrongBranches;
 
   const base = {
     averageNoteLength,
@@ -181,7 +181,7 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
     ...base,
     eligible: true,
     reason: "eligible",
-    qualityTier: "coach-ready",
+    qualityTier: hasVariationSupport ? "coach-ready" : "explained",
     explanationLocaleCount,
     genericLocaleCount,
   });

@@ -159,7 +159,7 @@ Device registry for entitlement-aware device-seat enforcement (Free: 1 device, P
 
 **Index**: `user_devices_last_seen_idx` on `(user_id, last_seen DESC)`
 
-**RLS**: Full CRUD for owner.
+**RLS**: Owner SELECT only. Registration and refresh writes use trusted server routes with `service_role`.
 
 ---
 
@@ -207,7 +207,7 @@ Admin-assigned Pro access by email without Stripe checkout.
 | `subscriptions`     | `own subs select`            | SELECT only (writes via service_role)   |
 | `srs_cards`         | `own srs`                    | Full CRUD (own row only)                |
 | `stripe_events`     | `no public stripe events`    | No public access (service_role only)    |
-| `user_devices`      | `own devices`                | Full CRUD (own row only)                |
+| `user_devices`      | `own devices select`         | SELECT only (writes via service_role)   |
 | `guest_coach_usage` | _(none)_                     | No client access (service_role only)    |
 | `manual_grants`     | _(none)_                     | No client access (service_role only)    |
 

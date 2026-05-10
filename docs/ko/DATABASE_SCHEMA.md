@@ -159,7 +159,7 @@ Stripe 구독 상태. 웹훅 핸들러에 의해서만 기록됩니다.
 
 **인덱스**: `user_devices_last_seen_idx`: `(user_id, last_seen DESC)`
 
-**RLS**: 소유자에 대한 전체 CRUD 허용.
+**RLS**: 소유자는 SELECT만 가능합니다. 기기 등록과 갱신 쓰기는 신뢰 서버 라우트가 `service_role`로 수행합니다.
 
 ---
 
@@ -207,7 +207,7 @@ Stripe 없이 이메일로 Pro를 부여하기 위한 관리자 테이블.
 | `subscriptions`     | `own subs select`            | SELECT만(service_role을 통한 쓰기)      |
 | `srs_cards`         | `own srs`                    | 전체 CRUD(본인 행만)                    |
 | `stripe_events`     | `no public stripe events`    | 외부 접근 불가(service_role 전용)       |
-| `user_devices`      | `own devices`                | 전체 CRUD(본인 행만)                    |
+| `user_devices`      | `own devices select`         | SELECT만(service_role을 통한 쓰기)      |
 | `guest_coach_usage` | (없음)                       | 클라이언트 접근 불가(service_role 전용) |
 | `manual_grants`     | (없음)                       | 클라이언트 접근 불가(service_role 전용) |
 

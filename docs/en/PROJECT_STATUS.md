@@ -38,7 +38,7 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 
 - **Memory-safe rate limiting**: `MemoryRateLimiter` (50k entry cap) and guest IP counters (10k cap) now evict stale entries to prevent unbounded memory growth on serverless instances.
 - **Shared body parsing**: Core JSON mutation routes (`/api/coach`, `/api/auth/device`, `/api/puzzle/attempt`, `/api/puzzle/reveal`) use `parseMutationBody()` from `lib/apiHeaders.ts` (defaults **2 KB** body unless the route overrides—coach **8 KB**, reveal **3 KB**). Other routes (e.g. Stripe checkout) use same-origin checks and route-specific JSON parsing.
-- **Unicode prompt injection defense**: `promptGuard.ts` applies NFKC normalization to collapse fullwidth and homoglyph characters before pattern matching.
+- **Unicode prompt injection defense**: `promptGuard.ts` applies NFKC normalization plus common Cyrillic/Greek confusable folding before pattern matching.
 - **Coach UX improvements**: Retry button on generic errors, animated thinking indicator, skeleton loading on mentor switch.
 - **Stripe webhook hardening**: 1 MB payload size limit (HTTP 413) before body read.
 - **GoBoard disabled state**: Board renders at 50% opacity when non-interactive.

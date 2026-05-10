@@ -28,7 +28,7 @@ The goal is to prove the business model with a "Zero-Cost" infrastructure.
 
 - **The "Pro" Bundle**: Defined by **Cross-Device Sync**, **high AI coach quotas** (**50+** turns/day and **1,000+**/month — see [Product Specifications](PRODUCT_SPECS.md)), and **SRS Spaced Repetition**.
 - **Monetization**: Stripe integration with adaptive pricing for JPY/KRW and a 7-day trial to lower friction.
-- **AI Economy**: Utilizing DeepSeek to provide professional-grade coaching at a fraction of the cost of KataGo-driven cloud compute.
+- **AI Economy**: Utilizing DeepSeek to provide professional-grade coaching at a sustainable cloud cost.
 
 ### Phase 3: Compliance & Content Depth (Status: Upcoming)
 

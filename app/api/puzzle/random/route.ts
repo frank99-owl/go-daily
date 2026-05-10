@@ -6,7 +6,7 @@ import {
   normalizeOnboardingLevel,
 } from "@/lib/puzzle/onboardingLevels";
 import { pickRandomPuzzlePreferUnattempted } from "@/lib/random";
-import { createRateLimiter } from "@/lib/rateLimit";
+import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import { RandomPuzzleRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
@@ -33,6 +33,10 @@ export async function POST(request: Request) {
       return error("Too many requests, slow down.", 429);
     }
   } catch (err) {
+    if (isRateLimiterConfigurationError(err)) {
+      console.error("[puzzle-random] rate limiter unavailable", { ip, err });
+      return error("Rate limiter unavailable.", 503);
+    }
     console.warn("[puzzle-random] rate limiter failed open", { ip, err });
   }
 

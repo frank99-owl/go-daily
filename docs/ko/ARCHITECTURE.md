@@ -94,7 +94,7 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 
 - **행 수준 보안 (RLS)**: 모든 Postgres 테이블에서 `auth.uid() = user_id` 정책을 강제하여 데이터베이스 계층에서의 데이터 유출을 원천 차단합니다.
 - **PII 마스킹**: Sentry 및 PostHog는 `beforeSend` 필터로 구성되어 있으며, AI 코치와의 대화 내용이 클라이언트를 떠나기 전에 개인정보를 비식별화합니다.
-- **NFKC 정규화**: 사용자 입력 텍스트는 처리 전 NFKC 정규화를 적용하여 동형 문자 공격 및 Unicode 정규화 취약점을 방지합니다.
+- **Unicode 정규화**: 프롬프트 가드 검사는 패턴 매칭 전에 NFKC 정규화와 일반적인 Cyrillic/Greek 동형 문자 접기를 적용합니다.
 - **라우트 계층 인증**: `proxy.ts`는 Supabase 세션 쿠키를 갱신하고 로케일이 붙은 **페이지**(예: `/account`, `/login`)를 보호합니다. `/api/*`는 프록시 matcher 밖이므로 Stripe·코치·관리·퍼즐 라우트가 세션·서명 등을 각자 검증합니다.
 - **속도 제한**: `lib/rateLimit.ts` — `UPSTASH_REDIS_REST_URL`과 `UPSTASH_REDIS_REST_TOKEN`이 모두 있으면 `UpstashRateLimiter`, 비프로덕션에서는 `MemoryRateLimiter`。**`NODE_ENV === "production"`**에서 Upstash가 없으면 `createRateLimiter()`는 **스텁**을 반환하고 **`isLimited()` 첫 호출에서 예외**를 던집니다(모듈 로드 시가 아니며 `next build` 가능. 프로덕션 트래픽은 Redis 필요). `MemoryRateLimiter`는 키 상한 5만 개, 초과 시 가장 오래된 키를 제거하고 주기적으로 유휴 키를 정리합니다.
 

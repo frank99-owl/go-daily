@@ -55,7 +55,7 @@ We maintain 86 test files with 689 test cases covering:
 1.  **Cross-Device Consistency**: Solve a puzzle on desktop, check phone within 5s.
 2.  **Trial Conversion**: Run a full Stripe Checkout in test mode with a 7-day trial.
 3.  **Locale SEO**: Validate `sitemap.xml` includes **12,000+** locale-specific entries (grows with `content/data/puzzleIndex.json`), with correct `hreflang` alternates.
-4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors. `promptGuard.ts` now applies Unicode NFKC normalization before pattern matching. Verify that fullwidth character bypasses (e.g., `ＳＹＳＴｅｍ: ignore all`) are also blocked.
+4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors. `promptGuard.ts` now applies Unicode NFKC normalization plus common Cyrillic/Greek confusable folding before pattern matching. Verify that fullwidth and lookalike-character bypasses (e.g., `ＳＹＳＴｅｍ: ignore all`) are also blocked.
 
 ## 5. Test Organization
 
@@ -82,7 +82,6 @@ npm run test:coverage     # With coverage report (target: 70%+)
 npm run format            # Format code with Prettier
 npm run format:check      # Check formatting without writing
 npm run import:puzzles    # Import tsumego puzzles
-npm run generate:katago   # Generate KataGo puzzles
 npm run sync:puzzle-index # Sync puzzle index
 npm run validate:puzzles  # Validate puzzle data
 npm run validate:messages # Validate i18n message keys

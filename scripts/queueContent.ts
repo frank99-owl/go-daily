@@ -112,41 +112,44 @@ export function buildContentQueue(
     summaryIndex: options.summaryIndex,
   });
 
-  const coachReadyCandidates = puzzles
-    .map((puzzle) => {
-      const eligibility = checkCoachEligibility(puzzle);
-      const scarcityScore =
-        tagScarcityScore(audit.tagDistribution, puzzle.tag) +
-        difficultyScarcityScore(audit.difficultyDistribution, puzzle.difficulty);
+  const candidates = puzzles.map((puzzle) => {
+    const eligibility = checkCoachEligibility(puzzle);
+    const scarcityScore =
+      tagScarcityScore(audit.tagDistribution, puzzle.tag) +
+      difficultyScarcityScore(audit.difficultyDistribution, puzzle.difficulty);
 
-      return {
-        id: puzzle.id,
-        source: puzzle.source || puzzle.date,
-        date: puzzle.date,
-        tag: puzzle.tag,
-        difficulty: puzzle.difficulty,
-        eligible: eligibility.eligible,
-        qualityTier: eligibility.qualityTier,
-        reason: eligibility.reason,
-        averageNoteLength: eligibility.averageNoteLength,
-        stabilityScore: stabilityScore(puzzle, eligibility.averageNoteLength),
-        scarcityScore: Number(scarcityScore.toFixed(4)),
-        alreadyApproved: approvedIds.has(puzzle.id),
-        rationale: buildRationale(
-          puzzle,
-          scarcityScore,
-          eligibility.averageNoteLength,
-          eligibility.qualityTier,
-        ),
-      } satisfies QueueCandidate;
-    })
+    return {
+      id: puzzle.id,
+      source: puzzle.source || puzzle.date,
+      date: puzzle.date,
+      tag: puzzle.tag,
+      difficulty: puzzle.difficulty,
+      eligible: eligibility.eligible,
+      qualityTier: eligibility.qualityTier,
+      reason: eligibility.reason,
+      averageNoteLength: eligibility.averageNoteLength,
+      stabilityScore: stabilityScore(puzzle, eligibility.averageNoteLength),
+      scarcityScore: Number(scarcityScore.toFixed(4)),
+      alreadyApproved: approvedIds.has(puzzle.id),
+      rationale: buildRationale(
+        puzzle,
+        scarcityScore,
+        eligibility.averageNoteLength,
+        eligibility.qualityTier,
+      ),
+    } satisfies QueueCandidate;
+  });
+
+  const coachReadyCandidates = candidates
     .filter((candidate) => candidate.qualityTier === "coach-ready")
     .sort(compareCandidates);
 
   return {
     generatedAt: new Date().toISOString(),
     totalPuzzles: puzzles.length,
-    currentApprovedCoachCount: approvedIds.size,
+    currentApprovedCoachCount: candidates.filter(
+      (candidate) => candidate.alreadyApproved && candidate.qualityTier === "coach-ready",
+    ).length,
     coachReadyCandidates,
   };
 }

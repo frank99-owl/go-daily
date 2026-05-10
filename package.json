@@ -17,7 +17,6 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "import:puzzles": "tsx scripts/importTsumego.ts",
-    "generate:katago": "tsx scripts/generateKatagoPuzzles.ts",
     "sync:puzzle-index": "tsx scripts/syncPuzzleIndex.ts",
     "validate:puzzles": "tsx scripts/validatePuzzles.ts",
     "validate:messages": "tsx scripts/validateMessages.ts",

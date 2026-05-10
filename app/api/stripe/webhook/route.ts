@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 
-import { createApiResponse } from "@/lib/apiHeaders";
+import { createApiResponse, readRequestBodyBytes } from "@/lib/apiHeaders";
 import { sendPaymentFailedEmail, sendSubscriptionStartedEmail } from "@/lib/email";
 import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/localePath";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -13,6 +13,7 @@ export const runtime = "nodejs";
 
 const EVENT_PROCESSING_STALE_MS = 10 * 60 * 1000;
 const UNIQUE_VIOLATION = "23505";
+const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
 type StripeEventClaim = "claimed" | "duplicate" | "in_progress";
 
@@ -503,14 +504,10 @@ export async function POST(request: Request) {
     return createApiResponse({ error: "missing_signature" }, { status: 400 });
   }
 
-  // Reject oversized payloads before reading into memory. Stripe events are
-  // typically < 10 KB; 1 MB is a generous safety ceiling.
-  const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (contentLength > 1_000_000) {
-    return createApiResponse({ error: "payload_too_large" }, { status: 413 });
-  }
-
-  const body = Buffer.from(await request.arrayBuffer());
+  // Stripe events are typically < 10 KB; 1 MB is a generous safety ceiling.
+  const rawBody = await readRequestBodyBytes(request, MAX_WEBHOOK_BODY_BYTES, "payload_too_large");
+  if (rawBody instanceof Response) return rawBody;
+  const body = Buffer.from(rawBody);
 
   let event: Stripe.Event;
   try {

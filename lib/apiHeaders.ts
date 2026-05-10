@@ -7,6 +7,60 @@ import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 /** Default maximum body size for mutation endpoints (2 KB). */
 const DEFAULT_MAX_BODY_BYTES = 2 * 1024;
 
+function bodyTooLargeResponse(error = "Request body too large."): Response {
+  return createApiResponse({ error }, { status: 413 });
+}
+
+/**
+ * Read a request body with a hard byte ceiling. This protects endpoints even
+ * when clients omit Content-Length or use chunked transfer encoding.
+ */
+export async function readRequestBodyBytes(
+  request: Request,
+  maxBodyBytes = DEFAULT_MAX_BODY_BYTES,
+  tooLargeError = "Request body too large.",
+): Promise<Uint8Array | Response> {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength) {
+    const len = Number(contentLength);
+    if (!Number.isFinite(len) || len <= 0) {
+      return createApiResponse({ error: "Invalid Content-Length." }, { status: 400 });
+    }
+    if (len > maxBodyBytes) {
+      return bodyTooLargeResponse(tooLargeError);
+    }
+  }
+
+  if (!request.body) {
+    return new Uint8Array();
+  }
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+
+    total += value.byteLength;
+    if (total > maxBodyBytes) {
+      await reader.cancel().catch(() => {});
+      return bodyTooLargeResponse(tooLargeError);
+    }
+    chunks.push(value);
+  }
+
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
+}
+
 /**
  * Parse and validate a JSON request body for mutation endpoints.
  *
@@ -16,7 +70,7 @@ const DEFAULT_MAX_BODY_BYTES = 2 * 1024;
  * Checks performed (in order):
  *   1. Same-origin mutation guard (CSRF).
  *   2. Content-Type must be `application/json`.
- *   3. Content-Length, if present, must not exceed `maxBodyBytes`.
+ *   3. Body must not exceed `maxBodyBytes`, with or without Content-Length.
  *   4. Body must be valid JSON.
  */
 export async function parseMutationBody(
@@ -32,19 +86,10 @@ export async function parseMutationBody(
     return createApiResponse({ error: "Content-Type must be application/json." }, { status: 400 });
   }
 
-  const contentLength = request.headers.get("content-length");
-  if (contentLength) {
-    const len = Number(contentLength);
-    if (!Number.isFinite(len) || len <= 0) {
-      return createApiResponse({ error: "Invalid Content-Length." }, { status: 400 });
-    }
-    if (len > maxBodyBytes) {
-      return createApiResponse({ error: "Request body too large." }, { status: 413 });
-    }
-  }
-
   try {
-    return await request.json();
+    const body = await readRequestBodyBytes(request, maxBodyBytes);
+    if (body instanceof Response) return body;
+    return JSON.parse(new TextDecoder().decode(body));
   } catch {
     return createApiResponse({ error: "Invalid JSON." }, { status: 400 });
   }

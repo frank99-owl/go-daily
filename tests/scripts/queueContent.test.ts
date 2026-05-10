@@ -26,6 +26,22 @@ describe("queueContent", () => {
         ja: "黒は左上隅の急所を先に取るべきです。なぜなら、その一手で白の眼形を縮めながら黒の形も安定するからです。もし黒が別の場所から動くと、白に先手で補強され、その後の活路は一気に苦しくなります。",
         ko: "흑은 좌상귀의 급소를 먼저 차지해야 합니다. 그 이유는 그 한 수가 백의 눈 모양을 줄이면서 흑의 형태도 안정시키기 때문입니다. 만약 흑이 다른 곳부터 두면 백이 먼저 보강하고, 이후 흑의 가장 쉬운 활로가 사라집니다.",
       },
+      solutionSequence: [
+        { x: 1, y: 1, color: "black" },
+        { x: 1, y: 2, color: "white" },
+      ],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 2, y: 2 },
+          refutation: [{ x: 1, y: 1, color: "black" }],
+          note: {
+            zh: "如果黑先脱先，白能先手封住眼位。",
+            en: "If Black plays elsewhere, White seals the eye space first.",
+            ja: "黒が別の場所に回ると、白が先に眼を封鎖します。",
+            ko: "흑이 다른 곳에 두면 백이 먼저 눈자리를 막습니다.",
+          },
+        },
+      ],
       source: "Cho",
     },
     {
@@ -49,6 +65,22 @@ describe("queueContent", () => {
         ja: "黒は中央の最も大きいヨセを先に打つべきです。なぜなら、その一手で地を稼ぎながら白の最大の後続も消せるからです。もし黒が小さいヨセから入ると、白に大場を取られてその後の交換が損になります。",
         ko: "흑은 중앙의 가장 큰 끝내기 자리를 먼저 차지해야 합니다. 그 이유는 그 한 수가 집을 벌면서 백의 최선 후속도 지우기 때문입니다. 만약 흑이 작은 끝내기부터 두면 백이 큰 자리를 차지하고 이후 교환이 손해로 기웁니다.",
       },
+      solutionSequence: [
+        { x: 11, y: 10, color: "black" },
+        { x: 11, y: 11, color: "white" },
+      ],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 9, y: 9 },
+          refutation: [{ x: 11, y: 10, color: "black" }],
+          note: {
+            zh: "如果黑先收小官子，白会抢到中央大点。",
+            en: "If Black takes the smaller yose first, White gets the central point.",
+            ja: "黒が小さいヨセを先に打つと、白が中央の大点を取ります。",
+            ko: "흑이 작은 끝내기를 먼저 두면 백이 중앙의 큰 자리를 차지합니다.",
+          },
+        },
+      ],
       source: "Library",
     },
   ];

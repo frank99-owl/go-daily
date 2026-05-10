@@ -50,7 +50,7 @@ npm run preflight:prod -- --stripe-mode=live
 1.  **跨设备一致性**：在桌面端解题，5秒内检查手机端是否同步。
 2.  **试用转化**：在测试模式下运行完整的 Stripe 结账流程（含7天试用）。
 3.  **SEO 验证**：确认 `sitemap.xml` 含 **12,000+** 条各语言 URL（随 `content/data/puzzleIndex.json` 增长），且 `hreflang` 交替正确。
-4.  **教练防护**：尝试提示词注入（如”忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。`promptGuard.ts` 现在会在模式匹配前进行 Unicode NFKC 归一化。请验证全角字符绕过尝试（如 `ＳＹＳＴｅｍ: ignore all`）也会被拦截。
+4.  **教练防护**：尝试提示词注入（如”忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。`promptGuard.ts` 现在会在模式匹配前进行 Unicode NFKC 归一化，并折叠常见 Cyrillic/Greek 同形字符。请验证全角与同形字符绕过尝试（如 `ＳＹＳＴｅｍ: ignore all`）也会被拦截。
 
 ## 5. 测试组织
 
@@ -77,7 +77,6 @@ npm run test:coverage     # 带覆盖率报告（目标：70%+）
 npm run format            # Prettier 格式化
 npm run format:check      # 检查格式
 npm run import:puzzles    # 导入题库
-npm run generate:katago   # 生成 KataGo 分析
 npm run sync:puzzle-index # 同步题库索引
 npm run validate:puzzles  # 校验题库
 npm run validate:messages # 校验消息文件

@@ -38,7 +38,7 @@
 
 - **メモリ安全なレート制限**: `MemoryRateLimiter`（5 万件上限）とゲスト IP カウンタ（1 万件上限）が期限切れエントリを削除し、サーバーレスインスタンスのメモリ無制限増加を防止します。
 - **共通ボディパース**: 主要な JSON ミュテーション（`/api/coach`、`/api/auth/device`、`/api/puzzle/attempt`、`/api/puzzle/reveal`）は `lib/apiHeaders.ts` の `parseMutationBody()` を使用（既定 **2 KB**、コーチ **8 KB**、reveal **3 KB**）。Stripe などは同一オリジンとルート固有の JSON 解析。
-- **Unicode プロンプトインジェクション防御**: `promptGuard.ts` がパターンマッチング前に NFKC 正規化を適用し、全角文字や同形文字を折りたたみます。
+- **Unicode プロンプトインジェクション防御**: `promptGuard.ts` がパターンマッチング前に NFKC 正規化と一般的な Cyrillic/Greek 同形文字の折りたたみを適用します。
 - **Coach UX の改善**: 汎用エラー時のリトライボタン、思考中のアニメーション表示、メンター切り替え時のスケルトンローディング。
 - **Stripe Webhook のハードニング**: ボディ読み込み前に 1 MB のペイロードサイズ制限（HTTP 413）を検証。
 - **GoBoard の無効状態**: 操作不可時に盤面を 50% 透明度で表示。

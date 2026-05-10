@@ -185,7 +185,7 @@ function validateCoachAllowlist(issues: Issue[]): void {
       issues.push({
         puzzleId: id,
         rule: "coachAllowlist",
-        detail: `allowlisted puzzle is not coach-ready (reason=${eligibility.reason}, tier=${eligibility.qualityTier})`,
+        detail: `allowlisted puzzle is not coach-eligible (reason=${eligibility.reason}, tier=${eligibility.qualityTier})`,
       });
     }
   }

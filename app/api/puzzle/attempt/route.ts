@@ -4,7 +4,7 @@ import { isInBounds, isOccupied } from "@/lib/board/board";
 import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
 import { createRevealToken } from "@/lib/puzzle/revealToken";
-import { createRateLimiter } from "@/lib/rateLimit";
+import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import { PuzzleAttemptRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
@@ -38,6 +38,10 @@ export async function POST(request: Request) {
       return error("Too many requests, slow down.", 429);
     }
   } catch (err) {
+    if (isRateLimiterConfigurationError(err)) {
+      console.error("[puzzle-attempt] rate limiter unavailable", { ip, puzzleId, err });
+      return error("Rate limiter unavailable.", 503);
+    }
     console.warn("[puzzle-attempt] rate limiter failed open", { ip, puzzleId, err });
   }
 

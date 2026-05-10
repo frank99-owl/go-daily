@@ -1,10 +1,9 @@
 import { z } from "zod";
 
-import { createApiResponse } from "@/lib/apiHeaders";
+import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/i18n/localePath";
-import { createRateLimiter } from "@/lib/rateLimit";
-import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
+import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import {
   getProPriceId,
   getStripeClient,
@@ -54,14 +53,8 @@ function cancelUrlFromReferer({
 }
 
 export async function POST(request: Request) {
-  if (!isSameOriginMutationRequest(request)) {
-    return createApiResponse({ error: "forbidden" }, { status: 403 });
-  }
-
-  const contentType = request.headers.get("content-type");
-  if (!contentType?.includes("application/json")) {
-    return createApiResponse({ error: "content_type" }, { status: 400 });
-  }
+  const rawBody = await parseMutationBody(request);
+  if (rawBody instanceof Response) return rawBody;
 
   // Rate limit: 10 requests per minute per IP (payment abuse prevention)
   const ip = getClientIP(request);
@@ -70,6 +63,10 @@ export async function POST(request: Request) {
       return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
     }
   } catch (error) {
+    if (isRateLimiterConfigurationError(error)) {
+      console.error("[stripe/checkout] rate limiter unavailable", { ip, error });
+      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
+    }
     console.warn("[stripe/checkout] rate limiter failed open", { ip, error });
   }
 
@@ -82,14 +79,7 @@ export async function POST(request: Request) {
     return createApiResponse({ error: "unauthenticated" }, { status: 401 });
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return createApiResponse({ error: "invalid_json" }, { status: 400 });
-  }
-
-  const parsed = CheckoutRequestSchema.safeParse(body);
+  const parsed = CheckoutRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
     return createApiResponse({ error: "invalid_request" }, { status: 400 });
   }

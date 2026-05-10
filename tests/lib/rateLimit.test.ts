@@ -3,21 +3,25 @@
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import { createRateLimiter, UpstashRateLimiter, MemoryRateLimiter } from "@/lib/rateLimit";
+import {
+  createRateLimiter,
+  isRateLimiterConfigurationError,
+  MemoryRateLimiter,
+  UpstashRateLimiter,
+} from "@/lib/rateLimit";
 
 vi.mock("@upstash/redis", () => {
   return {
     Redis: vi.fn().mockImplementation(function () {
       let mockCount = 0;
       return {
-        pipeline: vi.fn().mockImplementation(() => ({
-          zremrangebyscore: vi.fn(),
-          zcard: vi.fn(),
-          zadd: vi.fn().mockImplementation(() => {
-            mockCount++;
+        createScript: vi.fn(() => ({
+          exec: vi.fn(async (_keys: string[], args: string[]) => {
+            const maxRequests = Number(args[2]);
+            const limited = mockCount >= maxRequests;
+            if (!limited) mockCount++;
+            return limited ? 1 : 0;
           }),
-          pexpire: vi.fn(),
-          exec: vi.fn().mockImplementation(async () => [0, mockCount - 1]),
         })),
       };
     }),
@@ -33,6 +37,7 @@ describe("rateLimit", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     process.env = originalEnv;
   });
 
@@ -49,6 +54,23 @@ describe("rateLimit", () => {
       process.env.UPSTASH_REDIS_REST_TOKEN = "mock-token";
       const limiter = createRateLimiter();
       expect(limiter).toBeInstanceOf(UpstashRateLimiter);
+    });
+
+    it("throws a recognizable configuration error in production without Upstash", () => {
+      vi.stubEnv("NODE_ENV", "production");
+      delete process.env.UPSTASH_REDIS_REST_URL;
+      delete process.env.UPSTASH_REDIS_REST_TOKEN;
+
+      const limiter = createRateLimiter();
+
+      expect(() => limiter.isLimited("test-ip")).toThrow(
+        "CRITICAL: Upstash Redis is missing in production.",
+      );
+      try {
+        limiter.isLimited("test-ip");
+      } catch (error) {
+        expect(isRateLimiterConfigurationError(error)).toBe(true);
+      }
     });
   });
 

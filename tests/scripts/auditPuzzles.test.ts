@@ -30,6 +30,18 @@ describe("auditPuzzles", () => {
         { x: 1, y: 1, color: "black" },
         { x: 1, y: 2, color: "white" },
       ],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 2, y: 2 },
+          refutation: [{ x: 1, y: 1, color: "black" }],
+          note: {
+            zh: "如果黑先走别处，白会抢先补眼位。",
+            en: "If Black plays elsewhere, White takes the eye point first.",
+            ja: "黒が別の場所に打つと、白が先に眼形を補います。",
+            ko: "흑이 다른 곳에 두면 백이 먼저 눈 모양을 보강합니다.",
+          },
+        },
+      ],
       source: "Editorial",
     },
     {

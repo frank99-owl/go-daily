@@ -120,7 +120,7 @@ Stripe 订阅状态。仅由 Webhook 处理器写入。
 
 **索引**: `srs_due_idx` on `(user_id, due_date)`
 
-**RLS**: 所有者拥有完整 CRUD 权限。
+**RLS**: 所有者拥有完整 CRUD 权限（`auth.uid() = user_id`）。
 
 ---
 
@@ -159,7 +159,7 @@ Stripe 订阅状态。仅由 Webhook 处理器写入。
 
 **索引**: `user_devices_last_seen_idx` on `(user_id, last_seen DESC)`
 
-**RLS**: 所有者拥有完整 CRUD 权限。
+**RLS**: 所有者仅可 SELECT。设备登记和刷新写入通过受信任服务端路由使用 `service_role` 完成。
 
 ---
 
@@ -207,7 +207,7 @@ Stripe 订阅状态。仅由 Webhook 处理器写入。
 | `subscriptions`     | `own subs select`            | 仅 SELECT（写入通过 service_role）      |
 | `srs_cards`         | `own srs`                    | 完整 CRUD（仅限自己的行）               |
 | `stripe_events`     | `no public stripe events`    | 无公开访问（仅 service_role）           |
-| `user_devices`      | `own devices`                | 完整 CRUD（仅限自己的行）               |
+| `user_devices`      | `own devices select`         | 仅 SELECT（写入通过 service_role）      |
 | `guest_coach_usage` | （无）                       | 客户端不可访问（仅 service_role）       |
 | `manual_grants`     | （无）                       | 客户端不可访问（仅 service_role）       |
 

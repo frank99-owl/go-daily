@@ -107,6 +107,21 @@ describe("/api/stripe/webhook", () => {
     mocks.sendSubscriptionStartedEmail.mockResolvedValue({ sent: true, id: "email_2" });
   });
 
+  it("rejects oversized webhook bodies even without Content-Length", async () => {
+    const response = await POST(
+      new Request("https://go-daily.app/api/stripe/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "sig" },
+        body: "x".repeat(1_000_001),
+      }),
+    );
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toEqual({ error: "payload_too_large" });
+    expect(mocks.constructEvent).not.toHaveBeenCalled();
+    expect(mocks.createServiceClient).not.toHaveBeenCalled();
+  });
+
   it("skips already processed duplicate events before running subscription work", async () => {
     mocks.constructEvent.mockReturnValue({
       id: "evt_done",

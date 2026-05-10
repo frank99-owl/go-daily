@@ -27,7 +27,7 @@ import { getPersona } from "@/lib/coach/personas";
 import { getCoachEnv } from "@/lib/env";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
-import { createRateLimiter } from "@/lib/rateLimit";
+import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { CoachMessage } from "@/types";
@@ -108,6 +108,10 @@ export async function POST(request: Request) {
       return errorResponse("Too many requests, slow down.", 429);
     }
   } catch (error) {
+    if (isRateLimiterConfigurationError(error)) {
+      console.error("[coach] rate limiter unavailable", { ip, error });
+      return errorResponse("Rate limiter unavailable.", 503);
+    }
     console.warn("[coach] rate limiter failed open", { ip, error });
   }
 

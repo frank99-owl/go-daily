@@ -18,6 +18,40 @@ export interface RateLimiter {
 const DEFAULT_WINDOW_MS = 60_000;
 const DEFAULT_MAX_REQUESTS = 10;
 
+export class RateLimiterConfigurationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RateLimiterConfigurationError";
+  }
+}
+
+export function isRateLimiterConfigurationError(
+  error: unknown,
+): error is RateLimiterConfigurationError {
+  return error instanceof Error && error.name === "RateLimiterConfigurationError";
+}
+
+const RATE_LIMIT_SCRIPT = `
+local key = KEYS[1]
+local now = tonumber(ARGV[1])
+local window_ms = tonumber(ARGV[2])
+local max_requests = tonumber(ARGV[3])
+local member = ARGV[4]
+local window_start = now - window_ms
+
+redis.call("ZREMRANGEBYSCORE", key, 0, window_start)
+local count = redis.call("ZCARD", key)
+
+if count >= max_requests then
+  redis.call("PEXPIRE", key, window_ms)
+  return 1
+end
+
+redis.call("ZADD", key, now, member)
+redis.call("PEXPIRE", key, window_ms)
+return 0
+`;
+
 /** Simple per-process in-memory sliding-window rate limiter.
  *  NOT suitable for production multi-instance deployments. */
 export class MemoryRateLimiter implements RateLimiter {
@@ -69,6 +103,7 @@ export class MemoryRateLimiter implements RateLimiter {
  *  Suitable for production multi-instance deployments. */
 export class UpstashRateLimiter implements RateLimiter {
   private redis: Redis;
+  private script: { exec(keys: string[], args: string[]): Promise<number> };
 
   constructor(
     private windowMs: number,
@@ -80,23 +115,18 @@ export class UpstashRateLimiter implements RateLimiter {
       url,
       token,
     });
+    this.script = this.redis.createScript<number>(RATE_LIMIT_SCRIPT);
   }
 
   async isLimited(key: string): Promise<boolean> {
     const now = Date.now();
-    const windowStart = now - this.windowMs;
     const redisKey = `ratelimit:${key}`;
+    const limited = await this.script.exec(
+      [redisKey],
+      [String(now), String(this.windowMs), String(this.maxRequests), `${now}-${Math.random()}`],
+    );
 
-    // pipeline to reduce network roundtrips
-    const p = this.redis.pipeline();
-    p.zremrangebyscore(redisKey, 0, windowStart);
-    p.zcard(redisKey);
-    p.zadd(redisKey, { score: now, member: `${now}-${Math.random()}` });
-    p.pexpire(redisKey, this.windowMs);
-    const results = await p.exec();
-
-    const count = results[1] as number;
-    return count >= this.maxRequests;
+    return limited === 1;
   }
 }
 
@@ -120,7 +150,7 @@ export function createRateLimiter(): RateLimiter {
     // to complete without env vars (build-time page-data collection).
     return {
       isLimited() {
-        throw new Error(
+        throw new RateLimiterConfigurationError(
           "CRITICAL: Upstash Redis is missing in production. Refusing to start without distributed rate limiting.",
         );
       },

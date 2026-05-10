@@ -94,7 +94,7 @@ Legal requirements are treated as **Content Assets** rather than hardcoded logic
 
 - **RLS (Row Level Security)**: Every Postgres table has a mandatory `auth.uid() = user_id` policy. Even if an API is exposed, the database layer ensures no data leakage.
 - **PII Masking**: Sentry and PostHog are configured with `beforeSend` filters to redact user messages from AI coach dialogues before they leave the client.
-- **NFKC Normalization**: User-supplied text is normalized to NFKC form before processing to prevent homoglyph and Unicode normalization attacks.
+- **Unicode Normalization**: Prompt-guard checks apply NFKC normalization plus common Cyrillic/Greek confusable folding before pattern matching.
 - **Route-level auth**: `proxy.ts` refreshes Supabase session cookies and guards locale-prefixed **pages** (e.g. `/account`, `/login`). `/api/*` is outside the proxy matcher; Stripe, coach, admin, and puzzle routes enforce sessions, tokens, or signatures themselves.
 - **Rate limiting**: `lib/rateLimit.ts` — `UpstashRateLimiter` when both `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set; otherwise `MemoryRateLimiter` in non-production. In **`NODE_ENV === "production"`**, missing Upstash variables make `createRateLimiter()` return a **stub** whose `isLimited()` calls throw (first use when a route checks limits; build-time data collection can still run). `MemoryRateLimiter` caps tracked keys (50k) and drops the oldest key when over cap, plus periodic cleanup of idle keys.
 

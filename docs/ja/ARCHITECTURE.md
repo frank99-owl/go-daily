@@ -94,7 +94,7 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 
 - **行レベルセキュリティ (RLS)**：すべての Postgres テーブルで `auth.uid() = user_id` ポリシーを強制し、データベース層でのデータ漏洩を防止します。
 - **PII マスキング**：Sentry と PostHog は `beforeSend` フィルタで構成されており、AI コーチとの対話がクライアントを離れる前に個人情報を匿名化します。
-- **NFKC 正規化**: ユーザー入力テキストは処理前に NFKC 正規化を適用し、同形文字攻撃や Unicode 正規化の脆弱性を防止します。
+- **Unicode 正規化**: プロンプトガードの判定では、パターンマッチング前に NFKC 正規化と一般的な Cyrillic/Greek 同形文字の折りたたみを適用します。
 - **ルート層の認証**: `proxy.ts` は Supabase セッション Cookie を更新し、ロケール付き**ページ**（例: `/account`, `/login`）をガードします。`/api/*` はプロキシの matcher 外のため、Stripe・コーチ・管理・パズル各ルートがセッションや署名を独自に検証します。
 - **レート制限**: `lib/rateLimit.ts` — `UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` の両方があれば `UpstashRateLimiter`、非本番ではなければ `MemoryRateLimiter`。**`NODE_ENV === "production"`** で Upstash が欠けると `createRateLimiter()` は **スタブ**を返し、**最初の `isLimited()` 呼び出しで例外を投げる**（インポート時ではないため `next build` 可能。本番トラフィックでは Redis 必須）。`MemoryRateLimiter` はキー上限 5 万件で、超過時は最古キーを削除し、定期的にアイドルキーを掃除します。
 

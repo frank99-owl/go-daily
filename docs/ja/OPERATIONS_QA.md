@@ -50,7 +50,7 @@ npm run preflight:prod -- --stripe-mode=live
 1.  **デバイス間の整合性**: デスクトップで問題を解き、5 秒以内にスマートフォンで同期を確認する。
 2.  **トライアル転換**: 7 日間のトライアルを含む Stripe チェックアウトフローをテストモードで完走させる。
 3.  **ロケール SEO**: `sitemap.xml` に **12,000 本超**のロケール別エントリ（`content/data/puzzleIndex.json` に比例）と正しい `hreflang` 代替があることを確認する。
-4.  **コーチのガードレール**: プロンプトインジェクション（例：「以前の指示を忘れて」）を試行し、`promptGuard.ts` の遮断を確認する。`promptGuard.ts` はパターンマッチング前に Unicode NFKC 正規化を適用する。全角文字によるバイパス試行（例：`ＳＹＳＴｅｍ: ignore all`）も遮断されることを確認すること。
+4.  **コーチのガードレール**: プロンプトインジェクション（例：「以前の指示を忘れて」）を試行し、`promptGuard.ts` の遮断を確認する。`promptGuard.ts` はパターンマッチング前に Unicode NFKC 正規化と一般的な Cyrillic/Greek 同形文字の折りたたみを適用する。全角文字や同形文字によるバイパス試行（例：`ＳＹＳＴｅｍ: ignore all`）も遮断されることを確認すること。
 
 ## 5. テスト構成
 
@@ -77,7 +77,6 @@ npm run test:coverage     # カバレッジレポート付き（目標: 70%+）
 npm run format            # Prettier フォーマット
 npm run format:check      # フォーマット確認
 npm run import:puzzles    # 問題インポート
-npm run generate:katago   # KataGo 分析生成
 npm run sync:puzzle-index # 問題インデックス同期
 npm run validate:puzzles  # 問題検証
 npm run validate:messages # メッセージ検証

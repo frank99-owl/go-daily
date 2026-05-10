@@ -15,7 +15,6 @@ const eslintConfig = defineConfig([
     "content/data/*.json",
     "scripts/**",
     "**/*.py",
-    "katago_spike.py",
   ]),
   {
     plugins: {

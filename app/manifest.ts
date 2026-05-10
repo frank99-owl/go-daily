@@ -40,9 +40,9 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     categories: ["games", "education"],
     icons: [
       {
-        src: "/favicon.ico",
-        sizes: "48x48",
-        type: "image/x-icon",
+        src: "/icon.svg",
+        sizes: "any",
+        type: "image/svg+xml",
       },
       {
         src: "/icon-192.png",

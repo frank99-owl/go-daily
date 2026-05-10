@@ -1,9 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { createApiResponse } from "@/lib/apiHeaders";
+import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
-import { createRateLimiter } from "@/lib/rateLimit";
-import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
+import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import { redactString, stripUrlQueryAndHash } from "@/lib/sentryScrubber";
 import { ClientErrorReportSchema } from "@/types/schemas";
 
@@ -59,25 +58,8 @@ function captureClientErrorReport(report: ClientErrorReport): void {
 }
 
 export async function POST(request: Request) {
-  if (!isSameOriginMutationRequest(request)) {
-    return createApiResponse({ error: "forbidden" }, { status: 403 });
-  }
-
-  const contentType = request.headers.get("content-type");
-  if (!contentType?.includes("application/json")) {
-    return createApiResponse({ error: "Content-Type must be application/json." }, { status: 400 });
-  }
-
-  const contentLength = request.headers.get("content-length");
-  if (contentLength) {
-    const length = Number(contentLength);
-    if (!Number.isFinite(length) || length <= 0) {
-      return createApiResponse({ error: "Invalid Content-Length." }, { status: 400 });
-    }
-    if (length > MAX_BODY_BYTES) {
-      return createApiResponse({ error: "Request body too large." }, { status: 413 });
-    }
-  }
+  const rawBody = await parseMutationBody(request, MAX_BODY_BYTES);
+  if (rawBody instanceof Response) return rawBody;
 
   const ip = getClientIP(request);
   try {
@@ -85,14 +67,11 @@ export async function POST(request: Request) {
       return createApiResponse({ error: "Too many reports, slow down." }, { status: 429 });
     }
   } catch (error) {
+    if (isRateLimiterConfigurationError(error)) {
+      console.error("[client-error] rate limiter unavailable", { ip, error });
+      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
+    }
     console.warn("[client-error] rate limiter failed open", error);
-  }
-
-  let rawBody: unknown;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return createApiResponse({ error: "Invalid JSON." }, { status: 400 });
   }
 
   const parsed = ClientErrorReportSchema.safeParse(rawBody);

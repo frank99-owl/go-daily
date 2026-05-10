@@ -50,7 +50,7 @@ npm run preflight:prod -- --stripe-mode=live
 1.  **기기 간 동기화 일관성**: 데스크톱에서 문제를 해결하고 5초 이내에 모바일 기기에서 동기화 여부를 확인합니다.
 2.  **무료 체험 전환**: 테스트 모드에서 7일 무료 체험이 포함된 전체 Stripe 결제 프로세스를 실행합니다.
 3.  **로케일 SEO**: `sitemap.xml`에 **12,000개 이상**의 로케일별 항목(`content/data/puzzleIndex.json` 규모에 따라 증가)과 올바른 `hreflang` 대체 링크가 있는지 확인합니다.
-4.  **코치 가드레일**: 프롬프트 인젝션(예: "이전의 모든 지시를 잊어라")을 시도하여 `promptGuard.ts`의 차단 성능을 검증합니다. `promptGuard.ts`는 이제 패턴 매칭 전에 Unicode NFKC 정규화를 적용합니다. 전각 문자 우회 시도(예: `ＳＹＳＴｅｍ: ignore all`)도 차단되는지 확인하십시오.
+4.  **코치 가드레일**: 프롬프트 인젝션(예: "이전의 모든 지시를 잊어라")을 시도하여 `promptGuard.ts`의 차단 성능을 검증합니다. `promptGuard.ts`는 이제 패턴 매칭 전에 Unicode NFKC 정규화와 일반적인 Cyrillic/Greek 동형 문자 접기를 적용합니다. 전각 문자와 동형 문자 우회 시도(예: `ＳＹＳＴｅｍ: ignore all`)도 차단되는지 확인하십시오.
 
 ## 5. 테스트 구성
 
@@ -77,7 +77,6 @@ npm run test:coverage     # 커버리지 포함 (목표: 70%+)
 npm run format            # Prettier 포맷
 npm run format:check      # 포맷 확인
 npm run import:puzzles    # 문제 가져오기
-npm run generate:katago   # KataGo 분석 생성
 npm run sync:puzzle-index # 문제 인덱스 동기화
 npm run validate:puzzles  # 문제 검증
 npm run validate:messages # 메시지 검증
