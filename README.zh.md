@@ -43,7 +43,7 @@
 | 表、索引、RLS                   | [数据库 Schema](docs/zh/DATABASE_SCHEMA.md) |
 | 合规策略                        | [法律与合规](docs/zh/LEGAL_COMPLIANCE.md)   |
 
-**另见：** [CHANGELOG](CHANGELOG.md) · [安全策略](SECURITY.md) · [贡献指南（英文默认）](CONTRIBUTING.md) / [中文版](CONTRIBUTING.zh.md) · [LICENSE](LICENSE)
+**另见：** [CHANGELOG](CHANGELOG.md) · [安全策略](SECURITY.md) · [行为准则](CODE_OF_CONDUCT.md) · [贡献指南（英文默认）](CONTRIBUTING.md) / [中文版](CONTRIBUTING.zh.md) · [LICENSE](LICENSE) · [商业授权](COMMERCIAL.md)
 
 ## 快速上手
 
@@ -78,8 +78,10 @@ npm run dev
 
 ## 贡献与安全
 
-在政策允许的范围内欢迎 Issue 与 PR。细节见 **[CONTRIBUTING.md](CONTRIBUTING.md)**（九域约定、i18n 校验、CI）。**安全披露**请遵循 **[SECURITY.md](SECURITY.md)**，勿对未修复漏洞开公开 Issue。
+在政策允许的范围内欢迎 Issue 与 PR。细节见 **[CONTRIBUTING.md](CONTRIBUTING.md)**（九域约定、i18n 校验、CI 与贡献授权），并请遵守 **[行为准则](CODE_OF_CONDUCT.md)**。**安全披露**请遵循 **[SECURITY.md](SECURITY.md)**，勿对未修复漏洞开公开 Issue。
 
 ---
 
-Copyright © 2026 Frank. 保留所有权利。参见 [LICENSE](LICENSE)。
+Copyright © 2026 Frank. 参见 [LICENSE](LICENSE)。
+
+本项目以 PolyForm Perimeter License 1.0.1 形式源码可见。对外提供竞争性产品需要单独授权；参见 [商业授权](COMMERCIAL.md)。

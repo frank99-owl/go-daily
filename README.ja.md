@@ -43,7 +43,7 @@
 | スキーマ・RLS                          | [データベーススキーマ](docs/ja/DATABASE_SCHEMA.md) |
 | コンプライアンス                       | [法務](docs/ja/LEGAL_COMPLIANCE.md)                |
 
-**その他:** [CHANGELOG](CHANGELOG.md) · [SECURITY](SECURITY.md) · [Contributing](CONTRIBUTING.md) / [中文](CONTRIBUTING.zh.md) · [LICENSE](LICENSE)
+**その他:** [CHANGELOG](CHANGELOG.md) · [SECURITY](SECURITY.md) · [Code of Conduct](CODE_OF_CONDUCT.md) · [Contributing](CONTRIBUTING.md) / [中文](CONTRIBUTING.zh.md) · [LICENSE](LICENSE) · [Commercial licensing](COMMERCIAL.md)
 
 ## クイックスタート
 
@@ -67,19 +67,21 @@ npm run dev
 
 ## 技術スタック
 
-| 層         | 採用技術                                             |
-| ---------- | ---------------------------------------------------- |
-| UI         | Next.js 16, React 19, Tailwind CSS v4, Framer Motion |
-| データ     | Supabase（Postgres + RLS）、段階的クライアント永続化 |
-| 決済       | Stripe                                               |
-| AI         | DeepSeek Chat API                                    |
-| レート制限 | Upstash Redis（本番の標準構成で利用）                |
-| メール     | Resend（設定時）                                     |
+| 層         | 採用技術                                                                |
+| ---------- | ----------------------------------------------------------------------- |
+| UI         | Next.js 16, React 19, Tailwind CSS v4, Framer Motion                    |
+| データ     | Supabase（Postgres + RLS）、段階的クライアント永続化                    |
+| 決済       | Stripe（地域別価格・トライアル）                                        |
+| AI         | DeepSeek Chat API（`coachPrompt.ts`: ストリーミング、ペルソナ、利用枠） |
+| レート制限 | Upstash Redis（本番の標準構成では必須）                                 |
+| メール     | Resend（設定時のトランザクションメール）                                |
 
 ## コントリビューションとセキュリティ
 
-ポリシーが許す範囲で Issue / PR を歓迎します。詳細は **[CONTRIBUTING.md](CONTRIBUTING.md)**。脆弱性は **[SECURITY.md](SECURITY.md)** に従い、公開 Issue への投稿は避けてください。
+ポリシーが許す範囲で Issue / PR を歓迎します。詳細は **[CONTRIBUTING.md](CONTRIBUTING.md)** を確認し、**[Code of Conduct](CODE_OF_CONDUCT.md)** に従ってください。脆弱性は **[SECURITY.md](SECURITY.md)** に従い、公開 Issue への投稿は避けてください。
 
 ---
 
-Copyright © 2026 Frank. All rights reserved. See [LICENSE](LICENSE).
+Copyright © 2026 Frank. See [LICENSE](LICENSE).
+
+Source-available under the PolyForm Perimeter License 1.0.1. Providing a competing product requires separate permission; see [Commercial licensing](COMMERCIAL.md).

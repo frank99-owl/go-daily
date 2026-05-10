@@ -4,18 +4,23 @@
 
 We provide security updates for the following versions of go-daily:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| v1.1.x  | :white_check_mark: |
-| < v1.1  | :x:                |
+| Version / branch               | Supported |
+| ------------------------------ | --------- |
+| `main` / production deployment | Yes       |
+| `0.1.x`                        | Yes       |
+| Older commits and forks        | No        |
+
+The project has not reached a stable `1.x` release yet. Security support follows the
+current production deployment and the active `0.1.x` line.
 
 ## 2. Reporting a Vulnerability
 
 We take the security of go-daily seriously. If you believe you have found a security vulnerability, please **do not open a public issue**. Instead, follow these steps:
 
-1.  Email a detailed report to **security@go-daily.app** (placeholder for now, or use GitHub private reporting if enabled).
-2.  Include a description of the vulnerability, the potential impact, and steps to reproduce.
-3.  We will acknowledge your report within 48 hours and provide a timeline for a fix.
+1.  Use GitHub Private Vulnerability Reporting for this repository when the private reporting button is available.
+2.  If private reporting is not available, contact the repository owner through a private channel instead of filing a public issue.
+3.  Include a description of the vulnerability, the potential impact, affected routes or components, and steps to reproduce.
+4.  We will acknowledge your report within 48 hours and provide a timeline for triage or a fix.
 
 ## 3. PII & Data Protection
 
@@ -25,6 +30,6 @@ We take the security of go-daily seriously. If you believe you have found a secu
 
 ## 4. Prompt Injection
 
-While we implement `promptGuard.ts` to mitigate prompt injection, users should be aware that the AI Coach is an LLM. We do not recommend sharing sensitive personal information with the coach. Input is Unicode NFKC-normalized before pattern matching, collapsing fullwidth and homoglyph characters to their ASCII equivalents to prevent bypass via lookalike characters.
+While we implement `promptGuard.ts` to mitigate prompt injection, users should be aware that the AI Coach is an LLM. We do not recommend sharing sensitive personal information with the coach. Input is Unicode NFKC-normalized before pattern matching, and common Cyrillic/Greek confusable characters are folded before policy checks. This is a defense-in-depth control, not a guarantee that all prompt-injection or lookalike-character attempts are blocked.
 
 (C) 2026 Frank.

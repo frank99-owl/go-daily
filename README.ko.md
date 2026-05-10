@@ -43,7 +43,7 @@
 | 스키마·RLS              | [데이터베이스 스키마](docs/ko/DATABASE_SCHEMA.md) |
 | 컴플라이언스            | [법무](docs/ko/LEGAL_COMPLIANCE.md)               |
 
-**또 보기:** [CHANGELOG](CHANGELOG.md) · [SECURITY](SECURITY.md) · [Contributing](CONTRIBUTING.md) / [中文](CONTRIBUTING.zh.md) · [LICENSE](LICENSE)
+**또 보기:** [CHANGELOG](CHANGELOG.md) · [SECURITY](SECURITY.md) · [Code of Conduct](CODE_OF_CONDUCT.md) · [Contributing](CONTRIBUTING.md) / [中文](CONTRIBUTING.zh.md) · [LICENSE](LICENSE) · [Commercial licensing](COMMERCIAL.md)
 
 ## 빠른 시작
 
@@ -67,19 +67,21 @@ npm run dev
 
 ## 기술 스택
 
-| 계층      | 선택                                                 |
-| --------- | ---------------------------------------------------- |
-| UI        | Next.js 16, React 19, Tailwind CSS v4, Framer Motion |
-| 데이터    | Supabase(Postgres + RLS), 계층형 클라이언트 저장소   |
-| 결제      | Stripe                                               |
-| AI        | DeepSeek Chat API                                    |
-| 속도 제한 | Upstash Redis(프로덕션 표준 구성)                    |
-| 메일      | Resend(설정 시)                                      |
+| 계층      | 선택                                                          |
+| --------- | ------------------------------------------------------------- |
+| UI        | Next.js 16, React 19, Tailwind CSS v4, Framer Motion          |
+| 데이터    | Supabase(Postgres + RLS), 계층형 클라이언트 저장소            |
+| 결제      | Stripe(지역별 가격, 체험 기간)                                |
+| AI        | DeepSeek Chat API(`coachPrompt.ts`: 스트리밍, 페르소나, 쿼터) |
+| 속도 제한 | Upstash Redis(프로덕션 표준 구성에서는 필수)                  |
+| 메일      | Resend(설정 시 트랜잭션 메일)                                 |
 
 ## 기여와 보안
 
-정책이 허용하는 범위에서 Issue·PR을 환영합니다. 자세한 내용은 **[CONTRIBUTING.md](CONTRIBUTING.md)**를 참고하세요. 취약점은 **[SECURITY.md](SECURITY.md)** 절차를 따르고, 공개 Issue로 보고하지 마세요.
+정책이 허용하는 범위에서 Issue·PR을 환영합니다. 자세한 내용은 **[CONTRIBUTING.md](CONTRIBUTING.md)**를 참고하고 **[Code of Conduct](CODE_OF_CONDUCT.md)**를 따라 주세요. 취약점은 **[SECURITY.md](SECURITY.md)** 절차를 따르고, 공개 Issue로 보고하지 마세요.
 
 ---
 
-Copyright © 2026 Frank. All rights reserved. See [LICENSE](LICENSE).
+Copyright © 2026 Frank. See [LICENSE](LICENSE).
+
+Source-available under the PolyForm Perimeter License 1.0.1. Providing a competing product requires separate permission; see [Commercial licensing](COMMERCIAL.md).

@@ -2,7 +2,7 @@
 
 **语言：** [中文（本页）](CONTRIBUTING.zh.md) · [English](CONTRIBUTING.md)
 
-感谢你对 go-daily 的关注！我们保持着极高的工程标准，以确保在 4 种语言和全球市场中提供无缝的用户体验。
+感谢你对 go-daily 的关注。我们保持较高的工程标准，以确保在 4 种语言和全球市场中提供稳定一致的用户体验。
 
 ## 1. 开发原则
 
@@ -29,9 +29,12 @@
 ### 本地设置
 
 ```bash
+cp .env.example .env.local
 npm install
 npm run dev
 ```
+
+请使用 `package.json` 中声明的 Node.js **22.5+**。本地匿名模式可以不配置 Supabase 项目；支付、登录、同步、邮件和生产安全流程需要 `.env.example` 中对应的环境变量。
 
 ### 国际化校验
 
@@ -50,6 +53,20 @@ npm run test          # 运行所有测试
 npm run test:coverage # 检查覆盖率（目标：70%+）
 ```
 
+### PR 前检查
+
+发起 PR 前请尽量在本地执行与 CI 对齐的检查：
+
+```bash
+npm run format:check
+npm run lint
+npm run validate:puzzles
+npm run validate:messages
+npx tsc --noEmit
+npm run test
+npm run build
+```
+
 ## 4. Commit 规范
 
 我们遵循 Conventional Commits 规范：
@@ -62,9 +79,16 @@ npm run test:coverage # 检查覆盖率（目标：70%+）
 
 ## 5. 提交 PR
 
-1.  Fork 本仓库并从 `main` 分支创建你的功能分支。
-2.  确保 `npm run prebuild` 通过（校验题库数据与四套语言的文案 Key）。发起 PR 前请在本地执行 `npm run lint` —— CI 还会跑格式检查、Lint、类型检查、测试与生产构建。
-3.  为任何新逻辑包含测试。
-4.  如果你修改了核心行为，请同步更新 `docs/` 中的文档。
+1. Fork 本仓库；如果你有直接权限，也可以从 `main` 创建功能分支。
+2. 保持 PR 聚焦在一个变更或一组紧密相关的变更上。
+3. 为任何新逻辑包含测试。
+4. 如果你修改了核心行为，请同步更新 `docs/` 中的文档。
+5. 确认“PR 前检查”通过；如有命令无法运行，请在 PR 中说明。
+
+## 6. 贡献授权
+
+本仓库当前采用源码可见、限制竞争性使用的许可证。提交 PR、补丁或其他贡献即表示你确认自己有权贡献这些内容，并授权 Frank 以永久、全球、免版税的方式在 go-daily 项目中使用、修改、再授权和分发这些贡献，包括根据公开的源码可见许可证以及 Frank 单独授予的商业授权使用。
+
+请勿提交保密的第三方代码、未经授权的题库内容、版权素材或你无权贡献的数据。如果项目未来调整许可证条款，本节应与许可证文本一起复核。
 
 (C) 2026 Frank.

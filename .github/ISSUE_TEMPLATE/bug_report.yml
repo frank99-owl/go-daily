@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible problem in go-daily.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report security vulnerabilities here. Follow SECURITY.md for private disclosure.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include route, locale, account state, puzzle ID, and browser/device details when relevant.
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, viewport, account type, and deployment or commit SHA.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      render: text

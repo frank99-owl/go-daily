@@ -43,7 +43,7 @@ Authoritative technical and product documentation is the **eight-pillar, four-lo
 | Tables, indexes, RLS                                   | [Database schema](docs/en/DATABASE_SCHEMA.md)      |
 | Legal posture (multi-jurisdiction)                     | [Legal & compliance](docs/en/LEGAL_COMPLIANCE.md)  |
 
-**Also:** [Changelog](CHANGELOG.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Contributing (中文)](CONTRIBUTING.zh.md) · [License](LICENSE)
+**Also:** [Changelog](CHANGELOG.md) · [Security](SECURITY.md) · [Code of Conduct](CODE_OF_CONDUCT.md) · [Contributing](CONTRIBUTING.md) · [Contributing (中文)](CONTRIBUTING.zh.md) · [License](LICENSE) · [Commercial licensing](COMMERCIAL.md)
 
 ## Quick start
 
@@ -78,8 +78,10 @@ Open `http://localhost:3000` — locale negotiation redirects to `/{zh|en|ja|ko}
 
 ## Contributing & security
 
-Issues and PRs are welcome where policy allows. See **[Contributing](CONTRIBUTING.md)** for domain layout, i18n checks, and CI expectations. Report vulnerabilities per **[SECURITY.md](SECURITY.md)** — please do not open public issues for undisclosed security problems.
+Issues and PRs are welcome where policy allows. See **[Contributing](CONTRIBUTING.md)** for domain layout, i18n checks, CI expectations, and contribution terms. Please follow the **[Code of Conduct](CODE_OF_CONDUCT.md)**. Report vulnerabilities per **[SECURITY.md](SECURITY.md)** — please do not open public issues for undisclosed security problems.
 
 ---
 
-Copyright © 2026 Frank. All rights reserved. See [LICENSE](LICENSE).
+Copyright © 2026 Frank. See [LICENSE](LICENSE).
+
+Source-available under the PolyForm Perimeter License 1.0.1. Providing a competing product requires separate permission; see [Commercial licensing](COMMERCIAL.md).
