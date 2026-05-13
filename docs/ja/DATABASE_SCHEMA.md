@@ -75,7 +75,7 @@
 
 **RLS**: ユーザーは自身の行に対して SELECT のみ可能。
 
-**書き込み**: `service_role` のみ。Postgres RPC `increment_coach_usage(p_user_id uuid, p_day text)`（マイグレーション `0007_atomic_coach_usage_increment.sql`）で原子的に日次カウントを加算（`lib/coach/coachState.ts` → `incrementCoachUsage`）。
+**書き込み**: `service_role` のみ。コーチリクエストはクォータ判定付き RPC `try_increment_coach_usage(...)`（マイグレーション `0010_atomic_coach_usage_quota.sql`）を使い、日次／月次制限チェックと加算を DB 内で原子的に行います（`lib/coach/coachState.ts` → `tryIncrementCoachUsage`）。返金は `decrement_coach_usage(...)` を使います。
 
 ---
 
@@ -178,7 +178,7 @@ Webhook 冪等性レジャー。イベントの重複処理を防止します。
 
 **RLS**: 有効だが**ポリシーなし** —— `service_role` のみ（`lib/coach/guestCoachUsage.ts`）。
 
-**書き込み**: 同じマイグレーションの RPC `increment_guest_coach_usage(p_device_id text, p_day text)` で原子的に加算（`guestCoachUsage.ts` の `incrementGuestUsage`）。
+**書き込み**: `try_increment_guest_coach_usage(...)`（マイグレーション `0010_atomic_coach_usage_quota.sql`）で原子的にチェックして加算（`guestCoachUsage.ts` の `tryIncrementGuestUsage`）。返金は `decrement_guest_coach_usage(...)` を使います。
 
 ---
 

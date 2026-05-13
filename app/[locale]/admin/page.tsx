@@ -125,21 +125,21 @@ export default function AdminPage() {
           <h1 className="text-lg font-medium text-white">Admin Access</h1>
           <input
             type="password"
-            inputMode="numeric"
-            maxLength={6}
+            autoComplete="one-time-code"
+            maxLength={128}
             value={pin}
             onChange={(e) => setPin(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") void handleVerify();
             }}
-            placeholder="6-digit PIN"
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-center text-lg text-white tracking-[0.5em] placeholder:text-white/30 focus:outline-none focus:border-[color:var(--color-accent)]"
+            placeholder="Admin verification code"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-center text-lg text-white placeholder:text-white/30 focus:outline-none focus:border-[color:var(--color-accent)]"
           />
           {verifyError && <p className="text-sm text-red-400">{verifyError}</p>}
           <button
             type="button"
             onClick={handleVerify}
-            disabled={verifying || pin.length !== 6}
+            disabled={verifying || pin.trim().length < 12}
             className="w-full rounded-lg bg-[color:var(--color-accent)] py-2 text-sm font-medium text-black disabled:opacity-40"
           >
             {verifying ? "Verifying…" : "Enter"}

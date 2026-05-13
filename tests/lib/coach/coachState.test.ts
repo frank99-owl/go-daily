@@ -1,7 +1,12 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getCoachState, incrementCoachUsage } from "@/lib/coach/coachState";
+import {
+  decrementCoachUsage,
+  getCoachState,
+  incrementCoachUsage,
+  tryIncrementCoachUsage,
+} from "@/lib/coach/coachState";
 
 // ---------------------------------------------------------------------------
 // Query-builder mock — mirrors the Supabase JS client shape just enough for
@@ -37,7 +42,7 @@ type UsageBehavior = {
   existing?: { count: number } | null;
   existingError?: { message: string } | null;
   upsertError?: { message: string } | null;
-  rpcResult?: number;
+  rpcResult?: unknown;
   rpcError?: { message: string } | null;
 };
 
@@ -512,5 +517,118 @@ describe("incrementCoachUsage", () => {
     await expect(
       incrementCoachUsage({ admin: admin as never, userId: "user-1", day: "2026-04-25" }),
     ).rejects.toThrow(/failed to increment coach usage: permission denied/);
+  });
+});
+
+describe("tryIncrementCoachUsage", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("calls the quota-aware atomic RPC with limits and month window", async () => {
+    const admin = buildAdminClient({
+      usage: {
+        rpcResult: {
+          allowed: true,
+          reason: null,
+          dailyUsed: 3,
+          monthlyUsed: 7,
+        },
+      },
+    });
+
+    const result = await tryIncrementCoachUsage({
+      admin: admin as never,
+      userId: "user-1",
+      day: "2026-04-25",
+      monthWindowStart: "2026-04-01",
+      monthWindowEnd: "2026-04-30",
+      dailyLimit: 10,
+      monthlyLimit: 30,
+    });
+
+    expect(result).toEqual({
+      allowed: true,
+      reason: null,
+      dailyUsed: 3,
+      monthlyUsed: 7,
+    });
+    expect(admin.rpcMock).toHaveBeenCalledWith("try_increment_coach_usage", {
+      p_user_id: "user-1",
+      p_day: "2026-04-25",
+      p_month_start: "2026-04-01",
+      p_month_end: "2026-04-30",
+      p_daily_limit: 10,
+      p_monthly_limit: 30,
+    });
+  });
+
+  it("returns the denied reason from the atomic RPC", async () => {
+    const admin = buildAdminClient({
+      usage: {
+        rpcResult: {
+          allowed: false,
+          reason: "monthly_limit_reached",
+          dailyUsed: 8,
+          monthlyUsed: 30,
+        },
+      },
+    });
+
+    await expect(
+      tryIncrementCoachUsage({
+        admin: admin as never,
+        userId: "user-1",
+        day: "2026-04-25",
+        monthWindowStart: "2026-04-01",
+        monthWindowEnd: "2026-04-30",
+        dailyLimit: 10,
+        monthlyLimit: 30,
+      }),
+    ).resolves.toEqual({
+      allowed: false,
+      reason: "monthly_limit_reached",
+      dailyUsed: 8,
+      monthlyUsed: 30,
+    });
+  });
+
+  it("throws when the quota-aware RPC fails", async () => {
+    const admin = buildAdminClient({
+      usage: { rpcError: { message: "quota function missing" } },
+    });
+
+    await expect(
+      tryIncrementCoachUsage({
+        admin: admin as never,
+        userId: "user-1",
+        day: "2026-04-25",
+        monthWindowStart: "2026-04-01",
+        monthWindowEnd: "2026-04-30",
+        dailyLimit: 10,
+        monthlyLimit: 30,
+      }),
+    ).rejects.toThrow(/failed to increment coach usage: quota function missing/);
+  });
+});
+
+describe("decrementCoachUsage", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("calls the atomic decrement RPC with the original usage day", async () => {
+    const admin = buildAdminClient();
+
+    await decrementCoachUsage({
+      admin: admin as never,
+      userId: "user-1",
+      day: "2026-04-25",
+    });
+
+    expect(admin.rpcMock).toHaveBeenCalledWith("decrement_coach_usage", {
+      p_user_id: "user-1",
+      p_day: "2026-04-25",
+    });
   });
 });

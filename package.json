@@ -42,14 +42,20 @@
     "framer-motion": "^12.38.0",
     "idb-keyval": "^6.2.2",
     "lucide-react": "^1.8.0",
-    "next": "16.2.4",
+    "next": "16.2.6",
     "openai": "^6.34.0",
     "posthog-js": "^1.370.1",
     "posthog-node": "^5.29.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "stripe": "^22.0.2",
+    "stripe": "^22.1.1",
     "zod": "^4.3.6"
+  },
+  "overrides": {
+    "fast-uri": "3.1.2",
+    "next": {
+      "postcss": "8.5.14"
+    }
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

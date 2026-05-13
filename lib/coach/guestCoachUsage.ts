@@ -20,6 +20,15 @@ export interface GuestUsageSummary {
   monthlyRemaining: number;
 }
 
+export type GuestUsageIncrementReason = "daily_limit_reached" | "monthly_limit_reached";
+
+export interface GuestUsageIncrementResult {
+  allowed: boolean;
+  reason: GuestUsageIncrementReason | null;
+  dailyUsed: number;
+  monthlyUsed: number;
+}
+
 const GUEST_DAILY_LIMIT = 3;
 const GUEST_MONTHLY_LIMIT = 5;
 const GUEST_IP_DAILY_LIMIT = 20;
@@ -70,6 +79,14 @@ function todayKey(countryCode?: string | null): string {
     }
   }
   return new Date().toISOString().slice(0, 10);
+}
+
+function currentGuestWindow(countryCode?: string | null): { today: string; monthStart: string } {
+  const today = todayKey(countryCode);
+  return {
+    today,
+    monthStart: `${today.slice(0, 7)}-01`,
+  };
 }
 
 export async function checkIpLimit(
@@ -132,9 +149,7 @@ export async function getGuestUsage(
   countryCode?: string | null,
 ): Promise<GuestUsageSummary> {
   const admin = createServiceClient();
-  const today = todayKey(countryCode);
-  // Month start: first day of current UTC month
-  const monthStart = today.slice(0, 7) + "-01";
+  const { today, monthStart } = currentGuestWindow(countryCode);
 
   const { data, error } = await admin
     .from("guest_coach_usage")
@@ -180,6 +195,39 @@ export async function incrementGuestUsage(
   return data as number;
 }
 
+function parseGuestUsageIncrementResult(data: unknown): GuestUsageIncrementResult {
+  const value = data && typeof data === "object" ? (data as Record<string, unknown>) : {};
+  const reason = value.reason;
+  return {
+    allowed: value.allowed === true,
+    reason: reason === "daily_limit_reached" || reason === "monthly_limit_reached" ? reason : null,
+    dailyUsed: Number(value.dailyUsed ?? 0),
+    monthlyUsed: Number(value.monthlyUsed ?? 0),
+  };
+}
+
+export async function tryIncrementGuestUsage(
+  deviceId: string,
+  countryCode?: string | null,
+): Promise<GuestUsageIncrementResult> {
+  const admin = createServiceClient();
+  const { today, monthStart } = currentGuestWindow(countryCode);
+
+  const { data, error } = await admin.rpc("try_increment_guest_coach_usage", {
+    p_device_id: deviceId,
+    p_day: today,
+    p_month_start: monthStart,
+    p_daily_limit: GUEST_DAILY_LIMIT,
+    p_monthly_limit: GUEST_MONTHLY_LIMIT,
+  });
+
+  if (error) {
+    throw new Error(`failed to increment guest usage: ${error.message}`);
+  }
+
+  return parseGuestUsageIncrementResult(data);
+}
+
 export async function decrementGuestUsage(
   deviceId: string,
   countryCode?: string | null,
@@ -187,18 +235,12 @@ export async function decrementGuestUsage(
   const admin = createServiceClient();
   const today = todayKey(countryCode);
 
-  const { data } = await admin
-    .from("guest_coach_usage")
-    .select("count")
-    .eq("device_id", deviceId)
-    .eq("day", today)
-    .maybeSingle();
+  const { error } = await admin.rpc("decrement_guest_coach_usage", {
+    p_device_id: deviceId,
+    p_day: today,
+  });
 
-  if (data && (data as { count: number }).count > 0) {
-    await admin
-      .from("guest_coach_usage")
-      .update({ count: (data as { count: number }).count - 1 })
-      .eq("device_id", deviceId)
-      .eq("day", today);
+  if (error) {
+    throw new Error(`failed to decrement guest usage: ${error.message}`);
   }
 }

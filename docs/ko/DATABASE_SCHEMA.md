@@ -75,7 +75,7 @@
 
 **RLS**: 사용자는 자신의 행만 SELECT할 수 있습니다.
 
-**쓰기**: `service_role`만. Postgres RPC `increment_coach_usage(p_user_id uuid, p_day text)`(마이그레이션 `0007_atomic_coach_usage_increment.sql`)로 일일 카운터를 원자적으로 증가(`lib/coach/coachState.ts` → `incrementCoachUsage`).
+**쓰기**: `service_role`만. 코치 요청은 quota-aware RPC `try_increment_coach_usage(...)`(마이그레이션 `0010_atomic_coach_usage_quota.sql`)를 사용해 일/월 한도 확인과 증가를 DB 안에서 원자적으로 처리합니다(`lib/coach/coachState.ts` → `tryIncrementCoachUsage`). 환불은 `decrement_coach_usage(...)`를 사용합니다.
 
 ---
 
@@ -178,7 +178,7 @@ Stripe 구독 상태. 웹훅 핸들러에 의해서만 기록됩니다.
 
 **RLS**: 활성화되어 있으나 **정책 없음** —— `service_role`만 (`lib/coach/guestCoachUsage.ts`).
 
-**쓰기**: 동일 마이그레이션의 RPC `increment_guest_coach_usage(p_device_id text, p_day text)`로 원자적 증가(`guestCoachUsage.ts`의 `incrementGuestUsage`).
+**쓰기**: `try_increment_guest_coach_usage(...)`(마이그레이션 `0010_atomic_coach_usage_quota.sql`)로 원자적으로 확인 후 증가합니다(`guestCoachUsage.ts`의 `tryIncrementGuestUsage`). 환불은 `decrement_guest_coach_usage(...)`를 사용합니다.
 
 ---
 

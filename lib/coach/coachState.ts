@@ -56,6 +56,15 @@ export interface CoachState {
   deviceLimited: boolean;
 }
 
+export type CoachUsageIncrementReason = "daily_limit_reached" | "monthly_limit_reached";
+
+export interface CoachUsageIncrementResult {
+  allowed: boolean;
+  reason: CoachUsageIncrementReason | null;
+  dailyUsed: number;
+  monthlyUsed: number;
+}
+
 function sanitizeTimeZone(timeZone: string | null | undefined): string {
   if (!timeZone) return "UTC";
   try {
@@ -282,6 +291,50 @@ export async function incrementCoachUsage({
   return data as number;
 }
 
+function parseCoachUsageIncrementResult(data: unknown): CoachUsageIncrementResult {
+  const value = data && typeof data === "object" ? (data as Record<string, unknown>) : {};
+  const reason = value.reason;
+  return {
+    allowed: value.allowed === true,
+    reason: reason === "daily_limit_reached" || reason === "monthly_limit_reached" ? reason : null,
+    dailyUsed: Number(value.dailyUsed ?? 0),
+    monthlyUsed: Number(value.monthlyUsed ?? 0),
+  };
+}
+
+export async function tryIncrementCoachUsage({
+  admin,
+  userId,
+  day,
+  monthWindowStart,
+  monthWindowEnd,
+  dailyLimit,
+  monthlyLimit,
+}: {
+  admin: AdminClient;
+  userId: string;
+  day: string;
+  monthWindowStart: string;
+  monthWindowEnd: string;
+  dailyLimit: number;
+  monthlyLimit: number;
+}): Promise<CoachUsageIncrementResult> {
+  const { data, error } = await admin.rpc("try_increment_coach_usage", {
+    p_user_id: userId,
+    p_day: day,
+    p_month_start: monthWindowStart,
+    p_month_end: monthWindowEnd,
+    p_daily_limit: dailyLimit,
+    p_monthly_limit: monthlyLimit,
+  });
+
+  if (error) {
+    throw new Error(`failed to increment coach usage: ${error.message}`);
+  }
+
+  return parseCoachUsageIncrementResult(data);
+}
+
 export async function decrementCoachUsage({
   admin,
   userId,
@@ -291,18 +344,12 @@ export async function decrementCoachUsage({
   userId: string;
   day: string;
 }): Promise<void> {
-  const { data } = await admin
-    .from("coach_usage")
-    .select("count")
-    .eq("user_id", userId)
-    .eq("day", day)
-    .maybeSingle();
+  const { error } = await admin.rpc("decrement_coach_usage", {
+    p_user_id: userId,
+    p_day: day,
+  });
 
-  if (data && (data as CoachUsageRow).count > 0) {
-    await admin
-      .from("coach_usage")
-      .update({ count: (data as CoachUsageRow).count - 1 })
-      .eq("user_id", userId)
-      .eq("day", day);
+  if (error) {
+    throw new Error(`failed to decrement coach usage: ${error.message}`);
   }
 }

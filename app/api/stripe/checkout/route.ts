@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
+import { isProSubscriptionStatus } from "@/lib/entitlements";
 import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/i18n/localePath";
 import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import {
@@ -20,6 +21,11 @@ const rateLimiter = createRateLimiter();
 const CheckoutRequestSchema = z.object({
   interval: z.enum(["monthly", "yearly"]),
 });
+
+type ExistingSubscriptionRow = {
+  status: string | null;
+  stripe_customer_id: string | null;
+};
 
 function inferLocaleFromReferer(referer: string | null): Locale {
   if (!referer) return DEFAULT_LOCALE;
@@ -79,6 +85,22 @@ export async function POST(request: Request) {
     return createApiResponse({ error: "unauthenticated" }, { status: 401 });
   }
 
+  try {
+    if (await rateLimiter.isLimited(`checkout:user:${user.id}`)) {
+      return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
+    }
+  } catch (error) {
+    if (isRateLimiterConfigurationError(error)) {
+      console.error("[stripe/checkout] rate limiter unavailable", { ip, userId: user.id, error });
+      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
+    }
+    console.warn("[stripe/checkout] user rate limiter failed open", {
+      ip,
+      userId: user.id,
+      error,
+    });
+  }
+
   const parsed = CheckoutRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
     return createApiResponse({ error: "invalid_request" }, { status: 400 });
@@ -86,6 +108,26 @@ export async function POST(request: Request) {
 
   const { interval } = parsed.data;
   const plan = intervalToPlan(interval);
+
+  const { data: existingSubData, error: existingSubError } = await supabase
+    .from("subscriptions")
+    .select("status, stripe_customer_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingSubError) {
+    console.error("[stripe/checkout] failed to query subscription", {
+      userId: user.id,
+      message: existingSubError.message,
+    });
+    return createApiResponse({ error: "subscription_lookup_failed" }, { status: 500 });
+  }
+
+  const existingSub = existingSubData as ExistingSubscriptionRow | null;
+  if (isProSubscriptionStatus(existingSub?.status)) {
+    return createApiResponse({ error: "already_subscribed" }, { status: 409 });
+  }
+  const existingCustomerId = existingSub?.stripe_customer_id?.trim() || null;
 
   let stripe: ReturnType<typeof getStripeClient>;
   let priceId: string;
@@ -116,7 +158,9 @@ export async function POST(request: Request) {
       success_url: successUrl,
       cancel_url: cancelUrl,
       client_reference_id: user.id,
-      customer_email: user.email ?? undefined,
+      ...(existingCustomerId
+        ? { customer: existingCustomerId }
+        : { customer_email: user.email ?? undefined }),
       metadata: {
         user_id: user.id,
         plan,

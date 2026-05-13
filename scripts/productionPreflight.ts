@@ -48,6 +48,7 @@ const SERVER_ONLY_ENV = [
   "STRIPE_PRO_YEARLY_PRICE_ID",
   "RESEND_API_KEY",
   "CRON_SECRET",
+  "ADMIN_PIN",
 ] as const;
 
 const PUBLIC_SECRET_PATTERNS = [
@@ -268,6 +269,14 @@ function validateEnvironment(stripeMode: string): void {
     else warn("CRON_SECRET should be at least 24 characters");
   }
 
+  if (isFilled("ADMIN_EMAILS") && !isFilled("ADMIN_PIN")) {
+    fail("ADMIN_PIN must be set when ADMIN_EMAILS is configured");
+  }
+  if (isFilled("ADMIN_PIN")) {
+    if (env("ADMIN_PIN").length >= 12) pass("ADMIN_PIN length is reasonable");
+    else fail("ADMIN_PIN should be at least 12 characters");
+  }
+
   if (isFilled("PUZZLE_REVEAL_SECRET")) {
     if (env("PUZZLE_REVEAL_SECRET").length >= 32) {
       pass("PUZZLE_REVEAL_SECRET length is reasonable");
@@ -375,7 +384,7 @@ async function checkStripeRemote(skipRemote: boolean): Promise<void> {
   }
 
   const stripe = new Stripe(env("STRIPE_SECRET_KEY"), {
-    apiVersion: "2026-03-25.dahlia",
+    apiVersion: "2026-04-22.dahlia",
   });
 
   try {

@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 
 import { createApiResponse, readRequestBodyBytes } from "@/lib/apiHeaders";
 import { sendPaymentFailedEmail, sendSubscriptionStartedEmail } from "@/lib/email";
+import { isProSubscriptionStatus } from "@/lib/entitlements";
 import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/localePath";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { absoluteUrl } from "@/lib/siteUrl";
@@ -13,6 +14,7 @@ export const runtime = "nodejs";
 
 const EVENT_PROCESSING_STALE_MS = 10 * 60 * 1000;
 const UNIQUE_VIOLATION = "23505";
+const FOREIGN_KEY_VIOLATION = "23503";
 const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
 type StripeEventClaim = "claimed" | "duplicate" | "in_progress";
@@ -55,6 +57,10 @@ function getStringId(value: unknown): string | null {
 
 function isUniqueViolation(error: { code?: string } | null | undefined): boolean {
   return error?.code === UNIQUE_VIOLATION;
+}
+
+function isForeignKeyViolation(error: { code?: string } | null | undefined): boolean {
+  return error?.code === FOREIGN_KEY_VIOLATION;
 }
 
 function truncateErrorMessage(message: string): string {
@@ -193,9 +199,10 @@ async function upsertSubscriptionFromStripe(
 
   const priceId = sub.items.data[0]?.price?.id ?? null;
   const plan = normalizePlan({ metadataPlan: sub.metadata?.plan, priceId });
+  const nextStatus = extras?.status ?? sub.status;
   const { data: existing, error: existingError } = await admin
     .from("subscriptions")
-    .select("first_paid_at, coach_anchor_day")
+    .select("stripe_subscription_id, status, first_paid_at, coach_anchor_day")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -203,8 +210,30 @@ async function upsertSubscriptionFromStripe(
     throw new Error(`failed to load existing subscription: ${existingError.message}`);
   }
 
-  const firstPaidAt = existing?.first_paid_at ?? extras?.firstPaidAt ?? null;
-  const coachAnchorDay = existing?.coach_anchor_day ?? extras?.coachAnchorDay ?? null;
+  const existingSubscription = existing as {
+    stripe_subscription_id?: string | null;
+    status?: string | null;
+    first_paid_at?: string | null;
+    coach_anchor_day?: number | null;
+  } | null;
+
+  if (
+    existingSubscription?.stripe_subscription_id &&
+    existingSubscription.stripe_subscription_id !== sub.id &&
+    isProSubscriptionStatus(existingSubscription.status) &&
+    !isProSubscriptionStatus(nextStatus)
+  ) {
+    console.warn("[stripe/webhook] ignoring stale non-pro update for old subscription", {
+      userId,
+      currentSubscriptionId: existingSubscription.stripe_subscription_id,
+      incomingSubscriptionId: sub.id,
+      incomingStatus: nextStatus,
+    });
+    return;
+  }
+
+  const firstPaidAt = existingSubscription?.first_paid_at ?? extras?.firstPaidAt ?? null;
+  const coachAnchorDay = existingSubscription?.coach_anchor_day ?? extras?.coachAnchorDay ?? null;
 
   const { error } = await admin.from("subscriptions").upsert(
     {
@@ -212,7 +241,7 @@ async function upsertSubscriptionFromStripe(
       stripe_customer_id: customerId,
       stripe_subscription_id: sub.id,
       plan,
-      status: extras?.status ?? sub.status,
+      status: nextStatus,
       current_period_end: toIsoOrNull(minItemPeriodEnd(sub)),
       cancel_at_period_end: sub.cancel_at_period_end,
       trial_end: toIsoOrNull(sub.trial_end),
@@ -224,6 +253,13 @@ async function upsertSubscriptionFromStripe(
   );
 
   if (error) {
+    if (isForeignKeyViolation(error)) {
+      console.warn("[stripe/webhook] subscription user no longer exists; skipping upsert", {
+        userId,
+        subscriptionId: sub.id,
+      });
+      return;
+    }
     throw new Error(`failed to upsert subscription: ${error.message}`);
   }
 }

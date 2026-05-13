@@ -75,7 +75,7 @@
 
 **RLS**: 用户可 SELECT 自己的行。
 
-**写入**：仅通过 `service_role`，使用 Postgres RPC `increment_coach_usage(p_user_id uuid, p_day text)`（迁移 `0007_atomic_coach_usage_increment.sql`）对整日计数做原子自增（`lib/coach/coachState.ts` → `incrementCoachUsage`）。
+**写入**：仅通过 `service_role`。教练请求使用带配额判断的 RPC `try_increment_coach_usage(...)`（迁移 `0010_atomic_coach_usage_quota.sql`），在数据库内原子完成日/月限额检查与自增（`lib/coach/coachState.ts` → `tryIncrementCoachUsage`）。退款使用 `decrement_coach_usage(...)`。
 
 ---
 
@@ -178,7 +178,7 @@ Stripe 订阅状态。仅由 Webhook 处理器写入。
 
 **RLS**：已启用但**无策略** —— 仅通过 `service_role` 访问（`lib/coach/guestCoachUsage.ts`）。
 
-**写入**：通过 `increment_guest_coach_usage(p_device_id text, p_day text)` 原子自增（同一迁移）；由 `guestCoachUsage.ts` 的 `incrementGuestUsage` 调用。
+**写入**：通过 `try_increment_guest_coach_usage(...)`（迁移 `0010_atomic_coach_usage_quota.sql`）原子检查并自增；由 `guestCoachUsage.ts` 的 `tryIncrementGuestUsage` 调用。退款使用 `decrement_guest_coach_usage(...)`。
 
 ---
 

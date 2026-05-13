@@ -204,6 +204,88 @@ describe("/api/stripe/webhook", () => {
     });
   });
 
+  it("marks subscription events processed when the linked user has already been deleted", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_deleted_user",
+      type: "customer.subscription.deleted",
+      data: {
+        object: makeSubscription({
+          metadata: { user_id: "deleted-user" },
+          status: "canceled",
+        }),
+      },
+    });
+
+    const existingSelectQ = query({ data: null, error: null });
+    const upsertQ = query({ data: null, error: null });
+    upsertQ.upsert = vi.fn(() =>
+      Promise.resolve({ error: { code: "23503", message: "foreign key violation" } }),
+    );
+    const markProcessedQ = query({ error: null });
+    const admin = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(query({ error: null })) // stripe_events insert claim
+        .mockReturnValueOnce(existingSelectQ) // subscriptions select existing
+        .mockReturnValueOnce(upsertQ) // subscriptions upsert
+        .mockReturnValueOnce(markProcessedQ), // stripe_events mark processed
+    };
+    mocks.createServiceClient.mockReturnValue(admin);
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ ok: true });
+    expect(upsertQ.upsert).toHaveBeenCalled();
+    expect(markProcessedQ.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        processed_at: expect.any(String),
+        processing_started_at: null,
+        last_error: null,
+      }),
+    );
+  });
+
+  it("ignores stale cancellation events from an older subscription when a newer Pro subscription exists", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_stale_cancel",
+      type: "customer.subscription.deleted",
+      data: {
+        object: makeSubscription({
+          id: "sub_old",
+          metadata: { user_id: "user_1" },
+          status: "canceled",
+        }),
+      },
+    });
+
+    const existingSelectQ = query({
+      data: {
+        stripe_subscription_id: "sub_current",
+        status: "active",
+        first_paid_at: null,
+        coach_anchor_day: null,
+      },
+      error: null,
+    });
+    const markProcessedQ = query({ error: null });
+    const admin = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(query({ error: null })) // stripe_events insert claim
+        .mockReturnValueOnce(existingSelectQ) // subscriptions select existing
+        .mockReturnValueOnce(markProcessedQ), // stripe_events mark processed
+    };
+    mocks.createServiceClient.mockReturnValue(admin);
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ ok: true });
+    expect(existingSelectQ.upsert).not.toHaveBeenCalled();
+    expect(markProcessedQ.update).toHaveBeenCalled();
+  });
+
   it("captures trial_started for Checkout sessions that create a trial subscription", async () => {
     const trialEnd = Math.floor(new Date("2026-05-01T00:00:00.000Z").getTime() / 1000);
     mocks.constructEvent.mockReturnValue({

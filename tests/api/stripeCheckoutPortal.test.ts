@@ -47,18 +47,21 @@ function postRequest({
   origin = "https://go-daily.app",
   referer = "https://go-daily.app/zh/pricing",
   contentType = "application/json",
+  forwardedFor,
 }: {
   path: string;
   body?: unknown;
   origin?: string;
   referer?: string;
   contentType?: string;
+  forwardedFor?: string;
 }) {
   const headers: Record<string, string> = {
     origin,
     referer,
   };
   if (contentType) headers["content-type"] = contentType;
+  if (forwardedFor) headers["x-forwarded-for"] = forwardedFor;
 
   return new Request(`https://go-daily.app${path}`, {
     method: "POST",
@@ -84,6 +87,7 @@ describe("Stripe subscription API routes", () => {
     mocks.portalSessionCreate.mockResolvedValue({
       url: "https://billing.stripe.test/session_1",
     });
+    mocks.subscriptionQuery.mockReturnValue(query({ data: null, error: null }));
     process.env.STRIPE_SECRET_KEY = "sk_test_123";
     process.env.STRIPE_PRO_MONTHLY_PRICE_ID = "price_monthly";
     process.env.STRIPE_PRO_YEARLY_PRICE_ID = "price_yearly";
@@ -146,6 +150,80 @@ describe("Stripe subscription API routes", () => {
       expect(response.status).toBe(400);
       await expect(response.json()).resolves.toEqual({ error: "invalid_request" });
       expect(mocks.checkoutSessionCreate).not.toHaveBeenCalled();
+    });
+
+    it("blocks checkout when the user already has a Pro subscription", async () => {
+      mocks.subscriptionQuery.mockReturnValue(
+        query({ data: { status: "active", stripe_customer_id: "cus_1" }, error: null }),
+      );
+
+      const response = await checkoutPOST(
+        postRequest({
+          path: "/api/stripe/checkout",
+          body: { interval: "monthly" },
+        }),
+      );
+
+      expect(response.status).toBe(409);
+      await expect(response.json()).resolves.toEqual({ error: "already_subscribed" });
+      expect(mocks.checkoutSessionCreate).not.toHaveBeenCalled();
+    });
+
+    it("reuses an existing Stripe customer for a lapsed subscription", async () => {
+      mocks.subscriptionQuery.mockReturnValue(
+        query({ data: { status: "canceled", stripe_customer_id: "cus_existing" }, error: null }),
+      );
+
+      const response = await checkoutPOST(
+        postRequest({
+          path: "/api/stripe/checkout",
+          body: { interval: "yearly" },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(mocks.checkoutSessionCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customer: "cus_existing",
+          line_items: [{ price: "price_yearly", quantity: 1 }],
+          metadata: { user_id: "user_1", plan: "pro_yearly" },
+        }),
+      );
+      expect(mocks.checkoutSessionCreate.mock.calls[0][0]).not.toHaveProperty("customer_email");
+    });
+
+    it("returns 500 when existing subscription lookup fails", async () => {
+      mocks.subscriptionQuery.mockReturnValue(
+        query({ data: null, error: { message: "database unavailable" } }),
+      );
+
+      const response = await checkoutPOST(
+        postRequest({
+          path: "/api/stripe/checkout",
+          body: { interval: "monthly" },
+        }),
+      );
+
+      expect(response.status).toBe(500);
+      await expect(response.json()).resolves.toEqual({ error: "subscription_lookup_failed" });
+      expect(mocks.checkoutSessionCreate).not.toHaveBeenCalled();
+    });
+
+    it("rate limits checkout by user even when the IP changes", async () => {
+      let status = 200;
+      for (let index = 0; index < 15; index++) {
+        const response = await checkoutPOST(
+          postRequest({
+            path: "/api/stripe/checkout",
+            body: { interval: "monthly" },
+            forwardedFor: `203.0.113.${index + 1}`,
+          }),
+        );
+        status = response.status;
+        if (status === 429) break;
+      }
+
+      expect(status).toBe(429);
     });
   });
 

@@ -2,6 +2,7 @@ import { createApiResponse } from "@/lib/apiHeaders";
 import { sendDailyPuzzleEmail } from "@/lib/email";
 import { isLocale } from "@/lib/i18n/localePath";
 import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzle/puzzleOfTheDay";
+import { constantTimeEqual } from "@/lib/secureCompare";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { Locale } from "@/types";
 
@@ -30,7 +31,9 @@ function parseBatchSize(): number {
 function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) return false;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
+  const authorization = request.headers.get("authorization");
+  if (!authorization?.startsWith("Bearer ")) return false;
+  return constantTimeEqual(authorization.slice("Bearer ".length), secret);
 }
 
 function localeFromProfile(value: string | null | undefined): Locale {

@@ -1,6 +1,7 @@
 import { getPuzzle } from "@/content/puzzles";
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { DEVICE_ID_MAX_LENGTH } from "@/lib/auth/deviceRegistry";
+import { isInBounds, isOccupied } from "@/lib/board/board";
 import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
 import { getCoachAccess } from "@/lib/coach/coachAccess";
@@ -11,15 +12,15 @@ import { formatDateInTimeZone } from "@/lib/coach/coachQuota";
 import {
   COACH_DEVICE_ID_HEADER,
   getCoachState,
-  incrementCoachUsage,
   decrementCoachUsage,
+  tryIncrementCoachUsage,
   type CoachUsageSummary,
 } from "@/lib/coach/coachState";
 import {
   checkIpLimit,
   getGuestUsage,
-  incrementGuestUsage,
   decrementGuestUsage,
+  tryIncrementGuestUsage,
   incrementIpCounter,
   type GuestUsageSummary,
 } from "@/lib/coach/guestCoachUsage";
@@ -138,6 +139,9 @@ export async function POST(request: Request) {
 
   const puzzle = await getPuzzle(puzzleId);
   if (!puzzle) return errorResponse("Unknown puzzleId.", 404);
+  if (!isInBounds(userMove, puzzle.boardSize) || isOccupied(puzzle.stones, userMove)) {
+    return errorResponse("Invalid move.", 400);
+  }
   const isCorrect = judgeMove(puzzle, userMove);
   const persona = getPersona(personaId);
   const coachAccess = getCoachAccess(puzzle);
@@ -280,16 +284,62 @@ export async function POST(request: Request) {
   // starts a request, collects partial tokens, then aborts to avoid the charge.
   // Failed upstream requests still count — deferred charging would let users
   // retry freely on transient errors, burning LLM budget.
+  const usageDay = !isGuest ? formatDateInTimeZone(new Date(), coachState!.usage!.timeZone) : null;
   try {
     if (isGuest) {
-      await incrementGuestUsage(guestDeviceId!, countryCode);
-      incrementIpCounter(ip, countryCode);
+      const incrementResult = await tryIncrementGuestUsage(guestDeviceId!, countryCode);
+      if (!incrementResult.allowed) {
+        const currentUsage = await getGuestUsage(guestDeviceId!, countryCode).catch(
+          () => guestUsage,
+        );
+        return coachError({
+          status: 429,
+          code:
+            incrementResult.reason === "monthly_limit_reached"
+              ? COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED
+              : COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
+          error:
+            incrementResult.reason === "monthly_limit_reached"
+              ? "Monthly AI coach limit reached."
+              : "Daily AI coach limit reached.",
+          usage: currentUsage,
+        });
+      }
+      incrementIpCounter(ip, countryCode).catch((error) => {
+        console.warn("[coach] failed to increment guest IP counter", { ip, error });
+      });
     } else {
-      await incrementCoachUsage({
+      const usage = coachState!.usage!;
+      const incrementResult = await tryIncrementCoachUsage({
         admin: admin!,
         userId: user!.id,
-        day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
+        day: usageDay!,
+        monthWindowStart: usage.monthWindowStart,
+        monthWindowEnd: usage.monthWindowEnd,
+        dailyLimit: usage.dailyLimit,
+        monthlyLimit: usage.monthlyLimit,
       });
+      if (!incrementResult.allowed) {
+        const currentState = await getCoachState({
+          admin: admin!,
+          userId: user!.id,
+          deviceId: authDeviceId,
+          email: user!.email,
+          now: new Date(),
+        }).catch(() => coachState);
+        return coachError({
+          status: 429,
+          code:
+            incrementResult.reason === "monthly_limit_reached"
+              ? COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED
+              : COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
+          error:
+            incrementResult.reason === "monthly_limit_reached"
+              ? "Monthly AI coach limit reached."
+              : "Daily AI coach limit reached.",
+          usage: currentState?.usage ?? coachState!.usage,
+        });
+      }
     }
   } catch (err) {
     console.error("[coach] failed to increment usage", err);
@@ -300,22 +350,42 @@ export async function POST(request: Request) {
     });
   }
 
-  const updatedUsage = isGuest
-    ? {
-        dailyLimit: guestUsage!.dailyLimit,
-        monthlyLimit: guestUsage!.monthlyLimit,
-        dailyUsed: guestUsage!.dailyUsed + 1,
-        monthlyUsed: guestUsage!.monthlyUsed + 1,
-        dailyRemaining: Math.max(guestUsage!.dailyRemaining - 1, 0),
-        monthlyRemaining: Math.max(guestUsage!.monthlyRemaining - 1, 0),
+  let updatedUsage: CoachUsageSummary | GuestUsageSummary;
+  try {
+    if (isGuest) {
+      const postIncrementUsage = await getGuestUsage(guestDeviceId!, countryCode);
+      updatedUsage = postIncrementUsage;
+    } else {
+      const postIncrementState = await getCoachState({
+        admin: admin!,
+        userId: user!.id,
+        deviceId: authDeviceId,
+        email: user!.email,
+        now: new Date(),
+      });
+      const postIncrementUsage = postIncrementState.usage;
+      if (!postIncrementUsage) {
+        throw new Error("missing usage after increment");
       }
-    : {
-        ...coachState!.usage!,
-        dailyUsed: coachState!.usage!.dailyUsed + 1,
-        monthlyUsed: coachState!.usage!.monthlyUsed + 1,
-        dailyRemaining: Math.max(coachState!.usage!.dailyRemaining - 1, 0),
-        monthlyRemaining: Math.max(coachState!.usage!.monthlyRemaining - 1, 0),
-      };
+      updatedUsage = postIncrementUsage;
+    }
+  } catch (err) {
+    console.error("[coach] failed to verify usage after increment", err);
+    if (isGuest) {
+      await decrementGuestUsage(guestDeviceId!, countryCode).catch(() => {});
+    } else {
+      await decrementCoachUsage({
+        admin: admin!,
+        userId: user!.id,
+        day: usageDay!,
+      }).catch(() => {});
+    }
+    return coachError({
+      status: 500,
+      code: COACH_ERROR_CODES.QUOTA_WRITE_FAILED,
+      error: "Failed to record usage. Please try again.",
+    });
+  }
 
   try {
     const provider = createManagedCoachProvider({
@@ -384,7 +454,7 @@ export async function POST(request: Request) {
             await decrementCoachUsage({
               admin: admin!,
               userId: user!.id,
-              day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
+              day: usageDay!,
             }).catch(() => {});
           }
 
@@ -443,7 +513,7 @@ export async function POST(request: Request) {
       await decrementCoachUsage({
         admin: admin!,
         userId: user!.id,
-        day: formatDateInTimeZone(new Date(), coachState!.usage!.timeZone),
+        day: usageDay!,
       }).catch(() => {});
     }
 

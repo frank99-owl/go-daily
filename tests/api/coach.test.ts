@@ -26,6 +26,8 @@ const guestUsageMocks = vi.hoisted(() => ({
   getGuestUsage: vi.fn(),
   checkIpLimit: vi.fn(),
   incrementGuestUsage: vi.fn(),
+  decrementGuestUsage: vi.fn(),
+  tryIncrementGuestUsage: vi.fn(),
   incrementIpCounter: vi.fn(),
 }));
 vi.mock("@/lib/coach/guestCoachUsage", () => guestUsageMocks);
@@ -176,7 +178,20 @@ function buildAdminClient({
           return query({ data: null, error: null });
       }
     }),
-    rpc: vi.fn(() => Promise.resolve({ data: 1, error: null })),
+    rpc: vi.fn(async (fn: string): Promise<QueryResult> => {
+      if (fn === "try_increment_coach_usage") {
+        return {
+          data: {
+            allowed: true,
+            reason: null,
+            dailyUsed: 1,
+            monthlyUsed: 1,
+          },
+          error: null,
+        };
+      }
+      return { data: 1, error: null };
+    }),
   };
 }
 
@@ -259,7 +274,14 @@ describe("/api/coach", () => {
     });
     guestUsageMocks.checkIpLimit.mockReturnValue({ allowed: true });
     guestUsageMocks.incrementGuestUsage.mockResolvedValue(1);
-    guestUsageMocks.incrementIpCounter.mockReturnValue(undefined);
+    guestUsageMocks.decrementGuestUsage.mockResolvedValue(undefined);
+    guestUsageMocks.tryIncrementGuestUsage.mockResolvedValue({
+      allowed: true,
+      reason: null,
+      dailyUsed: 1,
+      monthlyUsed: 1,
+    });
+    guestUsageMocks.incrementIpCounter.mockResolvedValue(undefined);
     vi.mocked(getPuzzle).mockResolvedValue({
       id: "p-00001",
       date: "2026-04-21",
@@ -365,6 +387,63 @@ describe("/api/coach", () => {
 
     expect(response.status).toBe(404);
     await expect(response.json()).resolves.toEqual({ error: "Unknown puzzleId." });
+  });
+
+  it("rejects out-of-bounds coach moves before quota writes or LLM calls", async () => {
+    const response = await POST(
+      makeRequest({
+        puzzleId: "p-00001",
+        locale: "en",
+        userMove: { x: -1, y: 3 },
+        isCorrect: false,
+        history: [{ role: "user", content: "Why?", ts: 1 }],
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: "Invalid move." });
+    expect(supabaseMocks.createServiceClient).not.toHaveBeenCalled();
+    expect(createCompletionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects occupied coach moves before quota writes or LLM calls", async () => {
+    vi.mocked(getPuzzle).mockResolvedValueOnce({
+      id: "p-occupied",
+      date: "2026-04-21",
+      boardSize: 19,
+      stones: [{ x: 3, y: 3, color: "black" }],
+      toPlay: "white",
+      correct: [{ x: 18, y: 0 }],
+      tag: "life-death",
+      difficulty: 2,
+      prompt: {
+        zh: "白先",
+        en: "White to play",
+        ja: "白番",
+        ko: "백 차례",
+      },
+      solutionNote: {
+        zh: "测试",
+        en: "Test",
+        ja: "テスト",
+        ko: "테스트",
+      },
+    });
+
+    const response = await POST(
+      makeRequest({
+        puzzleId: "p-occupied",
+        locale: "en",
+        userMove: { x: 3, y: 3 },
+        isCorrect: false,
+        history: [{ role: "user", content: "Why?", ts: 1 }],
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: "Invalid move." });
+    expect(supabaseMocks.createServiceClient).not.toHaveBeenCalled();
+    expect(createCompletionMock).not.toHaveBeenCalled();
   });
 
   it("rejects suspicious prompt-injection content", async () => {
@@ -851,6 +930,51 @@ describe("/api/coach", () => {
       });
       expect(createCompletionMock).not.toHaveBeenCalled();
     });
+
+    it("rejects when the atomic quota check reports a concurrent daily limit hit", async () => {
+      const today = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date());
+      const usageRows = [{ day: today, count: 9 }];
+      const admin = buildAdminClient({
+        subscription: { status: null },
+        usageRows,
+      });
+      admin.rpc.mockImplementation(async (fn: string) => {
+        if (fn === "try_increment_coach_usage") {
+          return {
+            data: {
+              allowed: false,
+              reason: "daily_limit_reached",
+              dailyUsed: 10,
+              monthlyUsed: 10,
+            },
+            error: null,
+          };
+        }
+        return { data: 1, error: null };
+      });
+      supabaseMocks.createServiceClient.mockReturnValue(admin);
+
+      const response = await POST(
+        makeRequest({
+          puzzleId: "p-00001",
+          locale: "en",
+          userMove: { x: 3, y: 3 },
+          isCorrect: false,
+          history: [{ role: "user", content: "Why?", ts: 1 }],
+        }),
+      );
+
+      expect(response.status).toBe(429);
+      await expect(response.json()).resolves.toMatchObject({
+        code: "daily_limit_reached",
+      });
+      expect(createCompletionMock).not.toHaveBeenCalled();
+    });
   });
 
   describe("monthly limit", () => {
@@ -1037,8 +1161,56 @@ describe("/api/coach", () => {
       const events = await readSse(response);
       const deltas = events.filter((e) => e.delta).map((e) => e.delta);
       expect(deltas.join("")).toContain("Guest reply");
-      expect(guestUsageMocks.incrementGuestUsage).toHaveBeenCalledWith("guest-123", null);
+      expect(guestUsageMocks.tryIncrementGuestUsage).toHaveBeenCalledWith("guest-123", null);
       expect(guestUsageMocks.incrementIpCounter).toHaveBeenCalled();
+    });
+
+    it("rejects guests when the atomic quota check reports a concurrent daily limit hit", async () => {
+      guestUsageMocks.getGuestUsage
+        .mockResolvedValueOnce({
+          dailyLimit: 5,
+          monthlyLimit: 20,
+          dailyUsed: 4,
+          monthlyUsed: 19,
+          dailyRemaining: 1,
+          monthlyRemaining: 1,
+        })
+        .mockResolvedValueOnce({
+          dailyLimit: 5,
+          monthlyLimit: 20,
+          dailyUsed: 5,
+          monthlyUsed: 20,
+          dailyRemaining: 0,
+          monthlyRemaining: 0,
+        });
+      guestUsageMocks.tryIncrementGuestUsage.mockResolvedValueOnce({
+        allowed: false,
+        reason: "daily_limit_reached",
+        dailyUsed: 5,
+        monthlyUsed: 20,
+      });
+      guestUsageMocks.decrementGuestUsage.mockClear();
+      guestUsageMocks.incrementIpCounter.mockClear();
+
+      const response = await POST(
+        makeRequest(
+          {
+            puzzleId: "p-00001",
+            locale: "en",
+            userMove: { x: 3, y: 3 },
+            history: [{ role: "user", content: "Why?", ts: 1 }],
+          },
+          { headers: { "x-go-daily-guest-device-id": "guest-123" } },
+        ),
+      );
+
+      expect(response.status).toBe(429);
+      await expect(response.json()).resolves.toMatchObject({
+        code: "daily_limit_reached",
+      });
+      expect(guestUsageMocks.decrementGuestUsage).not.toHaveBeenCalled();
+      expect(guestUsageMocks.incrementIpCounter).not.toHaveBeenCalled();
+      expect(createCompletionMock).not.toHaveBeenCalled();
     });
   });
 
