@@ -1,7 +1,6 @@
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
 import { headers } from "next/headers";
 
 import "./globals.css";
@@ -10,19 +9,6 @@ import { PostHogProvider } from "@/components/PostHogProvider";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/localePath";
 import { getSiteUrl } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
-
-const playfair = Playfair_Display({
-  variable: "--font-headline",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-});
 
 /** CJK font families per locale — loaded on-demand via non-blocking <link>. */
 const CJK_FONTS: Record<Locale, string[]> = {
@@ -86,7 +72,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       lang={locale}
       data-locale={locale}
       data-scroll-behavior="smooth"
-      className={`${playfair.variable} ${inter.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

@@ -25,15 +25,33 @@
 - **运行时**：根级 OG/Twitter 使用 `export const runtime = "nodejs"` 配合 `ImageResponse`，以便在构建阶段**静态预渲染**，并避免 Edge Runtime 关于静态生成的告警。
 - **Satori 限制**：渲染器**不支持** `z-index`；层次背景请叠在**最外层容器的 `background`** 上，勿用多层 absolute 叠加。
 
-## 3. 部署预检 (`scripts/productionPreflight.ts`)
+## 3. 部署预检与本地生产烟测 (`scripts/productionPreflight.ts`)
 
-在任何生产推送前，运行以下命令。脚本会输出可变的检查清单（必填环境变量、密钥形态校验、可选的 Supabase 列探测、可选的 Stripe 价格探测——完整项见 `scripts/productionPreflight.ts`）：
+P2-C 当前执行范围是本地生产烟测。默认预检必须只做 dry-run、mock、静态分析或可控 HTTP smoke，不部署、不真实发送邮件、不真实创建 Stripe 支付、不访问或修改外部系统。
+
+本地发布前先运行：
 
 ```bash
-npm run preflight:prod -- --stripe-mode=live
+npm run preflight:prod
 ```
 
-该脚本检查：Stripe Live Key 有效性、Supabase 表与 RLS 状态、Resend 邮件健康度以及多语言 Key 的一致性。
+在明确发布窗口并获得单独审批后，才运行会访问外部服务的 live 检查。脚本会输出可变的检查清单（必填环境变量、密钥形态校验、可选的 Supabase 列探测、可选的 Stripe 价格探测——完整项见 `scripts/productionPreflight.ts`）：
+
+```bash
+npm run preflight:prod -- --check-remote --stripe-mode=live
+```
+
+live 模式检查：Stripe Live Key 有效性、Supabase 表与 RLS 状态、Resend 邮件健康度以及多语言 Key 的一致性。默认本地模式只检查环境变量形态、关键页面/API 文件、SEO、PWA/offline、错误体验、邮件发送安全边界、Stripe 本地边界与轻量性能预算，不得依赖这些外部系统成功。
+
+`npm run email:smoketest` 默认同样是本地 dry-run：只检查 `RESEND_API_KEY` / `EMAIL_FROM` 是否存在以及 sender 形态，不查询 Resend、不发信。只有在单独审批后才使用：
+
+```bash
+npm run email:smoketest -- --check-remote
+```
+
+真实发送测试邮件必须额外显式传入 `--send-test=<address>`，不属于 P2-C 本地烟测范围。
+
+为保证本地构建可重复，根布局不使用 `next/font/google` 的构建期字体下载；英文字体使用 system-first CSS 变量，CJK 字体仍通过运行时非阻塞 `<link>` 做可选增强。
 
 ## 4. 质量保障计划
 

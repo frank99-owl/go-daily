@@ -24,9 +24,11 @@
   --color-linen: #e3dccb; /* warm light text */
   --color-earth: #4a3728; /* warm brown */
 
-  /* Default (en) font stacks — Inter via next/font (self-hosted, zero blocking) */
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: var(--font-headline), "Playfair Display", serif;
+  /* Default (en) font stacks — system-first so local builds do not fetch remote fonts. */
+  --font-inter: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-headline: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-headline);
 }
 
 /* Locale-specific font overrides — CJK fonts loaded non-blocking via <link> */

@@ -11,6 +11,7 @@ type Status = "PASS" | "WARN" | "FAIL";
 type Check = { status: Status; label: string; detail?: string };
 
 const checks: Check[] = [];
+const ONE_KB = 1024;
 
 const REQUIRED_ENV = [
   ["DEEPSEEK_API_KEY", "AI Coach provider key"],
@@ -58,6 +59,36 @@ const PUBLIC_SECRET_PATTERNS = [
   /sb_secret_/i,
   /service_role/i,
 ];
+
+const SMOKE_PAGE_ROUTES = [
+  ["/", "app/[locale]/page.tsx"],
+  ["/onboarding", "app/[locale]/onboarding/page.tsx"],
+  ["/today", "app/[locale]/today/page.tsx"],
+  ["/puzzles", "app/[locale]/puzzles/page.tsx"],
+  ["/review", "app/[locale]/review/page.tsx"],
+  ["/stats", "app/[locale]/stats/page.tsx"],
+  ["/pricing", "app/[locale]/pricing/page.tsx"],
+  ["/account", "app/[locale]/account/page.tsx"],
+] as const;
+
+const SMOKE_API_ROUTES = [
+  ["/api/health", "app/api/health/route.ts"],
+  ["/api/report-error", "app/api/report-error/route.ts"],
+  ["/api/cron/daily-email", "app/api/cron/daily-email/route.ts"],
+  ["/api/stripe/checkout", "app/api/stripe/checkout/route.ts"],
+  ["/api/stripe/portal", "app/api/stripe/portal/route.ts"],
+  ["/api/stripe/webhook", "app/api/stripe/webhook/route.ts"],
+] as const;
+
+const ERROR_BOUNDARY_FILES = [
+  "app/global-error.tsx",
+  "app/error.tsx",
+  "app/[locale]/today/error.tsx",
+  "app/[locale]/puzzles/error.tsx",
+  "app/[locale]/result/error.tsx",
+  "app/[locale]/review/error.tsx",
+  "app/[locale]/stats/error.tsx",
+] as const;
 
 const EXPECTED_SUPABASE_COLUMNS: Record<string, string[]> = {
   profiles: [
@@ -153,6 +184,55 @@ function warn(label: string, detail?: string): void {
 
 function fail(label: string, detail?: string): void {
   add("FAIL", label, detail);
+}
+
+function fileExists(path: string): boolean {
+  return fs.existsSync(path) && fs.statSync(path).isFile();
+}
+
+function requireFile(path: string, label: string): boolean {
+  if (fileExists(path)) {
+    pass(label, path);
+    return true;
+  }
+  fail(label, `${path} is missing`);
+  return false;
+}
+
+function readText(path: string): string {
+  return fs.readFileSync(path, "utf8");
+}
+
+function requireFileContains(path: string, label: string, patterns: RegExp[]): void {
+  if (!requireFile(path, `${label} file exists`)) return;
+  const text = readText(path);
+  const missing = patterns.filter((pattern) => !pattern.test(text));
+  if (missing.length > 0) {
+    fail(label, `Missing expected pattern(s): ${missing.map(String).join(", ")}`);
+    return;
+  }
+  pass(label);
+}
+
+function requireFileExcludes(path: string, label: string, patterns: RegExp[]): void {
+  if (!requireFile(path, `${label} file exists`)) return;
+  const text = readText(path);
+  const present = patterns.filter((pattern) => pattern.test(text));
+  if (present.length > 0) {
+    fail(label, `Unexpected pattern(s): ${present.map(String).join(", ")}`);
+    return;
+  }
+  pass(label);
+}
+
+function checkFileBudget(path: string, maxBytes: number, label: string): void {
+  if (!requireFile(path, `${label} exists`)) return;
+  const size = fs.statSync(path).size;
+  if (size <= maxBytes) {
+    pass(label, `${Math.ceil(size / ONE_KB)} KB <= ${Math.ceil(maxBytes / ONE_KB)} KB`);
+  } else {
+    fail(label, `${Math.ceil(size / ONE_KB)} KB > ${Math.ceil(maxBytes / ONE_KB)} KB`);
+  }
 }
 
 function isPlaceholder(value: string): boolean {
@@ -323,6 +403,122 @@ function validateEnvironment(stripeMode: string): void {
   }
 }
 
+function validateLocalSmokeSurface(): void {
+  for (const [route, file] of SMOKE_PAGE_ROUTES) {
+    requireFile(file, `Smoke page route exists: ${route}`);
+  }
+
+  for (const [route, file] of SMOKE_API_ROUTES) {
+    requireFile(file, `Smoke API route exists: ${route}`);
+  }
+}
+
+function validateSeoSurface(): void {
+  requireFileContains("app/layout.tsx", "Root metadata includes SEO/PWA defaults", [
+    /metadataBase:/,
+    /openGraph:/,
+    /twitter:/,
+    /manifest:\s*"\/manifest\.webmanifest"/,
+  ]);
+  requireFileContains("app/sitemap.ts", "Sitemap emits localized alternates", [
+    /alternates:\s*\{\s*languages:/,
+    /x-default/,
+    /localePath/,
+  ]);
+  requireFileContains("app/robots.ts", "Robots points at sitemap and blocks private paths", [
+    /sitemap:/,
+    /disallow:/,
+    /"\/api\/"/,
+  ]);
+  requireFile("app/opengraph-image.tsx", "Default Open Graph image route exists");
+  requireFile("app/twitter-image.tsx", "Twitter image route exists");
+  requireFile("app/[locale]/opengraph-image.tsx", "Localized Open Graph image route exists");
+}
+
+function validatePwaOfflineSurface(): void {
+  requireFileContains("app/manifest.ts", "Manifest declares installable app shell", [
+    /display:\s*"standalone"/,
+    /start_url:/,
+    /icons:/,
+    /icon-192\.png/,
+    /icon-512\.png/,
+  ]);
+  requireFileContains(
+    "components/ClientInit.tsx",
+    "Client registers service worker in production",
+    [/navigator\.serviceWorker\.register\("\/sw\.js"\)/, /process\.env\.NODE_ENV === "production"/],
+  );
+  requireFileContains("public/sw.js", "Service worker provides offline fallback safely", [
+    /PRECACHE_URLS/,
+    /\/offline\.html/,
+    /url\.pathname\.startsWith\("\/api\/"\)/,
+    /request\.method !== "GET"/,
+  ]);
+  requireFileContains("public/offline.html", "Offline fallback HTML exists", [/You are offline\./]);
+  requireFile("public/icon.svg", "PWA SVG icon exists");
+  requireFile("public/icon-192.png", "PWA 192 icon exists");
+  requireFile("public/icon-512.png", "PWA 512 icon exists");
+}
+
+function validateErrorExperienceSurface(): void {
+  for (const file of ERROR_BOUNDARY_FILES) {
+    requireFile(file, `Error boundary exists: ${file}`);
+  }
+  requireFile("app/[locale]/review/loading.tsx", "Review loading state exists");
+  requireFile("app/[locale]/stats/loading.tsx", "Stats loading state exists");
+  requireFileContains("app/api/report-error/route.ts", "Client error report route is bounded", [
+    /MAX_BODY_BYTES/,
+    /sanitizeMessage/,
+    /sanitizeUrl/,
+    /createRateLimiter/,
+  ]);
+}
+
+function validateEmailSafetySurface(): void {
+  requireFileContains("scripts/emailSmoketest.ts", "Email smoketest is send-safe by default", [
+    /--check-remote/,
+    /--send-test=/,
+    /Resend remote check.+Skipped/s,
+    /Skipped.+pass --send-test=<address>/s,
+  ]);
+  requireFileContains("app/api/cron/daily-email/route.ts", "Daily email cron is gated", [
+    /CRON_SECRET/,
+    /constantTimeEqual/,
+    /EMAIL_CRON_BATCH_SIZE/,
+  ]);
+  requireFile("tests/api/dailyEmailCron.test.ts", "Daily email cron tests exist");
+}
+
+function validateStripeSafetySurface(): void {
+  requireFileContains("app/api/stripe/webhook/route.ts", "Stripe webhook is bounded/idempotent", [
+    /MAX_WEBHOOK_BODY_BYTES/,
+    /stripe_events/,
+    /constructEvent/,
+  ]);
+  requireFileContains(
+    "app/api/stripe/checkout/route.ts",
+    "Stripe checkout requires auth and uses Checkout",
+    [/supabase\.auth\.getUser/, /checkout\.sessions\.create/, /client_reference_id/],
+  );
+  requireFileContains("app/api/stripe/portal/route.ts", "Stripe portal requires same-origin auth", [
+    /isSameOriginMutationRequest/,
+    /supabase\.auth\.getUser/,
+    /billingPortal\.sessions\.create/,
+  ]);
+  requireFile("tests/api/stripeWebhook.test.ts", "Stripe webhook tests exist");
+  requireFile("tests/api/stripeCheckoutPortal.test.ts", "Stripe checkout/portal tests exist");
+}
+
+function validatePerformanceBudgets(): void {
+  requireFileExcludes("app/layout.tsx", "Build avoids Google Font network dependency", [
+    /next\/font\/google/,
+  ]);
+  checkFileBudget("public/sw.js", 10 * ONE_KB, "Service worker budget");
+  checkFileBudget("public/offline.html", 5 * ONE_KB, "Offline fallback budget");
+  checkFileBudget("public/hero-bg.jpg", 200 * ONE_KB, "Hero image budget");
+  checkFileBudget("public/icon-512.png", 64 * ONE_KB, "Largest PWA icon budget");
+}
+
 async function checkSupabaseRemote(skipRemote: boolean): Promise<void> {
   const hasSupabase =
     isFilled("NEXT_PUBLIC_SUPABASE_URL") &&
@@ -445,14 +641,28 @@ function printSummary(): void {
 }
 
 async function main(): Promise<void> {
-  const stripeMode = argValue("--stripe-mode") ?? "live";
+  const stripeMode = argValue("--stripe-mode") ?? "any";
   if (!["live", "test", "any"].includes(stripeMode)) {
     fail("--stripe-mode must be live, test, or any");
   }
 
-  const skipRemote = hasArg("--skip-remote");
+  const checkRemote = hasArg("--check-remote");
+  const skipRemote = hasArg("--skip-remote") || !checkRemote;
 
   validateEnvironment(stripeMode);
+  validateLocalSmokeSurface();
+  validateSeoSurface();
+  validatePwaOfflineSurface();
+  validateErrorExperienceSurface();
+  validateEmailSafetySurface();
+  validateStripeSafetySurface();
+  validatePerformanceBudgets();
+  if (skipRemote && !hasArg("--skip-remote")) {
+    warn(
+      "Remote checks skipped",
+      "Default P2-C mode is local/dry-run; pass --check-remote after approval.",
+    );
+  }
   await checkSupabaseRemote(skipRemote);
   await checkStripeRemote(skipRemote);
   printSummary();

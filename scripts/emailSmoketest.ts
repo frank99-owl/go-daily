@@ -10,7 +10,12 @@
  *
  * Usage:
  *   npm run email:smoketest
+ *   npm run email:smoketest -- --check-remote
  *   npm run email:smoketest -- --send-test=you@example.com
+ *
+ * The default run is local/dry-run only: it validates env presence and sender
+ * shape, then skips Resend API calls. Use --check-remote during an approved
+ * release window to query Resend domain/DNS status.
  *
  * The optional --send-test flag fires a real transactional email so you can
  * confirm end-to-end delivery (inbox + From header + unsubscribe). Skipped by
@@ -35,9 +40,16 @@ function logCheck({ status, label, detail }: Check): void {
   console.log(`${tag} ${label}${suffix}`);
 }
 
-function parseArgs(): { sendTestTo: string | null } {
-  const out: { sendTestTo: string | null } = { sendTestTo: null };
+function parseArgs(): { checkRemote: boolean; sendTestTo: string | null } {
+  const out: { checkRemote: boolean; sendTestTo: string | null } = {
+    checkRemote: false,
+    sendTestTo: null,
+  };
   for (const arg of process.argv.slice(2)) {
+    if (arg === "--check-remote") {
+      out.checkRemote = true;
+      continue;
+    }
     if (arg.startsWith("--send-test=")) {
       out.sendTestTo = arg.slice("--send-test=".length).trim() || null;
     }
@@ -190,14 +202,23 @@ async function maybeSendTest(apiKey: string, to: string, fromHeader: string): Pr
 }
 
 async function main(): Promise<void> {
+  const args = parseArgs();
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const emailFrom = process.env.EMAIL_FROM?.trim();
 
   if (!apiKey) {
-    record("FAIL", "RESEND_API_KEY", "Not set in .env.local");
+    record(
+      args.checkRemote || args.sendTestTo ? "FAIL" : "WARN",
+      "RESEND_API_KEY",
+      "Not set in .env.local",
+    );
   }
   if (!emailFrom) {
-    record("FAIL", "EMAIL_FROM", "Not set in .env.local");
+    record(
+      args.checkRemote || args.sendTestTo ? "FAIL" : "WARN",
+      "EMAIL_FROM",
+      "Not set in .env.local",
+    );
   }
 
   if (!apiKey || !emailFrom) {
@@ -212,6 +233,13 @@ async function main(): Promise<void> {
     return;
   }
   record("PASS", "EMAIL_FROM format", `sender domain: ${senderDomain}`);
+
+  if (!args.checkRemote && !args.sendTestTo) {
+    record("WARN", "Resend remote check", "Skipped — pass --check-remote to query Resend");
+    record("WARN", "Live send", "Skipped — pass --send-test=<address> to fire a real email");
+    finish();
+    return;
+  }
 
   const domains = await fetchDomains(apiKey);
   if (domains.length === 0) {
@@ -252,7 +280,6 @@ async function main(): Promise<void> {
   const detail = await fetchDomainDetail(apiKey, matched.id);
   if (detail) summarizeDomainRecords(detail);
 
-  const args = parseArgs();
   if (args.sendTestTo) {
     await maybeSendTest(apiKey, args.sendTestTo, emailFrom);
   } else {
