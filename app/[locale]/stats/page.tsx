@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 
+import { getAllSummaries } from "@/content/puzzleSummaries";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { buildHreflangAlternates } from "@/lib/siteUrl";
@@ -27,10 +28,12 @@ export async function generateMetadata({
   };
 }
 
-export default function StatsPage() {
+export default async function StatsPage() {
+  const summaries = await getAllSummaries();
+
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 pt-20 pb-8 sm:pt-24 sm:pb-12">
-      <StatsClient />
+      <StatsClient summaries={summaries} />
     </div>
   );
 }

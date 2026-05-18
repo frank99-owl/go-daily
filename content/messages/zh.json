@@ -247,7 +247,22 @@
     "import": "导入战绩",
     "importing": "正在导入…",
     "importSuccess": "已导入 {{count}} 条新记录，当前共 {{total}} 条。",
-    "importError": "导入失败：{{error}}"
+    "importError": "导入失败：{{error}}",
+    "insights": {
+      "title": "训练重点",
+      "weakTagsTitle": "弱项分类",
+      "weakMistakesTitle": "可能习惯",
+      "trendTitle": "最近 7 天",
+      "completionTitle": "复习完成率",
+      "noWeakTags": "错题还不够多，暂时不判断弱项。",
+      "noMistakeReasons": "多做几次复习后，会显示可能的错误习惯。",
+      "noTrend": "最近 7 天还没有练习记录。",
+      "noCompletion": "目前没有复习积压。",
+      "trendValue": "{{correct}}/{{attempted}} 正确 · {{accuracy}}%",
+      "activeDays": "{{count}} 个活跃日",
+      "completionValue": "{{rate}}%",
+      "completionDetail": "已清掉 {{completed}} · 待复习 {{backlog}}"
+    }
   },
   "share": {
     "title": "分享今日战绩",
@@ -312,7 +327,20 @@
     "freeLimitNotice": "Free 错题本显示最近 {{limit}} 题，还有 {{count}} 题可用 Pro SRS 管理。",
     "freeLimitCta": "升级 Pro",
     "lastAttempted": "最近尝试 {{date}}",
-    "attemptCount": "{{count}} 次尝试"
+    "attemptCount": "{{count}} 次尝试",
+    "insights": {
+      "title": "今日复习摘要",
+      "dueNow": "现在该复习",
+      "backlog": "积压",
+      "weakTags": "弱项分类",
+      "noWeakTags": "暂时没有明显弱项。",
+      "focusTitle": "先练什么",
+      "focusWithTag": "先从 {{tag}} 开始，因为未解决错题集中在这里。",
+      "focusBacklog": "先清掉等待复习的题，再去挑战更难的题。",
+      "focusClear": "现在没有复习压力，可以继续做新题。",
+      "whySrs": "根据到期的 SRS 卡片和最近保存的尝试记录生成。",
+      "whyLocal": "根据这台设备上尚未解决的错题生成。"
+    }
   },
   "pricing": {
     "title": "升级到 Pro",

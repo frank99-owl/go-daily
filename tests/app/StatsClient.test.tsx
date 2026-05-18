@@ -3,6 +3,24 @@ import { describe, expect, it, beforeEach } from "vitest";
 
 import { StatsClient } from "@/app/[locale]/stats/StatsClient";
 import { LocaleProvider } from "@/lib/i18n/i18n";
+import type { PuzzleSummary } from "@/types";
+
+function summary(id: string, tag: PuzzleSummary["tag"]): PuzzleSummary {
+  return {
+    id,
+    difficulty: 2,
+    source: "test",
+    date: "2026-05-01",
+    prompt: {
+      zh: id,
+      en: id,
+      ja: id,
+      ko: id,
+    },
+    boardSize: 9,
+    tag,
+  };
+}
 
 function createStorage() {
   return {
@@ -88,5 +106,79 @@ describe("StatsClient", () => {
     });
 
     expect(screen.getByText("Puzzles solved")).toBeInTheDocument();
+  });
+
+  it("shows weak topics, trend, and review completion when history exists", async () => {
+    const { container } = render(
+      <LocaleProvider initialLocale="en">
+        <StatsClient
+          summaries={[
+            summary("life-1", "life-death"),
+            summary("tesuji-1", "tesuji"),
+            summary("cleared-1", "endgame"),
+          ]}
+          now={new Date("2026-05-18T12:00:00")}
+        />
+      </LocaleProvider>,
+    );
+
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement | null;
+    expect(input).not.toBeNull();
+
+    const file = new File(
+      [
+        JSON.stringify({
+          version: 1,
+          app: "go-daily",
+          exportedAt: "2026-05-18T00:00:00.000Z",
+          data: {
+            attempts: [
+              {
+                puzzleId: "life-1",
+                date: "2026-05-18",
+                userMove: null,
+                correct: false,
+                solvedAtMs: 1_000,
+              },
+              {
+                puzzleId: "tesuji-1",
+                date: "2026-05-17",
+                userMove: null,
+                correct: false,
+                solvedAtMs: 2_000,
+              },
+              {
+                puzzleId: "cleared-1",
+                date: "2026-05-16",
+                userMove: null,
+                correct: false,
+                solvedAtMs: 3_000,
+              },
+              {
+                puzzleId: "cleared-1",
+                date: "2026-05-18",
+                userMove: null,
+                correct: true,
+                solvedAtMs: 4_000,
+              },
+            ],
+          },
+        }),
+      ],
+      "backup.json",
+      { type: "application/json" },
+    );
+
+    fireEvent.change(input!, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText("Training focus")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Life & Death · 1")).toBeInTheDocument();
+    expect(screen.getByText("Liberty counting · 1")).toBeInTheDocument();
+    expect(screen.getByText("1/4 correct · 25%")).toBeInTheDocument();
+    expect(screen.getByText("33%")).toBeInTheDocument();
+    expect(screen.getByText("1 cleared · 2 waiting")).toBeInTheDocument();
   });
 });

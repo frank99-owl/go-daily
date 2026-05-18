@@ -247,7 +247,22 @@
     "import": "기록 가져오기",
     "importing": "가져오는 중…",
     "importSuccess": "새 기록 {{count}}개를 가져왔습니다. 현재 총 {{total}}개가 저장되어 있습니다.",
-    "importError": "가져오기에 실패했습니다: {{error}}"
+    "importError": "가져오기에 실패했습니다: {{error}}",
+    "insights": {
+      "title": "훈련 초점",
+      "weakTagsTitle": "약한 분류",
+      "weakMistakesTitle": "가능한 습관",
+      "trendTitle": "최근 7일",
+      "completionTitle": "복습 완료율",
+      "noWeakTags": "아직 오답이 충분하지 않아 약점을 판단하지 않습니다.",
+      "noMistakeReasons": "복습 기록이 더 쌓이면 가능한 실수 습관을 표시합니다.",
+      "noTrend": "최근 7일 동안 연습 기록이 없습니다.",
+      "noCompletion": "현재 복습 적체가 없습니다.",
+      "trendValue": "{{correct}}/{{attempted}} 정답 · {{accuracy}}%",
+      "activeDays": "활동일 {{count}}일",
+      "completionValue": "{{rate}}%",
+      "completionDetail": "{{completed}}개 해소 · {{backlog}}개 대기"
+    }
   },
   "share": {
     "title": "오늘의 결과 공유",
@@ -312,7 +327,20 @@
     "freeLimitNotice": "Free 오답노트는 최근 {{limit}}문제까지 표시합니다. Pro SRS로 {{count}}문제를 더 관리할 수 있습니다.",
     "freeLimitCta": "Pro로 업그레이드",
     "lastAttempted": "최근 시도 {{date}}",
-    "attemptCount": "{{count}}회 시도"
+    "attemptCount": "{{count}}회 시도",
+    "insights": {
+      "title": "오늘의 복습 요약",
+      "dueNow": "지금 복습",
+      "backlog": "적체",
+      "weakTags": "약한 분류",
+      "noWeakTags": "아직 뚜렷한 약점이 없습니다.",
+      "focusTitle": "먼저 연습할 것",
+      "focusWithTag": "해결하지 못한 오답이 {{tag}}에 몰려 있으므로 여기서 시작하세요.",
+      "focusBacklog": "더 어려운 문제로 가기 전에 대기 중인 복습을 먼저 정리하세요.",
+      "focusClear": "지금은 복습 부담이 없습니다. 새 문제를 계속 풀어도 됩니다.",
+      "whySrs": "기한이 된 SRS 카드와 최근 저장된 시도 기록을 기준으로 합니다.",
+      "whyLocal": "이 기기에 저장된 미해결 오답을 기준으로 합니다."
+    }
   },
   "pricing": {
     "title": "Go Pro",

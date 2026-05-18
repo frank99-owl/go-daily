@@ -16,7 +16,11 @@ vi.mock("@/lib/posthog/events", () => ({
   track: trackMock,
 }));
 
-function summary(id: string, label: string): PuzzleSummary {
+function summary(
+  id: string,
+  label: string,
+  tag: PuzzleSummary["tag"] = "life-death",
+): PuzzleSummary {
   return {
     id,
     difficulty: 2,
@@ -29,7 +33,7 @@ function summary(id: string, label: string): PuzzleSummary {
       ko: label,
     },
     boardSize: 9,
-    tag: "life-death",
+    tag,
   };
 }
 
@@ -70,6 +74,42 @@ describe("ReviewClient", () => {
     await waitFor(() => {
       expect(trackMock).toHaveBeenCalledWith("review_page_viewed", { wrongCount: 25 });
     });
+  });
+
+  it("shows today's review summary and explains the first focus", async () => {
+    const summaries = [
+      summary("life-1", "Life problem", "life-death"),
+      summary("tesuji-1", "Tesuji problem", "tesuji"),
+    ];
+    vi.mocked(loadAttempts).mockReturnValue([
+      wrongAttempt("life-1", 1_000),
+      wrongAttempt("tesuji-1", 2_000),
+    ]);
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ReviewClient summaries={summaries} viewerPlan="guest" now={new Date("2026-05-18")} />
+      </LocaleProvider>,
+    );
+
+    expect(await screen.findByText("Today's review summary")).toBeInTheDocument();
+    expect(screen.getByText("Due now")).toBeInTheDocument();
+    expect(screen.getByText("Backlog")).toBeInTheDocument();
+    expect(screen.getByText(/Start with/)).toHaveTextContent("Life & Death");
+  });
+
+  it("keeps the empty state stable with no local attempts", async () => {
+    vi.mocked(loadAttempts).mockReturnValue([]);
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ReviewClient summaries={[summary("life-1", "Life problem")]} viewerPlan="guest" />
+      </LocaleProvider>,
+    );
+
+    expect(await screen.findByText("Today's review summary")).toBeInTheDocument();
+    expect(screen.getByText("No mistakes to review — keep it up!")).toBeInTheDocument();
+    expect(screen.getByText("No clear weak topic yet.")).toBeInTheDocument();
   });
 
   it("uses server-provided SRS cards for Pro review", async () => {

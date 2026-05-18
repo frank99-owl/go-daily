@@ -10,9 +10,10 @@ import { localized } from "@/lib/i18n/localized";
 import { track } from "@/lib/posthog/events";
 import { getStatusFor, lastAttemptMsMap } from "@/lib/puzzle/puzzleStatus";
 import type { ReviewSrsItem } from "@/lib/puzzle/reviewSrs";
+import { getTrainingInsights, type TrainingInsights } from "@/lib/puzzle/trainingInsights";
 import { loadAttempts } from "@/lib/storage/storage";
 import { BOARD_SIZE_LABELS } from "@/types";
-import type { AttemptRecord, PuzzleSummary } from "@/types";
+import type { AttemptRecord, PuzzleSummary, PuzzleTag } from "@/types";
 
 interface ReviewListItem {
   puzzle: PuzzleSummary;
@@ -25,11 +26,13 @@ export function ReviewClient({
   viewerPlan = "guest",
   srsItems = [],
   freeLimit = 20,
+  now = new Date(),
 }: {
   summaries: PuzzleSummary[];
   viewerPlan?: ViewerPlan;
   srsItems?: ReviewSrsItem[];
   freeLimit?: number;
+  now?: Date;
 }) {
   const { t, locale } = useLocale();
   const [attempts, setAttempts] = useState<AttemptRecord[] | null>(null);
@@ -85,6 +88,16 @@ export function ReviewClient({
   }, [srsItems, summaryById]);
 
   const isSrsMode = viewerPlan === "pro";
+  const insights = useMemo(
+    () =>
+      getTrainingInsights({
+        attempts: attemptsList,
+        summaries,
+        dueReviewItems: isSrsMode ? srsItems : undefined,
+        now,
+      }),
+    [attemptsList, summaries, isSrsMode, srsItems, now],
+  );
   const visibleLocalItems =
     viewerPlan === "free" ? localWrongItems.slice(0, freeLimit) : localWrongItems;
   const visibleItems = isSrsMode ? srsReviewItems : visibleLocalItems;
@@ -111,6 +124,15 @@ export function ReviewClient({
         </h1>
         <p className="text-sm text-white/50">{subtitle}</p>
       </div>
+
+      {ready ? (
+        <ReviewInsightPanel
+          insights={insights}
+          isSrsMode={isSrsMode}
+          tagLabels={t.tags}
+          copy={t.review.insights}
+        />
+      ) : null}
 
       {hiddenFreeCount > 0 ? (
         <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -148,6 +170,93 @@ export function ReviewClient({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function ReviewInsightPanel({
+  insights,
+  isSrsMode,
+  tagLabels,
+  copy,
+}: {
+  insights: TrainingInsights;
+  isSrsMode: boolean;
+  tagLabels: Record<PuzzleTag, string>;
+  copy: {
+    title: string;
+    dueNow: string;
+    backlog: string;
+    weakTags: string;
+    noWeakTags: string;
+    focusTitle: string;
+    focusWithTag: string;
+    focusBacklog: string;
+    focusClear: string;
+    whySrs: string;
+    whyLocal: string;
+  };
+}) {
+  const primaryTag = insights.weakTags[0];
+  const focusText = primaryTag
+    ? copy.focusWithTag.replace("{{tag}}", tagLabels[primaryTag.tag])
+    : insights.reviewBacklogCount > 0
+      ? copy.focusBacklog
+      : copy.focusClear;
+
+  return (
+    <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(220px,0.75fr)]">
+        <div className="flex flex-col gap-4">
+          <div>
+            <h2 className="font-[family-name:var(--font-headline)] text-lg text-white">
+              {copy.title}
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-white/55">
+              {isSrsMode ? copy.whySrs : copy.whyLocal}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/35">
+              {copy.focusTitle}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-white/75">{focusText}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <InsightMetric label={copy.dueNow} value={String(insights.dueTodayCount)} />
+          <InsightMetric label={copy.backlog} value={String(insights.reviewBacklogCount)} />
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-white/35">
+          {copy.weakTags}
+        </span>
+        {insights.weakTags.length === 0 ? (
+          <span className="text-sm text-white/45">{copy.noWeakTags}</span>
+        ) : (
+          insights.weakTags.map((item) => (
+            <span
+              key={item.tag}
+              className="rounded-full border border-white/10 bg-black/15 px-2.5 py-1 text-sm text-white/70"
+            >
+              {tagLabels[item.tag]} · {item.wrongCount}
+            </span>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function InsightMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/15 px-3 py-3">
+      <div className="text-xs text-white/45">{label}</div>
+      <div className="mt-1 font-[family-name:var(--font-headline)] text-xl text-white">{value}</div>
     </div>
   );
 }

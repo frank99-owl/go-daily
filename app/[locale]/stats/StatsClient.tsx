@@ -4,11 +4,19 @@ import { useEffect, useRef, useState } from "react";
 
 import { Heatmap } from "@/components/Heatmap";
 import { useLocale } from "@/lib/i18n/i18n";
+import type { MistakeReasonId } from "@/lib/puzzle/mistakeReason";
+import { getTrainingInsights, type TrainingInsights } from "@/lib/puzzle/trainingInsights";
 import { downloadExport, importUserData } from "@/lib/storage/exportData";
 import { computeAccuracy, computeStreak, loadAttempts } from "@/lib/storage/storage";
-import type { AttemptRecord } from "@/types";
+import type { AttemptRecord, PuzzleSummary, PuzzleTag } from "@/types";
 
-export function StatsClient() {
+export function StatsClient({
+  summaries = [],
+  now = new Date(),
+}: {
+  summaries?: PuzzleSummary[];
+  now?: Date;
+}) {
   const { t } = useLocale();
   const [attempts, setAttempts] = useState<AttemptRecord[] | null>(null);
   const [feedback, setFeedback] = useState<{ kind: "success" | "error"; message: string } | null>(
@@ -24,6 +32,8 @@ export function StatsClient() {
   }, []);
 
   if (attempts === null) return null; // pre-hydration, avoid SSR/CSR mismatch
+
+  const insights = getTrainingInsights({ attempts, summaries, now });
 
   const openImportPicker = () => {
     fileInputRef.current?.click();
@@ -67,6 +77,12 @@ export function StatsClient() {
           {t.stats.title}
         </h1>
         <p className="text-white/50 text-sm">{t.stats.empty}</p>
+        <StatsInsightPanel
+          copy={t.stats.insights}
+          insights={insights}
+          mistakeReasonLabels={t.result.understanding.reasons}
+          tagLabels={t.tags}
+        />
         <BackupPanel
           description={t.stats.backupDescription}
           exportLabel={t.stats.export}
@@ -97,6 +113,13 @@ export function StatsClient() {
         <Stat label={t.stats.total} value={String(total)} />
         <Stat label={t.stats.accuracy} value={`${accuracy}%`} />
       </div>
+
+      <StatsInsightPanel
+        copy={t.stats.insights}
+        insights={insights}
+        mistakeReasonLabels={t.result.understanding.reasons}
+        tagLabels={t.tags}
+      />
 
       <BackupPanel
         description={t.stats.backupDescription}
@@ -132,6 +155,117 @@ export function StatsClient() {
             </li>
           ))}
       </ul>
+    </div>
+  );
+}
+
+function StatsInsightPanel({
+  insights,
+  tagLabels,
+  mistakeReasonLabels,
+  copy,
+}: {
+  insights: TrainingInsights;
+  tagLabels: Record<PuzzleTag, string>;
+  mistakeReasonLabels: Record<MistakeReasonId, { title: string }>;
+  copy: {
+    title: string;
+    weakTagsTitle: string;
+    weakMistakesTitle: string;
+    trendTitle: string;
+    completionTitle: string;
+    noWeakTags: string;
+    noMistakeReasons: string;
+    noTrend: string;
+    noCompletion: string;
+    trendValue: string;
+    activeDays: string;
+    completionValue: string;
+    completionDetail: string;
+  };
+}) {
+  const trend =
+    insights.recentTrend.attempted > 0
+      ? copy.trendValue
+          .replace("{{correct}}", String(insights.recentTrend.correct))
+          .replace("{{attempted}}", String(insights.recentTrend.attempted))
+          .replace("{{accuracy}}", String(insights.recentTrend.accuracy))
+      : copy.noTrend;
+  const activeDays = copy.activeDays.replace("{{count}}", String(insights.recentTrend.activeDays));
+  const completion =
+    insights.reviewCompletion.rate === null
+      ? copy.noCompletion
+      : copy.completionValue.replace("{{rate}}", String(insights.reviewCompletion.rate));
+  const completionDetail = copy.completionDetail
+    .replace("{{completed}}", String(insights.reviewCompletion.completedCount))
+    .replace("{{backlog}}", String(insights.reviewCompletion.backlogCount));
+
+  return (
+    <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+      <div className="flex flex-col gap-5">
+        <h2 className="font-[family-name:var(--font-headline)] text-lg text-white">{copy.title}</h2>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <InsightBlock title={copy.weakTagsTitle}>
+            {insights.weakTags.length === 0 ? (
+              <p className="text-sm text-white/45">{copy.noWeakTags}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {insights.weakTags.map((item) => (
+                  <span
+                    key={item.tag}
+                    className="rounded-full border border-white/10 bg-black/15 px-2.5 py-1 text-sm text-white/70"
+                  >
+                    {tagLabels[item.tag]} · {item.wrongCount}
+                  </span>
+                ))}
+              </div>
+            )}
+          </InsightBlock>
+
+          <InsightBlock title={copy.weakMistakesTitle}>
+            {insights.weakMistakeReasons.length === 0 ? (
+              <p className="text-sm text-white/45">{copy.noMistakeReasons}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {insights.weakMistakeReasons.map((item) => (
+                  <span
+                    key={item.id}
+                    className="rounded-full border border-white/10 bg-black/15 px-2.5 py-1 text-sm text-white/70"
+                  >
+                    {mistakeReasonLabels[item.id].title} · {item.count}
+                  </span>
+                ))}
+              </div>
+            )}
+          </InsightBlock>
+
+          <InsightBlock title={copy.trendTitle}>
+            <p className="text-sm text-white/75">{trend}</p>
+            {insights.recentTrend.attempted > 0 ? (
+              <p className="mt-1 text-xs text-white/45">{activeDays}</p>
+            ) : null}
+          </InsightBlock>
+
+          <InsightBlock title={copy.completionTitle}>
+            <p className="text-sm text-white/75">{completion}</p>
+            {insights.reviewCompletion.rate !== null ? (
+              <p className="mt-1 text-xs text-white/45">{completionDetail}</p>
+            ) : null}
+          </InsightBlock>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InsightBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/15 p-4">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-white/35">
+        {title}
+      </h3>
+      {children}
     </div>
   );
 }

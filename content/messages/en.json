@@ -251,7 +251,22 @@
     "import": "Import records",
     "importing": "Importing…",
     "importSuccess": "Imported {{count}} new record(s). {{total}} total saved.",
-    "importError": "Import failed: {{error}}"
+    "importError": "Import failed: {{error}}",
+    "insights": {
+      "title": "Training focus",
+      "weakTagsTitle": "Weak topics",
+      "weakMistakesTitle": "Likely habits",
+      "trendTitle": "Last 7 days",
+      "completionTitle": "Review completion",
+      "noWeakTags": "Not enough missed puzzles yet.",
+      "noMistakeReasons": "Likely mistake habits will appear after more review.",
+      "noTrend": "No practice in the last 7 days.",
+      "noCompletion": "No review backlog yet.",
+      "trendValue": "{{correct}}/{{attempted}} correct · {{accuracy}}%",
+      "activeDays": "{{count}} active day(s)",
+      "completionValue": "{{rate}}%",
+      "completionDetail": "{{completed}} cleared · {{backlog}} waiting"
+    }
   },
   "share": {
     "title": "Share today's result",
@@ -316,7 +331,20 @@
     "freeLimitNotice": "Free review shows the latest {{limit}} puzzles. Pro SRS can manage {{count}} more.",
     "freeLimitCta": "Upgrade to Pro",
     "lastAttempted": "Last tried {{date}}",
-    "attemptCount": "{{count}} attempts"
+    "attemptCount": "{{count}} attempts",
+    "insights": {
+      "title": "Today's review summary",
+      "dueNow": "Due now",
+      "backlog": "Backlog",
+      "weakTags": "Weak topics",
+      "noWeakTags": "No clear weak topic yet.",
+      "focusTitle": "What to practice first",
+      "focusWithTag": "Start with {{tag}} because your unresolved mistakes cluster there.",
+      "focusBacklog": "Clear the waiting review queue before jumping to harder puzzles.",
+      "focusClear": "No review pressure right now. Continue with a fresh puzzle.",
+      "whySrs": "Based on due SRS cards and your latest saved attempts.",
+      "whyLocal": "Based on unresolved mistakes saved on this device."
+    }
   },
   "pricing": {
     "title": "Go Pro",

@@ -247,7 +247,22 @@
     "import": "戦績をインポート",
     "importing": "インポート中…",
     "importSuccess": "{{count}} 件の新しい記録を取り込みました。現在の保存件数は {{total}} 件です。",
-    "importError": "インポートに失敗しました: {{error}}"
+    "importError": "インポートに失敗しました: {{error}}",
+    "insights": {
+      "title": "学習フォーカス",
+      "weakTagsTitle": "弱い分類",
+      "weakMistakesTitle": "出やすい癖",
+      "trendTitle": "直近 7 日",
+      "completionTitle": "復習完了率",
+      "noWeakTags": "未解決の問題がまだ少なく、弱点は判断しません。",
+      "noMistakeReasons": "復習が増えると、出やすい癖を表示します。",
+      "noTrend": "直近 7 日の練習記録はありません。",
+      "noCompletion": "復習の積み残しはありません。",
+      "trendValue": "{{correct}}/{{attempted}} 正解 · {{accuracy}}%",
+      "activeDays": "アクティブ日 {{count}} 日",
+      "completionValue": "{{rate}}%",
+      "completionDetail": "解消 {{completed}} · 待機 {{backlog}}"
+    }
   },
   "share": {
     "title": "今日の結果をシェア",
@@ -312,7 +327,20 @@
     "freeLimitNotice": "Free の復習は最新 {{limit}} 問までです。Pro SRS なら残り {{count}} 問も管理できます。",
     "freeLimitCta": "Pro にアップグレード",
     "lastAttempted": "最終挑戦 {{date}}",
-    "attemptCount": "{{count}} 回挑戦"
+    "attemptCount": "{{count}} 回挑戦",
+    "insights": {
+      "title": "今日の復習サマリー",
+      "dueNow": "今の復習対象",
+      "backlog": "積み残し",
+      "weakTags": "弱い分類",
+      "noWeakTags": "目立つ弱点はまだありません。",
+      "focusTitle": "最初に練習すること",
+      "focusWithTag": "未解決の問題が {{tag}} に集まっているため、まずここから始めます。",
+      "focusBacklog": "難しい問題へ進む前に、待機中の復習を片付けましょう。",
+      "focusClear": "今は復習の圧力がありません。新しい問題に進めます。",
+      "whySrs": "期限が来た SRS カードと保存済みの最新記録をもとにしています。",
+      "whyLocal": "この端末に保存された未解決の誤答をもとにしています。"
+    }
   },
   "pricing": {
     "title": "Go Pro",
