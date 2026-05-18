@@ -52,10 +52,10 @@ describe("UpsellModal", () => {
   it("renders all Pro features from the dictionary", () => {
     renderModal({ open: true });
     expect(screen.getByText("支持多设备切换")).toBeInTheDocument();
-    expect(screen.getByText(/五大导师深度对话/)).toBeInTheDocument();
+    expect(screen.getByText(/已审核题目问答/)).toBeInTheDocument();
     expect(screen.getByText("纯净无广告体验")).toBeInTheDocument();
     expect(screen.getByText("优先体验新功能与新题目")).toBeInTheDocument();
-    expect(screen.getByText(/错题本无限回顾/)).toBeInTheDocument();
+    expect(screen.getByText(/错题本历史回顾/)).toBeInTheDocument();
   });
 
   it('navigates to /{locale}/pricing and closes when the "See plans" button is clicked', () => {

@@ -91,7 +91,7 @@
     "resultTitleCorrect": "よいです。最初の学習ループが完了しました",
     "resultTitleWrong": "これは復習に最適な一問です",
     "resultBodyCorrect": "すぐ次へ進まず、この手が成立する理由を確認しましょう。AI に、この形を次回使える判断法にしてもらえます。",
-    "resultBodyWrong": "ミスは失敗ではなく、最も価値のある教材です。要点を読み、あなたの手が相手に何を許したか AI に聞いてみましょう。",
+    "resultBodyWrong": "ミスは失敗ではなく、復習に使いやすい教材です。要点を読み、あなたの手が相手に何を許したか AI に聞いてみましょう。",
     "resultStepSubmitted": "1 解答を送信",
     "resultStepExplanation": "2 解答解説を確認",
     "resultStepReview": "3 保存して復習",
@@ -333,8 +333,8 @@
   "mentors": {
     "title": "メンターに出会う",
     "eyebrow": "AI メンター陣",
-    "description": "go-daily の全問題は、トップクラスの囲碁エンジンで分析済み。AI メンターがそれぞれの棋風と人格を通じて、棋理を解き明かします。",
-    "footer": "すべてのメンターが高精度な囲碁 AI によって支えられています。"
+    "description": "go-daily は問題レビューの一部に囲碁 AI の補助分析を使います。AI メンターはその材料をもとに、スタイル別のガイド解説を行います。",
+    "footer": "メンター解説は囲碁 AI 補助レビューをもとにしています。"
   },
   "review": {
     "title": "復習ノート",
@@ -369,7 +369,7 @@
     "yearlyPrice": "$29.90 / 年",
     "trial": "7 日間のカード試用付き。",
     "featureSync": "マルチデバイス対応",
-    "featureCoach": "5人のAI師範と深層対話 — 1日50+回・月1000+回",
+    "featureCoach": "5人のAIメンターが承認済み問題のQ&Aに対応 — 1日50+回・月1000+回",
     "featureNoAds": "広告なしの快適体験",
     "monthlyCta": "月額プランを始める",
     "yearlyCta": "年額プランを始める",
@@ -389,7 +389,7 @@
     "upsellTitle": "Pro にアップグレード",
     "upsellSubtitle": "複数端末同期・高い AI コーチ上限・広告なしを解除します。",
     "featurePriority": "新機能・新問題の先行アクセス",
-    "featureOffline": "復習ノート無制限 — いつでも弱点を克服",
+    "featureOffline": "復習ノート履歴 — 保存した誤答をいつでも見直し",
     "compareTitle": "Free vs Pro",
     "compareFeature": "機能",
     "compareFree": "Free",
@@ -545,7 +545,7 @@
     "criticalError": "重大なエラー",
     "gobanCollapsed": "碁盤全体に問題が発生しました。ページを再読み込みしてください。",
     "notFound": "404",
-    "notFoundDescription": "トッププレイヤーでさえ、道に迷うことがあります。",
+    "notFoundDescription": "強いプレイヤーでも、道に迷うことがあります。",
     "returnHome": "盤面に戻る"
   },
   "pipa": {

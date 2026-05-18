@@ -91,7 +91,7 @@
     "resultTitleCorrect": "很好，第一轮学习闭环已经完成",
     "resultTitleWrong": "这正是最适合复盘的一题",
     "resultBodyCorrect": "接下来不要急着刷下一题。先看这手为什么成立，再让 AI 帮你把这个棋形记成可复用的判断方法。",
-    "resultBodyWrong": "错题不是失败，而是最有价值的训练样本。先看答案讲解，再追问 AI：你的落点给了对方什么机会。",
+    "resultBodyWrong": "错题不是失败，而是很适合复习的训练材料。先看答案讲解，再追问 AI：你的落点给了对方什么机会。",
     "resultStepSubmitted": "1 已提交答案",
     "resultStepExplanation": "2 先看答案讲解",
     "resultStepReview": "3 保存后明天复习",
@@ -333,8 +333,8 @@
   "mentors": {
     "title": "遇见你的导师",
     "eyebrow": "AI 导师阵容",
-    "description": "go-daily 的每一道题目都经过顶级围棋引擎分析。我们的 AI 导师会根据他们独特的棋风和性格，为你拆解这些棋理。",
-    "footer": "所有导师均由高精度围棋 AI 推理驱动。"
+    "description": "go-daily 的题目复核会结合围棋 AI 辅助分析。AI 导师会把这些材料整理成不同风格的引导式讲解。",
+    "footer": "导师讲解基于围棋 AI 辅助复核。"
   },
   "review": {
     "title": "错题本",
@@ -369,7 +369,7 @@
     "yearlyPrice": "$29.90 / 年",
     "trial": "包含 7 天银行卡试用期。",
     "featureSync": "支持多设备切换",
-    "featureCoach": "五大导师深度对话 — 每日 50+ 次 · 每月 1000+ 次",
+    "featureCoach": "五位 AI 导师支持已审核题目问答 — 每日 50+ 次 · 每月 1000+ 次",
     "featureNoAds": "纯净无广告体验",
     "monthlyCta": "开始月付计划",
     "yearlyCta": "开始年付计划",
@@ -389,7 +389,7 @@
     "upsellTitle": "升级到 Pro",
     "upsellSubtitle": "解锁多端同步、更高的 AI 教练额度、无广告体验。",
     "featurePriority": "优先体验新功能与新题目",
-    "featureOffline": "错题本无限回顾 — 随时复习不受限制",
+    "featureOffline": "错题本历史回顾 — 随时复习已保存错题",
     "compareTitle": "Free vs Pro",
     "compareFeature": "功能",
     "compareFree": "Free",
@@ -545,7 +545,7 @@
     "criticalError": "严重错误",
     "gobanCollapsed": "棋盘崩了，请尝试刷新页面。",
     "notFound": "404",
-    "notFoundDescription": "即便是顶尖棋手，也有迷路的时候。",
+    "notFoundDescription": "即便是强棋手，也有迷路的时候。",
     "returnHome": "回到棋盘"
   },
   "pipa": {

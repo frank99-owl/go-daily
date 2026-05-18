@@ -36,13 +36,13 @@ const copy: Record<Locale, Record<LegalKind, LegalCopy>> = {
         {
           heading: "Transparency by Design",
           summary:
-            "We only collect the data necessary to provide a superior Go coaching experience.",
+            "We only collect the data necessary to provide the Go coaching features you use.",
           body: "Your progress is synchronized using industry-standard encryption. We process essential identifiers and logs to optimize the Spaced Repetition System (SRS). We adhere to the global principles of GDPR (Europe), PIPA (South Korea), and PDPO (Hong Kong), providing you with a unified right to data portability and erasure.",
         },
         {
           heading: "Artificial Intelligence Ethics",
           summary:
-            "Your interactions with our AI Coach are private, secure, and grounded in professional Go expertise.",
+            "Your interactions with our AI Coach are private, secure, and grounded in reviewed puzzle context.",
           body: "Dialogue history is processed via DeepSeek API with mandatory PII masking. In compliance with the EU AI Act 2026, we ensure all AI interactions are clearly labeled and used exclusively for your personal training, never for public model retraining.",
         },
       ],
@@ -102,20 +102,20 @@ const copy: Record<Locale, Record<LegalKind, LegalCopy>> = {
       sections: [
         {
           heading: "透明化设计",
-          summary: "我们仅收集为您提供卓越围棋教学体验所必需的数据。",
+          summary: "我们仅收集为您提供围棋教学功能所必需的数据。",
           body: "您的练习进度通过行业标准加密技术同步。我们处理必要的标识符以优化间隔复习系统 (SRS)。我们遵循 GDPR (欧洲)、PIPA (韩国) 和 PDPO (香港) 的全球原则，为您提供统一的数据迁移权和删除权。",
         },
         {
           heading: "人工智能伦理",
-          summary: "您与 AI 教练的交互是私密、安全且基于专业围棋知识的。",
-          body: "对话历史通过脱敏处理后发送至 DeepSeek API。遵循欧盟《人工智能法案 2026》，我们确保所有 AI 交互均经过清晰标识，且仅用于您的个人训练，绝不用于公开模型再训练。",
+          summary: "您与 AI 教练的交互是私密、安全且基于已审核题目上下文的。",
+          body: "对话历史通过脱敏处理后发送至 DeepSeek API。遵循欧盟《人工智能法案 2026》，我们会清晰标识 AI 交互，且仅用于您的个人训练，不用于公开模型再训练。",
         },
       ],
     },
     terms: {
       eyebrow: "服务协议",
       title: "服务条款",
-      description: "针对全球围棋社区和数字训练环境的专业标准。",
+      description: "面向全球围棋社区和数字训练环境的使用标准。",
       versionLabel: "法律框架",
       versionValue: "2026 版",
       sections: [
@@ -167,13 +167,13 @@ const copy: Record<Locale, Record<LegalKind, LegalCopy>> = {
       sections: [
         {
           heading: "設計による透明性",
-          summary: "最高の囲碁コーチング体験を提供するために必要なデータのみを収集します。",
+          summary: "利用する囲碁コーチング機能に必要なデータのみを収集します。",
           body: "学習データは業界標準の暗号化を使用して同期されます。SRS（間隔反復システム）を最適化するために必要な識別子を処理します。GDPR (欧州)、PIPA (韓国)、香港 PDPO などのグローバルな原則を遵守し、データのポータビリティと削除に関する権利を提供します。",
         },
         {
           heading: "人工知能の倫理",
           summary:
-            "AI コーチとの対話はプライベートで安全であり、専門的な囲碁知識に基づいています。",
+            "AI コーチとの対話はプライベートで安全であり、レビュー済みの問題コンテキストに基づきます。",
           body: "対話履歴は PII 脱敏処理の上、DeepSeek API で処理されます。欧州 AI 法 (2026) を遵守し、すべての AI インタラクションが明確に識別され、お客様の個人トレーニングのみに使用されることを保証します。",
         },
       ],
@@ -233,12 +233,12 @@ const copy: Record<Locale, Record<LegalKind, LegalCopy>> = {
       sections: [
         {
           heading: "설계에 의한 투명성",
-          summary: "최고의 바둑 코칭 경험을 제공하기 위해 필수적인 데이터만을 수집합니다.",
+          summary: "사용하는 바둑 코칭 기능에 필요한 데이터만 수집합니다.",
           body: "학습 기록은 업계 표준 암호화를 사용하여 동기화됩니다. SRS(간격 반복 시스템) 최적화를 위한 식별자를 처리합니다. GDPR(유럽), PIPA(한국), 홍콩 PDPO의 글로벌 원칙을 준수하며, 데이터 이식성 및 삭제 권리를 보장합니다.",
         },
         {
           heading: "인공지능 윤리",
-          summary: "AI 코치와의 상호작용은 비공개이며 안전하고 전문적인 바둑 지식에 기반합니다.",
+          summary: "AI 코치와의 상호작용은 비공개이며 안전하고 검토된 문제 맥락에 기반합니다.",
           body: "대화 내역은 PII 마스킹 처리 후 DeepSeek API를 통해 처리됩니다. 유럽 AI 법(2026)에 따라 모든 AI 상호작용을 명확히 식별하며, 비공개 대화는 공개 모델 학습에 사용되지 않음을 보장합니다.",
         },
       ],
@@ -246,7 +246,7 @@ const copy: Record<Locale, Record<LegalKind, LegalCopy>> = {
     terms: {
       eyebrow: "합의 사항",
       title: "서비스 이용약관",
-      description: "글로벌 바둑 커뮤니티와 디지털 훈련 환경을 위한 전문적인 표준.",
+      description: "글로벌 바둑 커뮤니티와 디지털 훈련 환경을 위한 이용 기준.",
       versionLabel: "법적 체계",
       versionValue: "2026년판",
       sections: [

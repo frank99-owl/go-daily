@@ -95,7 +95,7 @@
     "resultTitleCorrect": "Good. The first learning loop is complete",
     "resultTitleWrong": "This is exactly the right puzzle to review",
     "resultBodyCorrect": "Do not rush to the next puzzle yet. First understand why this move works, then ask AI to turn the shape into a reusable rule of thumb.",
-    "resultBodyWrong": "A mistake is not a failed session; it is the best training sample. Read the key explanation, then ask AI what opportunity your move gave the opponent.",
+    "resultBodyWrong": "A mistake is not a failed session; it is useful review material. Read the key explanation, then ask AI what opportunity your move gave the opponent.",
     "resultStepSubmitted": "1 Answer submitted",
     "resultStepExplanation": "2 Read the answer explanation",
     "resultStepReview": "3 Save it for review",
@@ -337,8 +337,8 @@
   "mentors": {
     "title": "Meet Your Mentors",
     "eyebrow": "AI Coaches",
-    "description": "Every puzzle on go-daily is analyzed by top-tier Go engines. Our AI mentors bring that analysis to life through their unique personas and coaching styles.",
-    "footer": "Powered by high-precision Go AI."
+    "description": "go-daily uses Go engine-assisted analysis as part of its puzzle review. AI mentors turn that material into guided explanations with distinct coaching styles.",
+    "footer": "Powered by Go AI-assisted review."
   },
   "review": {
     "title": "Review",
@@ -373,7 +373,7 @@
     "yearlyPrice": "$29.90 / year",
     "trial": "Includes a 7-day card trial.",
     "featureSync": "Multi-device sync",
-    "featureCoach": "5 AI mentors, deep conversations — 50+/day · 1,000+/month",
+    "featureCoach": "5 AI mentors for approved-puzzle Q&A — 50+/day · 1,000+/month",
     "featureNoAds": "Ad-free experience",
     "monthlyCta": "Start monthly plan",
     "yearlyCta": "Start yearly plan",
@@ -393,7 +393,7 @@
     "upsellTitle": "Upgrade to Pro",
     "upsellSubtitle": "Unlock cross-device sync, higher AI Coach limits, and an ad-free experience.",
     "featurePriority": "Early access to new features &amp; puzzles",
-    "featureOffline": "Unlimited review — revisit mistakes anytime",
+    "featureOffline": "Review notebook history — revisit saved mistakes anytime",
     "compareTitle": "Free vs Pro",
     "compareFeature": "Feature",
     "compareFree": "Free",
@@ -429,7 +429,7 @@
   "metadata": {
     "home": {
       "title": "go-daily — Daily Go Puzzle with AI Coach",
-      "description": "Master Go (Weiqi/Baduk) with one hand-picked puzzle a day. AI coaching stays aligned with official explanations—helping you understand the 'why', not just the 'where'."
+      "description": "Practice Go (Weiqi/Baduk) with one hand-picked puzzle a day. AI coaching stays aligned with official explanations—helping you understand the 'why', not just the 'where'."
     },
     "today": {
       "title": "Today's Puzzle — go-daily",
@@ -445,7 +445,7 @@
     },
     "review": {
       "title": "Review Your Mistakes — go-daily",
-      "description": "Review the puzzles you've missed and master the shapes you find difficult."
+      "description": "Review the puzzles you've missed and revisit the shapes you find difficult."
     },
     "stats": {
       "title": "Your Progress & Stats — go-daily",
@@ -549,7 +549,7 @@
     "criticalError": "Critical Error",
     "gobanCollapsed": "The entire goban has collapsed. Please try reloading the session.",
     "notFound": "404",
-    "notFoundDescription": "Even the best players lose their way sometimes.",
+    "notFoundDescription": "Even strong players lose their way sometimes.",
     "returnHome": "Return to the Board"
   },
   "pipa": {
