@@ -1,5 +1,6 @@
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const TOKEN_RE = /\b(?:reveal|token|unsubscribe)[_-]?[A-Za-z0-9_-]{8,}\b/gi;
+const SENSITIVE_KEY_RE = /(?:token|secret|api_?key|authorization|cookie|password|session)/i;
 const ABSOLUTE_URL_RE = /\bhttps?:\/\/[^\s<>"'`]+/gi;
 const RELATIVE_URL_RE = /(^|[\s([{"'=])\/(?!\/)[^\s<>"'`)]*/g;
 const TRAILING_URL_PUNCT_RE = /[)\].,;!?]+$/;
@@ -47,7 +48,11 @@ function redactUrlsInString(value: string): string {
 
 const scrubUrl = (url: string) => redactSensitiveText(stripUrlQueryAndHash(url));
 
-function scrubValue(value: unknown): unknown {
+function scrubValue(value: unknown, key = ""): unknown {
+  if (key && SENSITIVE_KEY_RE.test(key)) {
+    return value == null ? value : "[redacted-token]";
+  }
+
   if (typeof value === "string") {
     const scrubbed = redactString(value);
     if (scrubbed.startsWith("http://") || scrubbed.startsWith("https://")) {
@@ -55,9 +60,9 @@ function scrubValue(value: unknown): unknown {
     }
     return scrubbed;
   }
-  if (Array.isArray(value)) return value.map(scrubValue);
+  if (Array.isArray(value)) return value.map((item) => scrubValue(item, key));
   if (value && typeof value === "object") {
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, scrubValue(v)]));
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, scrubValue(v, k)]));
   }
   return value;
 }
@@ -82,8 +87,11 @@ export function scrubSentryEvent(event: any): any {
     }
   }
 
-  if (event.request?.url) {
-    event.request.url = scrubUrl(event.request.url);
+  if (event.request) {
+    event.request = scrubValue(event.request) as Record<string, unknown>;
+    if (typeof event.request.url === "string") {
+      event.request.url = scrubUrl(event.request.url);
+    }
   }
 
   if (event.breadcrumbs) {

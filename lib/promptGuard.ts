@@ -33,8 +33,24 @@ const INJECTION_PATTERNS = [
   /do\s+anything\s+now/i,
 ];
 
+const COMPACT_INJECTION_PATTERNS = [
+  /ignore(previous|prior|earlier|allabove|all)instructions/i,
+  /ignore(previous|prior|earlier|allabove|all)(prompts|commands|directives)/i,
+  /forget(everything|all|theabove)/i,
+  /youarenow/i,
+  /system(prompt|instructions)?/i,
+  /developer(prompt|instructions)?/i,
+  /reveal(the)?(answer|solution|prompt|instructions)/i,
+  /show(me)?(the)?(system|prompt|instructions)/i,
+  /doanythingnow/i,
+  /danmode/i,
+  /jailbreak/i,
+];
+
 const MAX_MESSAGE_LENGTH = 2000;
 const SUSPICIOUS_KEYWORD_COUNT = 3;
+const ZERO_WIDTH_RE = /[\u200B-\u200D\uFEFF]/g;
+const CONTROL_CHARS_RE = /[\x00-\x08\x0b\x0c\x0e-\x1f]/g;
 const COMMON_CONFUSABLES: Record<string, string> = {
   А: "A",
   а: "a",
@@ -118,7 +134,11 @@ function foldCommonConfusables(input: string): string {
 }
 
 function normalizeForGuard(input: string): string {
-  return foldCommonConfusables(input.normalize("NFKC"));
+  return foldCommonConfusables(input.normalize("NFKC").replace(ZERO_WIDTH_RE, ""));
+}
+
+function compactForGuard(input: string): string {
+  return input.replace(CONTROL_CHARS_RE, "").replace(/[^a-z0-9]+/gi, "");
 }
 
 export function guardUserMessage(message: string): GuardResult {
@@ -134,6 +154,13 @@ export function guardUserMessage(message: string): GuardResult {
   // Pattern matching
   for (const pattern of INJECTION_PATTERNS) {
     if (pattern.test(normalized)) {
+      return { ok: false, reason: "Potentially unsafe content detected." };
+    }
+  }
+
+  const compact = compactForGuard(normalized);
+  for (const pattern of COMPACT_INJECTION_PATTERNS) {
+    if (pattern.test(compact)) {
       return { ok: false, reason: "Potentially unsafe content detected." };
     }
   }
@@ -154,10 +181,10 @@ export function sanitizeInput(input: string): string {
   return (
     input
       .normalize("NFKC") // Unicode canonical + compatibility decomposition + composition
-      .replace(/[\u200B-\u200D\uFEFF]/g, "") // Strip zero-width characters
+      .replace(ZERO_WIDTH_RE, "") // Strip zero-width characters
 
       // Strip control chars but preserve \t (0x09), \n (0x0a), \r (0x0d) — chat messages need newlines.
-      .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
+      .replace(CONTROL_CHARS_RE, "")
       .replace(/[^\S\r\n]+/g, " ") // Normalize whitespace while preserving newlines
       .trim()
   );

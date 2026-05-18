@@ -81,7 +81,17 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 该闭环的核心指标不是题库总量，而是首题完成率、结果页继续率、Coach 使用后的次日回访、错题复习完成率和 Pro 转化触点质量。
 
-## 7. Funnel 与事件
+## 7. AI 安全与成本边界
+
+Coach 请求的安全与成本控制由 `/api/coach`、`lib/promptGuard.ts`、`lib/coach/*`、`lib/rateLimit.ts` 和观测封装共同承担：
+
+- **Prompt 注入防线**：用户历史消息先通过 `guardUserMessage()`；检测包含 NFKC 归一化、常见 Cyrillic/Greek 同形字符折叠、零宽字符移除、紧凑字符串匹配与关键词密度检查。注入请求会在题目查询、配额写入和模型调用前被拒绝。
+- **请求与上下文预算**：Coach POST 请求体限制为 8 KB；历史消息最多保留最近 6 条，总字符预算 6,000，每条消息裁剪到 2,000 字符；上游模型输出 `max_tokens` 固定为 400，调用超时 25 秒。
+- **配额与限流**：全局 IP 限流由 `createRateLimiter()` 负责，生产缺少 Upstash 时首次实际限流调用返回 503；访客另有设备日/月限额与 IP 日限额；登录用户通过数据库 RPC 原子检查并自增日/月配额，避免并发绕过。
+- **扣费时机与回滚**：用量在模型流式返回前先扣除，防止用户中止连接规避计数；上游构造或流式失败时会回滚本次用量。明显非法请求、promptGuard 拦截、题目不可用和配额不足不会调用模型。
+- **成本观测**：服务端 PostHog 仅记录模型名、provider、耗时和 token 计数，不记录用户输入、AI 回复、棋谱全文或内部 ID。若 provider 未返回 token usage，会以 `usageAvailable=false` 标记。
+
+## 8. Funnel 与事件
 
 PostHog 事件按 activation / retention / coach / conversion 四类维护，事件名与属性的单一事实源是 `lib/posthog/eventTypes.ts`。客户端只通过 `track()` 发送，服务端只通过 `captureServerEvent()` 发送；测试环境 mock 封装，不触发真实 PostHog 网络请求。
 
@@ -92,9 +102,9 @@ PostHog 事件按 activation / retention / coach / conversion 四类维护，事
 | Coach      | `coach_opened`, `coach_prompt_clicked`, `coach_response_completed`, `coach_error_shown`, `coach_quota_state_seen` | `locale`, `source`, `contentTier`, `result`, `promptKey`                                     |
 | Conversion | `pricing_viewed`, `checkout_click`, `upsell_viewed`, `upsell_cta_clicked`                                      | `locale`, `source`, `plan`, `interval`                                                       |
 
-隐私边界：事件属性不发送原始棋谱全文、用户自由输入文本、AI 对话原文、邮箱、用户 ID、Stripe customer/subscription ID、设备 ID、reveal token 或其他令牌。服务端 PostHog `distinctId` 在封装层做 SHA-256 派生后再发送，避免把内部用户 ID 或支付系统 ID 作为原文暴露给分析系统。
+隐私边界：事件属性不发送原始棋谱全文、用户自由输入文本、AI 对话原文、邮箱、用户 ID、Stripe customer/subscription ID、设备 ID、reveal token 或其他令牌。服务端 PostHog `distinctId` 在封装层做 SHA-256 派生后再发送，避免把内部用户 ID 或支付系统 ID 作为原文暴露给分析系统。`captureServerEvent()` 会在发送前检查敏感属性 key 与敏感字符串值；命中时阻断该事件并只记录低敏告警。
 
-## 8. 法律与合规呈现逻辑
+## 9. 法律与合规呈现逻辑
 
 系统采用 Apple 风格的”统一支柱”法律递送机制。
 
@@ -105,7 +115,7 @@ PostHog 事件按 activation / retention / coach / conversion 四类维护，事
   - **英国/欧盟 DMCCA**: 集成于退款政策中。
 - **内容交付**: 所有法律文本均由 `app/[locale]/legal/_content.ts` 驱动。
 
-## 9. 无障碍与路由边界
+## 10. 无障碍与路由边界
 
 - **Heatmap ARIA**: 活动热力图使用 `role=”grid”` 容器加 `aria-label`，每个日期单元格使用 `role=”gridcell”` 加描述性 `aria-label`。
 - **UserMenu 键盘导航**: 下拉菜单支持 ArrowUp/Down 循环切换、Home/End 跳转首尾、Escape 关闭，打开时自动聚焦第一项。

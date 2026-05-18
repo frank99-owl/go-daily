@@ -54,4 +54,63 @@ describe("captureServerEvent", () => {
     );
     expect(flushMock).toHaveBeenCalledTimes(1);
   });
+
+  it("blocks server events with sensitive property keys", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { captureServerEvent } = await import("@/lib/posthog/server");
+
+    await captureServerEvent({
+      distinctId: "user_123",
+      event: "coach_request_completed",
+      properties: {
+        locale: "en",
+        personaId: "default",
+        plan: "free",
+        model: "test-model",
+        provider: "https://api.deepseek.com",
+        durationMs: 1200,
+        inputTokens: 50,
+        outputTokens: 20,
+        totalTokens: 70,
+        usageAvailable: true,
+        userId: "raw-user-id",
+      } as unknown as Parameters<typeof captureServerEvent<"coach_request_completed">>[0]["properties"],
+    });
+
+    expect(captureMock).not.toHaveBeenCalled();
+    expect(flushMock).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith("[PostHog] blocked server event with unsafe property", {
+      event: "coach_request_completed",
+      property: "userId",
+    });
+    warnSpy.mockRestore();
+  });
+
+  it("blocks server events with sensitive property values", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { captureServerEvent } = await import("@/lib/posthog/server");
+
+    await captureServerEvent({
+      distinctId: "user_123",
+      event: "coach_request_failed",
+      properties: {
+        locale: "en",
+        personaId: "default",
+        plan: "free",
+        model: "test-model",
+        provider: "https://api.deepseek.com",
+        durationMs: 1200,
+        errorCode: "failed for frank@example.com",
+        httpStatus: 0,
+      },
+    });
+
+    expect(captureMock).not.toHaveBeenCalled();
+    expect(flushMock).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith("[PostHog] blocked server event with unsafe property", {
+      event: "coach_request_failed",
+      property: "errorCode",
+    });
+    warnSpy.mockRestore();
+  });
 });

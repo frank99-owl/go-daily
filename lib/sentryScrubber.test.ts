@@ -97,6 +97,29 @@ describe("scrubSentryEvent", () => {
     expect(result!.extra!.users[0].email).toBe("[redacted-email]");
   });
 
+  it("redacts sensitive values based on object keys", () => {
+    const event = {
+      request: {
+        headers: {
+          authorization: "Bearer live-token",
+          cookie: "session=secret",
+          accept: "application/json",
+        },
+      },
+      extra: {
+        apiKey: "sk-live-secret",
+        sessionToken: "session-token",
+      },
+    };
+
+    const result = scrubSentryEvent(event);
+    expect(result!.request!.headers.authorization).toBe("[redacted-token]");
+    expect(result!.request!.headers.cookie).toBe("[redacted-token]");
+    expect(result!.request!.headers.accept).toBe("application/json");
+    expect(result!.extra!.apiKey).toBe("[redacted-token]");
+    expect(result!.extra!.sessionToken).toBe("[redacted-token]");
+  });
+
   it("scrubs stack frame string fields", () => {
     const event = {
       exception: {

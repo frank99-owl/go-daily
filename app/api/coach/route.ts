@@ -139,6 +139,17 @@ export async function POST(request: Request) {
 
   const { puzzleId, locale, userMove, personaId, history } = parseResult.data;
 
+  // Validate each user message for prompt injection before puzzle lookups,
+  // quota writes, or provider setup.
+  for (const m of history) {
+    if (m.role === "user") {
+      const guard = guardUserMessage(m.content);
+      if (!guard.ok) {
+        return errorResponse(guard.reason || "Invalid message content.");
+      }
+    }
+  }
+
   const puzzle = await getPuzzle(puzzleId);
   if (!puzzle) return errorResponse("Unknown puzzleId.", 404);
   if (!isInBounds(userMove, puzzle.boardSize) || isOccupied(puzzle.stones, userMove)) {
@@ -244,16 +255,6 @@ export async function POST(request: Request) {
       },
       { status: 500 },
     );
-  }
-
-  // Validate each user message for prompt injection
-  for (const m of history) {
-    if (m.role === "user") {
-      const guard = guardUserMessage(m.content);
-      if (!guard.ok) {
-        return errorResponse(guard.reason || "Invalid message content.");
-      }
-    }
   }
 
   // Keep only the last MAX_HISTORY turns, then enforce a total character budget

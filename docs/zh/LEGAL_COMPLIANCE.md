@@ -35,6 +35,7 @@
 
 - **法律依据**: AI 对话处理基于“履行合同 (Performance of a Contract)”。
 - **撤销权**: 用户在激活订阅时明确同意放弃 14 天撤销权。
+- **数据最小化**: AI 教练只向模型提供完成当前题目讲解所需的棋题上下文、用户落子、近期短历史与导师风格，不向模型、Sentry 或 PostHog 发送邮箱、支付 ID、设备 ID、reveal token 或其他账号密钥。PostHog 只保留低敏事件属性；Sentry 通过 `beforeSend` 与 `/api/report-error` 清理邮箱、URL query/hash、token、secret、API key、cookie 和 authorization header。
 
 ## 3. 北美地区 (North America)
 

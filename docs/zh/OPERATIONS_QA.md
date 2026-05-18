@@ -27,7 +27,7 @@
 
 ## 3. 部署预检与本地生产烟测 (`scripts/productionPreflight.ts`)
 
-P2-C 当前执行范围是本地生产烟测。默认预检必须只做 dry-run、mock、静态分析或可控 HTTP smoke，不部署、不真实发送邮件、不真实创建 Stripe 支付、不访问或修改外部系统。
+P2-C 已完成本地生产烟测首轮落地。默认预检必须只做 dry-run、mock、静态分析或可控 HTTP smoke，不部署、不真实发送邮件、不真实创建 Stripe 支付、不访问或修改外部系统。
 
 本地发布前先运行：
 
@@ -53,6 +53,25 @@ npm run email:smoketest -- --check-remote
 
 为保证本地构建可重复，根布局不使用 `next/font/google` 的构建期字体下载；英文字体使用 system-first CSS 变量，CJK 字体仍通过运行时非阻塞 `<link>` 做可选增强。
 
+### P2-D AI 安全、成本与隐私验证
+
+P2-D 的验证必须保持本地、mock、静态分析或单元测试边界；不得发送真实 Sentry/PostHog 事件，不得访问真实 DeepSeek/Stripe/Supabase/Resend 服务，不得输出 secrets。
+
+```bash
+npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts
+npm run test -- lib/sentryScrubber.test.ts
+npm run validate:messages
+npm run lint
+npx tsc --noEmit
+```
+
+审计重点：
+
+- `promptGuard.ts`：覆盖普通注入、全角、同形字符、零宽字符、标点/空格拆分等红队样例。
+- `/api/coach`：确认 promptGuard 拦截发生在题目查询、配额写入和模型调用之前；确认请求体、历史上下文、输出 token、超时、配额、限流和失败回滚均有边界。
+- `lib/posthog/server.ts`：确认服务端 distinctId 哈希后发送，且敏感属性 key/value 会阻断事件。
+- `sentry*.config.ts`、`lib/sentryScrubber.ts`、`/api/report-error`：确认 `beforeSend`、客户端错误上报和服务端错误报告会清理邮箱、URL query/hash、token、secret、API key、cookie 和 authorization header。
+
 ## 4. 质量保障计划
 
 ### 自动化覆盖 (Vitest)
@@ -68,7 +87,7 @@ npm run email:smoketest -- --check-remote
 1.  **跨设备一致性**：在桌面端解题，5秒内检查手机端是否同步。
 2.  **试用转化**：在测试模式下运行完整的 Stripe 结账流程（含7天试用）。
 3.  **SEO 验证**：确认 `sitemap.xml` 含 **12,000+** 条各语言 URL（随 `content/data/puzzleIndex.json` 增长），且 `hreflang` 交替正确。
-4.  **教练防护**：尝试提示词注入（如”忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。`promptGuard.ts` 现在会在模式匹配前进行 Unicode NFKC 归一化，并折叠常见 Cyrillic/Greek 同形字符。请验证全角与同形字符绕过尝试（如 `ＳＹＳＴｅｍ: ignore all`）也会被拦截。
+4.  **教练防护**：尝试提示词注入（如”忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。`promptGuard.ts` 现在会在模式匹配前进行 Unicode NFKC 归一化，并折叠常见 Cyrillic/Greek 同形字符、移除零宽字符、检查紧凑绕过字符串。请验证全角、同形字符、零宽字符与标点拆分绕过尝试（如 `ＳＹＳＴｅｍ: ignore all`、`i​gn‍ore pre-vious instruc.tions`）也会被拦截。
 
 ## 5. 测试组织
 
@@ -127,4 +146,5 @@ npm run email:smoketest   # 邮件烟感测试
 ### 隐私与治理
 
 - [ ] **PIPA 同意**: (手动检查) 验证在线性登录流程中，韩国语言环境的同意卡片正确显示。
-- [ ] **Sentry PII 过滤器**: 运行测试教练对话，并在 Sentry 控制台中验证面包屑中没有显示任何电子邮件或 PII。
+- [ ] **Sentry PII 过滤器**: 发布窗口内才运行测试教练对话，并在 Sentry 控制台中验证面包屑中没有显示任何电子邮件或 PII；本地 P2-D 阶段只运行 scrubber 单元测试，不发送真实事件。
+- [ ] **PostHog 隐私边界**: 发布窗口内才检查真实项目中是否只出现低敏属性；本地 P2-D 阶段只运行 `captureServerEvent()` mock 测试，不发送真实事件。
