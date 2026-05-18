@@ -312,6 +312,7 @@ describe("ResultClient keyboard support", () => {
           }}
           todayPuzzleId="cld-999"
           source="onboarding"
+          onboardingLevel="intermediate"
         />
       </LocaleProvider>,
     );
@@ -325,7 +326,9 @@ describe("ResultClient keyboard support", () => {
 
     const saveLink = screen.getByRole("link", { name: "Sign in and save" });
     expect(saveLink.getAttribute("href")).toContain("/en/login");
-    expect(saveLink.getAttribute("href")).toContain(encodeURIComponent("/en/result?id=cld-001"));
+    expect(saveLink.getAttribute("href")).toContain(
+      encodeURIComponent("/en/result?id=cld-001&source=onboarding&level=intermediate"),
+    );
     expect(trackMock).toHaveBeenCalledWith("result_signup_prompt_view", {
       puzzleId: "cld-001",
       source: "onboarding_result",

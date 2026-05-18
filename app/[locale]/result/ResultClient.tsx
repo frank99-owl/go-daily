@@ -142,7 +142,9 @@ export function ResultClient({
   const retryHref = localePath(locale, retryPath);
   const resultPath =
     source === "onboarding"
-      ? `/result?id=${encodeURIComponent(puzzle.id)}&source=onboarding`
+      ? `/result?id=${encodeURIComponent(puzzle.id)}&source=onboarding${
+          onboardingLevel ? `&level=${onboardingLevel}` : ""
+        }`
       : `/result?id=${encodeURIComponent(puzzle.id)}`;
   const loginHref = `/login?next=${encodeURIComponent(localePath(locale, resultPath))}`;
   const [attempt, setAttempt] = useState<AttemptRecord | null>(null);
