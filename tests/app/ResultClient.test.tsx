@@ -33,7 +33,15 @@ vi.mock("@/lib/auth/auth", () => ({
 }));
 
 vi.mock("@/components/CoachDialogue", () => ({
-  CoachDialogue: () => <div data-testid="coach-dialogue" />,
+  CoachDialogue: ({
+    coachAccess,
+  }: {
+    coachAccess?: { contentTier?: string; capabilities?: { fullCoach?: boolean } };
+  }) => (
+    <div data-testid="coach-dialogue">
+      {coachAccess?.capabilities?.fullCoach ? null : coachAccess?.contentTier}
+    </div>
+  ),
 }));
 
 vi.mock("@/components/ShareCard", () => ({
@@ -597,7 +605,7 @@ describe("ResultClient keyboard support", () => {
     expect(screen.queryByText("Likely mistake pattern")).not.toBeInTheDocument();
   });
 
-  it("shows the coach-eligible boundary instead of the chat surface", async () => {
+  it("passes the coach-eligible boundary into CoachDialogue", async () => {
     render(
       <LocaleProvider initialLocale="en">
         <ResultClient
@@ -639,8 +647,7 @@ describe("ResultClient keyboard support", () => {
     await waitFor(() => {
       expect(screen.getByText("coach-eligible")).toBeInTheDocument();
     });
-    expect(screen.getByText(/content backfill queue/)).toBeInTheDocument();
-    expect(screen.queryByTestId("coach-dialogue")).not.toBeInTheDocument();
+    expect(screen.getByTestId("coach-dialogue")).toBeInTheDocument();
   });
 
   it("shows CoachDialogue for full coach-ready puzzles", async () => {

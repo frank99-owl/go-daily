@@ -330,9 +330,10 @@ export function ResultClient({
         ? t.result.nextRecommendation.cta.sameTopic
         : t.result.nextRecommendation.cta.sameLevel;
   const coachPrompts = [
+    t.result.coachPromptMainLine,
     t.result.coachPromptWhyWrong,
-    t.result.coachPromptCorrectLine,
     t.result.coachPromptPattern,
+    t.result.coachPromptNextJudgment,
   ];
 
   // History tally across ALL attempts on this puzzle (not just today). Shows
@@ -728,7 +729,7 @@ export function ResultClient({
         </section>
       )}
 
-      {attempt?.userMove && coachAccess.capabilities.fullCoach && (
+      {attempt?.userMove && (
         <section className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-medium text-white">
             <MessageCircleQuestion className="h-4 w-4 text-[color:var(--color-accent)]" />
@@ -741,21 +742,6 @@ export function ResultClient({
             suggestedPrompts={coachPrompts}
             suggestedPromptSource={resultAnalyticsSource}
           />
-        </section>
-      )}
-
-      {attempt?.userMove && !coachAccess.capabilities.fullCoach && (
-        <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-          <div className="mb-2 inline-flex rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-white/55">
-            {coachAccess.contentTier}
-          </div>
-          <div className="text-sm leading-relaxed text-white/60">
-            {coachAccess.contentTier === "coach-eligible"
-              ? t.result.coachEligibleLimited
-              : coachAccess.contentTier === "variation-ready"
-                ? t.result.coachVariationReady
-                : t.result.coachBasicExplained}
-          </div>
         </section>
       )}
     </div>

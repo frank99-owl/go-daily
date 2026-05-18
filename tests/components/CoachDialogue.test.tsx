@@ -23,9 +23,52 @@ vi.mock("@/lib/auth/deviceId", () => ({
   getOrCreateDeviceId: () => "test-device-id",
 }));
 
+const coachReadyAccess = {
+  available: true,
+  reason: "approved" as const,
+  contentTier: "coach-ready" as const,
+  qualityTier: "coach-ready" as const,
+  hasVariationSupport: true,
+  capabilities: {
+    staticExplanation: true,
+    basicCoach: true,
+    fullCoach: true,
+    variationQuestions: false,
+  },
+};
+
+const basicExplainedAccess = {
+  available: false,
+  reason: "restricted" as const,
+  contentTier: "basic-explained" as const,
+  qualityTier: "explained" as const,
+  hasVariationSupport: false,
+  capabilities: {
+    staticExplanation: true,
+    basicCoach: false,
+    fullCoach: false,
+    variationQuestions: false,
+  },
+};
+
+const coachEligibleAccess = {
+  available: false,
+  reason: "restricted" as const,
+  contentTier: "coach-eligible" as const,
+  qualityTier: "explained" as const,
+  hasVariationSupport: false,
+  capabilities: {
+    staticExplanation: true,
+    basicCoach: true,
+    fullCoach: false,
+    variationQuestions: false,
+  },
+};
+
 describe("CoachDialogue", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     trackMock.mockReset();
     sessionStorage.clear();
   });
@@ -44,29 +87,137 @@ describe("CoachDialogue", () => {
   });
 
   it("renders the coach-ready capability boundary", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              usage: { dailyRemaining: 8, monthlyRemaining: 20 },
+            }),
+        } as Response),
+      ),
+    );
+
     render(
       <LocaleProvider initialLocale="en">
         <CoachDialogue
           puzzleId="test-puzzle"
           userMove={{ x: 3, y: 3 }}
-          coachAccess={{
-            available: true,
-            reason: "approved",
-            contentTier: "coach-ready",
-            qualityTier: "coach-ready",
-            hasVariationSupport: true,
-            capabilities: {
-              staticExplanation: true,
-              basicCoach: true,
-              fullCoach: true,
-              variationQuestions: false,
-            },
-          }}
+          coachAccess={coachReadyAccess}
         />
       </LocaleProvider>,
     );
 
     expect(screen.getByText(/coach-ready: ask about the main line/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /What is the main line after the correct move/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows available quota status without exposing exact limits", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              usage: { dailyRemaining: 8, monthlyRemaining: 20 },
+            }),
+        } as Response),
+      ),
+    );
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <CoachDialogue
+          puzzleId="test-puzzle"
+          userMove={{ x: 3, y: 3 }}
+          coachAccess={coachReadyAccess}
+        />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Coach quota available")).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/8/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/20/)).not.toBeInTheDocument();
+  });
+
+  it("shows a restrained unavailable quota status", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              usage: { dailyRemaining: 0, monthlyRemaining: 12 },
+            }),
+        } as Response),
+      ),
+    );
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <CoachDialogue
+          puzzleId="test-puzzle"
+          userMove={{ x: 3, y: 3 }}
+          coachAccess={coachReadyAccess}
+        />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Coach temporarily unavailable")).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/0/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/12/)).not.toBeInTheDocument();
+  });
+
+  it("keeps basic-explained read-only without full Coach prompts", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <CoachDialogue
+          puzzleId="test-puzzle"
+          userMove={{ x: 3, y: 3 }}
+          coachAccess={basicExplainedAccess}
+        />
+      </LocaleProvider>,
+    );
+
+    expect(
+      screen.getByText(/basic-explained: read the curated explanation only/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/static explanation/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /What is the main line after the correct move/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Send/ })).toBeDisabled();
+  });
+
+  it("keeps coach-eligible read-only until reviewed lines exist", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <CoachDialogue
+          puzzleId="test-puzzle"
+          userMove={{ x: 3, y: 3 }}
+          coachAccess={coachEligibleAccess}
+        />
+      </LocaleProvider>,
+    );
+
+    expect(
+      screen.getByText(/coach-eligible: content is waiting for reviewed coach lines/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/content backfill queue/)).toBeInTheDocument();
+    expect(screen.getByText(/What should I focus on in the explanation/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /What is the main line after the correct move/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("sends a message and shows it in the list", async () => {
@@ -271,6 +422,7 @@ describe("CoachDialogue — error-code routing", () => {
   }
 
   beforeEach(() => {
+    vi.unstubAllGlobals();
     trackMock.mockReset();
     sessionStorage.clear();
   });
@@ -438,7 +590,7 @@ describe("CoachDialogue — error-code routing", () => {
       expect(screen.getByText("Temporary failure")).toBeInTheDocument();
     });
 
-    const retryBtn = screen.getByRole("button", { name: /再做一次/ });
+    const retryBtn = screen.getByRole("button", { name: /重试/ });
     fireEvent.click(retryBtn);
 
     await waitFor(() => {
@@ -469,7 +621,7 @@ describe("CoachDialogue — error-code routing", () => {
     await triggerSend();
 
     await waitFor(() => {
-      expect(screen.getByText(/Empty reply from the model/)).toBeInTheDocument();
+      expect(screen.getByText(/空回复/)).toBeInTheDocument();
     });
   });
 
@@ -492,7 +644,7 @@ describe("CoachDialogue — error-code routing", () => {
     await triggerSend();
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/Coach is taking too long/);
+      expect(screen.getByRole("alert")).toHaveTextContent(/响应超时/);
     });
   });
 });

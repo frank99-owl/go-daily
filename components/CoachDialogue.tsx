@@ -22,8 +22,15 @@ type Props = {
 };
 
 type CoachError = { kind: CoachErrorCode } | { kind: "generic"; message: string };
+type CoachQuotaState = "checking" | "available" | "near-limit" | "unavailable" | "unknown";
+
+type CoachUsageSnapshot = {
+  dailyRemaining?: number;
+  monthlyRemaining?: number;
+};
 
 const PERSONA_SWITCH_DELAY_MS = 300;
+const LOW_QUOTA_THRESHOLD = 2;
 
 const historyKey = (puzzleId: string, locale: Locale, personaId: string) =>
   `go-daily.coach.${puzzleId}.${locale}.${personaId}`;
@@ -49,8 +56,20 @@ export function CoachDialogue({
   const [streamingContent, setStreamingContent] = useState("");
   const [error, setError] = useState<CoachError | null>(null);
   const [switching, setSwitching] = useState(false);
+  const [quotaState, setQuotaState] = useState<CoachQuotaState>(
+    coachAccess?.capabilities.fullCoach ? "checking" : "unknown",
+  );
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const prevPersonaRef = useRef(personaId);
+  const canUseCoach = coachAccess?.capabilities.fullCoach ?? true;
+  const suggestedQuestions = buildSuggestedQuestions({
+    result: t.result,
+    coachAccess,
+    suggestedPrompts,
+  });
+  const capabilityText = getCapabilityText(t.result, coachAccess);
+  const quotaText = getQuotaText(t.result, quotaState, canUseCoach);
+  const restrictedText = getRestrictedText(t.result, coachAccess);
 
   // Load any saved conversation for this puzzle+locale from sessionStorage.
   useEffect(() => {
@@ -107,7 +126,49 @@ export function CoachDialogue({
     };
   }, []);
 
+  useEffect(() => {
+    if (!coachAccess || !canUseCoach) return;
+
+    const controller = new AbortController();
+    async function loadCoachUsage() {
+      setQuotaState("checking");
+      try {
+        const headers: Record<string, string> = {};
+        const deviceId = getOrCreateDeviceId();
+        headers[user ? "x-go-daily-device-id" : "x-go-daily-guest-device-id"] = deviceId;
+        const res = await fetch("/api/coach", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers,
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          setQuotaState("unavailable");
+          return;
+        }
+
+        const data = (await res.json()) as { usage?: CoachUsageSnapshot | null };
+        const usage = data.usage;
+        if (!usage) {
+          setQuotaState("unknown");
+          return;
+        }
+
+        setQuotaState(getQuotaStateFromUsage(usage));
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        setQuotaState("unknown");
+      }
+    }
+
+    void loadCoachUsage();
+    return () => controller.abort();
+  }, [coachAccess, canUseCoach, user]);
+
   async function requestReply(historyForApi: CoachMessage[]) {
+    if (!canUseCoach) return;
     // Cancel any previous in-flight request.
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -155,7 +216,7 @@ export function CoachDialogue({
 
       // Read SSE stream
       const reader = res.body?.getReader();
-      if (!reader) throw new Error("No response body");
+      if (!reader) throw new Error(t.result.coachErrorNoResponse);
       const decoder = new TextDecoder();
       let buffer = "";
 
@@ -165,16 +226,19 @@ export function CoachDialogue({
           const evt = JSON.parse(line.slice(6)) as {
             delta?: string;
             done?: boolean;
-            usage?: unknown;
+            usage?: CoachUsageSnapshot;
             error?: string;
           };
+          if (evt.done && evt.usage) {
+            setQuotaState(getQuotaStateFromUsage(evt.usage));
+          }
           if (evt.error) {
             const errorMessages: Record<string, string> = {
-              timeout: "Coach is taking too long. Please try again.",
-              rate_limit: "Coach is busy. Please try again in a moment.",
-              auth_error: "Coach authentication failed. Please contact support.",
+              timeout: t.result.coachErrorTimeout,
+              rate_limit: t.result.coachErrorRateLimit,
+              auth_error: t.result.coachErrorAuth,
             };
-            throw new Error(errorMessages[evt.error] ?? "Coach is temporarily unavailable.");
+            throw new Error(errorMessages[evt.error] ?? t.result.coachErrorTemporary);
           }
           if (evt.delta) {
             fullContent += evt.delta;
@@ -216,7 +280,7 @@ export function CoachDialogue({
       }
 
       if (!fullContent) {
-        setError({ kind: "generic", message: "Empty reply from the model." });
+        setError({ kind: "generic", message: t.result.coachErrorEmpty });
         return;
       }
 
@@ -229,7 +293,7 @@ export function CoachDialogue({
       console.error("[coach] request failed", e);
       setError({
         kind: "generic",
-        message: e instanceof Error ? e.message : "Network error",
+        message: e instanceof Error ? e.message : t.result.coachErrorNetwork,
       });
     } finally {
       setPending(false);
@@ -241,7 +305,7 @@ export function CoachDialogue({
 
   const sendText = async (text: string, promptKey = "freeform") => {
     const normalizedText = text.trim();
-    if (!normalizedText || pending) return;
+    if (!normalizedText || pending || !canUseCoach) return;
     if (messages.length === 0) {
       track("coach_first_prompt_used", {
         puzzleId,
@@ -261,7 +325,7 @@ export function CoachDialogue({
 
   const send = async () => {
     const text = input.trim();
-    if (!text || pending) return;
+    if (!text || pending || !canUseCoach) return;
     await sendText(text);
   };
 
@@ -276,7 +340,7 @@ export function CoachDialogue({
   };
 
   const retry = async () => {
-    if (pending) return;
+    if (pending || !canUseCoach) return;
     setError(null);
     await requestReply(messages);
   };
@@ -292,18 +356,23 @@ export function CoachDialogue({
           <div>
             <h2 className="text-sm font-medium text-white">{t.result.coachTitle}</h2>
             {coachAccess && (
-              <p className="text-xs text-white/40">
-                {coachAccess.contentTier === "variation-ready"
-                  ? t.result.coachVariationReady
-                  : t.result.coachReadyBoundary}
-              </p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] text-white/55">
+                  {capabilityText}
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] text-white/55">
+                  {quotaText}
+                </span>
+              </div>
             )}
           </div>
         </div>
-        <CoachPersonaSelector
-          selectedId={personaId}
-          onSelect={(id: PersonaId) => setPersonaId(id)}
-        />
+        {canUseCoach && (
+          <CoachPersonaSelector
+            selectedId={personaId}
+            onSelect={(id: PersonaId) => setPersonaId(id)}
+          />
+        )}
       </header>
 
       <div
@@ -320,22 +389,33 @@ export function CoachDialogue({
         )}
         {!switching && messages.length === 0 && !pending && !error && (
           <div className="space-y-3">
-            <p className="text-sm text-white/50">{t.result.coachEmpty}</p>
-            {suggestedPrompts.length > 0 && (
+            <p className="text-sm text-white/50">
+              {canUseCoach ? t.result.coachEmpty : restrictedText}
+            </p>
+            {suggestedQuestions.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {suggestedPrompts.map((prompt, index) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => {
-                      void sendSuggestedPrompt(prompt, index);
-                    }}
-                    disabled={pending || switching}
-                    className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/65 transition-colors hover:border-[color:var(--color-accent)]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {prompt}
-                  </button>
-                ))}
+                {suggestedQuestions.map((prompt, index) =>
+                  canUseCoach ? (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => {
+                        void sendSuggestedPrompt(prompt, index);
+                      }}
+                      disabled={pending || switching}
+                      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/65 transition-colors hover:border-[color:var(--color-accent)]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {prompt}
+                    </button>
+                  ) : (
+                    <span
+                      key={prompt}
+                      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/45"
+                    >
+                      {prompt}
+                    </span>
+                  ),
+                )}
               </div>
             )}
           </div>
@@ -381,7 +461,7 @@ export function CoachDialogue({
               disabled={pending}
               className="ml-auto shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs text-white/60 hover:text-white hover:border-white/30 disabled:opacity-40 transition-colors"
             >
-              {t.result.retry ?? "Retry"}
+              {t.result.coachRetry}
             </button>
           </div>
         )}
@@ -403,13 +483,13 @@ export function CoachDialogue({
           }}
           placeholder={t.result.coachPlaceholder}
           aria-label={t.result.coachPlaceholder}
-          disabled={pending || switching}
+          disabled={pending || switching || !canUseCoach}
           className="flex-1 rounded-full border border-[color:var(--color-line)] bg-white/5 text-white placeholder:text-white/35 px-4 py-2 text-sm focus:outline-none focus:border-[color:var(--color-accent)]"
         />
         <button
           type="button"
           onClick={send}
-          disabled={pending || switching || !input.trim()}
+          disabled={pending || switching || !input.trim() || !canUseCoach}
           className="px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium disabled:opacity-40 hover:bg-[color:var(--color-accent)] hover:text-black transition-colors"
         >
           {t.result.send}
@@ -417,6 +497,75 @@ export function CoachDialogue({
       </div>
     </section>
   );
+}
+
+function getCapabilityText(
+  result: ReturnType<typeof useLocale>["t"]["result"],
+  coachAccess?: PublicCoachAccess,
+): string {
+  if (!coachAccess) return result.coachReadyBoundary;
+  if (coachAccess.contentTier === "variation-ready") return result.coachVariationReady;
+  if (coachAccess.contentTier === "coach-ready") return result.coachReadyBoundary;
+  if (coachAccess.contentTier === "coach-eligible") return result.coachTierEligible;
+  return result.coachTierBasicExplained;
+}
+
+function getRestrictedText(
+  result: ReturnType<typeof useLocale>["t"]["result"],
+  coachAccess?: PublicCoachAccess,
+): string {
+  if (coachAccess?.contentTier === "coach-eligible") return result.coachEligibleLimited;
+  if (coachAccess?.contentTier === "variation-ready") return result.coachVariationReady;
+  return result.coachBasicExplained;
+}
+
+function getQuotaText(
+  result: ReturnType<typeof useLocale>["t"]["result"],
+  quotaState: CoachQuotaState,
+  canUseCoach: boolean,
+): string {
+  if (!canUseCoach) return result.coachQuotaUnavailable;
+  if (quotaState === "checking") return result.coachStatusLoading;
+  if (quotaState === "available") return result.coachQuotaAvailable;
+  if (quotaState === "near-limit") return result.coachQuotaNearLimit;
+  if (quotaState === "unavailable") return result.coachQuotaUnavailable;
+  return result.coachQuotaUnknown;
+}
+
+function getQuotaStateFromUsage(usage: CoachUsageSnapshot): CoachQuotaState {
+  const remaining = Math.min(
+    usage.dailyRemaining ?? Number.POSITIVE_INFINITY,
+    usage.monthlyRemaining ?? Number.POSITIVE_INFINITY,
+  );
+  if (remaining <= 0) return "unavailable";
+  if (remaining <= LOW_QUOTA_THRESHOLD) return "near-limit";
+  if (Number.isFinite(remaining)) return "available";
+  return "unknown";
+}
+
+function buildSuggestedQuestions({
+  result,
+  coachAccess,
+  suggestedPrompts,
+}: {
+  result: ReturnType<typeof useLocale>["t"]["result"];
+  coachAccess?: PublicCoachAccess;
+  suggestedPrompts: string[];
+}): string[] {
+  const canUseCoach = coachAccess?.capabilities.fullCoach ?? true;
+  const defaults = canUseCoach
+    ? [
+        result.coachPromptMainLine,
+        result.coachPromptWhyWrong,
+        result.coachPromptPattern,
+        result.coachPromptNextJudgment,
+      ]
+    : coachAccess?.contentTier === "coach-eligible"
+      ? [result.coachPromptBasicExplanation, result.coachPromptReviewNote]
+      : [result.coachPromptBasicExplanation];
+
+  const merged = canUseCoach ? [...suggestedPrompts, ...defaults] : defaults;
+  return Array.from(new Set(merged.filter((prompt) => prompt.trim().length > 0))).slice(0, 4);
 }
 
 function CoachLimitCard({
