@@ -28,6 +28,12 @@
 | **全球化**   | 语言路径前缀、sitemap 与题库规模同步增长、地区化定价              |
 | **可运维**   | API 与数据库文档化；CI 覆盖格式、Lint、校验、类型检查、测试与构建 |
 
+## Phase 3 状态
+
+Phase 3 首轮已经在本地完成：内容质量基线、学习闭环、商业化文案、Funnel 事件、本地生产烟测、AI 安全与成本控制、发布材料均已整理。当前仍未执行任何外部发布动作；`push`、部署、DNS、SMTP、Stripe live、真实邮件、生产支付和公开发布都需要 Frank 单独批准。
+
+发布前材料见 [发布清单](docs/zh/LAUNCH_CHECKLIST.md)、[收入实验](docs/zh/REVENUE_EXPERIMENTS.md)、[用户访谈脚本](docs/zh/USER_INTERVIEW_SCRIPT.md)、[30/60/90 天路线图](docs/zh/ROADMAP_30_60_90.md) 与英文 [case study](docs/en/CASE_STUDY.md)。
+
 ## 文档
 
 权威技术 / 产品文档为 `docs/` 下 **八大支柱 × 四语文**。请从 **[文档中心](docs/README.md)** 选择语言（`en` / `zh` / `ja` / `ko`）。
@@ -67,6 +73,16 @@ npm run dev
 ```
 
 访问 `http://localhost:3000`，中间件会协商并重定向到 `/{zh|en|ja|ko}/...`。
+
+常用本地验证命令：
+
+```bash
+npm run validate:messages
+npm run lint
+npx tsc --noEmit
+npm run test
+npm run build
+```
 
 ## 技术栈
 

@@ -229,3 +229,8 @@ These Chinese-first planning documents track the next product-system phase and m
 | [CONTENT_EDITING_WORKFLOW](zh/CONTENT_EDITING_WORKFLOW.md) | First manual editing batch workflow for solutionSequence / wrongBranches backfill |
 | [ROADMAP](zh/ROADMAP.md)                                   | P0 / P1 / P2 execution order for learning, retention, conversion, and operations  |
 | [TECH_DEBT](zh/TECH_DEBT.md)                               | Technical debt, content debt, operational debt, and validation expectations       |
+| [LAUNCH_CHECKLIST](zh/LAUNCH_CHECKLIST.md)                 | Local readiness, manual checks, and external actions requiring explicit approval  |
+| [REVENUE_EXPERIMENTS](zh/REVENUE_EXPERIMENTS.md)           | Legal, low-risk monetization experiments with metrics and stop conditions         |
+| [USER_INTERVIEW_SCRIPT](zh/USER_INTERVIEW_SCRIPT.md)       | Interview script for learners, review-heavy users, teachers, and AI tool users    |
+| [ROADMAP_30_60_90](zh/ROADMAP_30_60_90.md)                 | 30/60/90 day plan for launch validation, retention, paid validation, and growth   |
+| [CASE_STUDY](en/CASE_STUDY.md)                             | English product and engineering case study for launch-readiness review            |

@@ -28,6 +28,12 @@ Technically, the product is a **Next.js 16 (App Router)** stack on **Supabase** 
 | **Global product** | Locale-prefixed routing, SEO-scale sitemap with the puzzle corpus, adaptive pricing                                       |
 | **Operations**     | Documented APIs & schema, automated CI (format → lint → validate → typecheck → test → build), security disclosure process |
 
+## Launch readiness
+
+Phase 3 first-pass readiness is complete locally: content quality baselining, the learning loop, commercial copy, funnel events, local production smoke checks, AI safety/cost controls, and launch materials are documented. External release actions remain separate and require explicit approval: pushing code, deploying, DNS changes, live Stripe payments, real email sends, and public announcements.
+
+For a concise product/engineering narrative, see the [case study](docs/en/CASE_STUDY.md). For launch operations, see the Chinese-first [launch checklist](docs/zh/LAUNCH_CHECKLIST.md).
+
 ## Documentation
 
 Authoritative technical and product documentation is the **eight-pillar, four-locale** library under [`docs/`](docs/README.md). Use the hub to pick your language (`en` / `zh` / `ja` / `ko`).
@@ -64,6 +70,16 @@ npm run dev
 ```
 
 Open `http://localhost:3000` — locale negotiation redirects to `/{zh|en|ja|ko}/...`.
+
+Common local verification commands:
+
+```bash
+npm run validate:messages
+npm run lint
+npx tsc --noEmit
+npm run test
+npm run build
+```
 
 ## Tech stack
 
