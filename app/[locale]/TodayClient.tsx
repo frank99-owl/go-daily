@@ -63,7 +63,8 @@ export function TodayClient({
 
   const syncStorage = useMemo(() => createSyncStorage(user?.id ?? null), [user?.id]);
   const source = mode === "onboarding" ? "onboarding" : metaLabel ? "today" : "library";
-  const contentTier = puzzle.coachAccess?.contentTier ?? (puzzle.coachAvailable ? "coach-ready" : "basic-explained");
+  const contentTier =
+    puzzle.coachAccess?.contentTier ?? (puzzle.coachAvailable ? "coach-ready" : "basic-explained");
   const onboardingHints = t.onboarding.hints;
 
   useEffect(() => {
@@ -83,7 +84,16 @@ export function TodayClient({
       difficulty: puzzle.difficulty,
       contentTier,
     });
-  }, [contentTier, locale, mode, onboardingLevel, puzzle.difficulty, puzzle.id, puzzle.tag, source]);
+  }, [
+    contentTier,
+    locale,
+    mode,
+    onboardingLevel,
+    puzzle.difficulty,
+    puzzle.id,
+    puzzle.tag,
+    source,
+  ]);
 
   useEffect(() => {
     if (mode === "onboarding") {

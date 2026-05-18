@@ -104,8 +104,5 @@ export async function captureServerEvent<T extends keyof EventMap>({
 }
 
 function hashAnalyticsDistinctId(raw: string): string {
-  return createHash("sha256")
-    .update(`go-daily:posthog:v1:${raw}`)
-    .digest("hex")
-    .slice(0, 32);
+  return createHash("sha256").update(`go-daily:posthog:v1:${raw}`).digest("hex").slice(0, 32);
 }

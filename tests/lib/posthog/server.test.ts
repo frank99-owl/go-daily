@@ -74,7 +74,9 @@ describe("captureServerEvent", () => {
         totalTokens: 70,
         usageAvailable: true,
         userId: "raw-user-id",
-      } as unknown as Parameters<typeof captureServerEvent<"coach_request_completed">>[0]["properties"],
+      } as unknown as Parameters<
+        typeof captureServerEvent<"coach_request_completed">
+      >[0]["properties"],
     });
 
     expect(captureMock).not.toHaveBeenCalled();
