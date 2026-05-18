@@ -323,6 +323,7 @@ describe("ResultClient keyboard support", () => {
     await waitFor(() => {
       expect(screen.getByText("Take the vital point.")).toBeInTheDocument();
     });
+    expect(screen.getByText("Likely mistake pattern")).toBeInTheDocument();
 
     const saveLink = screen.getByRole("link", { name: "Sign in and save" });
     expect(saveLink.getAttribute("href")).toContain("/en/login");
@@ -409,6 +410,108 @@ describe("ResultClient keyboard support", () => {
       source: "onboarding_result",
       level: "intermediate",
     });
+  });
+
+  it("shows a conservative mistake reason after a wrong result", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          correct: [{ x: 4, y: 5 }],
+          solutionSequence: [{ x: 4, y: 5, color: "black" }],
+          solutionNote: {
+            zh: "占住急所。",
+            en: "Take the vital point.",
+            ja: "急所を占める。",
+            ko: "급소를 차지한다.",
+          },
+        }),
+      ),
+    );
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ResultClient
+          initialPuzzle={{
+            id: "cld-001",
+            date: "2026-04-21",
+            boardSize: 9,
+            stones: [],
+            toPlay: "black",
+            tag: "life-death",
+            difficulty: 1,
+            prompt: {
+              zh: "黑先活",
+              en: "Black to live",
+              ja: "黒先活",
+              ko: "흑선활",
+            },
+            source: "2026-04-21",
+            coachAvailable: false,
+          }}
+          todayPuzzleId="cld-999"
+        />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Likely mistake pattern")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Missed vital point")).toBeInTheDocument();
+    expect(screen.getByText(/not on the point that changes liberties/)).toBeInTheDocument();
+  });
+
+  it("shows a training focus instead of a mistake reason after a correct result", async () => {
+    vi.mocked(getAttemptFor).mockReturnValue({
+      puzzleId: "cld-001",
+      date: "2026-04-21",
+      userMove: { x: 4, y: 4 },
+      correct: true,
+      solvedAtMs: 123,
+      revealToken: "reveal-token",
+    });
+    vi.mocked(getAttemptsFor).mockReturnValue([
+      {
+        puzzleId: "cld-001",
+        date: "2026-04-21",
+        userMove: { x: 4, y: 4 },
+        correct: true,
+        solvedAtMs: 123,
+        revealToken: "reveal-token",
+      },
+    ]);
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ResultClient
+          initialPuzzle={{
+            id: "cld-001",
+            date: "2026-04-21",
+            boardSize: 19,
+            stones: [],
+            toPlay: "black",
+            tag: "opening",
+            difficulty: 2,
+            prompt: {
+              zh: "黑先",
+              en: "Black to play",
+              ja: "黒番",
+              ko: "흑 차례",
+            },
+            source: "2026-04-21",
+            coachAvailable: false,
+          }}
+          todayPuzzleId="cld-999"
+        />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Training focus")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Opening direction")).toBeInTheDocument();
+    expect(screen.getByText(/whole-board relationship/)).toBeInTheDocument();
+    expect(screen.queryByText("Likely mistake pattern")).not.toBeInTheDocument();
   });
 
   it("shows the coach-eligible boundary instead of the chat surface", async () => {

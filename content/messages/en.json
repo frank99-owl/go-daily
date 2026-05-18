@@ -145,6 +145,42 @@
     "explanationCorrectLead": "The point is not only that the move is correct; it changes the opponent's next choices.",
     "explanationWrongLead": "Do not rush the retry. Understanding why this move falls short is what makes the shape recognizable next time.",
     "explanationLoading": "Loading the puzzle explanation…",
+    "understanding": {
+      "mistakeEyebrow": "Likely mistake pattern",
+      "trainingEyebrow": "Training focus",
+      "confidence": {
+        "high": "High confidence",
+        "medium": "Medium confidence",
+        "low": "Low confidence"
+      },
+      "reasons": {
+        "missed-vital-point": {
+          "title": "Missed vital point",
+          "mistake": "Your move was near the key area, but not on the point that changes liberties, eye shape, or the opponent's reply. Compare the one-point difference with the solution.",
+          "training": "This puzzle trains vital-point recognition: do not stop at the general area; find the move that immediately changes both players' options."
+        },
+        "shape-reading": {
+          "title": "Shape reading",
+          "mistake": "This looks more like an incomplete read of the local shape. Step through the first one or two solution moves, then compare what weakness your move leaves behind.",
+          "training": "This puzzle trains shape reading: connections, cutting points, sente, and follow-up shape matter more than the point that simply looks largest."
+        },
+        "liberty-counting": {
+          "title": "Liberty counting",
+          "mistake": "This looks more like a liberty count or move-order miss. Count the liberties of the key groups first, then see how the solution changes who gets squeezed first.",
+          "training": "This puzzle trains liberty counting: count the key groups first, then confirm which move changes the race to capture or live."
+        },
+        "endgame-value": {
+          "title": "Endgame value",
+          "mistake": "This looks more like a missed comparison of endgame value and sente. In review, focus on why the solution is more efficient than nearby local plays.",
+          "training": "This puzzle trains endgame value: compare points, sente/gote, and local finishing efficiency."
+        },
+        "opening-direction": {
+          "title": "Opening direction",
+          "mistake": "This looks more like a direction choice that drifted from the whole-board priority. In review, watch how the solution balances big points, thickness, pressure, and development.",
+          "training": "This puzzle trains opening direction: use the whole-board relationship to decide whether to approach, expand, press, or turn away."
+        }
+      }
+    },
     "saveTitle": "Keep this training session",
     "saveBodyGuest": "Guest progress is saved on this device. Sign in to sync mistakes, preserve the review plan, and continue elsewhere.",
     "saveBodySignedIn": "This attempt is in your training history. Missed puzzles will appear in Review and the spaced practice path.",

@@ -20,6 +20,7 @@ import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
 import { track } from "@/lib/posthog/events";
+import { getResultUnderstanding } from "@/lib/puzzle/mistakeReason";
 import type { OnboardingLevel } from "@/lib/puzzle/onboardingLevels";
 import { attemptKey } from "@/lib/storage/attemptKey";
 import {
@@ -289,6 +290,20 @@ export function ResultClient({
   const correct = attempt?.correct ?? false;
   const hasReveal = !!reveal;
   const hasSolution = !!reveal?.solutionSequence?.length;
+  const resultUnderstanding = reveal
+    ? getResultUnderstanding({
+        tag: puzzle.tag,
+        difficulty: puzzle.difficulty,
+        boardSize: puzzle.boardSize,
+        stones: puzzle.stones,
+        correctMoves: reveal.correct,
+        userMove: attempt?.userMove ?? null,
+        correct,
+      })
+    : null;
+  const understandingCopy = resultUnderstanding
+    ? t.result.understanding.reasons[resultUnderstanding.id]
+    : null;
   const coachPrompts = [
     t.result.coachPromptWhyWrong,
     t.result.coachPromptCorrectLine,
@@ -522,6 +537,30 @@ export function ResultClient({
           </div>
         )}
       </section>
+
+      {resultUnderstanding && understandingCopy && (
+        <section className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[color:var(--color-accent)]/75">
+              <BookOpenCheck className="h-3.5 w-3.5" />
+              {resultUnderstanding.mode === "mistake"
+                ? t.result.understanding.mistakeEyebrow
+                : t.result.understanding.trainingEyebrow}
+            </div>
+            <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[11px] text-white/45">
+              {t.result.understanding.confidence[resultUnderstanding.confidence]}
+            </span>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-sm font-medium text-white">{understandingCopy.title}</h2>
+            <p className="text-sm leading-relaxed text-white/60">
+              {resultUnderstanding.mode === "mistake"
+                ? understandingCopy.mistake
+                : understandingCopy.training}
+            </p>
+          </div>
+        </section>
+      )}
 
       <div className="flex items-center justify-center gap-3 flex-wrap">
         {!correct && (
