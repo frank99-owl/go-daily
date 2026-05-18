@@ -43,6 +43,32 @@ describe("CoachDialogue", () => {
     expect(screen.getByPlaceholderText(/向 AI 提问/i)).toBeInTheDocument();
   });
 
+  it("renders the coach-ready capability boundary", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <CoachDialogue
+          puzzleId="test-puzzle"
+          userMove={{ x: 3, y: 3 }}
+          coachAccess={{
+            available: true,
+            reason: "approved",
+            contentTier: "coach-ready",
+            qualityTier: "coach-ready",
+            hasVariationSupport: true,
+            capabilities: {
+              staticExplanation: true,
+              basicCoach: true,
+              fullCoach: true,
+              variationQuestions: false,
+            },
+          }}
+        />
+      </LocaleProvider>,
+    );
+
+    expect(screen.getByText(/coach-ready: ask about the main line/)).toBeInTheDocument();
+  });
+
   it("sends a message and shows it in the list", async () => {
     renderWithLocale();
     const input = screen.getByPlaceholderText(/向 AI 提问/i);

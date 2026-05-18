@@ -24,7 +24,7 @@
 | 维度         | 说明                                                              |
 | ------------ | ----------------------------------------------------------------- |
 | **每日练习** | 精选题库、沉浸流程、棋盘键盘可操作                                |
-| **AI 教练**  | 流式 Coach API、配额与人格、按题目准入                            |
+| **AI 教练**  | 流式 Coach API、配额与人格、按题目质量分层准入                    |
 | **全球化**   | 语言路径前缀、sitemap 与题库规模同步增长、地区化定价              |
 | **可运维**   | API 与数据库文档化；CI 覆盖格式、Lint、校验、类型检查、测试与构建 |
 
@@ -32,16 +32,19 @@
 
 权威技术 / 产品文档为 `docs/` 下 **八大支柱 × 四语文**。请从 **[文档中心](docs/README.md)** 选择语言（`en` / `zh` / `ja` / `ko`）。
 
-| 我需要…                         | 中文入口                                    |
-| ------------------------------- | ------------------------------------------- |
-| 愿景、阶段、战略                | [项目理念](docs/zh/CONCEPT.md)              |
-| 请求链路、`lib/` 分域、安全边界 | [技术架构](docs/zh/ARCHITECTURE.md)         |
-| SRS、权益、订阅与教练规则       | [产品规格](docs/zh/PRODUCT_SPECS.md)        |
-| 部署、环境、测试、预检          | [运维与 QA](docs/zh/OPERATIONS_QA.md)       |
-| 交付 / 就绪跟踪                 | [项目状态](docs/zh/PROJECT_STATUS.md)       |
-| HTTP 路由与载荷                 | [API 参考](docs/zh/API_REFERENCE.md)        |
-| 表、索引、RLS                   | [数据库 Schema](docs/zh/DATABASE_SCHEMA.md) |
-| 合规策略                        | [法律与合规](docs/zh/LEGAL_COMPLIANCE.md)   |
+| 我需要…                         | 中文入口                                         |
+| ------------------------------- | ------------------------------------------------ |
+| 愿景、阶段、战略                | [项目理念](docs/zh/CONCEPT.md)                   |
+| 请求链路、`lib/` 分域、安全边界 | [技术架构](docs/zh/ARCHITECTURE.md)              |
+| SRS、权益、订阅与教练规则       | [产品规格](docs/zh/PRODUCT_SPECS.md)             |
+| 部署、环境、测试、预检          | [运维与 QA](docs/zh/OPERATIONS_QA.md)            |
+| 交付 / 就绪跟踪                 | [项目状态](docs/zh/PROJECT_STATUS.md)            |
+| 内容质量分层与教练准入          | [内容质量模型](docs/zh/CONTENT_QUALITY_MODEL.md) |
+| 下一阶段推进顺序                | [路线图](docs/zh/ROADMAP.md)                     |
+| 技术债 / 内容债                 | [技术债清单](docs/zh/TECH_DEBT.md)               |
+| HTTP 路由与载荷                 | [API 参考](docs/zh/API_REFERENCE.md)             |
+| 表、索引、RLS                   | [数据库 Schema](docs/zh/DATABASE_SCHEMA.md)      |
+| 合规策略                        | [法律与合规](docs/zh/LEGAL_COMPLIANCE.md)        |
 
 **另见：** [CHANGELOG](CHANGELOG.md) · [安全策略](SECURITY.md) · [行为准则](CODE_OF_CONDUCT.md) · [贡献指南（英文默认）](CONTRIBUTING.md) / [中文版](CONTRIBUTING.zh.md) · [LICENSE](LICENSE) · [商业授权](COMMERCIAL.md)
 

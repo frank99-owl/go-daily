@@ -36,9 +36,53 @@ describe("coachAccess", () => {
       getCoachAccess(
         makePuzzle({
           id: "p-00001",
+          solutionSequence: [{ x: 1, y: 1, color: "black" }],
+          wrongBranches: [
+            {
+              userWrongMove: { x: 2, y: 2 },
+              refutation: [{ x: 1, y: 1, color: "black" }],
+              note: {
+                zh: "白会先手封住眼位。",
+                en: "White seals the eye space first.",
+                ja: "白が先に眼を封鎖します。",
+                ko: "백이 먼저 눈자리를 막습니다.",
+              },
+            },
+          ],
         }),
       ),
-    ).toEqual({ available: true, reason: "approved" });
+    ).toMatchObject({
+      available: true,
+      reason: "approved",
+      contentTier: "coach-ready",
+      qualityTier: "coach-ready",
+      capabilities: {
+        staticExplanation: true,
+        basicCoach: true,
+        fullCoach: true,
+        variationQuestions: false,
+      },
+    });
+  });
+
+  it("keeps approved explained puzzles below full coach", () => {
+    expect(
+      getCoachAccess(
+        makePuzzle({
+          id: "p-00001",
+        }),
+      ),
+    ).toMatchObject({
+      available: false,
+      reason: "restricted",
+      contentTier: "coach-eligible",
+      qualityTier: "explained",
+      capabilities: {
+        staticExplanation: true,
+        basicCoach: true,
+        fullCoach: false,
+      },
+    });
   });
 
   it("keeps non-approved puzzles restricted", () => {
@@ -48,6 +92,14 @@ describe("coachAccess", () => {
           id: "p-99999",
         }),
       ),
-    ).toEqual({ available: false, reason: "restricted" });
+    ).toMatchObject({
+      available: false,
+      reason: "restricted",
+      contentTier: "basic-explained",
+      capabilities: {
+        staticExplanation: true,
+        fullCoach: false,
+      },
+    });
   });
 });

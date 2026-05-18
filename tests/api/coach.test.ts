@@ -1015,7 +1015,19 @@ describe("/api/coach", () => {
 
   describe("coach access restriction", () => {
     it("returns 403 when puzzle is not coach-ready", async () => {
-      coachAccessMock.mockReturnValue({ available: false, reason: "restricted" });
+      coachAccessMock.mockReturnValue({
+        available: false,
+        reason: "restricted",
+        contentTier: "coach-eligible",
+        qualityTier: "explained",
+        hasVariationSupport: false,
+        capabilities: {
+          staticExplanation: true,
+          basicCoach: true,
+          fullCoach: false,
+          variationQuestions: false,
+        },
+      });
 
       const response = await POST(
         makeRequest({
@@ -1029,7 +1041,14 @@ describe("/api/coach", () => {
       expect(response.status).toBe(403);
       await expect(response.json()).resolves.toMatchObject({
         code: "coach_unavailable",
-        error: "AI coach is only available on approved coach-ready puzzles.",
+        error:
+          "This puzzle has a curated explanation, but full AI coach needs a reviewed main line and wrong-branch notes.",
+        coachAccess: {
+          contentTier: "coach-eligible",
+          capabilities: {
+            fullCoach: false,
+          },
+        },
       });
       expect(createCompletionMock).not.toHaveBeenCalled();
     });

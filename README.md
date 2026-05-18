@@ -24,7 +24,7 @@ Technically, the product is a **Next.js 16 (App Router)** stack on **Supabase** 
 | Focus              | What you get                                                                                                              |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
 | **Daily practice** | Curated puzzles, habit-friendly flow, keyboard-accessible board                                                           |
-| **AI coach**       | Streaming coach API, fair-use quotas, persona system, puzzle-level eligibility                                            |
+| **AI coach**       | Streaming coach API, fair-use quotas, persona system, puzzle quality-tier eligibility                                     |
 | **Global product** | Locale-prefixed routing, SEO-scale sitemap with the puzzle corpus, adaptive pricing                                       |
 | **Operations**     | Documented APIs & schema, automated CI (format → lint → validate → typecheck → test → build), security disclosure process |
 

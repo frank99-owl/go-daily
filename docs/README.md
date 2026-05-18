@@ -200,12 +200,14 @@ flowchart TB
 
 Scripts write audit outputs under `reports/` (`npm run queue:content`, `npm run report:*`, `npm run audit:puzzles`). Those artifacts are **gitignored** and **not** part of this documentation set — regenerate locally when needed. Operational truth remains in `docs/{locale}/`.
 
-| Output (local)                           | Script                      | Description                       |
-| ---------------------------------------- | --------------------------- | --------------------------------- |
-| `reports/content-queue/latest.{md,json}` | `npm run queue:content`     | Coach-ready puzzle inventory      |
-| `reports/duplicates/latest.{md,json}`    | `npm run report:duplicates` | Duplicate board-position analysis |
-| `reports/quality/latest.{md,json}`       | `npm run report:quality`    | Solution-note quality sampling    |
-| `reports/puzzle-audit/latest.{md,json}`  | `npm run audit:puzzles`     | Distribution and balance stats    |
+| Output (local)                            | Script                       | Description                                                  |
+| ----------------------------------------- | ---------------------------- | ------------------------------------------------------------ |
+| `reports/content-queue/latest.{md,json}`  | `npm run queue:content`      | Coach-ready puzzle inventory                                 |
+| `reports/content-batch/latest.{md,json}`  | `npm run plan:content-batch` | Manual editing batch plan                                    |
+| `reports/content-review/latest.{md,json}` | Manual P0-D review pass      | Reviewed solutionSequence / wrongBranches backfill checklist |
+| `reports/duplicates/latest.{md,json}`     | `npm run report:duplicates`  | Duplicate board-position analysis                            |
+| `reports/quality/latest.{md,json}`        | `npm run report:quality`     | Solution-note quality sampling                               |
+| `reports/puzzle-audit/latest.{md,json}`   | `npm run audit:puzzles`      | Distribution and balance stats                               |
 
 ### About automated outputs · 说明 · 説明 · 안내
 
@@ -214,3 +216,16 @@ Scripts write audit outputs under `reports/` (`npm run queue:content`, `npm run 
 **日本語** — スクリプトが `reports/` に出力（上表コマンド）。成果物は **gitignore** で本ドキュメント群に含めない。必要ならローカルで再生成。正は `docs/{locale}/`。**Description**：コンテンツキュー＝コーチ向けインベントリ；重複＝同型局面分析；品質＝解答注釈サンプル；監査＝分布・バランス。
 
 **한국어** — 스크립트가 `reports/`에 출력(위 표). 결과물은 **gitignore**, 공식 문서 아님. 로컬에서 재생성. 기준은 `docs/{locale}/`. **Description**: 콘텐츠 큐=코치용 목록；중복=동일 국면；품질=해설 노트 샘플；감사=분포·균형 통계.
+
+---
+
+## Phase 3 planning docs
+
+These Chinese-first planning documents track the next product-system phase and may be translated once the model stabilizes:
+
+| Document                                                   | Purpose                                                                           |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [CONTENT_QUALITY_MODEL](zh/CONTENT_QUALITY_MODEL.md)       | Puzzle content tiers, current 3033-puzzle baseline, coach access migration        |
+| [CONTENT_EDITING_WORKFLOW](zh/CONTENT_EDITING_WORKFLOW.md) | First manual editing batch workflow for solutionSequence / wrongBranches backfill |
+| [ROADMAP](zh/ROADMAP.md)                                   | P0 / P1 / P2 execution order for learning, retention, conversion, and operations  |
+| [TECH_DEBT](zh/TECH_DEBT.md)                               | Technical debt, content debt, operational debt, and validation expectations       |

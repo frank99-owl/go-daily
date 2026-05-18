@@ -11,11 +11,12 @@ import { type CoachErrorCode, isCoachErrorCode } from "@/lib/coach/coachErrorCod
 import { DEFAULT_PERSONA, type PersonaId } from "@/lib/coach/personas";
 import { useLocale } from "@/lib/i18n/i18n";
 import { track } from "@/lib/posthog/events";
-import type { CoachMessage, Coord, Locale } from "@/types";
+import type { CoachMessage, Coord, Locale, PublicCoachAccess } from "@/types";
 
 type Props = {
   puzzleId: string;
   userMove: Coord;
+  coachAccess?: PublicCoachAccess;
   suggestedPrompts?: string[];
   suggestedPromptSource?: "result" | "onboarding_result";
 };
@@ -34,6 +35,7 @@ function timestampMs(): number {
 export function CoachDialogue({
   puzzleId,
   userMove,
+  coachAccess,
   suggestedPrompts = [],
   suggestedPromptSource = "result",
 }: Props) {
@@ -287,7 +289,16 @@ export function CoachDialogue({
       <header className="px-4 py-2 border-b border-[color:var(--color-line)] flex items-center justify-between min-h-[56px]">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[color:var(--color-accent)] animate-pulse" />
-          <h2 className="text-sm font-medium text-white">{t.result.coachTitle}</h2>
+          <div>
+            <h2 className="text-sm font-medium text-white">{t.result.coachTitle}</h2>
+            {coachAccess && (
+              <p className="text-xs text-white/40">
+                {coachAccess.contentTier === "variation-ready"
+                  ? t.result.coachVariationReady
+                  : t.result.coachReadyBoundary}
+              </p>
+            )}
+          </div>
         </div>
         <CoachPersonaSelector
           selectedId={personaId}

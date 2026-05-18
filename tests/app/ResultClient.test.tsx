@@ -331,4 +331,171 @@ describe("ResultClient keyboard support", () => {
       source: "onboarding_result",
     });
   });
+
+  it("offers a same-level next puzzle after onboarding result", async () => {
+    vi.mocked(loadAttempts).mockReturnValue([
+      {
+        puzzleId: "already-done",
+        date: "2026-04-20",
+        userMove: { x: 1, y: 1 },
+        correct: true,
+        solvedAtMs: 100,
+      },
+    ]);
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) === "/api/puzzle/random") {
+        return Response.json({ puzzleId: "next-001", level: "intermediate" });
+      }
+      return Response.json({
+        correct: [{ x: 4, y: 4 }],
+        solutionSequence: [{ x: 4, y: 4, color: "black" }],
+        solutionNote: {
+          zh: "占住急所。",
+          en: "Take the vital point.",
+          ja: "急所を占める。",
+          ko: "급소를 차지한다.",
+        },
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ResultClient
+          initialPuzzle={{
+            id: "cld-001",
+            date: "2026-04-21",
+            boardSize: 9,
+            stones: [],
+            toPlay: "black",
+            tag: "life-death",
+            difficulty: 1,
+            prompt: {
+              zh: "黑先活",
+              en: "Black to live",
+              ja: "黒先活",
+              ko: "흑선활",
+            },
+            source: "2026-04-21",
+            coachAvailable: false,
+          }}
+          todayPuzzleId="cld-999"
+          source="onboarding"
+          onboardingLevel="intermediate"
+        />
+      </LocaleProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue same level" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/puzzle/random",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            attemptedPuzzleIds: ["already-done", "cld-001"],
+            level: "intermediate",
+          }),
+        }),
+      ),
+    );
+    expect(push).toHaveBeenCalledWith("/en/puzzles/next-001");
+    expect(trackMock).toHaveBeenCalledWith("random_puzzle_picked", {
+      puzzleId: "next-001",
+      source: "onboarding_result",
+      level: "intermediate",
+    });
+  });
+
+  it("shows the coach-eligible boundary instead of the chat surface", async () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <ResultClient
+          initialPuzzle={{
+            id: "cld-001",
+            date: "2026-04-21",
+            boardSize: 9,
+            stones: [],
+            toPlay: "black",
+            tag: "life-death",
+            difficulty: 1,
+            prompt: {
+              zh: "黑先活",
+              en: "Black to live",
+              ja: "黒先活",
+              ko: "흑선활",
+            },
+            source: "2026-04-21",
+            coachAvailable: false,
+            coachAccess: {
+              available: false,
+              reason: "restricted",
+              contentTier: "coach-eligible",
+              qualityTier: "explained",
+              hasVariationSupport: false,
+              capabilities: {
+                staticExplanation: true,
+                basicCoach: true,
+                fullCoach: false,
+                variationQuestions: false,
+              },
+            },
+          }}
+          todayPuzzleId="cld-999"
+        />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("coach-eligible")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/content backfill queue/)).toBeInTheDocument();
+    expect(screen.queryByTestId("coach-dialogue")).not.toBeInTheDocument();
+  });
+
+  it("shows CoachDialogue for full coach-ready puzzles", async () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <ResultClient
+          initialPuzzle={{
+            id: "cld-001",
+            date: "2026-04-21",
+            boardSize: 9,
+            stones: [],
+            toPlay: "black",
+            tag: "life-death",
+            difficulty: 1,
+            prompt: {
+              zh: "黑先活",
+              en: "Black to live",
+              ja: "黒先活",
+              ko: "흑선활",
+            },
+            source: "2026-04-21",
+            coachAvailable: true,
+            coachAccess: {
+              available: true,
+              reason: "approved",
+              contentTier: "coach-ready",
+              qualityTier: "coach-ready",
+              hasVariationSupport: true,
+              capabilities: {
+                staticExplanation: true,
+                basicCoach: true,
+                fullCoach: true,
+                variationQuestions: false,
+              },
+            },
+          }}
+          todayPuzzleId="cld-999"
+        />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("coach-dialogue")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("coach-ready")).not.toBeInTheDocument();
+  });
 });

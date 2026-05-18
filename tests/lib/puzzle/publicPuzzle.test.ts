@@ -55,6 +55,13 @@ describe("toPublicPuzzle", () => {
       prompt: puzzle.prompt,
       source: "Classical",
       coachAvailable: false,
+      coachAccess: {
+        available: false,
+        reason: "restricted",
+        contentTier: "basic-explained",
+        qualityTier: "thin",
+        hasVariationSupport: true,
+      },
     });
     expect(publicPuzzle).not.toHaveProperty("correct");
     expect(publicPuzzle).not.toHaveProperty("solutionNote");

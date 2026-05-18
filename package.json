@@ -25,6 +25,7 @@
     "report:duplicates": "tsx scripts/reportDuplicates.ts",
     "report:quality": "tsx scripts/reportQuality.ts",
     "queue:content": "tsx scripts/queueContent.ts",
+    "plan:content-batch": "tsx scripts/planContentBatch.ts",
     "gemini:solutions": "node scripts/geminiSolutionNotes.js",
     "mimo:solutions": "node scripts/geminiSolutionNotes.js",
     "supabase:health": "tsx scripts/supabaseHealthcheck.ts",

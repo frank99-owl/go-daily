@@ -98,7 +98,9 @@
     "resultBodyWrong": "A mistake is not a failed session; it is the best training sample. Read the key explanation, then ask AI what opportunity your move gave the opponent.",
     "resultStepSubmitted": "1 Answer submitted",
     "resultStepExplanation": "2 Read the answer explanation",
-    "resultStepReview": "3 Save it for review"
+    "resultStepReview": "3 Save it for review",
+    "nextPractice": "Continue same level",
+    "nextPracticeLoading": "Finding next puzzle…"
   },
   "result": {
     "correct": "Correct!",
@@ -120,6 +122,10 @@
     "send": "Send",
     "thinking": "Thinking…",
     "coachLimited": "AI coach is available on approved coach-ready puzzles only.",
+    "coachBasicExplained": "This puzzle has a static explanation, but it is not in the AI Coach queue yet.",
+    "coachEligibleLimited": "This puzzle has a basic explanation and can enter the content backfill queue; full AI Coach stays closed until the main line and wrong branches are reviewed.",
+    "coachReadyBoundary": "coach-ready: ask about the main line and common wrong moves.",
+    "coachVariationReady": "variation-ready: supports related shape variations and follow-up questions.",
     "coachGuestLocked": "Sign in to use AI Coach and sync your progress across devices.",
     "coachPlanFree": "Free",
     "coachPlanPro": "Pro",

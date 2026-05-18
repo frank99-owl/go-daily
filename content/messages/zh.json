@@ -94,7 +94,9 @@
     "resultBodyWrong": "错题不是失败，而是最有价值的训练样本。先看答案讲解，再追问 AI：你的落点给了对方什么机会。",
     "resultStepSubmitted": "1 已提交答案",
     "resultStepExplanation": "2 先看答案讲解",
-    "resultStepReview": "3 保存后明天复习"
+    "resultStepReview": "3 保存后明天复习",
+    "nextPractice": "继续同水平练习",
+    "nextPracticeLoading": "正在找下一题…"
   },
   "result": {
     "correct": "正确！",
@@ -116,6 +118,10 @@
     "send": "发送",
     "thinking": "AI 思考中…",
     "coachLimited": "AI 教练目前只对已批准的 coach-ready 练习题开放。",
+    "coachBasicExplained": "本题已提供静态解析，但还没有进入 AI 教练队列。",
+    "coachEligibleLimited": "本题有基础解析，可进入内容补强队列；补齐主线和错招分支前不开放完整 AI 教练。",
+    "coachReadyBoundary": "coach-ready：可围绕主线与常见错招提问。",
+    "coachVariationReady": "variation-ready：支持同形变化与后续追问。",
     "coachGuestLocked": "登录后即可使用 AI 教练，并把你的进度同步到多设备。",
     "coachPlanFree": "免费版",
     "coachPlanPro": "Pro",

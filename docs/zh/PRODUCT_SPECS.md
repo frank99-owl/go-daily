@@ -51,7 +51,37 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 - **难度 (Difficulty)**: 1–5 级。每道题目拥有单一难度评级。
 - **集合页面**: `/puzzles/tags/{tag}` 和 `/puzzles/difficulty/{level}` 使用 `PuzzleListClient` 组件渲染筛选视图。
 
-## 5. 法律与合规呈现逻辑
+## 5. 内容质量分层
+
+题库内容不能只用“是否有正解”来判断是否适合 AI 教练。当前共享结构由 `types/schemas.ts` 定义：`correct` 与 `solutionNote` 是基础字段，`solutionSequence` 与 `wrongBranches` 是可选的深度教学字段。
+
+产品层按四档理解题目质量：
+
+| 分层              | 判定依据                                                          | 产品用途                                     |
+| ----------------- | ----------------------------------------------------------------- | -------------------------------------------- |
+| `basic-explained` | 有正解和四语言解析，但未进入运营准入列表                          | 每日题、结果页解析、基础复习                 |
+| `coach-eligible`  | 通过 `checkCoachEligibility()` 基础质量门槛，且可进入内容运营队列 | 受限 AI 基础解释、首题池、内容补强候选       |
+| `coach-ready`     | 有正解、解析、`solutionSequence` 与 `wrongBranches`，并经批准     | 可上线完整 AI 教练，允许围绕变例进行追问     |
+| `variation-ready` | 重复组或同形题被整理成明确变化关系，可解释差异与次序              | 专题训练、错因归纳、下一题推荐和高级复盘路径 |
+
+实现上，`lib/coach/coachEligibility.ts` 已返回 `qualityTier` 与 `hasVariationSupport`。当前 `coachEligibleIds.json` 仍是历史白名单，运行时还会经过 `getCoachAccess()` 的质量校验；迁移时应先保留双门控，再把白名单语义拆成基础解释准入、完整教练批准和变例专题关系。只有达到 `coach-ready` 并进入批准列表的题目，才应被视为完整 AI 教练题。`basic-explained` / `coach-eligible` 题可以提供静态解析或受限问答，但不应承诺完整变例讲解。
+
+## 6. 学习闭环
+
+目标路径是 `onboarding → first puzzle → result → coach → review → next recommendation`：
+
+| 步骤                | 用户应得到的反馈                                   | 系统依据                                     |
+| ------------------- | -------------------------------------------------- | -------------------------------------------- |
+| Onboarding          | 当前适合的训练强度、题型入口和今日目标             | 训练水平偏好、语言环境、登录状态             |
+| First puzzle        | 清晰题型、难度、当前轮到谁下、即时落子反馈         | 题库索引、每日选题、棋盘规则                 |
+| Result              | 对错、正解、关键形状解释、是否进入复习             | `correct`、`solutionNote`、attempt 记录      |
+| Coach               | 可追问的讲解边界；只有完整题提供主线与错误分支问答 | `qualityTier`、配额、批准列表、人设          |
+| Review              | 上次错因、本次复习目标、SRS 下一次时间             | attempt 历史、`reviewSrs.ts`                 |
+| Next recommendation | 下一道更适合的题，而不是单纯随机                   | 难度、标签、SRS 到期、近期错误、内容质量分层 |
+
+该闭环的核心指标不是题库总量，而是首题完成率、结果页继续率、Coach 使用后的次日回访、错题复习完成率和 Pro 转化触点质量。
+
+## 7. 法律与合规呈现逻辑
 
 系统采用 Apple 风格的”统一支柱”法律递送机制。
 
@@ -62,7 +92,7 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
   - **英国/欧盟 DMCCA**: 集成于退款政策中。
 - **内容交付**: 所有法律文本均由 `app/[locale]/legal/_content.ts` 驱动。
 
-## 6. 无障碍与路由边界
+## 8. 无障碍与路由边界
 
 - **Heatmap ARIA**: 活动热力图使用 `role=”grid”` 容器加 `aria-label`，每个日期单元格使用 `role=”gridcell”` 加描述性 `aria-label`。
 - **UserMenu 键盘导航**: 下拉菜单支持 ArrowUp/Down 循环切换、Home/End 跳转首尾、Escape 关闭，打开时自动聚焦第一项。

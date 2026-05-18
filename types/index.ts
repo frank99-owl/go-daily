@@ -34,6 +34,27 @@ export type PublicPuzzle = Pick<
 > & {
   source: string;
   coachAvailable: boolean;
+  coachAccess?: PublicCoachAccess;
+};
+
+export type CoachContentTier =
+  | "basic-explained"
+  | "coach-eligible"
+  | "coach-ready"
+  | "variation-ready";
+
+export type PublicCoachAccess = {
+  available: boolean;
+  reason: "approved" | "restricted";
+  contentTier: CoachContentTier;
+  qualityTier: "blocked" | "thin" | "explained" | "coach-ready";
+  hasVariationSupport: boolean;
+  capabilities: {
+    staticExplanation: boolean;
+    basicCoach: boolean;
+    fullCoach: boolean;
+    variationQuestions: boolean;
+  };
 };
 
 export type PuzzleReveal = {

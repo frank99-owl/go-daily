@@ -2,6 +2,8 @@ import { getCoachAccess } from "@/lib/coach/coachAccess";
 import type { PublicPuzzle, Puzzle } from "@/types";
 
 export function toPublicPuzzle(puzzle: Puzzle): PublicPuzzle {
+  const coachAccess = getCoachAccess(puzzle);
+
   return {
     id: puzzle.id,
     date: puzzle.date,
@@ -12,6 +14,7 @@ export function toPublicPuzzle(puzzle: Puzzle): PublicPuzzle {
     difficulty: puzzle.difficulty,
     prompt: puzzle.prompt,
     source: puzzle.source ?? puzzle.date,
-    coachAvailable: getCoachAccess(puzzle).available,
+    coachAvailable: coachAccess.available,
+    coachAccess,
   };
 }

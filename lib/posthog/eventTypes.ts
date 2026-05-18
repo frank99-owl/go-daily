@@ -46,7 +46,7 @@ export type EventMap = {
   share_card_downloaded: { puzzleId: string };
   random_puzzle_picked: {
     puzzleId: string;
-    source?: "nav" | "today";
+    source?: "nav" | "today" | "onboarding_result";
     level?: OnboardingLevel;
   };
   review_page_viewed: { wrongCount: number };

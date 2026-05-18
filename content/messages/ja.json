@@ -94,7 +94,9 @@
     "resultBodyWrong": "ミスは失敗ではなく、最も価値のある教材です。要点を読み、あなたの手が相手に何を許したか AI に聞いてみましょう。",
     "resultStepSubmitted": "1 解答を送信",
     "resultStepExplanation": "2 解答解説を確認",
-    "resultStepReview": "3 保存して復習"
+    "resultStepReview": "3 保存して復習",
+    "nextPractice": "同じレベルで続ける",
+    "nextPracticeLoading": "次の問題を探しています…"
   },
   "result": {
     "correct": "当たり！",
@@ -116,6 +118,10 @@
     "send": "送信",
     "thinking": "思考中…",
     "coachLimited": "AI コーチは現在、承認済みの coach-ready 問題でのみ利用できます。",
+    "coachBasicExplained": "この問題には静的な解説がありますが、まだ AI コーチの対象ではありません。",
+    "coachEligibleLimited": "この問題は基礎解説があり、内容補強キューに入れられます。主線と誤着分岐の確認が終わるまで完全な AI コーチは開放しません。",
+    "coachReadyBoundary": "coach-ready：主線とよくある誤着について質問できます。",
+    "coachVariationReady": "variation-ready：関連する同形変化と追加質問に対応します。",
     "coachGuestLocked": "AI コーチを使うにはログインしてください。進捗も複数デバイスで同期されます。",
     "coachPlanFree": "無料",
     "coachPlanPro": "Pro",

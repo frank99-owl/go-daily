@@ -94,7 +94,9 @@
     "resultBodyWrong": "오답은 실패가 아니라 가장 좋은 훈련 자료입니다. 핵심 해설을 읽고, 내 수가 상대에게 어떤 기회를 줬는지 AI에게 물어보세요.",
     "resultStepSubmitted": "1 답안 제출",
     "resultStepExplanation": "2 정답 해설 확인",
-    "resultStepReview": "3 저장 후 복습"
+    "resultStepReview": "3 저장 후 복습",
+    "nextPractice": "같은 수준 계속 풀기",
+    "nextPracticeLoading": "다음 문제를 찾는 중…"
   },
   "result": {
     "correct": "맞았어요！",
@@ -116,6 +118,10 @@
     "send": "보내기",
     "thinking": "생각 중…",
     "coachLimited": "AI 코치는 승인된 coach-ready 연습 문제에서만 사용할 수 있습니다.",
+    "coachBasicExplained": "이 문제에는 정적 해설이 있지만 아직 AI 코치 대상은 아닙니다.",
+    "coachEligibleLimited": "이 문제는 기본 해설이 있어 콘텐츠 보강 대기열에 넣을 수 있습니다. 주 변형과 오답 분기를 검토하기 전까지 전체 AI 코치는 열지 않습니다.",
+    "coachReadyBoundary": "coach-ready: 주 변형과 흔한 오답에 대해 질문할 수 있습니다.",
+    "coachVariationReady": "variation-ready: 관련 동형 변화와 추가 질문을 지원합니다.",
     "coachGuestLocked": "AI 코치를 사용하려면 로그인하세요. 진행 기록도 여러 기기에서 동기화됩니다.",
     "coachPlanFree": "무료",
     "coachPlanPro": "Pro",

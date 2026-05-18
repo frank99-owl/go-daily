@@ -20,6 +20,7 @@ import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
 import { track } from "@/lib/posthog/events";
+import type { OnboardingLevel } from "@/lib/puzzle/onboardingLevels";
 import { attemptKey } from "@/lib/storage/attemptKey";
 import {
   getAttemptFor,
@@ -27,7 +28,7 @@ import {
   loadAttempts,
   replaceAttempts,
 } from "@/lib/storage/storage";
-import type { AttemptRecord, PublicPuzzle, PuzzleReveal, Stone } from "@/types";
+import type { AttemptRecord, PublicCoachAccess, PublicPuzzle, PuzzleReveal, Stone } from "@/types";
 
 const CoachDialogue = dynamic(
   () => import("@/components/CoachDialogue").then((m) => m.CoachDialogue),
@@ -50,6 +51,27 @@ type PuzzleAttemptResponse = {
   revealToken?: string;
   error?: string;
 };
+
+type RandomPuzzleResponse = {
+  puzzleId?: string;
+  error?: string;
+};
+
+function fallbackCoachAccess(coachAvailable: boolean): PublicCoachAccess {
+  return {
+    available: coachAvailable,
+    reason: coachAvailable ? "approved" : "restricted",
+    contentTier: coachAvailable ? "coach-ready" : "basic-explained",
+    qualityTier: coachAvailable ? "coach-ready" : "explained",
+    hasVariationSupport: coachAvailable,
+    capabilities: {
+      staticExplanation: true,
+      basicCoach: coachAvailable,
+      fullCoach: coachAvailable,
+      variationQuestions: false,
+    },
+  };
+}
 
 function normalizeReveal(data: PuzzleRevealResponse): PuzzleReveal {
   if (!Array.isArray(data.correct) || !data.solutionNote) {
@@ -102,14 +124,17 @@ export function ResultClient({
   initialPuzzle,
   todayPuzzleId,
   source = "result",
+  onboardingLevel,
 }: {
   initialPuzzle: PublicPuzzle;
   todayPuzzleId: string;
   source?: ResultSource;
+  onboardingLevel?: OnboardingLevel;
 }) {
   const router = useRouter();
   const puzzle = initialPuzzle;
   const { t, locale } = useLocale();
+  const coachAccess = puzzle.coachAccess ?? fallbackCoachAccess(puzzle.coachAvailable);
   const { user, loading: userLoading } = useCurrentUser();
   const resultAnalyticsSource = source === "onboarding" ? "onboarding_result" : "result";
   const retryPath =
@@ -126,6 +151,8 @@ export function ResultClient({
   const [showAnswer, setShowAnswer] = useState(false);
   const [solutionStep, setSolutionStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [nextPuzzlePending, setNextPuzzlePending] = useState(false);
+  const [nextPuzzleError, setNextPuzzleError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const signupPromptTrackedRef = useRef(false);
 
@@ -297,6 +324,41 @@ export function ResultClient({
     setIsPlaying(false);
   };
 
+  const continueOnboardingPractice = async () => {
+    if (!onboardingLevel || nextPuzzlePending) return;
+    setNextPuzzlePending(true);
+    setNextPuzzleError(null);
+
+    try {
+      const attemptedPuzzleIds = Array.from(
+        new Set([...loadAttempts().map((item) => item.puzzleId), puzzle.id]),
+      );
+      const response = await fetch("/api/puzzle/random", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ attemptedPuzzleIds, level: onboardingLevel }),
+      });
+      const data = (await response.json()) as RandomPuzzleResponse;
+      if (!response.ok) {
+        throw new Error(data.error ?? `Request failed (${response.status})`);
+      }
+      if (!data.puzzleId) {
+        throw new Error("Invalid random puzzle response.");
+      }
+      track("random_puzzle_picked", {
+        puzzleId: data.puzzleId,
+        source: "onboarding_result",
+        level: onboardingLevel,
+      });
+      router.push(localePath(locale, `/puzzles/${encodeURIComponent(data.puzzleId)}`));
+    } catch (err) {
+      console.warn("[result] failed to continue onboarding practice", err);
+      setNextPuzzleError(err instanceof Error ? err.message : "Failed to pick the next puzzle.");
+    } finally {
+      setNextPuzzlePending(false);
+    }
+  };
+
   const handleKeyDownCapture: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
     const target = event.target as HTMLElement | null;
     if (
@@ -391,6 +453,31 @@ export function ResultClient({
               <span>{t.onboarding.resultStepReview}</span>
             </div>
           </div>
+          {onboardingLevel && (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  void continueOnboardingPractice();
+                }}
+                disabled={nextPuzzlePending}
+                className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-50"
+              >
+                {nextPuzzlePending ? t.onboarding.nextPracticeLoading : t.onboarding.nextPractice}
+              </button>
+              <LocalizedLink
+                href="/review"
+                className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white/65 transition-colors hover:border-white/25 hover:text-white"
+              >
+                {t.result.openReview}
+              </LocalizedLink>
+              {nextPuzzleError && (
+                <span className="text-sm text-[color:var(--color-warn)]" role="alert">
+                  {nextPuzzleError}
+                </span>
+              )}
+            </div>
+          )}
         </section>
       )}
 
@@ -551,7 +638,7 @@ export function ResultClient({
         </section>
       )}
 
-      {attempt?.userMove && puzzle.coachAvailable && (
+      {attempt?.userMove && coachAccess.capabilities.fullCoach && (
         <section className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-medium text-white">
             <MessageCircleQuestion className="h-4 w-4 text-[color:var(--color-accent)]" />
@@ -560,15 +647,25 @@ export function ResultClient({
           <CoachDialogue
             puzzleId={puzzle.id}
             userMove={attempt.userMove}
+            coachAccess={coachAccess}
             suggestedPrompts={coachPrompts}
             suggestedPromptSource={resultAnalyticsSource}
           />
         </section>
       )}
 
-      {attempt?.userMove && !puzzle.coachAvailable && (
+      {attempt?.userMove && !coachAccess.capabilities.fullCoach && (
         <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-          <div className="text-sm leading-relaxed text-white/60">{t.result.coachLimited}</div>
+          <div className="mb-2 inline-flex rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-white/55">
+            {coachAccess.contentTier}
+          </div>
+          <div className="text-sm leading-relaxed text-white/60">
+            {coachAccess.contentTier === "coach-eligible"
+              ? t.result.coachEligibleLimited
+              : coachAccess.contentTier === "variation-ready"
+                ? t.result.coachVariationReady
+                : t.result.coachBasicExplained}
+          </div>
         </section>
       )}
     </div>

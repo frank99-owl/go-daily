@@ -31,7 +31,7 @@ import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import type { CoachMessage } from "@/types";
+import type { CoachMessage, PublicCoachAccess } from "@/types";
 import { CoachRequestSchema } from "@/types/schemas";
 
 const GUEST_DEVICE_ID_HEADER = "x-go-daily-guest-device-id";
@@ -54,13 +54,15 @@ function coachError({
   code,
   error,
   usage,
+  coachAccess,
 }: {
   status: number;
   code: string;
   error: string;
   usage?: CoachUsageSummary | GuestUsageSummary | null;
+  coachAccess?: PublicCoachAccess;
 }) {
-  return createApiResponse({ error, code, usage: usage ?? null }, { status });
+  return createApiResponse({ error, code, usage: usage ?? null, coachAccess }, { status });
 }
 
 function getCoachModelInfo() {
@@ -149,7 +151,11 @@ export async function POST(request: Request) {
     return coachError({
       status: 403,
       code: COACH_ERROR_CODES.COACH_UNAVAILABLE,
-      error: "AI coach is only available on approved coach-ready puzzles.",
+      error:
+        coachAccess.contentTier === "coach-eligible"
+          ? "This puzzle has a curated explanation, but full AI coach needs a reviewed main line and wrong-branch notes."
+          : "AI coach is only available on approved coach-ready puzzles.",
+      coachAccess,
     });
   }
 

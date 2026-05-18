@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { getPuzzle } from "@/content/puzzles";
+import { parseOnboardingLevel } from "@/lib/puzzle/onboardingLevels";
 import { toPublicPuzzle } from "@/lib/puzzle/publicPuzzle";
 import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzle/puzzleOfTheDay";
 
@@ -12,7 +13,7 @@ function normalizeResultSource(source: string | undefined): ResultSource {
 }
 
 export default async function ResultPage(props: {
-  searchParams: Promise<{ id?: string; source?: string }>;
+  searchParams: Promise<{ id?: string; source?: string; level?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const id = searchParams.id;
@@ -37,6 +38,7 @@ export default async function ResultPage(props: {
           initialPuzzle={toPublicPuzzle(puzzle)}
           todayPuzzleId={todayPuzzle.id}
           source={normalizeResultSource(searchParams.source)}
+          onboardingLevel={parseOnboardingLevel(searchParams.level) ?? undefined}
         />
       </Suspense>
     </div>

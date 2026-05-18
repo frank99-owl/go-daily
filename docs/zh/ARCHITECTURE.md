@@ -41,6 +41,7 @@
 ### `lib/coach/` (AI 智能)
 
 - **提示词工程**：集中在 `coachPrompt.ts`，各题共用同一套教练契约（以解析与分支信息为准、人设语气、按语言的文风段落）。
+- **质量准入**：`coachEligibility.ts` 负责把题目分为 `blocked`、`thin`、`explained`、`coach-ready`，并显式返回 `hasVariationSupport`。`coachEligibleIds.json` 是历史白名单，`getCoachAccess()` 仍会叠加运行时质量校验；有四语言解析但缺少 `solutionSequence` / `wrongBranches` 的题目只属于解释充分，不等同于完整 AI 教练题。
 - **配额与时间窗**：`coachQuota.ts` 提供按用户时区格式化日期与自然月 / 计费锚定月窗口（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）。各档位的条数上限定义在 `lib/entitlements.ts`（并受 `getCoachState` 等消费）。
 - **使用量计数**：登录与访客教练消息次数持久化在 Postgres；并发下通过 RPC（`increment_coach_usage`、`increment_guest_coach_usage`）原子自增，避免读改写竞态。
 
@@ -57,6 +58,7 @@
 ### `lib/puzzle/` (题目引擎)
 
 - **SRS 与加载**：间隔重复（`srs.ts`、`reviewSrs.ts`）、每日选题、题集、揭示令牌、快照与状态工具等 — `lib/puzzle/` 下八个实现模块，另含同目录的 `puzzleOfTheDay.test.ts`。
+- **内容字段**：题目契约来自 `types/schemas.ts`。`correct` 与 `solutionNote` 支撑基础解题和结果页；`solutionSequence` 与 `wrongBranches` 支撑教练主线、错手反驳和后续变化题整理。
 
 ### `lib/entitlements.ts` 与 `lib/entitlementsServer.ts`（档位）
 
