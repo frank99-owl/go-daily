@@ -324,6 +324,7 @@ describe("ResultClient keyboard support", () => {
       expect(screen.getByText("Take the vital point.")).toBeInTheDocument();
     });
     expect(screen.getByText("Likely mistake pattern")).toBeInTheDocument();
+    expect(screen.getByText("Stay on this training path")).toBeInTheDocument();
 
     const saveLink = screen.getByRole("link", { name: "Sign in and save" });
     expect(saveLink.getAttribute("href")).toContain("/en/login");
@@ -459,6 +460,87 @@ describe("ResultClient keyboard support", () => {
     });
     expect(screen.getByText("Missed vital point")).toBeInTheDocument();
     expect(screen.getByText(/not on the point that changes liberties/)).toBeInTheDocument();
+    expect(screen.getByText("Practice this mistake pattern again")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open review" })).toBeInTheDocument();
+  });
+
+  it("offers same-topic next practice after a wrong result", async () => {
+    vi.mocked(loadAttempts).mockReturnValue([
+      {
+        puzzleId: "cld-001",
+        date: "2026-04-21",
+        userMove: { x: 4, y: 4 },
+        correct: false,
+        solvedAtMs: 123,
+        revealToken: "reveal-token",
+      },
+    ]);
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) === "/api/puzzle/random") {
+        return Response.json({ puzzleId: "next-life-death" });
+      }
+      return Response.json({
+        correct: [{ x: 4, y: 5 }],
+        solutionSequence: [{ x: 4, y: 5, color: "black" }],
+        solutionNote: {
+          zh: "占住急所。",
+          en: "Take the vital point.",
+          ja: "急所を占める。",
+          ko: "급소를 차지한다.",
+        },
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ResultClient
+          initialPuzzle={{
+            id: "cld-001",
+            date: "2026-04-21",
+            boardSize: 9,
+            stones: [],
+            toPlay: "black",
+            tag: "life-death",
+            difficulty: 1,
+            prompt: {
+              zh: "黑先活",
+              en: "Black to live",
+              ja: "黒先活",
+              ko: "흑선활",
+            },
+            source: "2026-04-21",
+            coachAvailable: false,
+          }}
+          todayPuzzleId="cld-999"
+        />
+      </LocaleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Practice same topic" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Practice same topic" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/puzzle/random",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            attemptedPuzzleIds: ["cld-001"],
+            level: "beginner",
+            tag: "life-death",
+          }),
+        }),
+      ),
+    );
+    expect(push).toHaveBeenCalledWith("/en/puzzles/next-life-death");
+    expect(trackMock).toHaveBeenCalledWith("random_puzzle_picked", {
+      puzzleId: "next-life-death",
+      source: "result",
+      level: "beginner",
+    });
   });
 
   it("shows a training focus instead of a mistake reason after a correct result", async () => {
@@ -511,6 +593,7 @@ describe("ResultClient keyboard support", () => {
     });
     expect(screen.getByText("Opening direction")).toBeInTheDocument();
     expect(screen.getByText(/whole-board relationship/)).toBeInTheDocument();
+    expect(screen.getByText("Try a slightly harder puzzle")).toBeInTheDocument();
     expect(screen.queryByText("Likely mistake pattern")).not.toBeInTheDocument();
   });
 

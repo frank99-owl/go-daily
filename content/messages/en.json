@@ -181,6 +181,43 @@
         }
       }
     },
+    "nextRecommendation": {
+      "eyebrow": "Recommended next step",
+      "cta": {
+        "sameLevel": "Continue same level",
+        "stepUp": "Try slightly harder",
+        "sameTopic": "Practice same topic",
+        "loading": "Finding next puzzle…"
+      },
+      "reviewCta": "Open review",
+      "reviewPrompt": "{{count}} unresolved mistake(s) are waiting in Review. You can keep practicing now and come back to them next.",
+      "reasons": {
+        "onboarding-path": {
+          "title": "Stay on this training path",
+          "body": "Keep the same onboarding level for the next puzzle so the difficulty stays stable while you build rhythm."
+        },
+        "correct-same-level": {
+          "title": "Continue at this level",
+          "body": "You solved it after some resistance, so the next useful step is another puzzle at the same difficulty band."
+        },
+        "correct-step-up": {
+          "title": "Try a slightly harder puzzle",
+          "body": "This was a clean solve. Move one small step up in difficulty while the pattern is still fresh."
+        },
+        "wrong-same-mistake": {
+          "title": "Practice this mistake pattern again",
+          "body": "The next puzzle will stay close to this difficulty and topic, so you can test the same reading habit immediately."
+        },
+        "wrong-same-topic": {
+          "title": "Repeat the same topic",
+          "body": "Stay near this topic and difficulty before moving on. One more nearby problem is more useful than jumping around."
+        },
+        "fallback-practice": {
+          "title": "Keep practicing from here",
+          "body": "There is not enough history yet, so the next puzzle stays near the current difficulty."
+        }
+      }
+    },
     "saveTitle": "Keep this training session",
     "saveBodyGuest": "Guest progress is saved on this device. Sign in to sync mistakes, preserve the review plan, and continue elsewhere.",
     "saveBodySignedIn": "This attempt is in your training history. Missed puzzles will appear in Review and the spaced practice path.",

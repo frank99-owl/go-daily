@@ -52,9 +52,12 @@ export const PuzzleRevealRequestSchema = z.object({
   revealToken: z.string().trim().min(1).max(2048),
 });
 
+export const PuzzleTagSchema = z.enum(["life-death", "tesuji", "endgame", "opening"]);
+
 export const RandomPuzzleRequestSchema = z.object({
   attemptedPuzzleIds: z.array(z.string().trim().min(1).max(120)).max(10_000).optional(),
   level: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  tag: PuzzleTagSchema.optional(),
 });
 
 export const TrainingLevelPreferenceRequestSchema = z.object({
@@ -72,8 +75,6 @@ export const ClientErrorReportSchema = z.object({
 });
 
 // Puzzle schemas — shared by route.ts and validatePuzzles.ts
-export const PuzzleTagSchema = z.enum(["life-death", "tesuji", "endgame", "opening"]);
-
 export const WrongBranchSchema = z.object({
   userWrongMove: CoordSchema,
   refutation: z.array(StoneSchema),

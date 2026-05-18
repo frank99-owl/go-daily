@@ -102,6 +102,18 @@ describe("/api/puzzle/random", () => {
     expect(body).toEqual({ puzzleId: "p-00003", level: "intermediate" });
   });
 
+  it("filters the requested level pool by tag when provided", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const response = await POST(
+      request({ body: { attemptedPuzzleIds: [], level: "intermediate", tag: "tesuji" } }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ puzzleId: "p-00002", level: "intermediate" });
+  });
+
   it("falls back to the level pool when all matching puzzles were attempted", async () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 

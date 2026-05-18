@@ -21,6 +21,7 @@ import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
 import { track } from "@/lib/posthog/events";
 import { getResultUnderstanding } from "@/lib/puzzle/mistakeReason";
+import { getNextRecommendation } from "@/lib/puzzle/nextRecommendation";
 import type { OnboardingLevel } from "@/lib/puzzle/onboardingLevels";
 import { attemptKey } from "@/lib/storage/attemptKey";
 import {
@@ -150,6 +151,7 @@ export function ResultClient({
   const loginHref = `/login?next=${encodeURIComponent(localePath(locale, resultPath))}`;
   const [attempt, setAttempt] = useState<AttemptRecord | null>(null);
   const [history, setHistory] = useState<AttemptRecord[]>([]);
+  const [allAttempts, setAllAttempts] = useState<AttemptRecord[]>([]);
   const [reveal, setReveal] = useState<PuzzleReveal | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [solutionStep, setSolutionStep] = useState(0);
@@ -165,6 +167,7 @@ export function ResultClient({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAttempt(getAttemptFor(puzzle.id));
     setHistory(getAttemptsFor(puzzle.id));
+    setAllAttempts(loadAttempts());
   }, [puzzle]);
 
   // Safety: this effect cannot loop. (1) The guard bails once `revealToken`
@@ -185,6 +188,7 @@ export function ResultClient({
         if (!cancelled) {
           setAttempt(upgraded);
           setHistory(getAttemptsFor(puzzle.id));
+          setAllAttempts(loadAttempts());
         }
       } catch (err) {
         console.error("[puzzle] failed to upgrade legacy attempt", err);
@@ -237,6 +241,7 @@ export function ResultClient({
           if (!cancelled) {
             setAttempt(refreshedAttempt);
             setHistory(getAttemptsFor(puzzle.id));
+            setAllAttempts(loadAttempts());
           }
         }
 
@@ -304,6 +309,26 @@ export function ResultClient({
   const understandingCopy = resultUnderstanding
     ? t.result.understanding.reasons[resultUnderstanding.id]
     : null;
+  const recommendationAttempts = allAttempts.length > 0 ? allAttempts : attempt ? [attempt] : [];
+  const nextRecommendation = getNextRecommendation({
+    puzzle: {
+      id: puzzle.id,
+      difficulty: puzzle.difficulty,
+      tag: puzzle.tag,
+    },
+    correct,
+    mistakeReasonId: resultUnderstanding?.id ?? null,
+    attempts: recommendationAttempts,
+    onboardingLevel: source === "onboarding" ? (onboardingLevel ?? null) : null,
+  });
+  const recommendationCopy = t.result.nextRecommendation.reasons[nextRecommendation.reasonId];
+  const nextPracticeLabel = nextPuzzlePending
+    ? t.result.nextRecommendation.cta.loading
+    : nextRecommendation.difficultyHint === "step-up"
+      ? t.result.nextRecommendation.cta.stepUp
+      : nextRecommendation.targetTag
+        ? t.result.nextRecommendation.cta.sameTopic
+        : t.result.nextRecommendation.cta.sameLevel;
   const coachPrompts = [
     t.result.coachPromptWhyWrong,
     t.result.coachPromptCorrectLine,
@@ -341,8 +366,8 @@ export function ResultClient({
     setIsPlaying(false);
   };
 
-  const continueOnboardingPractice = async () => {
-    if (!onboardingLevel || nextPuzzlePending) return;
+  const continueRecommendedPractice = async () => {
+    if (nextPuzzlePending) return;
     setNextPuzzlePending(true);
     setNextPuzzleError(null);
 
@@ -350,10 +375,15 @@ export function ResultClient({
       const attemptedPuzzleIds = Array.from(
         new Set([...loadAttempts().map((item) => item.puzzleId), puzzle.id]),
       );
+      const requestBody = {
+        attemptedPuzzleIds,
+        level: nextRecommendation.targetLevel,
+        ...(nextRecommendation.targetTag ? { tag: nextRecommendation.targetTag } : {}),
+      };
       const response = await fetch("/api/puzzle/random", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ attemptedPuzzleIds, level: onboardingLevel }),
+        body: JSON.stringify(requestBody),
       });
       const data = (await response.json()) as RandomPuzzleResponse;
       if (!response.ok) {
@@ -364,12 +394,12 @@ export function ResultClient({
       }
       track("random_puzzle_picked", {
         puzzleId: data.puzzleId,
-        source: "onboarding_result",
-        level: onboardingLevel,
+        source: resultAnalyticsSource,
+        level: nextRecommendation.targetLevel,
       });
       router.push(localePath(locale, `/puzzles/${encodeURIComponent(data.puzzleId)}`));
     } catch (err) {
-      console.warn("[result] failed to continue onboarding practice", err);
+      console.warn("[result] failed to continue recommended practice", err);
       setNextPuzzleError(err instanceof Error ? err.message : "Failed to pick the next puzzle.");
     } finally {
       setNextPuzzlePending(false);
@@ -470,31 +500,6 @@ export function ResultClient({
               <span>{t.onboarding.resultStepReview}</span>
             </div>
           </div>
-          {onboardingLevel && (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  void continueOnboardingPractice();
-                }}
-                disabled={nextPuzzlePending}
-                className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-50"
-              >
-                {nextPuzzlePending ? t.onboarding.nextPracticeLoading : t.onboarding.nextPractice}
-              </button>
-              <LocalizedLink
-                href="/review"
-                className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white/65 transition-colors hover:border-white/25 hover:text-white"
-              >
-                {t.result.openReview}
-              </LocalizedLink>
-              {nextPuzzleError && (
-                <span className="text-sm text-[color:var(--color-warn)]" role="alert">
-                  {nextPuzzleError}
-                </span>
-              )}
-            </div>
-          )}
         </section>
       )}
 
@@ -561,6 +566,50 @@ export function ResultClient({
           </div>
         </section>
       )}
+
+      <section className="rounded-xl border border-[color:var(--color-accent)]/20 bg-[color:var(--color-accent)]/[0.05] p-5">
+        <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[color:var(--color-accent)]/75">
+          <BookOpenCheck className="h-3.5 w-3.5" />
+          {t.result.nextRecommendation.eyebrow}
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-sm font-medium text-white">{recommendationCopy.title}</h2>
+          <p className="text-sm leading-relaxed text-white/60">{recommendationCopy.body}</p>
+          {nextRecommendation.includeReviewPrompt && (
+            <p className="text-sm leading-relaxed text-white/50">
+              {t.result.nextRecommendation.reviewPrompt.replace(
+                "{{count}}",
+                String(nextRecommendation.reviewBacklogCount),
+              )}
+            </p>
+          )}
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              void continueRecommendedPractice();
+            }}
+            disabled={nextPuzzlePending}
+            className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-50"
+          >
+            {nextPracticeLabel}
+          </button>
+          {(nextRecommendation.includeReviewPrompt || !correct) && (
+            <LocalizedLink
+              href="/review"
+              className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white/65 transition-colors hover:border-white/25 hover:text-white"
+            >
+              {t.result.nextRecommendation.reviewCta}
+            </LocalizedLink>
+          )}
+          {nextPuzzleError && (
+            <span className="text-sm text-[color:var(--color-warn)]" role="alert">
+              {nextPuzzleError}
+            </span>
+          )}
+        </div>
+      </section>
 
       <div className="flex items-center justify-center gap-3 flex-wrap">
         {!correct && (

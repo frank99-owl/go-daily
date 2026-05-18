@@ -43,8 +43,10 @@ export async function POST(request: Request) {
   const level = normalizeOnboardingLevel(parsed.data.level);
   const difficulties = getDifficultiesForOnboardingLevel(level);
   const attemptedPuzzleIds = parsed.data.attemptedPuzzleIds ?? [];
-  const summaries = (await getAllSummaries()).filter((summary) =>
-    difficulties.includes(summary.difficulty),
+  const summaries = (await getAllSummaries()).filter(
+    (summary) =>
+      difficulties.includes(summary.difficulty) &&
+      (!parsed.data.tag || summary.tag === parsed.data.tag),
   );
   const pick = pickRandomPuzzlePreferUnattempted(summaries, attemptedPuzzleIds);
   if (!pick) {

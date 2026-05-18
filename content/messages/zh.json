@@ -177,6 +177,43 @@
         }
       }
     },
+    "nextRecommendation": {
+      "eyebrow": "推荐下一步",
+      "cta": {
+        "sameLevel": "继续同水平",
+        "stepUp": "稍微加一点难度",
+        "sameTopic": "继续练同主题",
+        "loading": "正在找下一题…"
+      },
+      "reviewCta": "打开错题复习",
+      "reviewPrompt": "错题本里还有 {{count}} 道未消化的错题。现在可以继续练，稍后再回去复习。",
+      "reasons": {
+        "onboarding-path": {
+          "title": "沿着当前训练路径继续",
+          "body": "下一题继续使用你的 onboarding 水平，让难度先保持稳定，先把做题节奏建立起来。"
+        },
+        "correct-same-level": {
+          "title": "继续当前水平",
+          "body": "这题做出来了，但过程里还有阻力。下一题先留在同一难度带，再巩固一次。"
+        },
+        "correct-step-up": {
+          "title": "尝试稍难一点",
+          "body": "这次是干净的正确提交。趁图形还新鲜，把下一题难度小幅上调。"
+        },
+        "wrong-same-mistake": {
+          "title": "再练一次这个错因",
+          "body": "下一题会尽量贴近当前难度和主题，让你马上验证同一种阅读习惯有没有修正。"
+        },
+        "wrong-same-topic": {
+          "title": "继续同主题练一题",
+          "body": "先留在当前主题和难度附近，不急着跳走。多做一道相邻问题，比随机换方向更有效。"
+        },
+        "fallback-practice": {
+          "title": "从当前水平继续",
+          "body": "目前历史记录还不够多，下一题先保持在当前难度附近。"
+        }
+      }
+    },
     "saveTitle": "把这次训练留下来",
     "saveBodyGuest": "游客记录已保存在当前设备。登录后可以同步错题、保留复习计划，并在其他设备继续。",
     "saveBodySignedIn": "这次提交已进入你的训练记录；做错的题会出现在错题本和复习路径中。",
