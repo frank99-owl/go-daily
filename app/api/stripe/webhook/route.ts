@@ -301,8 +301,6 @@ function subscriptionAnalyticsProps(sub: Stripe.Subscription) {
   return {
     plan: normalizePlan({ metadataPlan: sub.metadata?.plan, priceId }),
     interval: subscriptionInterval(sub),
-    subscriptionId: sub.id,
-    stripeCustomerId: getStringId(sub.customer),
   };
 }
 

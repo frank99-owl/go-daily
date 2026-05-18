@@ -55,7 +55,7 @@ export function AccountClient({
 
   const handleManageSubscription = async () => {
     setPortal({ kind: "redirecting" });
-    track("portal_click", { source: "account" });
+    track("portal_click", { locale, source: "account", plan: "pro" });
     try {
       const res = await fetch("/api/stripe/portal", {
         method: "POST",

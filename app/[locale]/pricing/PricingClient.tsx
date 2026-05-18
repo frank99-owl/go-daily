@@ -36,13 +36,18 @@ export function PricingClient({
   const [portal, setPortal] = useState<PortalState>({ kind: "idle" });
 
   useEffect(() => {
-    track("paywall_view", { viewerPlan, source: "pricing" });
-  }, [viewerPlan]);
+    track("pricing_viewed", { locale, plan: viewerPlan, source: "pricing" });
+  }, [locale, viewerPlan]);
 
   const handleCheckout = async (nextInterval: Interval) => {
     setInterval(nextInterval);
     setCheckout({ kind: "redirecting", interval: nextInterval });
-    track("checkout_click", { interval: nextInterval, source: "pricing" });
+    track("checkout_click", {
+      locale,
+      interval: nextInterval,
+      plan: "free",
+      source: "pricing",
+    });
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -62,7 +67,7 @@ export function PricingClient({
 
   const handlePortal = async () => {
     setPortal({ kind: "redirecting" });
-    track("portal_click", { source: "pricing" });
+    track("portal_click", { locale, source: "pricing", plan: "pro" });
     try {
       const res = await fetch("/api/stripe/portal", {
         method: "POST",

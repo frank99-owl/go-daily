@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Heatmap } from "@/components/Heatmap";
 import { useLocale } from "@/lib/i18n/i18n";
+import { track } from "@/lib/posthog/events";
 import type { MistakeReasonId } from "@/lib/puzzle/mistakeReason";
 import { getTrainingInsights, type TrainingInsights } from "@/lib/puzzle/trainingInsights";
 import { downloadExport, importUserData } from "@/lib/storage/exportData";
@@ -17,7 +18,7 @@ export function StatsClient({
   summaries?: PuzzleSummary[];
   now?: Date;
 }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [attempts, setAttempts] = useState<AttemptRecord[] | null>(null);
   const [feedback, setFeedback] = useState<{ kind: "success" | "error"; message: string } | null>(
     null,
@@ -31,9 +32,27 @@ export function StatsClient({
     setAttempts(loadAttempts());
   }, []);
 
-  if (attempts === null) return null; // pre-hydration, avoid SSR/CSR mismatch
+  const insights = useMemo(
+    () => getTrainingInsights({ attempts: attempts ?? [], summaries, now }),
+    [attempts, summaries, now],
+  );
 
-  const insights = getTrainingInsights({ attempts, summaries, now });
+  useEffect(() => {
+    if (attempts === null) return;
+    track("stats_page_viewed", {
+      locale,
+      source: "stats",
+      result: attempts.length > 0 ? "has_attempts" : "empty",
+    });
+    track("review_recommendation_viewed", {
+      locale,
+      source: "stats",
+      recommendationType: "review",
+      ...(insights.weakTags[0] ? { tag: insights.weakTags[0].tag } : {}),
+    });
+  }, [attempts, insights.weakTags, locale]);
+
+  if (attempts === null) return null; // pre-hydration, avoid SSR/CSR mismatch
 
   const openImportPicker = () => {
     fileInputRef.current?.click();

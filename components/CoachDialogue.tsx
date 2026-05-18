@@ -11,6 +11,7 @@ import { type CoachErrorCode, isCoachErrorCode } from "@/lib/coach/coachErrorCod
 import { DEFAULT_PERSONA, type PersonaId } from "@/lib/coach/personas";
 import { useLocale } from "@/lib/i18n/i18n";
 import { track } from "@/lib/posthog/events";
+import type { CoachQuotaAnalyticsState } from "@/lib/posthog/eventTypes";
 import type { CoachMessage, Coord, Locale, PublicCoachAccess } from "@/types";
 
 type Props = {
@@ -61,7 +62,10 @@ export function CoachDialogue({
   );
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const prevPersonaRef = useRef(personaId);
+  const openedTrackedRef = useRef(false);
+  const quotaTrackedRef = useRef<CoachQuotaState | null>(null);
   const canUseCoach = coachAccess?.capabilities.fullCoach ?? true;
+  const contentTier = coachAccess?.contentTier ?? "coach-ready";
   const suggestedQuestions = buildSuggestedQuestions({
     result: t.result,
     coachAccess,
@@ -70,6 +74,16 @@ export function CoachDialogue({
   const capabilityText = getCapabilityText(t.result, coachAccess);
   const quotaText = getQuotaText(t.result, quotaState, canUseCoach);
   const restrictedText = getRestrictedText(t.result, coachAccess);
+
+  useEffect(() => {
+    if (openedTrackedRef.current) return;
+    openedTrackedRef.current = true;
+    track("coach_opened", {
+      locale,
+      source: suggestedPromptSource,
+      contentTier,
+    });
+  }, [contentTier, locale, suggestedPromptSource]);
 
   // Load any saved conversation for this puzzle+locale from sessionStorage.
   useEffect(() => {
@@ -167,7 +181,21 @@ export function CoachDialogue({
     return () => controller.abort();
   }, [coachAccess, canUseCoach, user]);
 
-  async function requestReply(historyForApi: CoachMessage[]) {
+  useEffect(() => {
+    if (!canUseCoach || quotaState === "checking" || quotaTrackedRef.current === quotaState) return;
+    quotaTrackedRef.current = quotaState;
+    track("coach_quota_state_seen", {
+      locale,
+      source: suggestedPromptSource,
+      contentTier,
+      result: quotaState as CoachQuotaAnalyticsState,
+    });
+  }, [canUseCoach, contentTier, locale, quotaState, suggestedPromptSource]);
+
+  async function requestReply(
+    historyForApi: CoachMessage[],
+    promptSource: "result" | "onboarding_result" | "composer",
+  ) {
     if (!canUseCoach) return;
     // Cancel any previous in-flight request.
     abortRef.current?.abort();
@@ -203,9 +231,20 @@ export function CoachDialogue({
       if (!res.ok) {
         const data = (await res.json()) as { error?: string; code?: string };
         if (isCoachErrorCode(data.code)) {
-          track("coach_limit_hit", { code: data.code });
+          track("coach_error_shown", {
+            locale,
+            source: promptSource,
+            contentTier,
+            result: data.code,
+          });
           setError({ kind: data.code });
         } else {
+          track("coach_error_shown", {
+            locale,
+            source: promptSource,
+            contentTier,
+            result: "generic",
+          });
           setError({
             kind: "generic",
             message: data.error ?? `Request failed (${res.status})`,
@@ -238,6 +277,12 @@ export function CoachDialogue({
               rate_limit: t.result.coachErrorRateLimit,
               auth_error: t.result.coachErrorAuth,
             };
+            track("coach_error_shown", {
+              locale,
+              source: promptSource,
+              contentTier,
+              result: "stream_error",
+            });
             throw new Error(errorMessages[evt.error] ?? t.result.coachErrorTemporary);
           }
           if (evt.delta) {
@@ -280,17 +325,35 @@ export function CoachDialogue({
       }
 
       if (!fullContent) {
+        track("coach_error_shown", {
+          locale,
+          source: promptSource,
+          contentTier,
+          result: "empty_response",
+        });
         setError({ kind: "generic", message: t.result.coachErrorEmpty });
         return;
       }
 
       const reply = fullContent.trim();
       setMessages((prev) => [...prev, { role: "assistant", content: reply, ts: Date.now() }]);
+      track("coach_response_completed", {
+        locale,
+        source: promptSource,
+        contentTier,
+        result: "completed",
+      });
       setStreamingContent("");
     } catch (e) {
       // Ignore abort errors from locale change / unmount.
       if (e instanceof DOMException && e.name === "AbortError") return;
       console.error("[coach] request failed", e);
+      track("coach_error_shown", {
+        locale,
+        source: promptSource,
+        contentTier,
+        result: "generic",
+      });
       setError({
         kind: "generic",
         message: e instanceof Error ? e.message : t.result.coachErrorNetwork,
@@ -306,21 +369,20 @@ export function CoachDialogue({
   const sendText = async (text: string, promptKey = "freeform") => {
     const normalizedText = text.trim();
     if (!normalizedText || pending || !canUseCoach) return;
-    if (messages.length === 0) {
-      track("coach_first_prompt_used", {
-        puzzleId,
-        promptKey,
-        source: promptKey === "freeform" ? "composer" : suggestedPromptSource,
-      });
-    }
+    const promptSource = promptKey === "freeform" ? "composer" : suggestedPromptSource;
+    track("coach_prompt_clicked", {
+      locale,
+      source: promptSource,
+      contentTier,
+      promptKey,
+    });
     const next: CoachMessage[] = [
       ...messages,
       { role: "user", content: normalizedText, ts: timestampMs() },
     ];
-    track("coach_message_sent", { puzzleId, messageIndex: next.length });
     setMessages(next);
     setInput("");
-    await requestReply(next);
+    await requestReply(next, promptSource);
   };
 
   const send = async () => {
@@ -331,18 +393,13 @@ export function CoachDialogue({
 
   const sendSuggestedPrompt = async (prompt: string, index: number) => {
     const promptKey = `suggested_${index}`;
-    track("coach_suggested_prompt_clicked", {
-      puzzleId,
-      promptKey,
-      source: suggestedPromptSource,
-    });
     await sendText(prompt, promptKey);
   };
 
   const retry = async () => {
     if (pending || !canUseCoach) return;
     setError(null);
-    await requestReply(messages);
+    await requestReply(messages, "composer");
   };
 
   return (

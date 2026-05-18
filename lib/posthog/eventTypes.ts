@@ -1,65 +1,158 @@
 import type { CoachErrorCode } from "@/lib/coach/coachErrorCodes";
 import type { OnboardingLevel } from "@/lib/puzzle/onboardingLevels";
+import type { Locale, PuzzleTag, CoachContentTier } from "@/types";
 
 export type ViewerPlanForAnalytics = "guest" | "free" | "pro";
+export type AnalyticsSource =
+  | "today"
+  | "library"
+  | "random"
+  | "retry"
+  | "onboarding"
+  | "result"
+  | "onboarding_result"
+  | "review"
+  | "stats"
+  | "pricing"
+  | "upsell"
+  | "account";
+export type AnalyticsResult = "correct" | "wrong";
+export type RecommendationType = "same-level" | "same-topic" | "step-up" | "review" | "srs";
+export type CoachQuotaAnalyticsState = "available" | "near-limit" | "unavailable" | "unknown";
+
+export const ANALYTICS_EVENT_NAMES = [
+  "onboarding_started",
+  "first_move_played",
+  "first_puzzle_completed",
+  "result_viewed",
+  "next_recommendation_clicked",
+  "review_page_viewed",
+  "review_item_opened",
+  "stats_page_viewed",
+  "review_recommendation_viewed",
+  "coach_opened",
+  "coach_prompt_clicked",
+  "coach_response_completed",
+  "coach_error_shown",
+  "coach_quota_state_seen",
+  "pricing_viewed",
+  "checkout_click",
+  "upsell_viewed",
+  "upsell_cta_clicked",
+] as const satisfies readonly (keyof EventMap)[];
 
 export type EventMap = {
-  onboarding_started: { puzzleId: string; level: OnboardingLevel };
-  first_move_played: { puzzleId: string; level: OnboardingLevel };
-  first_puzzle_submitted: {
-    puzzleId: string;
+  onboarding_started: { locale: Locale; level: OnboardingLevel; source: "onboarding" };
+  first_move_played: { locale: Locale; level: OnboardingLevel; source: "onboarding" };
+  first_puzzle_completed: {
+    locale: Locale;
     level: OnboardingLevel;
-    correct: boolean;
+    result: AnalyticsResult;
+    tag: PuzzleTag;
+    difficulty: number;
+    contentTier: CoachContentTier;
   };
-  result_signup_prompt_view: { puzzleId: string; source: "result" | "onboarding_result" };
-  review_saved_prompt_clicked: { puzzleId: string; source: "result" | "onboarding_result" };
-  coach_suggested_prompt_clicked: {
-    puzzleId: string;
-    promptKey: string;
+  result_viewed: PuzzleContextProps & {
+    locale: Locale;
     source: "result" | "onboarding_result";
+    result: AnalyticsResult;
   };
-  coach_first_prompt_used: {
-    puzzleId: string;
-    promptKey: string;
-    source: "result" | "onboarding_result" | "composer";
+  next_recommendation_clicked: {
+    locale: Locale;
+    source: "today" | "result" | "onboarding_result";
+    recommendationType: RecommendationType;
+    level?: OnboardingLevel;
+    tag?: PuzzleTag;
   };
+  result_signup_prompt_view: { locale: Locale; source: "result" | "onboarding_result" };
+  review_saved_prompt_clicked: { locale: Locale; source: "result" | "onboarding_result" };
   puzzle_started: {
-    puzzleId: string;
+    locale: Locale;
     source: "today" | "library" | "random" | "retry" | "onboarding";
+    tag: PuzzleTag;
+    difficulty: number;
+    contentTier: CoachContentTier;
   };
   puzzle_solved: {
-    puzzleId: string;
-    correct: boolean;
+    locale: Locale;
+    result: AnalyticsResult;
     durationMs: number;
     source?: "today" | "library" | "random" | "retry" | "onboarding";
+    tag: PuzzleTag;
+    difficulty: number;
+    contentTier: CoachContentTier;
   };
   puzzle_hint_requested: {
-    puzzleId: string;
+    locale: Locale;
     source?: "today" | "library" | "random" | "retry" | "onboarding";
     hintIndex?: number;
   };
-  coach_message_sent: { puzzleId: string; messageIndex: number };
-  coach_message_received: { puzzleId: string; messageIndex: number; durationMs: number };
-  solution_viewed: { puzzleId: string };
-  language_changed: { from: string; to: string };
-  share_card_generated: { puzzleId: string };
-  share_card_downloaded: { puzzleId: string };
-  random_puzzle_picked: {
-    puzzleId: string;
-    source?: "nav" | "today" | "result" | "onboarding_result";
-    level?: OnboardingLevel;
+  coach_opened: CoachClientProps;
+  coach_prompt_clicked: CoachClientProps & {
+    promptKey: string;
   };
-  review_page_viewed: { wrongCount: number };
-  stats_page_viewed: { totalAttempts: number };
-  paywall_view: { viewerPlan: ViewerPlanForAnalytics; source: "pricing" };
-  checkout_click: { interval: "monthly" | "yearly"; source: "pricing" | "upsell" };
-  portal_click: { source: "pricing" | "account" };
-  upsell_open: { source: "coach_daily" | "coach_monthly" | "coach_device" | "coach_anon" };
-  coach_limit_hit: {
-    code: CoachErrorCode;
+  coach_response_completed: CoachClientProps & {
+    result: "completed";
+  };
+  coach_error_shown: CoachClientProps & {
+    result: CoachErrorCode | "generic" | "stream_error" | "empty_response";
+  };
+  coach_quota_state_seen: CoachClientProps & {
+    result: CoachQuotaAnalyticsState;
+  };
+  solution_viewed: PuzzleContextProps & { locale: Locale; source: "result" | "onboarding_result" };
+  language_changed: { from: string; to: string };
+  share_card_generated: PuzzleContextProps & { locale: Locale };
+  share_card_downloaded: PuzzleContextProps & { locale: Locale };
+  review_page_viewed: {
+    locale: Locale;
+    source: "review";
+    plan: ViewerPlanForAnalytics;
+    result: "empty" | "has_items";
+  };
+  review_item_opened: {
+    locale: Locale;
+    source: "review";
+    plan: ViewerPlanForAnalytics;
+    tag: PuzzleTag;
+    difficulty: number;
+  };
+  stats_page_viewed: {
+    locale: Locale;
+    source: "stats";
+    result: "empty" | "has_attempts";
+  };
+  review_recommendation_viewed: {
+    locale: Locale;
+    source: "review" | "stats";
+    recommendationType: RecommendationType;
+    tag?: PuzzleTag;
+  };
+  pricing_viewed: {
+    locale: Locale;
+    plan: ViewerPlanForAnalytics;
+    source: "pricing";
+  };
+  checkout_click: {
+    locale: Locale;
+    interval: "monthly" | "yearly";
+    plan: "free";
+    source: "pricing" | "upsell";
+  };
+  portal_click: {
+    locale: Locale;
+    source: "pricing" | "account";
+    plan: "pro";
+  };
+  upsell_viewed: {
+    locale: Locale;
+    source: "coach_daily" | "coach_monthly" | "coach_device" | "coach_anon";
+  };
+  upsell_cta_clicked: {
+    locale: Locale;
+    source: "coach_daily" | "coach_monthly" | "coach_device" | "coach_anon";
   };
   coach_request_completed: {
-    puzzleId: string;
     locale: string;
     personaId: string;
     plan: string;
@@ -72,7 +165,6 @@ export type EventMap = {
     usageAvailable: boolean;
   };
   coach_request_failed: {
-    puzzleId: string;
     locale: string;
     personaId: string;
     plan: string;
@@ -105,6 +197,16 @@ export type EventMap = {
 type SubscriptionAnalyticsProps = {
   plan: string;
   interval: "monthly" | "yearly" | "unknown";
-  subscriptionId: string;
-  stripeCustomerId: string | null;
+};
+
+type PuzzleContextProps = {
+  tag: PuzzleTag;
+  difficulty: number;
+  contentTier: CoachContentTier;
+};
+
+type CoachClientProps = {
+  locale: Locale;
+  source: "result" | "onboarding_result" | "composer";
+  contentTier: CoachContentTier;
 };

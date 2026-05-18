@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { PostHog } from "posthog-node";
 
 import type { EventMap } from "./eventTypes";
@@ -40,7 +42,7 @@ export async function captureServerEvent<T extends keyof EventMap>({
 
   try {
     posthog.capture({
-      distinctId,
+      distinctId: hashAnalyticsDistinctId(distinctId),
       event,
       properties: properties as Record<string, unknown>,
     });
@@ -51,4 +53,11 @@ export async function captureServerEvent<T extends keyof EventMap>({
       message: error instanceof Error ? error.message : String(error),
     });
   }
+}
+
+function hashAnalyticsDistinctId(raw: string): string {
+  return createHash("sha256")
+    .update(`go-daily:posthog:v1:${raw}`)
+    .digest("hex")
+    .slice(0, 32);
 }

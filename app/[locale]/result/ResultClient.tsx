@@ -20,6 +20,7 @@ import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
 import { localized } from "@/lib/i18n/localized";
 import { track } from "@/lib/posthog/events";
+import type { RecommendationType } from "@/lib/posthog/eventTypes";
 import { getResultUnderstanding } from "@/lib/puzzle/mistakeReason";
 import { getNextRecommendation } from "@/lib/puzzle/nextRecommendation";
 import type { OnboardingLevel } from "@/lib/puzzle/onboardingLevels";
@@ -160,6 +161,7 @@ export function ResultClient({
   const [nextPuzzleError, setNextPuzzleError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const signupPromptTrackedRef = useRef(false);
+  const resultViewedTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!puzzle) return;
@@ -273,8 +275,8 @@ export function ResultClient({
   useEffect(() => {
     if (userLoading || user || signupPromptTrackedRef.current) return;
     signupPromptTrackedRef.current = true;
-    track("result_signup_prompt_view", { puzzleId: puzzle.id, source: resultAnalyticsSource });
-  }, [puzzle.id, resultAnalyticsSource, user, userLoading]);
+    track("result_signup_prompt_view", { locale, source: resultAnalyticsSource });
+  }, [locale, resultAnalyticsSource, user, userLoading]);
 
   // Auto-advance when playing.
   useEffect(() => {
@@ -293,6 +295,7 @@ export function ResultClient({
   }, [isPlaying, solutionStep, reveal]);
 
   const correct = attempt?.correct ?? false;
+  const contentTier = coachAccess.contentTier;
   const hasReveal = !!reveal;
   const hasSolution = !!reveal?.solutionSequence?.length;
   const resultUnderstanding = reveal
@@ -341,6 +344,24 @@ export function ResultClient({
   const totalAttempts = history.length;
   const correctCount = history.filter((a) => a.correct).length;
   const wrongCount = totalAttempts - correctCount;
+  const nextRecommendationType: RecommendationType = nextRecommendation.targetTag
+    ? "same-topic"
+    : nextRecommendation.difficultyHint === "step-up"
+      ? "step-up"
+      : "same-level";
+
+  useEffect(() => {
+    if (!attempt || resultViewedTrackedRef.current) return;
+    resultViewedTrackedRef.current = true;
+    track("result_viewed", {
+      locale,
+      source: resultAnalyticsSource,
+      result: attempt.correct ? "correct" : "wrong",
+      tag: puzzle.tag,
+      difficulty: puzzle.difficulty,
+      contentTier,
+    });
+  }, [attempt, contentTier, locale, puzzle.difficulty, puzzle.tag, resultAnalyticsSource]);
 
   // Build extra stones for the board (solution sequence up to current step).
   const extraStones: Stone[] =
@@ -381,6 +402,13 @@ export function ResultClient({
         level: nextRecommendation.targetLevel,
         ...(nextRecommendation.targetTag ? { tag: nextRecommendation.targetTag } : {}),
       };
+      track("next_recommendation_clicked", {
+        locale,
+        source: resultAnalyticsSource,
+        recommendationType: nextRecommendationType,
+        level: nextRecommendation.targetLevel,
+        ...(nextRecommendation.targetTag ? { tag: nextRecommendation.targetTag } : {}),
+      });
       const response = await fetch("/api/puzzle/random", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -393,11 +421,6 @@ export function ResultClient({
       if (!data.puzzleId) {
         throw new Error("Invalid random puzzle response.");
       }
-      track("random_puzzle_picked", {
-        puzzleId: data.puzzleId,
-        source: resultAnalyticsSource,
-        level: nextRecommendation.targetLevel,
-      });
       router.push(localePath(locale, `/puzzles/${encodeURIComponent(data.puzzleId)}`));
     } catch (err) {
       console.warn("[result] failed to continue recommended practice", err);
@@ -702,7 +725,7 @@ export function ResultClient({
             href={user ? "/review" : loginHref}
             onClick={() =>
               track("review_saved_prompt_clicked", {
-                puzzleId: puzzle.id,
+                locale,
                 source: resultAnalyticsSource,
               })
             }

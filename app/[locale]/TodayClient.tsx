@@ -63,6 +63,7 @@ export function TodayClient({
 
   const syncStorage = useMemo(() => createSyncStorage(user?.id ?? null), [user?.id]);
   const source = mode === "onboarding" ? "onboarding" : metaLabel ? "today" : "library";
+  const contentTier = puzzle.coachAccess?.contentTier ?? (puzzle.coachAvailable ? "coach-ready" : "basic-explained");
   const onboardingHints = t.onboarding.hints;
 
   useEffect(() => {
@@ -74,9 +75,15 @@ export function TodayClient({
     if (startedTrackedRef.current === puzzle.id) return;
     startedTrackedRef.current = puzzle.id;
     if (mode === "onboarding")
-      track("onboarding_started", { level: onboardingLevel, puzzleId: puzzle.id });
-    track("puzzle_started", { puzzleId: puzzle.id, source });
-  }, [mode, onboardingLevel, puzzle.id, source]);
+      track("onboarding_started", { locale, level: onboardingLevel, source: "onboarding" });
+    track("puzzle_started", {
+      locale,
+      source,
+      tag: puzzle.tag,
+      difficulty: puzzle.difficulty,
+      contentTier,
+    });
+  }, [contentTier, locale, mode, onboardingLevel, puzzle.difficulty, puzzle.id, puzzle.tag, source]);
 
   useEffect(() => {
     if (mode === "onboarding") {
@@ -97,7 +104,7 @@ export function TodayClient({
     if (firstMoveTrackedRef.current) return;
     firstMoveTrackedRef.current = true;
     if (mode === "onboarding") {
-      track("first_move_played", { puzzleId: puzzle.id, level: onboardingLevel });
+      track("first_move_played", { locale, level: onboardingLevel, source: "onboarding" });
     }
   };
 
@@ -145,16 +152,22 @@ export function TodayClient({
     }
 
     track("puzzle_solved", {
-      puzzleId: puzzle.id,
-      correct: data.correct,
+      locale,
+      result: data.correct ? "correct" : "wrong",
       durationMs: Date.now() - startedAtRef.current,
       source,
+      tag: puzzle.tag,
+      difficulty: puzzle.difficulty,
+      contentTier,
     });
     if (mode === "onboarding") {
-      track("first_puzzle_submitted", {
-        puzzleId: puzzle.id,
+      track("first_puzzle_completed", {
+        locale,
         level: onboardingLevel,
-        correct: data.correct,
+        result: data.correct ? "correct" : "wrong",
+        tag: puzzle.tag,
+        difficulty: puzzle.difficulty,
+        contentTier,
       });
     }
 
@@ -195,9 +208,10 @@ export function TodayClient({
       if (!data.puzzleId) {
         throw new Error("Invalid random puzzle response.");
       }
-      track("random_puzzle_picked", {
-        puzzleId: data.puzzleId,
+      track("next_recommendation_clicked", {
+        locale,
         source: "today",
+        recommendationType: "same-level",
         level: dailyLevel,
       });
       router.push(localePath(locale, `/puzzles/${encodeURIComponent(data.puzzleId)}`));
@@ -293,7 +307,7 @@ export function TodayClient({
                 const nextHintIndex = Math.min(hintIndex + 1, onboardingHints.length - 1);
                 setHintIndex(nextHintIndex);
                 track("puzzle_hint_requested", {
-                  puzzleId: puzzle.id,
+                  locale,
                   source: "onboarding",
                   hintIndex: nextHintIndex,
                 });

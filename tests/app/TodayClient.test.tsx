@@ -155,7 +155,7 @@ describe("TodayClient keyboard support", () => {
     fireEvent.click(screen.getByRole("button", { name: "Give me another hint" }));
     expect(screen.getByText(/Then inspect liberties/)).toBeInTheDocument();
     expect(trackMock).toHaveBeenCalledWith("puzzle_hint_requested", {
-      puzzleId: "cld-001",
+      locale: "en",
       source: "onboarding",
       hintIndex: 1,
     });
@@ -166,10 +166,13 @@ describe("TodayClient keyboard support", () => {
 
     await waitFor(() => expect(saveAttempt).toHaveBeenCalledTimes(1));
     expect(push).toHaveBeenCalledWith("/en/result?id=cld-001&source=onboarding&level=intermediate");
-    expect(trackMock).toHaveBeenCalledWith("first_puzzle_submitted", {
-      puzzleId: "cld-001",
+    expect(trackMock).toHaveBeenCalledWith("first_puzzle_completed", {
+      locale: "en",
       level: "intermediate",
-      correct: true,
+      result: "correct",
+      tag: "life-death",
+      difficulty: 1,
+      contentTier: "basic-explained",
     });
   });
 
@@ -236,9 +239,10 @@ describe("TodayClient keyboard support", () => {
       ),
     );
     expect(push).toHaveBeenCalledWith("/en/puzzles/p-random");
-    expect(trackMock).toHaveBeenCalledWith("random_puzzle_picked", {
-      puzzleId: "p-random",
+    expect(trackMock).toHaveBeenCalledWith("next_recommendation_clicked", {
+      locale: "en",
       source: "today",
+      recommendationType: "same-level",
       level: "advanced",
     });
   });

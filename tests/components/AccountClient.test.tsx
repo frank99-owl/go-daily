@@ -74,7 +74,11 @@ describe("AccountClient", () => {
     fireEvent.click(screen.getByRole("button", { name: "Manage subscription" }));
 
     await waitFor(() => {
-      expect(trackMock).toHaveBeenCalledWith("portal_click", { source: "account" });
+      expect(trackMock).toHaveBeenCalledWith("portal_click", {
+        locale: "en",
+        source: "account",
+        plan: "pro",
+      });
     });
     expect(fetchFn).toHaveBeenCalledWith(
       "/api/stripe/portal",

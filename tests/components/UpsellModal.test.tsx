@@ -43,10 +43,13 @@ describe("UpsellModal", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("renders the dialog and fires upsell_open with the provided source when opened", () => {
+  it("renders the dialog and fires upsell_viewed with the provided source when opened", () => {
     renderModal({ open: true, source: "coach_daily" });
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(trackMock).toHaveBeenCalledWith("upsell_open", { source: "coach_daily" });
+    expect(trackMock).toHaveBeenCalledWith("upsell_viewed", {
+      locale: "zh",
+      source: "coach_daily",
+    });
   });
 
   it("renders all Pro features from the dictionary", () => {
@@ -61,6 +64,10 @@ describe("UpsellModal", () => {
   it('navigates to /{locale}/pricing and closes when the "See plans" button is clicked', () => {
     const { onClose } = renderModal({ open: true });
     fireEvent.click(screen.getByRole("button", { name: "查看套餐" }));
+    expect(trackMock).toHaveBeenCalledWith("upsell_cta_clicked", {
+      locale: "zh",
+      source: "coach_device",
+    });
     expect(pushMock).toHaveBeenCalledWith("/zh/pricing");
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -88,7 +95,7 @@ describe("UpsellModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("does not fire upsell_open repeatedly while staying open (fires once per open transition)", () => {
+  it("does not fire upsell_viewed repeatedly while staying open (fires once per open transition)", () => {
     const { rerender } = renderModal({ open: true });
     expect(trackMock).toHaveBeenCalledTimes(1);
     rerender(

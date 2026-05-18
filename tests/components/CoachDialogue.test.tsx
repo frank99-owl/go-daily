@@ -392,15 +392,11 @@ describe("CoachDialogue", () => {
       expect(screen.getByText("Suggested reply")).toBeInTheDocument();
     });
 
-    expect(trackMock).toHaveBeenCalledWith("coach_suggested_prompt_clicked", {
-      puzzleId: "test-puzzle",
+    expect(trackMock).toHaveBeenCalledWith("coach_prompt_clicked", {
       promptKey: "suggested_0",
+      locale: "zh",
       source: "onboarding_result",
-    });
-    expect(trackMock).toHaveBeenCalledWith("coach_first_prompt_used", {
-      puzzleId: "test-puzzle",
-      promptKey: "suggested_0",
-      source: "onboarding_result",
+      contentTier: "coach-ready",
     });
   });
 });
@@ -427,7 +423,7 @@ describe("CoachDialogue — error-code routing", () => {
     sessionStorage.clear();
   });
 
-  it("renders the upgrade CTA and fires coach_limit_hit for device_limit", async () => {
+  it("renders the upgrade CTA and fires coach_error_shown for device_limit", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -449,10 +445,15 @@ describe("CoachDialogue — error-code routing", () => {
 
     const link = screen.getByRole("link", { name: /升级到 Pro/ });
     expect(link.getAttribute("href")).toBe("/zh/pricing");
-    expect(trackMock).toHaveBeenCalledWith("coach_limit_hit", { code: "device_limit" });
+    expect(trackMock).toHaveBeenCalledWith("coach_error_shown", {
+      locale: "zh",
+      source: "composer",
+      contentTier: "coach-ready",
+      result: "device_limit",
+    });
   });
 
-  it("renders the sign-in CTA and fires coach_limit_hit for login_required", async () => {
+  it("renders the sign-in CTA and fires coach_error_shown for login_required", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -468,7 +469,12 @@ describe("CoachDialogue — error-code routing", () => {
     await triggerSend();
 
     await waitFor(() => {
-      expect(trackMock).toHaveBeenCalledWith("coach_limit_hit", { code: "login_required" });
+      expect(trackMock).toHaveBeenCalledWith("coach_error_shown", {
+        locale: "zh",
+        source: "composer",
+        contentTier: "coach-ready",
+        result: "login_required",
+      });
     });
 
     const link = screen.getByRole("link", { name: /登录后使用 AI 教练/ });
@@ -502,10 +508,15 @@ describe("CoachDialogue — error-code routing", () => {
 
     const link = screen.getByRole("link", { name: /升级到 Pro/ });
     expect(link.getAttribute("href")).toBe("/zh/pricing");
-    expect(trackMock).toHaveBeenCalledWith("coach_limit_hit", { code: "daily_limit_reached" });
+    expect(trackMock).toHaveBeenCalledWith("coach_error_shown", {
+      locale: "zh",
+      source: "composer",
+      contentTier: "coach-ready",
+      result: "daily_limit_reached",
+    });
   });
 
-  it("renders a generic warning without firing coach_limit_hit for non-limit errors", async () => {
+  it("renders a generic warning as coach_error_shown for non-limit errors", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -524,7 +535,12 @@ describe("CoachDialogue — error-code routing", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("boom");
     });
 
-    expect(trackMock).not.toHaveBeenCalledWith("coach_limit_hit", expect.anything());
+    expect(trackMock).toHaveBeenCalledWith("coach_error_shown", {
+      locale: "zh",
+      source: "composer",
+      contentTier: "coach-ready",
+      result: "generic",
+    });
   });
 
   it("renders the monthly-limit CTA for monthly_limit_reached", async () => {
@@ -550,7 +566,12 @@ describe("CoachDialogue — error-code routing", () => {
       expect(screen.getByText(/本月的 AI 教练额度已经用完/)).toBeInTheDocument();
     });
 
-    expect(trackMock).toHaveBeenCalledWith("coach_limit_hit", { code: "monthly_limit_reached" });
+    expect(trackMock).toHaveBeenCalledWith("coach_error_shown", {
+      locale: "zh",
+      source: "composer",
+      contentTier: "coach-ready",
+      result: "monthly_limit_reached",
+    });
   });
 
   it("shows retry button on generic error and re-sends on click", async () => {

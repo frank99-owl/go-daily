@@ -54,10 +54,11 @@ describe("PricingClient", () => {
     vi.clearAllMocks();
   });
 
-  it("fires paywall_view on mount with the viewer plan", () => {
+  it("fires pricing_viewed on mount with the viewer plan", () => {
     renderPricing("free");
-    expect(trackMock).toHaveBeenCalledWith("paywall_view", {
-      viewerPlan: "free",
+    expect(trackMock).toHaveBeenCalledWith("pricing_viewed", {
+      locale: "zh",
+      plan: "free",
       source: "pricing",
     });
   });
@@ -82,7 +83,9 @@ describe("PricingClient", () => {
 
       await waitFor(() =>
         expect(trackMock).toHaveBeenCalledWith("checkout_click", {
+          locale: "zh",
           interval: "monthly",
+          plan: "free",
           source: "pricing",
         }),
       );
@@ -107,7 +110,9 @@ describe("PricingClient", () => {
 
       await waitFor(() =>
         expect(trackMock).toHaveBeenCalledWith("checkout_click", {
+          locale: "zh",
           interval: "yearly",
+          plan: "free",
           source: "pricing",
         }),
       );
@@ -149,7 +154,11 @@ describe("PricingClient", () => {
       fireEvent.click(screen.getByRole("button", { name: "管理订阅" }));
 
       await waitFor(() =>
-        expect(trackMock).toHaveBeenCalledWith("portal_click", { source: "pricing" }),
+        expect(trackMock).toHaveBeenCalledWith("portal_click", {
+          locale: "zh",
+          source: "pricing",
+          plan: "pro",
+        }),
       );
       expect(fetchFn).toHaveBeenCalledWith(
         "/api/stripe/portal",

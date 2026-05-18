@@ -340,7 +340,7 @@ describe("ResultClient keyboard support", () => {
       encodeURIComponent("/en/result?id=cld-001&source=onboarding&level=intermediate"),
     );
     expect(trackMock).toHaveBeenCalledWith("result_signup_prompt_view", {
-      puzzleId: "cld-001",
+      locale: "en",
       source: "onboarding_result",
     });
   });
@@ -414,9 +414,10 @@ describe("ResultClient keyboard support", () => {
       ),
     );
     expect(push).toHaveBeenCalledWith("/en/puzzles/next-001");
-    expect(trackMock).toHaveBeenCalledWith("random_puzzle_picked", {
-      puzzleId: "next-001",
+    expect(trackMock).toHaveBeenCalledWith("next_recommendation_clicked", {
+      locale: "en",
       source: "onboarding_result",
+      recommendationType: "same-level",
       level: "intermediate",
     });
   });
@@ -544,10 +545,12 @@ describe("ResultClient keyboard support", () => {
       ),
     );
     expect(push).toHaveBeenCalledWith("/en/puzzles/next-life-death");
-    expect(trackMock).toHaveBeenCalledWith("random_puzzle_picked", {
-      puzzleId: "next-life-death",
+    expect(trackMock).toHaveBeenCalledWith("next_recommendation_clicked", {
+      locale: "en",
       source: "result",
+      recommendationType: "same-topic",
       level: "beginner",
+      tag: "life-death",
     });
   });
 

@@ -436,7 +436,6 @@ export async function POST(request: Request) {
             distinctId: isGuest ? guestDeviceId! : user!.id,
             event: "coach_request_completed",
             properties: {
-              puzzleId,
               locale,
               personaId: personaId || "default",
               plan: isGuest ? "guest" : coachState!.usage!.plan,
@@ -480,7 +479,6 @@ export async function POST(request: Request) {
             distinctId: isGuest ? guestDeviceId! : (user?.id ?? "unknown"),
             event: "coach_request_failed",
             properties: {
-              puzzleId,
               locale,
               personaId: personaId || "default",
               plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),
@@ -541,7 +539,6 @@ export async function POST(request: Request) {
       distinctId: isGuest ? guestDeviceId! : (user?.id ?? "unknown"),
       event: "coach_request_failed",
       properties: {
-        puzzleId,
         locale,
         personaId: personaId || "default",
         plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),

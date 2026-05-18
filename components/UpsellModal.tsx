@@ -28,10 +28,11 @@ export function UpsellModal({
 
   useEffect(() => {
     if (!open) return;
-    track("upsell_open", { source });
-  }, [open, source]);
+    track("upsell_viewed", { locale, source });
+  }, [locale, open, source]);
 
   const goToPricing = () => {
+    track("upsell_cta_clicked", { locale, source });
     dismiss();
     router.push(localePath(locale, "/pricing"));
   };

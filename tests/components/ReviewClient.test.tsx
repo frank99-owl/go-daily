@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReviewClient } from "@/app/[locale]/review/ReviewClient";
@@ -70,9 +70,22 @@ describe("ReviewClient", () => {
     expect(await screen.findByText("Puzzle 24")).toBeInTheDocument();
     expect(screen.getByText("Upgrade to Pro")).toBeInTheDocument();
     expect(screen.queryByText("Puzzle 0")).toBeNull();
+    fireEvent.click(screen.getByText("Puzzle 24"));
 
     await waitFor(() => {
-      expect(trackMock).toHaveBeenCalledWith("review_page_viewed", { wrongCount: 25 });
+      expect(trackMock).toHaveBeenCalledWith("review_page_viewed", {
+        locale: "en",
+        source: "review",
+        plan: "free",
+        result: "has_items",
+      });
+    });
+    expect(trackMock).toHaveBeenCalledWith("review_item_opened", {
+      locale: "en",
+      source: "review",
+      plan: "free",
+      tag: "life-death",
+      difficulty: 2,
     });
   });
 
@@ -139,6 +152,11 @@ describe("ReviewClient", () => {
     expect(await screen.findByText("SRS due")).toBeInTheDocument();
     expect(screen.getByText("Pro spaced review: puzzles due today")).toBeInTheDocument();
     expect(screen.queryByText("Local wrong")).toBeNull();
-    expect(trackMock).toHaveBeenCalledWith("review_page_viewed", { wrongCount: 1 });
+    expect(trackMock).toHaveBeenCalledWith("review_page_viewed", {
+      locale: "en",
+      source: "review",
+      plan: "pro",
+      result: "has_items",
+    });
   });
 });

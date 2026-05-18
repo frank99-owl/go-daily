@@ -1,9 +1,15 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import { StatsClient } from "@/app/[locale]/stats/StatsClient";
 import { LocaleProvider } from "@/lib/i18n/i18n";
 import type { PuzzleSummary } from "@/types";
+
+const trackMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/posthog/events", () => ({
+  track: trackMock,
+}));
 
 function summary(id: string, tag: PuzzleSummary["tag"]): PuzzleSummary {
   return {
@@ -48,6 +54,7 @@ function createStorage() {
 
 describe("StatsClient", () => {
   beforeEach(() => {
+    trackMock.mockReset();
     Object.defineProperty(window, "localStorage", {
       value: createStorage(),
       writable: true,
@@ -106,6 +113,11 @@ describe("StatsClient", () => {
     });
 
     expect(screen.getByText("Puzzles solved")).toBeInTheDocument();
+    expect(trackMock).toHaveBeenCalledWith("stats_page_viewed", {
+      locale: "en",
+      source: "stats",
+      result: "has_attempts",
+    });
   });
 
   it("shows weak topics, trend, and review completion when history exists", async () => {

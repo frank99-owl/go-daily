@@ -110,8 +110,19 @@ export function ReviewClient({
 
   useEffect(() => {
     if (!ready) return;
-    track("review_page_viewed", { wrongCount: totalReviewCount });
-  }, [ready, totalReviewCount]);
+    track("review_page_viewed", {
+      locale,
+      source: "review",
+      plan: viewerPlan,
+      result: totalReviewCount > 0 ? "has_items" : "empty",
+    });
+    track("review_recommendation_viewed", {
+      locale,
+      source: "review",
+      recommendationType: isSrsMode ? "srs" : "review",
+      ...(insights.weakTags[0] ? { tag: insights.weakTags[0].tag } : {}),
+    });
+  }, [insights.weakTags, isSrsMode, locale, ready, totalReviewCount, viewerPlan]);
 
   const subtitle = isSrsMode ? t.review.srsSubtitle : t.review.subtitle;
   const emptyText = isSrsMode ? t.review.emptySrs : t.review.empty;
@@ -164,6 +175,7 @@ export function ReviewClient({
               lastAttemptedLabel={t.review.lastAttempted}
               attemptCountLabel={t.review.attemptCount}
               boardSizeLabel={BOARD_SIZE_LABELS[item.puzzle.boardSize]}
+              plan={viewerPlan}
               tagLabel={t.tags[item.puzzle.tag]}
               statusTitle={t.puzzles.statusAttempted}
             />
@@ -267,6 +279,7 @@ function ReviewCard({
   lastAttemptedLabel,
   attemptCountLabel,
   boardSizeLabel,
+  plan,
   tagLabel,
   statusTitle,
 }: {
@@ -275,6 +288,7 @@ function ReviewCard({
   lastAttemptedLabel: string;
   attemptCountLabel: string;
   boardSizeLabel: string;
+  plan: ViewerPlan;
   tagLabel: string;
   statusTitle: string;
 }) {
@@ -289,6 +303,15 @@ function ReviewCard({
   return (
     <LocalizedLink
       href={`/puzzles/${encodeURIComponent(puzzle.id)}`}
+      onClick={() =>
+        track("review_item_opened", {
+          locale,
+          source: "review",
+          plan,
+          tag: puzzle.tag,
+          difficulty: puzzle.difficulty,
+        })
+      }
       className="group relative rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-[color:var(--color-accent)]/30 hover:bg-white/10"
     >
       <div className="absolute right-3 top-3">

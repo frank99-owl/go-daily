@@ -330,8 +330,6 @@ describe("/api/stripe/webhook", () => {
       properties: expect.objectContaining({
         plan: "pro_monthly",
         interval: "monthly",
-        subscriptionId: "sub_1",
-        stripeCustomerId: "cus_1",
         trialEnd: "2026-05-01T00:00:00.000Z",
       }),
     });
@@ -424,8 +422,6 @@ describe("/api/stripe/webhook", () => {
         properties: expect.objectContaining({
           plan: "pro_monthly",
           interval: "monthly",
-          subscriptionId: "sub_1",
-          stripeCustomerId: "cus_1",
           revenueUsd: 9.99,
           currency: "usd",
         }),
@@ -608,8 +604,6 @@ describe("/api/stripe/webhook", () => {
         properties: expect.objectContaining({
           plan: "pro_monthly",
           interval: "monthly",
-          subscriptionId: "sub_1",
-          stripeCustomerId: "cus_1",
         }),
       });
     });

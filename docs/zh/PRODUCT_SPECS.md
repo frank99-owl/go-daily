@@ -81,7 +81,20 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 该闭环的核心指标不是题库总量，而是首题完成率、结果页继续率、Coach 使用后的次日回访、错题复习完成率和 Pro 转化触点质量。
 
-## 7. 法律与合规呈现逻辑
+## 7. Funnel 与事件
+
+PostHog 事件按 activation / retention / coach / conversion 四类维护，事件名与属性的单一事实源是 `lib/posthog/eventTypes.ts`。客户端只通过 `track()` 发送，服务端只通过 `captureServerEvent()` 发送；测试环境 mock 封装，不触发真实 PostHog 网络请求。
+
+| 分类       | 事件                                                                                                           | 低敏属性边界                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Activation | `onboarding_started`, `first_move_played`, `first_puzzle_completed`, `result_viewed`, `next_recommendation_clicked` | `locale`, `source`, `level`, `tag`, `difficulty`, `contentTier`, `result`, `recommendationType` |
+| Retention  | `review_page_viewed`, `review_item_opened`, `stats_page_viewed`, `review_recommendation_viewed`                | `locale`, `source`, `plan`, `tag`, `difficulty`, `result`, `recommendationType`              |
+| Coach      | `coach_opened`, `coach_prompt_clicked`, `coach_response_completed`, `coach_error_shown`, `coach_quota_state_seen` | `locale`, `source`, `contentTier`, `result`, `promptKey`                                     |
+| Conversion | `pricing_viewed`, `checkout_click`, `upsell_viewed`, `upsell_cta_clicked`                                      | `locale`, `source`, `plan`, `interval`                                                       |
+
+隐私边界：事件属性不发送原始棋谱全文、用户自由输入文本、AI 对话原文、邮箱、用户 ID、Stripe customer/subscription ID、设备 ID、reveal token 或其他令牌。服务端 PostHog `distinctId` 在封装层做 SHA-256 派生后再发送，避免把内部用户 ID 或支付系统 ID 作为原文暴露给分析系统。
+
+## 8. 法律与合规呈现逻辑
 
 系统采用 Apple 风格的”统一支柱”法律递送机制。
 
@@ -92,7 +105,7 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
   - **英国/欧盟 DMCCA**: 集成于退款政策中。
 - **内容交付**: 所有法律文本均由 `app/[locale]/legal/_content.ts` 驱动。
 
-## 8. 无障碍与路由边界
+## 9. 无障碍与路由边界
 
 - **Heatmap ARIA**: 活动热力图使用 `role=”grid”` 容器加 `aria-label`，每个日期单元格使用 `role=”gridcell”` 加描述性 `aria-label`。
 - **UserMenu 键盘导航**: 下拉菜单支持 ArrowUp/Down 循环切换、Home/End 跳转首尾、Escape 关闭，打开时自动聚焦第一项。
