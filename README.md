@@ -30,7 +30,9 @@ Technically, the product is a **Next.js 16 (App Router)** stack on **Supabase** 
 
 ## Launch readiness
 
-Phase 3 first-pass readiness is complete locally: content quality baselining, the learning loop, commercial copy, funnel events, local production smoke checks, AI safety/cost controls, and launch materials are documented. External release actions remain separate and require explicit approval: pushing code, deploying, DNS changes, live Stripe payments, real email sends, and public announcements.
+Phase 3 first-pass readiness is complete: content quality baselining, the learning loop, commercial copy, funnel events, AI safety/cost controls, launch materials, and production configuration checks are documented. On 2026-05-19, the production release window passed: Vercel Production redeploy, Resend real-send smoke, and Stripe live $1 payment/refund smoke all succeeded; final `preflight:prod -- --check-remote --stripe-mode=live` passed with **123 pass / 0 warn / 0 fail**.
+
+Public release actions remain separate and require explicit approval: pushing code, creating a GitHub release, public announcements, and external user outreach.
 
 For a concise product/engineering narrative, see the [case study](docs/en/CASE_STUDY.md). For launch operations, see the Chinese-first [launch checklist](docs/zh/LAUNCH_CHECKLIST.md).
 

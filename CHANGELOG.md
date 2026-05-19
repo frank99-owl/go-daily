@@ -8,6 +8,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ## [Unreleased]
 
+---
+
+## [1.2.0] - 2026-05-19
+
+### Production Readiness
+
+- **Production launch smoke (2026-05-19)**: Resend production API key rotated and verified; `go-daily.app` sender domain, SPF, and DKIM passed remote checks. Stripe live secret, webhook secret, monthly price, and yearly price were updated in Vercel Production; live preflight passed with **123 pass / 0 warn / 0 fail**. Vercel Production was redeployed and aliased to `https://go-daily.app`; `/api/health` and `/en/pricing` returned 200. A real Resend email smoke succeeded, and a Stripe live **$1 payment + refund** smoke completed successfully.
+
 ### Added
 
 - **Upstash Redis rate limiting**: Production requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; `createRateLimiter()` throws on first `isLimited()` call if either is missing when `NODE_ENV === "production"` (deferred from module load to allow `next build` without env vars). Non-production uses an in-memory limiter when Upstash is not configured.

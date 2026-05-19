@@ -1,9 +1,9 @@
 # 发布前清单 (LAUNCH_CHECKLIST)
 
-**生成日期**: 2026-05-18
-**基线**: Phase 3 P2-E 发布材料首轮
+**生成日期**: 2026-05-19
+**基线**: Phase 3 P2-E 发布材料 + 生产发布窗口 smoke
 
-本清单用于把 go-daily 从“本地可验证”推进到“可审批发布”。当前阶段只整理材料和本地检查，不部署、不 push、不改 DNS/SMTP/Stripe/Supabase/Vercel 等外部系统。
+本清单用于把 go-daily 从“本地可验证”推进到“可审批发布”。2026-05-19 已完成生产配置更新、Vercel Production redeploy、Resend 真实邮件 smoke 与 Stripe live 支付/退款 smoke；公开发布、GitHub release 和外部用户触达仍需单独审批。
 
 ## 一、本地已完成
 
@@ -17,7 +17,17 @@
 | P2-D AI 安全与成本 | 已完成首轮 | promptGuard、Coach 成本保护、Sentry/PostHog 隐私审计                           |
 | P2-E 发布材料      | 已完成首轮 | 本文件、README polish、英文 case study、收入实验、访谈脚本、30/60/90 roadmap   |
 
-## 二、发布前人工确认
+## 二、生产发布窗口已完成
+
+| 范围              | 当前状态 | 依据                                                                     |
+| ----------------- | -------- | ------------------------------------------------------------------------ |
+| Vercel Production | 已完成   | Production redeploy 成功，`https://go-daily.app` alias 到新 deployment   |
+| 线上健康检查      | 已通过   | `/api/health` 200，Supabase check 为 `ok`；`/en/pricing` 200             |
+| Resend            | 已通过   | 新 production key 上线；domain / SPF / DKIM verified；真实邮件发送成功   |
+| Stripe live       | 已通过   | live monthly/yearly price active；$1 payment 成功；退款 succeeded        |
+| 最终预检          | 已通过   | `preflight:prod -- --check-remote --stripe-mode=live`：123 pass / 0 fail |
+
+## 三、发布前人工确认
 
 这些项目不一定改外部系统，但需要 Frank 在发布窗口前人工确认。
 
@@ -28,9 +38,9 @@
 - **合规文本**：确认隐私、条款、退款页面与当前 Stripe/邮件/AI 数据流一致。
 - **客服路径**：确认公开邮箱、退款处理 SLA、漏洞报告渠道与实际可维护能力匹配。
 - **数据最小化**：确认 PostHog/Sentry/DeepSeek 不接收邮箱、支付 ID、设备 ID、token、自由输入全文或 AI 对话全文。
-- **手动回滚预案**：确认 Vercel 回滚、Stripe Checkout 关闭、商业开关 `NEXT_PUBLIC_IS_COMMERCIAL=false`、邮件暂停路径。
+- **手动回滚预案**：确认 Vercel 回滚、Stripe Checkout 暂停、邮件暂停路径；旧 Resend / Stripe key 观察 24-48 小时后再清理。
 
-## 三、需要 Frank 单独批准的外部动作
+## 四、需要 Frank 单独批准的外部动作
 
 以下动作会影响外部系统、公开可见状态、账单或真实用户，必须单独批准后才能执行。
 
@@ -38,6 +48,7 @@
 | ----------------------------- | ------------------------------------ | ----------------------------------------------- |
 | `git push`                    | 改变远端仓库状态，触发 CI 或公开代码 | 先确认 diff、commit 范围和目标分支              |
 | 创建或更新 PR                 | 公开发布材料和代码状态               | 先确认标题、描述、是否 draft                    |
+| 创建 GitHub release           | 公开发布版本与 release notes         | 先确认 tag、标题、说明、是否 pre-release        |
 | 部署 Vercel                   | 影响线上访问和可能触发真实集成       | 先确认环境变量、回滚点、域名指向                |
 | DNS / Cloudflare 修改         | 影响域名解析、缓存、TLS              | 先确认记录、TTL、回滚值                         |
 | SMTP / Resend 配置            | 影响真实邮件送达与域名信誉           | 先确认 sender、SPF/DKIM、测试地址               |
@@ -47,16 +58,15 @@
 | 生产支付测试                  | 产生真实交易或退款流程               | 先确认金额、税费、退款方式                      |
 | 公开发布公告                  | 形成外部承诺                         | 先确认文案、渠道、监控与客服值守                |
 
-## 四、发布窗口建议顺序
+## 五、GitHub release 建议顺序
 
 1. 冻结本地 diff，确认待发布 commit 范围。
-2. 跑本地验证：`validate:messages`、`lint`、`tsc --noEmit`、必要时 `preflight:prod` 和 `build`。
-3. Frank 批准 push / PR。
-4. 合并或部署前确认 Vercel 环境变量和 Upstash/Stripe/Resend/Supabase 生产配置。
-5. 在明确发布窗口执行 live smoke：Stripe Webhook、邮件送达、关键页面、Coach 限流和错误上报。
-6. 发布后 24 小时观察 Sentry、PostHog、Vercel logs、Stripe events 和邮件退信。
+2. 跑发布前验证：`validate:messages`、`lint`、`tsc --noEmit`，必要时 `test`。
+3. Frank 批准 push / tag / GitHub release。
+4. 创建 tag 与 GitHub release notes。
+5. 发布后 24 小时观察 Sentry、PostHog、Vercel logs、Stripe events 和邮件退信。
 
-## 五、停止发布条件
+## 六、停止发布条件
 
 - 生产环境缺少 Upstash Redis，且商业入口或 Coach 入口会对真实用户开放。
 - Stripe live Webhook 未配置或事件幂等表不可写。

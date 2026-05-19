@@ -1,6 +1,6 @@
 # go-daily Case Study
 
-**Date:** 2026-05-18
+**Date:** 2026-05-19
 **Status:** Internal launch-readiness case study. Not a public launch announcement.
 
 ## Summary
@@ -27,7 +27,7 @@ go-daily addresses that problem with three constraints:
 - Spaced repetition review for logged-in users.
 - Supabase Auth and Postgres with RLS.
 - Stripe subscription infrastructure for Pro features.
-- Local production smoke checks, message validation, linting, typechecking, and Vitest coverage.
+- Production smoke checks, message validation, linting, typechecking, and Vitest coverage.
 
 ## Architecture
 
@@ -77,11 +77,13 @@ Phase 3 first-pass work has produced:
 - Learning loop improvements across onboarding, result, recommendation, review, stats, and coach dialogue.
 - Commercial copy audit to remove unverifiable claims.
 - Funnel event map for activation, retention, coach usage, and conversion.
-- Local production smoke preflight.
+- Production smoke preflight.
 - AI safety, cost, Sentry, and PostHog privacy hardening.
 - Launch checklist, revenue experiments, user interview script, and 30/60/90 roadmap.
 
-External release actions are still intentionally separate. Pushing code, deploying, updating DNS, enabling Stripe live payments, sending real emails, or publishing announcements require explicit approval.
+On May 19, 2026, the approved production release window passed: Vercel Production redeploy succeeded, Resend real-send smoke succeeded, Stripe live $1 payment/refund smoke succeeded, and final live preflight passed with **123 pass / 0 warn / 0 fail**.
+
+Public release actions remain intentionally separate. Pushing code, creating a GitHub release, public announcements, or external user outreach require explicit approval.
 
 ## Validation Commands
 
@@ -101,7 +103,7 @@ npm run preflight:prod
 npm run build
 ```
 
-Live Supabase, Stripe, Resend, DNS, and production payment checks should only run inside an approved release window.
+Live Supabase, Stripe, Resend, DNS, and production payment checks should only run inside an approved release window. The May 19, 2026 window has already verified Resend, Stripe live payment/refund, Vercel Production, and Supabase remote checks.
 
 ## Lessons
 

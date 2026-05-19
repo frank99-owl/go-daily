@@ -30,7 +30,9 @@
 
 ## Phase 3 状态
 
-Phase 3 首轮已经在本地完成：内容质量基线、学习闭环、商业化文案、Funnel 事件、本地生产烟测、AI 安全与成本控制、发布材料均已整理。当前仍未执行任何外部发布动作；`push`、部署、DNS、SMTP、Stripe live、真实邮件、生产支付和公开发布都需要 Frank 单独批准。
+Phase 3 首轮已经完成：内容质量基线、学习闭环、商业化文案、Funnel 事件、AI 安全与成本控制、发布材料与生产配置验收均已整理。2026-05-19 已完成生产发布窗口验证：Vercel Production redeploy、Resend 真实发信、Stripe live $1 支付与退款 smoke 均通过；最终 `preflight:prod -- --check-remote --stripe-mode=live` 为 **123 pass / 0 warn / 0 fail**。
+
+后续公开发布动作仍需单独审批：`git push`、创建 GitHub release、公开公告、面向外部用户的邀请或营销发送。
 
 发布前材料见 [发布清单](docs/zh/LAUNCH_CHECKLIST.md)、[收入实验](docs/zh/REVENUE_EXPERIMENTS.md)、[用户访谈脚本](docs/zh/USER_INTERVIEW_SCRIPT.md)、[30/60/90 天路线图](docs/zh/ROADMAP_30_60_90.md) 与英文 [case study](docs/en/CASE_STUDY.md)。
 

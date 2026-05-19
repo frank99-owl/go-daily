@@ -7,11 +7,10 @@ We provide security updates for the following versions of go-daily:
 | Version / branch               | Supported |
 | ------------------------------ | --------- |
 | `main` / production deployment | Yes       |
-| `0.1.x`                        | Yes       |
+| `1.2.x`                        | Yes       |
 | Older commits and forks        | No        |
 
-The project has not reached a stable `1.x` release yet. Security support follows the
-current production deployment and the active `0.1.x` line.
+Security support follows the current production deployment and the active `1.2.x` line.
 
 ## 2. Reporting a Vulnerability
 

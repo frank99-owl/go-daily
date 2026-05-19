@@ -1,8 +1,8 @@
 # go-daily Project Status & Roadmap
 
-**Generated At**: May 6, 2026
-**Repository HEAD**: `a76d9f0`
-**Status**: v2.7 Codebase Optimization Edition
+**Generated At**: May 19, 2026
+**Repository HEAD**: `main` (production smoke results documented)
+**Status**: Phase 3 first pass complete; production configuration and release-window smoke passed; pending GitHub release / public launch approval
 
 ---
 
@@ -43,11 +43,22 @@ All subscription-related logic (Stripe, Entitlements, Multi-device Sync) has bee
 - **Stripe webhook hardening**: 1 MB payload size limit (HTTP 413) before body read.
 - **GoBoard disabled state**: Board renders at 50% opacity when non-interactive.
 
-## 4. Immediate Next Steps (Phase 3)
+## 4. Production Release-Window Smoke
 
-1. **Production Smoke Checks**: Verify DNS/SMTP and Stripe Live Webhooks.
+Completed on May 19, 2026:
+
+- **Vercel Production**: redeployed successfully and aliased to `https://go-daily.app`.
+- **Health checks**: `/api/health` returned 200 with Supabase `ok`; `/en/pricing` returned 200.
+- **Resend**: production key rotated and deployed; `go-daily.app` domain, SPF, and DKIM passed remote checks; real email smoke succeeded.
+- **Stripe live**: monthly/yearly prices active; live $1 payment succeeded; refund succeeded.
+- **Final preflight**: `npm run preflight:prod -- --check-remote --stripe-mode=live` passed with **123 pass / 0 warn / 0 fail**.
+
+## 5. Immediate Next Steps (Phase 3)
+
+1. **GitHub release approval**: confirm diff, tag name, and release notes before pushing and publishing `v1.2.0`.
 2. **Full Coach Rollout**: Continue bulk-approving remaining puzzles for Pro usage.
 3. **Content Depth**: Expand beyond 19×19 life-and-death into 9×9/13×13 and opening/endgame categories.
+4. **Production observation**: keep old Resend / Stripe keys available for 24-48 hours before cleanup.
 
 ---
 
