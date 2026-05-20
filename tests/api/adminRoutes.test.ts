@@ -30,6 +30,7 @@ vi.mock("@/lib/supabase/service", () => ({
 }));
 
 import { DELETE as grantsDELETE, POST as grantsPOST } from "@/app/api/admin/grants/route";
+import { GET as opsGET } from "@/app/api/admin/ops/route";
 import { POST as verifyPOST } from "@/app/api/admin/verify/route";
 
 const originalEnv = process.env;
@@ -68,6 +69,69 @@ function serviceClient() {
   };
   mocks.serviceFrom.mockReturnValue(table);
   return { from: mocks.serviceFrom };
+}
+
+function readQuery(result: QueryResult) {
+  const q: Record<string, unknown> = {
+    select: vi.fn(() => q),
+    gte: vi.fn(() => q),
+    order: vi.fn(() => q),
+    limit: vi.fn(() => q),
+    then: (resolve: (value: QueryResult) => unknown, reject?: (reason: unknown) => unknown) =>
+      Promise.resolve(result).then(resolve, reject),
+  };
+  return q;
+}
+
+type QueryResult = { data?: unknown; error?: { message: string } | null };
+
+function opsServiceClient() {
+  return {
+    from: vi.fn((table: string) => {
+      switch (table) {
+        case "subscriptions":
+          return readQuery({
+            data: [
+              { status: "active", current_period_end: "2999-01-01T00:00:00.000Z" },
+              { status: "past_due", current_period_end: "2999-01-01T00:00:00.000Z" },
+              { status: "past_due", current_period_end: "2000-01-01T00:00:00.000Z" },
+            ],
+            error: null,
+          });
+        case "coach_usage":
+          return readQuery({
+            data: [
+              { user_id: "user-1", count: 2 },
+              { user_id: "user-2", count: 3 },
+            ],
+            error: null,
+          });
+        case "attempts":
+          return readQuery({ data: [{ id: 1 }, { id: 2 }], error: null });
+        case "user_devices":
+          return readQuery({ data: [{ device_id: "device-1" }], error: null });
+        case "stripe_events":
+          return readQuery({
+            data: [
+              {
+                processed_at: null,
+                processing_started_at: "2026-05-20T00:00:00.000Z",
+                last_error: null,
+              },
+              { processed_at: null, processing_started_at: null, last_error: "boom" },
+              {
+                processed_at: "2026-05-20T00:00:00.000Z",
+                processing_started_at: null,
+                last_error: null,
+              },
+            ],
+            error: null,
+          });
+        default:
+          return readQuery({ data: [], error: null });
+      }
+    }),
+  };
 }
 
 describe("admin routes", () => {
@@ -215,6 +279,45 @@ describe("admin routes", () => {
 
       expect(response.status).toBe(200);
       expect(mocks.deleteEq).toHaveBeenCalledWith("email", "user@example.com");
+    });
+  });
+
+  describe("/api/admin/ops", () => {
+    it("returns a redacted operations summary for admin users", async () => {
+      mocks.createServiceClient.mockReturnValue(opsServiceClient());
+
+      const response = await opsGET();
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        content: {
+          totalPuzzles: 3033,
+          coachBasicEligibleCount: 3033,
+          coachReadyApprovedCount: 20,
+          variationGroupCount: 0,
+        },
+        coach: {
+          messagesLast30Days: 5,
+          activeUsersLast30Days: 2,
+        },
+        stripe: {
+          subscriptionsByStatus: {
+            active: 1,
+            past_due: 2,
+          },
+          pastDueWithinGrace: 1,
+          pastDueExpired: 1,
+        },
+        webhooks: {
+          recentStripeEvents: 3,
+          inProgress: 1,
+          failedOpen: 1,
+        },
+        sync: {
+          attemptRowsLast7Days: 2,
+          devicesSeenLast7Days: 1,
+        },
+      });
     });
   });
 });

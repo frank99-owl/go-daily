@@ -135,6 +135,7 @@ function buildAdminClient({
 }: {
   subscription?: {
     status: string | null;
+    current_period_end?: string | null;
     first_paid_at?: string | null;
     coach_anchor_day?: number | null;
   } | null;
