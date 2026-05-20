@@ -284,7 +284,9 @@ export function GoBoard({
       for (const h of highlight) {
         if (!inWindow(h)) continue;
         // Draw the actual stone in the correct color.
-        drawStone(h, toPlay);
+        const existing = allStones.find((s) => coordEquals(s, h));
+        const color = existing ? existing.color : toPlay;
+        drawStone(h, color);
         // Draw the glowing accent ring around the stone.
         ctx.save();
         ctx.shadowColor = accentColor;

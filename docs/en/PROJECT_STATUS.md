@@ -85,6 +85,7 @@ The next phase of the product will organize the user experience around: `onboard
 - **Coach UX improvements**: Retry button on generic errors, animated thinking indicator, skeleton loading on mentor switch.
 - **Stripe webhook hardening**: 1 MB payload size limit (HTTP 413) before body read.
 - **GoBoard disabled state**: Board renders at 50% opacity when non-interactive.
+- **GoBoard highlight color bugfix**: Fixed a bug in autoplay (e.g. game observation) where white stones were temporarily rendered as black during highlight overlays; now checks the existing stone color before rendering highlights to preserve the correct color.
 
 ## 7. Phase 3 First Pass Completion Status
 

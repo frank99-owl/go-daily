@@ -76,4 +76,17 @@ describe("GoBoard", () => {
     expect(pad).toBeGreaterThan(stoneR);
     expect(520 - pad).toBeLessThan(520 - stoneR);
   });
+
+  it("renders highlight markers without error when coordinate matches existing stone", () => {
+    expect(() => {
+      render(
+        <GoBoard
+          size={19}
+          stones={[{ x: 3, y: 3, color: "white" }]}
+          toPlay="black"
+          highlight={[{ x: 3, y: 3 }]}
+        />
+      );
+    }).not.toThrow();
+  });
 });
