@@ -60,8 +60,11 @@ export function evaluateDeviceAccess({
   return "allow-new";
 }
 
-export function isPaidSubscription(status: string | null | undefined): boolean {
-  return isProSubscriptionStatus(status);
+export function isPaidSubscription(
+  status: string | null | undefined,
+  currentPeriodEnd?: string | null,
+): boolean {
+  return isProSubscriptionStatus(status, { currentPeriodEnd });
 }
 
 export function getDeviceLimitForPlan(plan: ViewerPlan): number | null {

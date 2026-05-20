@@ -200,9 +200,10 @@ async function upsertSubscriptionFromStripe(
   const priceId = sub.items.data[0]?.price?.id ?? null;
   const plan = normalizePlan({ metadataPlan: sub.metadata?.plan, priceId });
   const nextStatus = extras?.status ?? sub.status;
+  const nextCurrentPeriodEnd = toIsoOrNull(minItemPeriodEnd(sub));
   const { data: existing, error: existingError } = await admin
     .from("subscriptions")
-    .select("stripe_subscription_id, status, first_paid_at, coach_anchor_day")
+    .select("stripe_subscription_id, status, current_period_end, first_paid_at, coach_anchor_day")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -213,6 +214,7 @@ async function upsertSubscriptionFromStripe(
   const existingSubscription = existing as {
     stripe_subscription_id?: string | null;
     status?: string | null;
+    current_period_end?: string | null;
     first_paid_at?: string | null;
     coach_anchor_day?: number | null;
   } | null;
@@ -220,8 +222,10 @@ async function upsertSubscriptionFromStripe(
   if (
     existingSubscription?.stripe_subscription_id &&
     existingSubscription.stripe_subscription_id !== sub.id &&
-    isProSubscriptionStatus(existingSubscription.status) &&
-    !isProSubscriptionStatus(nextStatus)
+    isProSubscriptionStatus(existingSubscription.status, {
+      currentPeriodEnd: existingSubscription.current_period_end,
+    }) &&
+    !isProSubscriptionStatus(nextStatus, { currentPeriodEnd: nextCurrentPeriodEnd })
   ) {
     console.warn("[stripe/webhook] ignoring stale non-pro update for old subscription", {
       userId,
@@ -242,7 +246,7 @@ async function upsertSubscriptionFromStripe(
       stripe_subscription_id: sub.id,
       plan,
       status: nextStatus,
-      current_period_end: toIsoOrNull(minItemPeriodEnd(sub)),
+      current_period_end: nextCurrentPeriodEnd,
       cancel_at_period_end: sub.cancel_at_period_end,
       trial_end: toIsoOrNull(sub.trial_end),
       first_paid_at: firstPaidAt,

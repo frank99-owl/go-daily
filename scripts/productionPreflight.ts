@@ -34,7 +34,7 @@ const REQUIRED_ENV = [
 const OPTIONAL_DEFAULTS = [
   ["NEXT_PUBLIC_POSTHOG_HOST", "https://us.i.posthog.com"],
   ["COACH_MODEL", "deepseek-chat"],
-  ["STRIPE_TRIAL_DAYS", "7"],
+  ["STRIPE_TRIAL_DAYS", "3"],
   ["NEXT_PUBLIC_ENABLE_EMAIL_LOGIN", "false"],
   ["EMAIL_CRON_BATCH_SIZE", "50"],
 ] as const;

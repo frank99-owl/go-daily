@@ -40,7 +40,7 @@ const stripeSchema = z.object({
   STRIPE_WEBHOOK_SECRET: required("STRIPE_WEBHOOK_SECRET"),
   STRIPE_PRO_MONTHLY_PRICE_ID: required("STRIPE_PRO_MONTHLY_PRICE_ID"),
   STRIPE_PRO_YEARLY_PRICE_ID: required("STRIPE_PRO_YEARLY_PRICE_ID"),
-  STRIPE_TRIAL_DAYS: optionalDefault("7"),
+  STRIPE_TRIAL_DAYS: optionalDefault("3"),
 });
 
 const supabaseSchema = z.object({

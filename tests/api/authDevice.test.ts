@@ -40,7 +40,7 @@ function buildAdminClient({
   devicesError = null,
   upsertError = null,
 }: {
-  subscription?: { status: string | null } | null;
+  subscription?: { status: string | null; current_period_end?: string | null } | null;
   manualGrant?: { expires_at: string } | null;
   devices?: Array<{ device_id: string; last_seen: string | null }>;
   devicesError?: { message: string } | null;

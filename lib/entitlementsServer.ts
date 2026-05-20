@@ -13,15 +13,24 @@ type ServiceClient = ReturnType<typeof createServiceClient>;
 export async function resolveViewerPlan({
   user,
   subscriptionStatus,
+  subscriptionCurrentPeriodEnd,
   email,
   admin,
+  now,
 }: {
   user: Pick<User, "id"> | null;
   subscriptionStatus: string | null | undefined;
+  subscriptionCurrentPeriodEnd?: string | null;
   email?: string | null;
   admin?: ServiceClient;
+  now?: Date;
 }): Promise<ViewerPlan> {
-  const basePlan = getViewerPlan({ user, subscriptionStatus });
+  const basePlan = getViewerPlan({
+    user,
+    subscriptionStatus,
+    subscriptionCurrentPeriodEnd,
+    now,
+  });
   if (basePlan === "pro") return "pro";
   if (!user || !email) return basePlan;
 

@@ -72,12 +72,17 @@ describe("isPaidSubscription", () => {
     ["active", true],
     ["trialing", true],
     ["canceled", false],
-    ["past_due", true],
+    ["past_due", false],
     ["incomplete", false],
     [null, false],
     [undefined, false],
   ])("status=%s → isPaid=%s", (status, expected) => {
     expect(isPaidSubscription(status as string | null | undefined)).toBe(expected);
+  });
+
+  it("treats past_due as paid only while the billing grace window is still open", () => {
+    expect(isPaidSubscription("past_due", "2999-01-01T00:00:00.000Z")).toBe(true);
+    expect(isPaidSubscription("past_due", "2000-01-01T00:00:00.000Z")).toBe(false);
   });
 });
 

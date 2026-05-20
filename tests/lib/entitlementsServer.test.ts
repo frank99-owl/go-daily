@@ -46,6 +46,30 @@ describe("resolveViewerPlan", () => {
     expect(createServiceClient).not.toHaveBeenCalled();
   });
 
+  it("treats past_due Stripe subscriptions as pro only inside the grace window", async () => {
+    await expect(
+      resolveViewerPlan({
+        user,
+        subscriptionStatus: "past_due",
+        subscriptionCurrentPeriodEnd: "2026-05-18T00:00:00.000Z",
+        email: "demo@example.com",
+        now: new Date("2026-05-20T00:00:00.000Z"),
+      }),
+    ).resolves.toBe("pro");
+
+    expect(createServiceClient).not.toHaveBeenCalled();
+
+    await expect(
+      resolveViewerPlan({
+        user,
+        subscriptionStatus: "past_due",
+        subscriptionCurrentPeriodEnd: "2026-05-01T00:00:00.000Z",
+        email: "demo@example.com",
+        now: new Date("2026-05-20T00:00:00.000Z"),
+      }),
+    ).resolves.toBe("free");
+  });
+
   it("promotes a signed-in user with an unexpired manual grant to pro", async () => {
     grantRow.value = { expires_at: "2999-01-01T00:00:00.000Z" };
 

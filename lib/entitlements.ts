@@ -2,6 +2,7 @@ import type { User } from "@supabase/supabase-js";
 
 export type ViewerPlan = "guest" | "free" | "pro";
 export type CloudSyncMode = "none" | "single-device" | "multi-device";
+export const PAST_DUE_PRO_GRACE_DAYS = 7;
 
 export interface Entitlements {
   plan: ViewerPlan;
@@ -60,28 +61,75 @@ export const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> =
   },
 };
 
-export function isProSubscriptionStatus(status: string | null | undefined): boolean {
-  return status === "active" || status === "trialing" || status === "past_due";
+function parseTime(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function isPastDueWithinGrace({
+  currentPeriodEnd,
+  now = new Date(),
+}: {
+  currentPeriodEnd: string | null | undefined;
+  now?: Date;
+}): boolean {
+  const periodEndMs = parseTime(currentPeriodEnd);
+  if (periodEndMs === null) return false;
+  const graceMs = PAST_DUE_PRO_GRACE_DAYS * 24 * 60 * 60 * 1000;
+  return now.getTime() <= periodEndMs + graceMs;
+}
+
+export function isProSubscriptionStatus(
+  status: string | null | undefined,
+  options: { currentPeriodEnd?: string | null; now?: Date } = {},
+): boolean {
+  if (status === "active" || status === "trialing") return true;
+  if (status === "past_due") {
+    return isPastDueWithinGrace({
+      currentPeriodEnd: options.currentPeriodEnd,
+      now: options.now,
+    });
+  }
+  return false;
 }
 
 export function getViewerPlan({
   user,
   subscriptionStatus,
+  subscriptionCurrentPeriodEnd,
+  now,
 }: {
   user: Pick<User, "id"> | null;
   subscriptionStatus: string | null | undefined;
+  subscriptionCurrentPeriodEnd?: string | null;
+  now?: Date;
 }): ViewerPlan {
   if (!user) return "guest";
-  return isProSubscriptionStatus(subscriptionStatus) ? "pro" : "free";
+  return isProSubscriptionStatus(subscriptionStatus, {
+    currentPeriodEnd: subscriptionCurrentPeriodEnd,
+    now,
+  })
+    ? "pro"
+    : "free";
 }
 
 export function getEntitlements({
   user,
   subscriptionStatus,
+  subscriptionCurrentPeriodEnd,
+  now,
 }: {
   user: Pick<User, "id"> | null;
   subscriptionStatus: string | null | undefined;
+  subscriptionCurrentPeriodEnd?: string | null;
+  now?: Date;
 }): Entitlements {
-  const plan = getViewerPlan({ user, subscriptionStatus });
+  const plan = getViewerPlan({
+    user,
+    subscriptionStatus,
+    subscriptionCurrentPeriodEnd,
+    now,
+  });
   return { plan, ...PLAN_ENTITLEMENTS[plan] };
 }

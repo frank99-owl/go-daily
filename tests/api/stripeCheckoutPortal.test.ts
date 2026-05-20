@@ -22,7 +22,7 @@ vi.mock("@/lib/stripe/server", () => ({
   }),
   getProPriceId: (interval: "monthly" | "yearly") =>
     interval === "monthly" ? "price_monthly" : "price_yearly",
-  getStripeTrialDays: () => 7,
+  getStripeTrialDays: () => 3,
   intervalToPlan: (interval: "monthly" | "yearly") =>
     interval === "monthly" ? "pro_monthly" : "pro_yearly",
 }));
@@ -117,7 +117,7 @@ describe("Stripe subscription API routes", () => {
           customer_email: "user@example.com",
           metadata: { user_id: "user_1", plan: "pro_monthly" },
           subscription_data: {
-            trial_period_days: 7,
+            trial_period_days: 3,
             metadata: { user_id: "user_1", plan: "pro_monthly" },
           },
         }),

@@ -13,6 +13,7 @@ export const runtime = "nodejs";
 
 type SubscriptionRow = {
   status: string | null;
+  current_period_end: string | null;
 };
 
 function invalidDeviceResponse() {
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
   const admin = createServiceClient();
   const { data: subscriptionData, error: subError } = await admin
     .from("subscriptions")
-    .select("status")
+    .select("status, current_period_end")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
   const plan = await resolveViewerPlan({
     user,
     subscriptionStatus: subscription?.status ?? null,
+    subscriptionCurrentPeriodEnd: subscription?.current_period_end ?? null,
     email: user.email,
     admin,
   });

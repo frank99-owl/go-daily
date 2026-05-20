@@ -1,14 +1,35 @@
 import { describe, expect, it } from "vitest";
 
-import { getEntitlements, getViewerPlan, isProSubscriptionStatus } from "@/lib/entitlements";
+import {
+  getEntitlements,
+  getViewerPlan,
+  isPastDueWithinGrace,
+  isProSubscriptionStatus,
+} from "@/lib/entitlements";
 
 const fakeUser = { id: "user_1" };
+const fixedNow = new Date("2026-05-20T00:00:00.000Z");
 
 describe("isProSubscriptionStatus", () => {
-  it("returns true for active, trialing, and past_due", () => {
+  it("returns true for active and trialing", () => {
     expect(isProSubscriptionStatus("active")).toBe(true);
     expect(isProSubscriptionStatus("trialing")).toBe(true);
-    expect(isProSubscriptionStatus("past_due")).toBe(true);
+  });
+
+  it("returns true for past_due only inside the grace window", () => {
+    expect(
+      isProSubscriptionStatus("past_due", {
+        currentPeriodEnd: "2026-05-18T00:00:00.000Z",
+        now: fixedNow,
+      }),
+    ).toBe(true);
+    expect(
+      isProSubscriptionStatus("past_due", {
+        currentPeriodEnd: "2026-05-01T00:00:00.000Z",
+        now: fixedNow,
+      }),
+    ).toBe(false);
+    expect(isProSubscriptionStatus("past_due", { now: fixedNow })).toBe(false);
   });
 
   it("returns false for every other known Stripe status", () => {
@@ -24,6 +45,23 @@ describe("isProSubscriptionStatus", () => {
   });
 });
 
+describe("isPastDueWithinGrace", () => {
+  it("uses current_period_end plus the configured grace window", () => {
+    expect(
+      isPastDueWithinGrace({
+        currentPeriodEnd: "2026-05-13T00:00:00.000Z",
+        now: fixedNow,
+      }),
+    ).toBe(true);
+    expect(
+      isPastDueWithinGrace({
+        currentPeriodEnd: "2026-05-12T23:59:59.000Z",
+        now: fixedNow,
+      }),
+    ).toBe(false);
+  });
+});
+
 describe("getViewerPlan", () => {
   it("is guest when user is null", () => {
     expect(getViewerPlan({ user: null, subscriptionStatus: null })).toBe("guest");
@@ -35,10 +73,31 @@ describe("getViewerPlan", () => {
     expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "canceled" })).toBe("free");
   });
 
-  it("is pro for active, trialing or past_due subscriptions", () => {
-    expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "past_due" })).toBe("pro");
+  it("is pro for active, trialing, or in-grace past_due subscriptions", () => {
+    expect(
+      getViewerPlan({
+        user: fakeUser,
+        subscriptionStatus: "past_due",
+        subscriptionCurrentPeriodEnd: "2026-05-18T00:00:00.000Z",
+        now: fixedNow,
+      }),
+    ).toBe("pro");
     expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "active" })).toBe("pro");
     expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "trialing" })).toBe("pro");
+  });
+
+  it("is free for expired or missing past_due period end", () => {
+    expect(
+      getViewerPlan({
+        user: fakeUser,
+        subscriptionStatus: "past_due",
+        subscriptionCurrentPeriodEnd: "2026-05-01T00:00:00.000Z",
+        now: fixedNow,
+      }),
+    ).toBe("free");
+    expect(getViewerPlan({ user: fakeUser, subscriptionStatus: "past_due", now: fixedNow })).toBe(
+      "free",
+    );
   });
 });
 

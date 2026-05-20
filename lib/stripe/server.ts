@@ -72,8 +72,8 @@ export function inferPlanFromPriceId(priceId: string | null | undefined): ProPla
 
 export function getStripeTrialDays(): number {
   const raw = process.env.STRIPE_TRIAL_DAYS?.trim();
-  if (!raw) return 7;
+  if (!raw) return 3;
   const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 365) return 7;
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 365) return 3;
   return parsed;
 }

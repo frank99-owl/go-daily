@@ -24,6 +24,7 @@ const CheckoutRequestSchema = z.object({
 
 type ExistingSubscriptionRow = {
   status: string | null;
+  current_period_end: string | null;
   stripe_customer_id: string | null;
 };
 
@@ -111,7 +112,7 @@ export async function POST(request: Request) {
 
   const { data: existingSubData, error: existingSubError } = await supabase
     .from("subscriptions")
-    .select("status, stripe_customer_id")
+    .select("status, current_period_end, stripe_customer_id")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -124,7 +125,11 @@ export async function POST(request: Request) {
   }
 
   const existingSub = existingSubData as ExistingSubscriptionRow | null;
-  if (isProSubscriptionStatus(existingSub?.status)) {
+  if (
+    isProSubscriptionStatus(existingSub?.status, {
+      currentPeriodEnd: existingSub?.current_period_end,
+    })
+  ) {
     return createApiResponse({ error: "already_subscribed" }, { status: 409 });
   }
   const existingCustomerId = existingSub?.stripe_customer_id?.trim() || null;

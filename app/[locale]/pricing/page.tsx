@@ -55,7 +55,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
     if (user) {
       const { data: subscription, error: subErr } = await supabase
         .from("subscriptions")
-        .select("status, stripe_customer_id")
+        .select("status, current_period_end, stripe_customer_id")
         .eq("user_id", user.id)
         .maybeSingle();
       if (subErr) {
@@ -64,6 +64,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
       viewerPlan = await resolveViewerPlan({
         user,
         subscriptionStatus: subscription?.status ?? null,
+        subscriptionCurrentPeriodEnd: subscription?.current_period_end ?? null,
         email: user.email,
       });
       hasBillingPortal = Boolean(subscription?.stripe_customer_id);

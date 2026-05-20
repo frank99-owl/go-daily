@@ -27,6 +27,7 @@ type ProfileRow = {
 
 type SubscriptionRow = {
   status: string | null;
+  current_period_end: string | null;
   first_paid_at: string | null;
   coach_anchor_day: number | null;
 };
@@ -157,7 +158,7 @@ export async function getCoachState({
       admin.from("profiles").select("timezone").eq("user_id", userId).maybeSingle(),
       admin
         .from("subscriptions")
-        .select("status, first_paid_at, coach_anchor_day")
+        .select("status, current_period_end, first_paid_at, coach_anchor_day")
         .eq("user_id", userId)
         .maybeSingle(),
     ]);
@@ -175,8 +176,10 @@ export async function getCoachState({
   const plan = await resolveViewerPlan({
     user: { id: userId },
     subscriptionStatus: subscription?.status ?? null,
+    subscriptionCurrentPeriodEnd: subscription?.current_period_end ?? null,
     email,
     admin,
+    now,
   });
   const entitlements = { plan, ...PLAN_ENTITLEMENTS[plan] };
 
