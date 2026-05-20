@@ -1,11 +1,58 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: "Zhi Mang Xing";
-  src: url("/fonts/ZhiMangXing-Regular.ttf") format("truetype");
+  font-family: "Inter";
+  src: url("/fonts/Inter-Latin.woff2") format("woff2");
+  font-weight: 300 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/fonts/PlayfairDisplay-Latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: block;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/fonts/PlayfairDisplay-LatinItalic.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: block;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Zhi Mang Xing Hero";
+  src: url("/fonts/ZhiMangXing-Hero.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: block;
+  unicode-range:
+    U+4E00, U+4E4B, U+56F4, U+6167, U+624B, U+667A, U+68CB, U+6A2A, U+795E,
+    U+7EB5, U+95F4;
+}
+
+@font-face {
+  font-family: "Zhi Mang Xing Full";
+  src: url("/fonts/ZhiMangXing-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 @theme {
@@ -24,27 +71,28 @@
   --color-linen: #e3dccb; /* warm light text */
   --color-earth: #4a3728; /* warm brown */
 
-  /* Default (en) font stacks — system-first so local builds do not fetch remote fonts. */
+  /* Default (en) font stacks — self-hosted so runtime does not depend on Google Fonts. */
   --font-inter: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-headline: "Playfair Display", Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter);
   --font-display: var(--font-headline);
+  --font-zh-hand: "Zhi Mang Xing Hero", "Zhi Mang Xing Full", cursive;
 }
 
-/* Locale-specific font overrides — CJK fonts loaded non-blocking via <link> */
+/* Locale-specific font overrides — CJK starts with native OS fonts for first-paint speed. */
 html[data-locale="zh"] {
-  --font-sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-display: "Noto Serif SC", "Songti SC", serif;
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-display: "Songti SC", "STSong", "Noto Serif SC", serif;
 }
 
 html[data-locale="ja"] {
-  --font-sans: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
-  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+  --font-sans: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  --font-display: "Hiragino Mincho ProN", "Yu Mincho", "Shippori Mincho", serif;
 }
 
 html[data-locale="ko"] {
-  --font-sans: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --font-display: "Gowun Batang", "Apple SD Gothic Neo", serif;
+  --font-sans: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --font-display: "AppleMyungjo", "Gowun Batang", "Apple SD Gothic Neo", serif;
 }
 
 html,

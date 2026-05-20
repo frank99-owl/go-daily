@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
     const cspDirectives = [
       "default-src 'self'",
       `script-src ${scriptSrc.join(" ")} https://js.stripe.com`,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self'",
       "img-src 'self' data: blob:",
       "connect-src 'self' https://api.deepseek.com https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://*.ingest.us.sentry.io https://api.stripe.com",
       "worker-src 'self' blob:",
@@ -27,6 +27,15 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/avatars/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/fonts/:path*",
         headers: [
           {
             key: "Cache-Control",

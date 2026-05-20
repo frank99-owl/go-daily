@@ -10,20 +10,6 @@ import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/localePath";
 import { getSiteUrl } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
-/** CJK font families per locale — loaded on-demand via non-blocking <link>. */
-const CJK_FONTS: Record<Locale, string[]> = {
-  zh: ["Noto+Sans+SC:wght@300;400;500", "Noto+Serif+SC:wght@400;600"],
-  ja: ["Noto+Sans+JP:wght@300;400;500", "Shippori+Mincho:wght@400;600"],
-  ko: ["Noto+Sans+KR:wght@300;400;500", "Gowun+Batang:wght@400;700"],
-  en: [],
-};
-
-function cjkFontUrl(locale: Locale): string | null {
-  const families = CJK_FONTS[locale];
-  if (!families?.length) return null;
-  return `https://fonts.googleapis.com/css2?${families.map((f) => `family=${f}`).join("&")}&display=optional`;
-}
-
 const OG_LOCALE_MAP: Record<Locale, string> = {
   zh: "zh_CN",
   en: "en_US",
@@ -76,30 +62,39 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link
+          rel="preload"
+          href="/fonts/PlayfairDisplay-Latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        {locale === "en" && (
+          <>
+            <link
+              rel="preload"
+              href="/fonts/PlayfairDisplay-LatinItalic.woff2"
+              as="font"
+              type="font/woff2"
+              crossOrigin="anonymous"
+            />
+            <link
+              rel="preload"
+              href="/fonts/Inter-Latin.woff2"
+              as="font"
+              type="font/woff2"
+              crossOrigin="anonymous"
+            />
+          </>
+        )}
         {locale === "zh" && (
           <link
             rel="preload"
-            href="/fonts/ZhiMangXing-Regular.ttf"
+            href="/fonts/ZhiMangXing-Hero.woff2"
             as="font"
-            type="font/ttf"
+            type="font/woff2"
             crossOrigin="anonymous"
           />
-        )}
-        {cjkFontUrl(locale) && (
-          <>
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-            <link
-              rel="stylesheet"
-              href={cjkFontUrl(locale)!}
-              media="print"
-              // @ts-expect-error — onload swaps media to make the stylesheet active
-              onLoad="this.media='all'"
-            />
-            <noscript>
-              <link rel="stylesheet" href={cjkFontUrl(locale)!} />
-            </noscript>
-          </>
         )}
       </head>
       <body className="min-h-full flex flex-col bg-paper text-ink cursor-none">

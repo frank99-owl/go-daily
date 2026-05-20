@@ -102,7 +102,7 @@ export function HeroSection() {
   const titleFont = "font-[family-name:var(--font-headline)]";
   const titleStyle =
     locale === "zh"
-      ? { fontFamily: '"Zhi Mang Xing", cursive', textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
+      ? { fontFamily: "var(--font-zh-hand)", textShadow: "0 0 30px rgba(255, 255, 255, 0.2)" }
       : locale === "ja"
         ? {
             fontFamily: '"Shippori Mincho", serif',

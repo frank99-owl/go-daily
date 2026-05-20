@@ -80,7 +80,7 @@ export function BoardShowcase() {
               style={{
                 fontFamily:
                   locale === "zh"
-                    ? '"Zhi Mang Xing", cursive'
+                    ? "var(--font-zh-hand)"
                     : locale === "ja"
                       ? '"Shippori Mincho", serif'
                       : locale === "ko"

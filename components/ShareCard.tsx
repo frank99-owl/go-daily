@@ -65,7 +65,7 @@ function computeCrop(size: number, stones: Stone[]): Window {
 function getVerdictFont(locale: Locale): string {
   switch (locale) {
     case "zh":
-      return '"Zhi Mang Xing", cursive';
+      return '"Zhi Mang Xing Full", "Zhi Mang Xing Hero", cursive';
     case "ja":
       return '"Shippori Mincho", serif';
     case "ko":
