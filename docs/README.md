@@ -79,12 +79,12 @@ These files are **published with the repository** (e.g. on GitHub). They are wri
 
 ## How to read this library (by audience)
 
-| Role                   | Typical path                                                                                                         |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Product / GTM**      | [CONCEPT](en/CONCEPT.md) → [PRODUCT_SPECS](en/PRODUCT_SPECS.md) → [PROJECT_STATUS](en/PROJECT_STATUS.md)             |
-| **Engineering**        | [ARCHITECTURE](en/ARCHITECTURE.md) → [API_REFERENCE](en/API_REFERENCE.md) → [DATABASE_SCHEMA](en/DATABASE_SCHEMA.md) |
-| **DevOps / SRE**       | [OPERATIONS_QA](en/OPERATIONS_QA.md) → [PROJECT_STATUS](en/PROJECT_STATUS.md)                                        |
-| **Legal / compliance** | [LEGAL_COMPLIANCE](en/LEGAL_COMPLIANCE.md) → [PRODUCT_SPECS](en/PRODUCT_SPECS.md) (entitlements)                     |
+| Role                   | Typical path                                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Product / GTM**      | [CONCEPT](en/CONCEPT.md) → [PRODUCT_SPECS](en/PRODUCT_SPECS.md) → [PROJECT_STATUS](en/PROJECT_STATUS.md)              |
+| **Engineering**        | [ARCHITECTURE](en/ARCHITECTURE.md) → [API_REFERENCE](en/API_REFERENCE.md) → [DATABASE_SCHEMA](en/DATABASE_SCHEMA.md)  |
+| **DevOps / SRE**       | [OPERATIONS_QA](en/OPERATIONS_QA.md) → [PROJECT_STATUS](en/PROJECT_STATUS.md) → [发布 Runbook](zh/RELEASE_RUNBOOK.md) |
+| **Legal / compliance** | [LEGAL_COMPLIANCE](en/LEGAL_COMPLIANCE.md) → [PRODUCT_SPECS](en/PRODUCT_SPECS.md) (entitlements)                      |
 
 ### Audience paths · 分角色阅读 · ロール別 · 역할별 읽기법
 

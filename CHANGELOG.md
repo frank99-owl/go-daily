@@ -8,6 +8,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ## [Unreleased]
 
+### Added
+
+- Split Coach content facts into `coachBasicEligibleIds.json`, `coachReadyIds.json`, `variationGroups.json`, and `contentReviewBatches.json`; `validate:puzzles` now checks the tier data, variation groups, and approved review batches.
+- Added `/api/admin/ops` and the `/admin` Operations Snapshot for content, Coach, Stripe `past_due`, webhook, and sync signals.
+- Added `docs/zh/RELEASE_RUNBOOK.md` for validation commands, rollback paths, key monitors, and external service status pages.
+
+### Changed
+
+- `past_due` Stripe subscriptions now retain Pro only through `current_period_end + 7 days`; expired or missing period-end data falls back to Free unless a manual grant applies.
+- Coach access now requires both runtime quality gates and explicit `coachReadyIds.json` approval before full AI Coach is available.
+- **Trial period reduced**: Free trial shortened from 7 days to 3 days (`STRIPE_TRIAL_DAYS` env default, `.env.example`, `lib/env.ts`, `lib/stripe/server.ts`). All four locale message files, CONCEPT, PRODUCT_SPECS, and OPERATIONS_QA docs updated.
+
 ---
 
 ## [1.2.0] - 2026-05-19

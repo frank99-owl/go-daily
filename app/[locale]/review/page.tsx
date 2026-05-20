@@ -73,7 +73,11 @@ async function getReviewState(
 
     const [{ data: subscription, error: subErr }, { data: profile, error: profileErr }] =
       await Promise.all([
-        supabase.from("subscriptions").select("status").eq("user_id", user.id).maybeSingle(),
+        supabase
+          .from("subscriptions")
+          .select("status, current_period_end")
+          .eq("user_id", user.id)
+          .maybeSingle(),
         supabase.from("profiles").select("timezone").eq("user_id", user.id).maybeSingle(),
       ]);
 
@@ -83,6 +87,7 @@ async function getReviewState(
     viewerPlan = await resolveViewerPlan({
       user,
       subscriptionStatus: subscription?.status ?? null,
+      subscriptionCurrentPeriodEnd: subscription?.current_period_end ?? null,
       email: user.email,
     });
     if (viewerPlan !== "pro") return { viewerPlan, srsItems: [] };

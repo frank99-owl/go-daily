@@ -70,7 +70,7 @@ Counters are incremented **before** streaming begins, so aborted connections sti
 - IP rate limiting via `createRateLimiter` (Upstash Redis **required** in production; in-process `MemoryRateLimiter` only in non-production)
 - Prompt injection screening on all user messages (`guardUserMessage`)
 - Input sanitization (`sanitizeInput`)
-- Coach eligibility check (puzzle ID allowlist in `coachEligibleIds.json` **and** runtime quality gates via `checkCoachEligibility` / `getCoachAccess`)
+- Coach eligibility check (`coachBasicEligibleIds.json` for basic eligibility, `coachReadyIds.json` for full Coach approval, `variationGroups.json` for variation-ready groups, plus runtime quality gates via `checkCoachEligibility` / `getCoachAccess`)
 - Usage quota enforcement (per-user daily + monthly counters; Postgres RPC increments — see Database Schema)
 - Guest usage persisted in Supabase `guest_coach_usage` via `service_role`; **per-IP daily** guest caps (`checkIpLimit`, `GUEST_IP_DAILY_LIMIT` — currently 20/IP/UTC day) use **Upstash** when `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set, otherwise an in-process `Map` in `guestCoachUsage.ts`.
 
@@ -391,6 +391,14 @@ Remove a manual grant.
 **Request Body**: `{ "email": string }`
 
 **Response** (`200`): `{ "ok": true }`
+
+### `GET /api/admin/ops`
+
+Return the read-only Operations Snapshot used by `/admin`: content tiers, 30-day Coach usage, Stripe subscription status and `past_due` grace counts, recent Stripe webhook issues, and 7-day sync write signals.
+
+**Auth**: Session user id must be listed in `ADMIN_USER_IDS`.
+
+**Response** (`200`): `{ "content", "coach", "stripe", "webhooks", "sync", "generatedAt" }`. The response does not include user emails, raw message bodies, secrets, or private logs.
 
 ---
 

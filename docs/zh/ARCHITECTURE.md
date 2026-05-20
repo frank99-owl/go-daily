@@ -41,7 +41,7 @@
 ### `lib/coach/` (AI 智能)
 
 - **提示词工程**：集中在 `coachPrompt.ts`，各题共用同一套教练契约（以解析与分支信息为准、人设语气、按语言的文风段落）。
-- **质量准入**：`coachEligibility.ts` 负责把题目分为 `blocked`、`thin`、`explained`、`coach-ready`，并显式返回 `hasVariationSupport`。`coachEligibleIds.json` 是历史白名单，`getCoachAccess()` 仍会叠加运行时质量校验；有四语言解析但缺少 `solutionSequence` / `wrongBranches` 的题目只属于解释充分，不等同于完整 AI 教练题。
+- **质量准入**：`coachEligibility.ts` 负责把题目分为 `blocked`、`thin`、`explained`、`coach-ready`，并显式返回 `hasVariationSupport`。`coachBasicEligibleIds.json`、`coachReadyIds.json`、`variationGroups.json` 分别承载基础准入、完整 Coach 批准和变例组；`getCoachAccess()` 叠加运行时质量校验。有四语言解析但缺少 `solutionSequence` / `wrongBranches` 的题目只属于解释充分，不等同于完整 AI 教练题。
 - **配额与时间窗**：`coachQuota.ts` 提供按用户时区格式化日期与自然月 / 计费锚定月窗口（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）。各档位的条数上限定义在 `lib/entitlements.ts`（并受 `getCoachState` 等消费）。
 - **使用量计数**：登录与访客教练消息次数持久化在 Postgres；并发下通过 RPC（`increment_coach_usage`、`increment_guest_coach_usage`）原子自增，避免读改写竞态。
 

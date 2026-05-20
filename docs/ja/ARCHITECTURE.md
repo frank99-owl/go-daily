@@ -41,7 +41,8 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 ### `lib/coach/` (AI インテリジェンス)
 
 - **プロンプト管理**：`coachPrompt.ts` に集約し、問題ごとに同じコーチング契約（解説・分岐などを正として扱う、ペルソナの口調、言語別スタイル）を適用します。
-- **割り当てと日付ウィンドウ**：`coachQuota.ts` はユーザー TZ の日付整形と自然月／請求アンカー月ウィンドウ（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）を提供。メッセージ回数上限は `lib/entitlements.ts` で定義され、`getCoachState` 等で消費されます。
+- **品質管理とアクセス制限**：`coachEligibility.ts` は問題を `blocked`、`thin`、`explained`、`coach-ready` の各品質層に区分し、`hasVariationSupport` を返します。`coachBasicEligibleIds.json` は基礎説明の対象、`coachReadyIds.json` は完全なコーチの承認対象、`variationGroups.json` は変化図整理済みのグループを表し、`getCoachAccess()` が実行時チェックと重ねて制御します。四言語の解説があっても、`solutionSequence` や `wrongBranches` が欠けている問題は「説明十分」に留まり、完全な AI コーチ対応問題とはみなされません。
+- **割り当てと日付ウィンドウ**：`coachQuota.ts` はユーザー TZ の日付整形と自然月／請求アンカー月ウィンドウ（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）を提供。メッセージ回数上限は `lib/entitlements.ts` で定义され、`getCoachState` 等で消費されます。
 - **利用カウンタ**：ログイン／ゲストのコーチ回数は Postgres に保存。同時実行下では RPC（`increment_coach_usage`、`increment_guest_coach_usage`）により原子的な upsert で加算します。
 
 ### `lib/i18n/` (グローバル展開)

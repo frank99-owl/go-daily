@@ -24,7 +24,7 @@ const DATA_DIR = path.join(ROOT, "content", "data");
 const PIPELINE_DIR = path.join(ROOT, "data_pipeline");
 const DB_PATH = path.join(PIPELINE_DIR, "gemini_solutions.sqlite");
 const CLASSICAL_PATH = path.join(DATA_DIR, "classicalPuzzles.json");
-const ELIGIBLE_PATH = path.join(DATA_DIR, "coachEligibleIds.json");
+const BASIC_ELIGIBLE_PATH = path.join(DATA_DIR, "coachBasicEligibleIds.json");
 const PROVIDER = resolveProvider();
 const MODEL = resolveModel(PROVIDER);
 const LOCALES = ["zh", "en", "ja", "ko"];
@@ -128,11 +128,11 @@ async function main() {
   }
 
   const sourcePuzzles = loadOriginJson("content/data/classicalPuzzles.json");
-  const originEligible = loadOriginJson("content/data/coachEligibleIds.json");
+  const originBasicEligible = loadOriginJson("content/data/coachBasicEligibleIds.json");
   const puzzleById = new Map(sourcePuzzles.map((puzzle) => [puzzle.id, puzzle]));
 
   if (options.restoreBaseline) {
-    restoreBaseline(sourcePuzzles, originEligible);
+    restoreBaseline(sourcePuzzles, originBasicEligible);
     return;
   }
 
@@ -141,7 +141,12 @@ async function main() {
   recoverInterruptedWork(db);
 
   if (options.applyBatch !== null) {
-    const result = applyAcceptedSolutions(db, sourcePuzzles, originEligible, options.applyBatch);
+    const result = applyAcceptedSolutions(
+      db,
+      sourcePuzzles,
+      originBasicEligible,
+      options.applyBatch,
+    );
     printApplyResult(result);
     return;
   }
@@ -166,7 +171,7 @@ async function main() {
   const stats = await processSelectedPuzzles(db, batchId, selected, options.concurrency);
 
   finishBatch(db, batchId, stats);
-  const applyResult = applyAcceptedSolutions(db, sourcePuzzles, originEligible, batchId);
+  const applyResult = applyAcceptedSolutions(db, sourcePuzzles, originBasicEligible, batchId);
   printBatchSummary(batchId, stats, applyResult);
 }
 
@@ -383,11 +388,11 @@ function loadOriginJson(repoPath) {
   return JSON.parse(raw);
 }
 
-function restoreBaseline(sourcePuzzles, originEligible) {
+function restoreBaseline(sourcePuzzles, originBasicEligible) {
   fs.writeFileSync(CLASSICAL_PATH, JSON.stringify(sourcePuzzles, null, 2));
-  fs.writeFileSync(ELIGIBLE_PATH, `${JSON.stringify(originEligible, null, 2)}\n`);
+  fs.writeFileSync(BASIC_ELIGIBLE_PATH, `${JSON.stringify(originBasicEligible, null, 2)}\n`);
   console.log(
-    `Restored ${sourcePuzzles.length} puzzles and ${originEligible.length} coach-ready IDs from origin/main.`,
+    `Restored ${sourcePuzzles.length} puzzles and ${originBasicEligible.length} coach-eligible IDs from origin/main.`,
   );
 }
 
@@ -1099,7 +1104,7 @@ function checkCoachEligibilityLikeApp(puzzle) {
   return { eligible: true, reason: "eligible" };
 }
 
-function applyAcceptedSolutions(db, sourcePuzzles, originEligible, batchId) {
+function applyAcceptedSolutions(db, sourcePuzzles, originBasicEligible, batchId) {
   const rows =
     batchId === null
       ? db
@@ -1133,7 +1138,7 @@ function applyAcceptedSolutions(db, sourcePuzzles, originEligible, batchId) {
   }
 
   const acceptedIds = new Set(acceptedById.keys());
-  const originEligibleSet = new Set(originEligible);
+  const originBasicEligibleSet = new Set(originBasicEligible);
 
   const nextPuzzles = sourcePuzzles.map((puzzle) => {
     const accepted = acceptedById.get(puzzle.id);
@@ -1150,12 +1155,12 @@ function applyAcceptedSolutions(db, sourcePuzzles, originEligible, batchId) {
   });
 
   const nextEligible = nextPuzzles
-    .filter((puzzle) => originEligibleSet.has(puzzle.id) || acceptedIds.has(puzzle.id))
+    .filter((puzzle) => originBasicEligibleSet.has(puzzle.id) || acceptedIds.has(puzzle.id))
     .filter((puzzle) => checkCoachEligibilityLikeApp(puzzle).eligible)
     .map((puzzle) => puzzle.id);
 
   fs.writeFileSync(CLASSICAL_PATH, JSON.stringify(nextPuzzles, null, 2));
-  fs.writeFileSync(ELIGIBLE_PATH, `${JSON.stringify(nextEligible, null, 2)}\n`);
+  fs.writeFileSync(BASIC_ELIGIBLE_PATH, `${JSON.stringify(nextEligible, null, 2)}\n`);
 
   if (rows.length > 0) {
     const now = isoNow();
@@ -1169,14 +1174,14 @@ function applyAcceptedSolutions(db, sourcePuzzles, originEligible, batchId) {
     appliedThisBatch: rows.length,
     acceptedTotal: acceptedById.size,
     puzzleCount: nextPuzzles.length,
-    coachEligibleCount: nextEligible.length,
+    coachBasicEligibleCount: nextEligible.length,
   };
 }
 
 function printApplyResult(result) {
   console.log(
     `Applied ${result.appliedThisBatch} accepted solution(s). ` +
-      `Accepted total: ${result.acceptedTotal}. Coach-ready IDs: ${result.coachEligibleCount}/${result.puzzleCount}.`,
+      `Accepted total: ${result.acceptedTotal}. Coach-eligible IDs: ${result.coachBasicEligibleCount}/${result.puzzleCount}.`,
   );
 }
 

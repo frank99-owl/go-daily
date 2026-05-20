@@ -41,6 +41,7 @@ The system operates on a three-state synchronization model:
 ### `lib/coach/` (AI Intelligence)
 
 - **Prompting**: Centralized in `coachPrompt.ts` so every puzzle shares the same coaching contract (solution notes and variation metadata treated as ground truth, persona tone, locale-specific style blocks).
+- **Quality Gates**: `coachEligibility.ts` groups puzzles into `blocked`, `thin`, `explained`, or `coach-ready` tiers, returning `hasVariationSupport`. Data files `coachBasicEligibleIds.json`, `coachReadyIds.json`, and `variationGroups.json` carry basic eligibility, full Coach approval, and variation groups respectively. `getCoachAccess()` layers these with runtime quality checks. Puzzles with explanations but lacking `solutionSequence` or `wrongBranches` are explained but do not qualify as full Coach-ready.
 - **Budgeting**: `coachQuota.ts` provides date utility functions (`formatDateInTimeZone`, `getNaturalMonthWindow`, `getBillingAnchoredMonthWindow`) used for billing-period calculations. The actual quota limits are enforced in `lib/entitlements.ts`.
 - **Usage counters**: Logged-in and guest coach message counts persist in Postgres; increments go through RPCs (`increment_coach_usage`, `increment_guest_coach_usage`) for atomic upserts under concurrency.
 

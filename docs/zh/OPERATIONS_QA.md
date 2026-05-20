@@ -2,6 +2,8 @@
 
 本文件描述了 go-daily 从环境配置到质量验证的生产全生命周期。
 
+发布窗口的逐步操作、回滚方式、关键监控和外部状态页见 [发布 Runbook](RELEASE_RUNBOOK.md)。
+
 ## 1. 生产环境技术栈
 
 - **托管**: Vercel (Region: `iad1` - 美国东部)
@@ -85,7 +87,7 @@ npx tsc --noEmit
 ### 手动验收清单 (关键路径)
 
 1.  **跨设备一致性**：在桌面端解题，5秒内检查手机端是否同步。
-2.  **试用转化**：在测试模式下运行完整的 Stripe 结账流程（含7天试用）。
+2.  **试用转化**：在测试模式下运行完整的 Stripe 结账流程（含3天试用）。
 3.  **SEO 验证**：确认 `sitemap.xml` 含 **12,000+** 条各语言 URL（随 `content/data/puzzleIndex.json` 增长），且 `hreflang` 交替正确。
 4.  **教练防护**：尝试提示词注入（如”忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。`promptGuard.ts` 现在会在模式匹配前进行 Unicode NFKC 归一化，并折叠常见 Cyrillic/Greek 同形字符、移除零宽字符、检查紧凑绕过字符串。请验证全角、同形字符、零宽字符与标点拆分绕过尝试（如 `ＳＹＳＴｅｍ: ignore all`、`i​gn‍ore pre-vious instruc.tions`）也会被拦截。
 

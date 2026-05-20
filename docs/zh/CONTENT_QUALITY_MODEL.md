@@ -16,7 +16,7 @@
 - **解释质量**：全量审计为 `explained=3033`；P0-D 首批补齐后，`queue:content` 报告 `coach-ready=20`，主线补齐候选为 2859。
 - **抽样质量**：195 个抽样题全部建议复审；P0-D 首批之外的题仍普遍缺 `solutionSequence` 和 `wrongBranches`。
 - **重复局面**：89 个部分重复组，覆盖 243 道题；完全重复组为 0。
-- **现有白名单**：`content/data/coachEligibleIds.json` 含 3033 个 ID；但 `getCoachAccess()` 同时要求 ID 在白名单内且 `checkCoachEligibility()` 通过运行时质量校验，因此当前完整 Coach 可用题为 20，而不是 3033。
+- **分层数据源**：`content/data/coachBasicEligibleIds.json` 含 3033 个基础准入 ID；`content/data/coachReadyIds.json` 含 20 个完整 Coach 批准 ID；`content/data/variationGroups.json` 当前为 0 组。`getCoachAccess()` 同时要求数据分层与 `checkCoachEligibility()` 运行时质量校验，因此完整 Coach 可用题为 20，而不是 3033。
 
 ## 二、四层内容模型
 
@@ -33,18 +33,20 @@
 
 现状：
 
-1. `content/data/coachEligibleIds.json` 是历史白名单，当前覆盖 3033 道题。
-2. `lib/coach/coachEligibility.ts` 根据正解、解析质量、`solutionSequence`、`wrongBranches` 返回 `qualityTier` 和 `hasVariationSupport`。
-3. `lib/coach/coachAccess.ts` 只有在“白名单 + 运行时质量通过”同时成立时返回 `coachAvailable=true`。
-4. P0-D 首批 20 道已补齐变例字段，`content-queue` 当前输出 20 个 `coach-ready` 候选；其余题仍进入补主线或重复治理等运营队列。
+1. `content/data/coachBasicEligibleIds.json` 表示基础解释准入，当前覆盖 3033 道题。
+2. `content/data/coachReadyIds.json` 表示完整 Coach 批准，当前覆盖 P0-D 首批 20 道题。
+3. `content/data/variationGroups.json` 表示已整理的变例专题关系，当前为 0 组。
+4. `lib/coach/coachEligibility.ts` 根据正解、解析质量、`solutionSequence`、`wrongBranches` 返回 `qualityTier` 和 `hasVariationSupport`。
+5. `lib/coach/coachAccess.ts` 只有在“分层数据源 + 运行时质量通过”同时成立时返回完整 Coach 可用。
+6. P0-D 首批 20 道已补齐变例字段；其余题仍进入补主线或重复治理等运营队列。
 
-P0-A 迁移方案：
+P0-A 迁移状态：
 
-1. **不立刻删除或清空 `coachEligibleIds.json`**，避免破坏 onboarding、结果页 Coach 展示和现有测试假设。
-2. **先在文档和运营语言中降级白名单语义**：它表示“基础解释候选 / 可进入内容队列”，不是“完整 Coach-ready”。
-3. **新增分层数据结构前先保持运行时双门控**：完整 Coach 仍要求 `qualityTier === "coach-ready"` 或等价批准结果。
-4. **后续小步迁移**：把 `coachEligibleIds.json` 拆成 `coachBasicEligibleIds`、`coachReadyIds`、`variationGroupIndex` 或等价结构；每一步都补脚本测试和 API / UI 断言。
-5. **UI 文案同步**：对 `basic-explained` / `coach-eligible` 题，只展示“基础解释”或“当前题暂不支持深入变例”；对 `coach-ready` 题才展示完整教练入口。
+1. 旧 `coachEligibleIds.json` 不再作为运行时事实源，仅作为迁移兼容文件保留。
+2. 完整 Coach 要求 `qualityTier === "coach-ready"` 且题目在 `coachReadyIds.json` 中。
+3. `variation-ready` 要求题目在已复核的 `variationGroups.json` 中。
+4. `validate:puzzles` 会校验三个分层数据源、变例组和 `contentReviewBatches.json` 的一致性。
+5. UI 文案已按 `basic-explained` / `coach-eligible` / `coach-ready` / `variation-ready` 展示能力边界。
 
 ## 四、内容队列优先级
 
@@ -63,6 +65,6 @@ P0-B 已改造 `scripts/queueContent.ts` 并补 `tests/scripts/queueContent.test
 
 - `validate:puzzles` 必须继续通过，不能破坏 `PuzzleSchema`。
 - `validate:messages` 必须继续通过，不能制造 i18n key drift。
-- 完整 Coach 可用题数必须由 `queue:content` 和 `getCoachAccess()` 共同解释，不再只看 `coachEligibleIds.json` 长度。
+- 完整 Coach 可用题数必须由 `coachReadyIds.json`、`queue:content` 和 `getCoachAccess()` 共同解释，不再只看基础准入数量。
 - 任何逻辑迁移不得修改 attempt dedup key：`puzzleId-solvedAtMs`。
 - 不允许把 `lib/coach/coachState.ts`、`lib/supabase/service.ts`、`lib/stripe/server.ts` 这类 server-only 模块引入 client。

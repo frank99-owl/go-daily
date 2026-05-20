@@ -70,7 +70,7 @@
 - IP 限流（`createRateLimiter`：**生产环境**须配置 Upstash；**开发环境**可用进程内实现）
 - 用户消息的提示注入检测（`guardUserMessage`）
 - 输入清理（`sanitizeInput`）
-- 教练准入：`coachEligibleIds.json` 白名单 **且** `checkCoachEligibility` / `getCoachAccess` 运行时质量校验
+- 教练准入：`coachBasicEligibleIds.json` 基础准入、`coachReadyIds.json` 完整 Coach 批准、`variationGroups.json` 变例组，再叠加 `checkCoachEligibility` / `getCoachAccess` 运行时质量校验
 - 配额：`coach_usage` / `guest_coach_usage` 经 Postgres RPC 原子自增（见数据库文档）
 - 访客设备用量写入 Supabase `guest_coach_usage` 仅经 `service_role`；**按 IP 的访客日上限**（`checkIpLimit`、`GUEST_IP_DAILY_LIMIT`，当前每 IP 每 UTC 日 **20** 次）在配置 Upstash 时走 **Redis**，否则为 `guestCoachUsage.ts` 进程内 `Map`。
 
@@ -391,6 +391,14 @@ Vercel Cron 处理器，发送每日题目提醒邮件。
 **请求体**: `{ "email": string }`
 
 **响应** (`200`): `{ "ok": true }`
+
+### `GET /api/admin/ops`
+
+返回 `/admin` Operations Snapshot 的只读运营汇总：内容分层、Coach 近 30 天使用、Stripe 订阅状态与 `past_due` 宽限情况、最近 Stripe webhook 异常、近 7 天同步写入迹象。
+
+**认证**: 会话 `user.id` 须在 `ADMIN_USER_IDS` 中。
+
+**响应** (`200`): `{ "content", "coach", "stripe", "webhooks", "sync", "generatedAt" }`。响应不包含用户邮箱、原始消息正文、密钥或私密日志。
 
 ---
 

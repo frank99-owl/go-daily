@@ -49,7 +49,7 @@ All core logic lives in `lib/` organized by domain:
 ## Testing
 
 ```bash
-npm run test          # Run all (91 files, 732 cases)
+npm run test          # Run all (99 files, 787 cases)
 npm run test:watch    # Watch mode
 npm run test:coverage # Coverage report (target: 70%+)
 ```
@@ -72,7 +72,7 @@ CI pipeline (`.github/workflows/ci.yml`): format:check → lint → validate:puz
 ## Common Pitfalls
 
 - **i18n key drift**: Always run `npm run validate:messages` before committing. Keys must match across all 4 locale files in `content/messages/`.
-- **Coach eligibility**: Not all puzzles support coaching. Check `content/data/coachEligibleIds.json` and `lib/coach/coachEligibility.ts`.
+- **Coach eligibility**: Not all puzzles support coaching. Check `content/data/coachBasicEligibleIds.json`, `content/data/coachReadyIds.json`, `content/data/variationGroups.json`, and `lib/coach/coachEligibility.ts`.
 - **Stripe webhook idempotency**: Events are logged in `stripe_events` before processing. Never bypass this.
 - **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
 - **Environment variables**: See `.env.example` for the full list. Never commit `.env.local`. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.

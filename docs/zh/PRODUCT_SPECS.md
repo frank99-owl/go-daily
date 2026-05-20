@@ -19,6 +19,8 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 已登录浏览器通过 `POST /api/auth/device` 登记或刷新自己的 `user_devices` 记录。该端点会先合并 Stripe 订阅状态与 `manual_grants`，再执行 Free / Pro 设备限制。
 
+Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts` 只在 `current_period_end + 7 天`的宽限窗口内继续按 Pro 解析；缺失或超过该窗口的 `past_due` 会回落到 Free（除非存在有效 `manual_grants`）。`/admin` 的 Operations Snapshot 会显示 `past_due` 宽限内与已过期数量，便于运营处理坏账。
+
 ### 缓存策略 (Next.js 16)
 
 我们利用 `'use cache'` 指令和 `cacheTag`。当 Stripe Webhook 更新订阅时，我们会调用 `revalidateTag('entitlements:' + userId)`，确保 UI 即时反映新状态。
@@ -41,7 +43,7 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 - **结账**：使用 Stripe Adaptive Pricing，根据用户 IP 自动将 $4.9 USD 转换为相应的本地货币（如 日元/韩元）。
 - **幂等处理**：每个 Stripe 事件在处理前都会记录在 `stripe_events` 表中。如果事件被重复投递，系统将跳过处理。
-- **试用期**：所有 Pro 订阅强制执行 7 天试用，并要求预先提供支付方式，以最大化转化率。
+- **试用期**：所有 Pro 订阅强制执行 3 天试用，并要求预先提供支付方式，以最大化转化率。
 
 ## 4. 题库集合与筛选 (`lib/puzzle/puzzleCollections.ts`)
 
@@ -64,7 +66,7 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 | `coach-ready`     | 有正解、解析、`solutionSequence` 与 `wrongBranches`，并经批准     | 可上线完整 AI 教练，允许围绕变例进行追问     |
 | `variation-ready` | 重复组或同形题被整理成明确变化关系，可解释差异与次序              | 专题训练、错因归纳、下一题推荐和高级复盘路径 |
 
-实现上，`lib/coach/coachEligibility.ts` 已返回 `qualityTier` 与 `hasVariationSupport`。当前 `coachEligibleIds.json` 仍是历史白名单，运行时还会经过 `getCoachAccess()` 的质量校验；迁移时应先保留双门控，再把白名单语义拆成基础解释准入、完整教练批准和变例专题关系。只有达到 `coach-ready` 并进入批准列表的题目，才应被视为完整 AI 教练题。`basic-explained` / `coach-eligible` 题可以提供静态解析或受限问答，但不应承诺完整变例讲解。
+实现上，`lib/coach/coachEligibility.ts` 返回 `qualityTier` 与 `hasVariationSupport`；`content/data/coachBasicEligibleIds.json` 表示基础解释准入，`content/data/coachReadyIds.json` 表示完整 Coach 批准，`content/data/variationGroups.json` 表示已整理的变例专题关系。`getCoachAccess()` 同时检查数据分层与运行时质量门槛。只有达到 `coach-ready` 并进入 `coachReadyIds.json` 的题目，才视为完整 AI 教练题；`variation-ready` 还必须进入已复核的变例组。`basic-explained` / `coach-eligible` 题可以提供静态解析或受限问答，但不应承诺完整变例讲解。
 
 ## 6. 学习闭环
 

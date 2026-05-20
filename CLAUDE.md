@@ -90,7 +90,7 @@ All logic changes require unit tests. UI changes should have component tests for
 ## Common Pitfalls
 
 - **i18n key drift**: Always run `npm run validate:messages` before committing. Keys must match across all 4 locale files in `content/messages/`.
-- **Coach eligibility**: Not all puzzles support coaching. Check `content/data/coachEligibleIds.json` and `lib/coach/coachEligibility.ts`.
+- **Coach eligibility**: Not all puzzles support coaching. Check `content/data/coachBasicEligibleIds.json`, `content/data/coachReadyIds.json`, `content/data/variationGroups.json`, and `lib/coach/coachEligibility.ts`.
 - **Stripe webhook idempotency**: Events are logged in `stripe_events` before processing. Never bypass this.
 - **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
 - **Environment variables**: See `.env.example` for the full list. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.

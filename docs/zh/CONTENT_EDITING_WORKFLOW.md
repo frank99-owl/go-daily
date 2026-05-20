@@ -70,5 +70,16 @@ P0-D 首批已在 `content/data/classicalPuzzles.json` 中补齐 20 道题的 `s
 
 - `reports/content-review/latest.md`
 - `reports/content-review/latest.json`
+- `content/data/contentReviewBatches.json`
 
 这批题只视为 `coach-ready` 首批补齐，不视为 `variation-ready`；重复组 / 同形变化关系仍需单独治理。
+
+## 七、批次状态表
+
+当前机器可读批次状态维护在 `content/data/contentReviewBatches.json`，并由 `npm run validate:puzzles` 校验：
+
+| 批次                          | 状态       | 范围                   | 题数 | 人工复核 | 自动生成答案 |
+| ----------------------------- | ---------- | ---------------------- | ---- | -------- | ------------ |
+| `p0-d-coach-ready-2026-05-18` | `approved` | `coach-ready-backfill` | 20   | required | false        |
+
+内部 review checklist 以该 JSON 文件为准；文档只解释流程，不再作为唯一事实源。
