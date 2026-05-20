@@ -10,15 +10,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Added
 
-- Split Coach content facts into `coachBasicEligibleIds.json`, `coachReadyIds.json`, `variationGroups.json`, and `contentReviewBatches.json`; `validate:puzzles` now checks the tier data, variation groups, and approved review batches.
-- Added `/api/admin/ops` and the `/admin` Operations Snapshot for content, Coach, Stripe `past_due`, webhook, and sync signals.
-- Added `docs/zh/RELEASE_RUNBOOK.md` for validation commands, rollback paths, key monitors, and external service status pages.
+- **Coach content tier system**: Introduced a four-tier model (`basic-explained` → `coach-eligible` → `coach-ready` → `variation-ready`) replacing the single `coachEligibleIds.json` allowlist. New files: `content/coachContent.ts` (central ID-Set exports), `content/data/coachBasicEligibleIds.json` (3033 IDs), `content/data/coachReadyIds.json` (20 hand-reviewed IDs), `content/data/variationGroups.json` (schema-validated, initially empty), `content/data/contentReviewBatches.json` (tracks editing batches with scope/status/checklist). New Zod schemas: `CoachVariationGroupSchema`, `ContentReviewBatchSchema`. `validate:puzzles` now cross-validates all three tier files plus variation groups and review batches.
+- **`/api/admin/ops` Operations Snapshot**: New `GET` endpoint (ADMIN_USER_IDS auth) returning structured signals for content (coachBasicEligibleCount, coachReadyApprovedCount, mainlineBackfillCandidates, reviewBatches), coach usage (last 30 days), Stripe subscriptions (by status, past-due grace/expired counts), webhook health, and sync row counts. Admin UI (`/admin` page) fetches and renders the snapshot on load.
+- **`docs/zh/RELEASE_RUNBOOK.md`**: Validation commands, rollback paths, key monitors, and external service status pages for production release runs.
 
 ### Changed
 
-- `past_due` Stripe subscriptions now retain Pro only through `current_period_end + 7 days`; expired or missing period-end data falls back to Free unless a manual grant applies.
-- Coach access now requires both runtime quality gates and explicit `coachReadyIds.json` approval before full AI Coach is available.
-- **Trial period reduced**: Free trial shortened from 7 days to 3 days (`STRIPE_TRIAL_DAYS` env default, `.env.example`, `lib/env.ts`, `lib/stripe/server.ts`). All four locale message files, CONCEPT, PRODUCT_SPECS, and OPERATIONS_QA docs updated.
+- **`past_due` grace period**: `past_due` Stripe subscriptions now retain Pro access through `current_period_end + 7 days` (constant `PAST_DUE_PRO_GRACE_DAYS = 7`). Expired or missing `current_period_end` falls back to Free unless a manual grant applies. New helper `isPastDueWithinGrace()`. `isProSubscriptionStatus()`, `getViewerPlan()`, `getEntitlements()`, `resolveViewerPlan()`, `coachState.ts`, `deviceRegistry.isPaidSubscription()`, Stripe checkout, and Stripe webhook all thread `current_period_end`. Review page (`review/page.tsx`) also selects and forwards the field.
+- **Coach access tiers**: `getCoachAccess()` now resolves against three ID sets (`COACH_BASIC_ELIGIBLE_ID_SET`, `COACH_READY_ID_SET`, `COACH_VARIATION_READY_ID_SET`) instead of a single approved set. `queueContent.ts` uses `COACH_READY_IDS` (not the full basic-eligible list) as the default approved set.
+- **Trial period reduced**: Free trial shortened from 7 days to 3 days (`STRIPE_TRIAL_DAYS` default in `lib/stripe/server.ts` and `lib/env.ts`). All four locale message files and pricing page copy updated.
+- **`geminiSolutionNotes.js` pipeline**: Renamed all references from `coachEligibleIds` → `coachBasicEligibleIds` to write to the correct file after the tier split.
+- **Docs synced (2026-05-20)**: All locale `PROJECT_STATUS`, `PRODUCT_SPECS`, `API_REFERENCE`, `ARCHITECTURE`, `OPERATIONS_QA`, `CONCEPT`, `docs/README.md`, `AGENTS.md`, `CLAUDE.md`, `.env.example`, `docs/zh/CONTENT_QUALITY_MODEL.md`, `CONTENT_EDITING_WORKFLOW.md`, `ROADMAP.md`, and `TECH_DEBT.md` updated to reflect the coach tier model, past_due grace, trial reduction, and admin ops endpoint. Test count: **99 files / 787 cases**.
 
 ---
 
