@@ -85,7 +85,7 @@ describe("GoBoard", () => {
           stones={[{ x: 3, y: 3, color: "white" }]}
           toPlay="black"
           highlight={[{ x: 3, y: 3 }]}
-        />
+        />,
       );
     }).not.toThrow();
   });
