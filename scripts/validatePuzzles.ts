@@ -13,11 +13,18 @@
 import fs from "fs";
 import path from "path";
 
-import coachEligibleIds from "../content/data/coachEligibleIds.json";
+import coachBasicEligibleIds from "../content/data/coachBasicEligibleIds.json";
+import coachReadyIds from "../content/data/coachReadyIds.json";
+import contentReviewBatches from "../content/data/contentReviewBatches.json";
+import variationGroups from "../content/data/variationGroups.json";
 import { PUZZLES, buildPuzzleSummaries } from "../content/puzzles.server";
 import { checkCoachEligibility } from "../lib/coach/coachEligibility";
 import type { Coord, Locale, Puzzle, PuzzleSummary, PuzzleTag, Stone } from "../types";
-import { PuzzleSchema } from "../types/schemas";
+import {
+  CoachVariationGroupSchema,
+  ContentReviewBatchSchema,
+  PuzzleSchema,
+} from "../types/schemas";
 
 const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];
 const DATA_DIR = path.join(process.cwd(), "content/data");
@@ -154,8 +161,19 @@ function compareSummaryIndex(
   }
 }
 
-function validateCoachAllowlist(issues: Issue[]): void {
-  const ids = coachEligibleIds as string[];
+function validateUniquePuzzleIdList({
+  ids,
+  fileName,
+  rule,
+  issues,
+  validatePuzzleId,
+}: {
+  ids: string[];
+  fileName: string;
+  rule: string;
+  issues: Issue[];
+  validatePuzzleId: (id: string, puzzle: Puzzle) => void;
+}): Set<string> {
   const seen = new Set<string>();
   const byId = new Map(PUZZLES.map((puzzle) => [puzzle.id, puzzle]));
 
@@ -163,8 +181,8 @@ function validateCoachAllowlist(issues: Issue[]): void {
     if (seen.has(id)) {
       issues.push({
         puzzleId: id,
-        rule: "coachAllowlist",
-        detail: "duplicate ID in content/data/coachEligibleIds.json",
+        rule,
+        detail: `duplicate ID in content/data/${fileName}`,
       });
       continue;
     }
@@ -174,19 +192,162 @@ function validateCoachAllowlist(issues: Issue[]): void {
     if (!puzzle) {
       issues.push({
         puzzleId: id,
-        rule: "coachAllowlist",
-        detail: "ID exists in coachEligibleIds.json but not in PUZZLES",
+        rule,
+        detail: `ID exists in ${fileName} but not in PUZZLES`,
       });
       continue;
     }
 
-    const eligibility = checkCoachEligibility(puzzle);
-    if (!eligibility.eligible) {
+    validatePuzzleId(id, puzzle);
+  }
+
+  return seen;
+}
+
+function validateCoachContentTiers(issues: Issue[]): void {
+  const basicIds = coachBasicEligibleIds as string[];
+  const readyIds = coachReadyIds as string[];
+  const basicSet = validateUniquePuzzleIdList({
+    ids: basicIds,
+    fileName: "coachBasicEligibleIds.json",
+    rule: "coachBasicEligibleIds",
+    issues,
+    validatePuzzleId(id, puzzle) {
+      const eligibility = checkCoachEligibility(puzzle);
+      if (!eligibility.eligible) {
+        issues.push({
+          puzzleId: id,
+          rule: "coachBasicEligibleIds",
+          detail: `basic-eligible puzzle fails coach eligibility (reason=${eligibility.reason}, tier=${eligibility.qualityTier})`,
+        });
+      }
+    },
+  });
+
+  const readySet = validateUniquePuzzleIdList({
+    ids: readyIds,
+    fileName: "coachReadyIds.json",
+    rule: "coachReadyIds",
+    issues,
+    validatePuzzleId(id, puzzle) {
+      if (!basicSet.has(id)) {
+        issues.push({
+          puzzleId: id,
+          rule: "coachReadyIds",
+          detail: "coach-ready ID must also exist in coachBasicEligibleIds.json",
+        });
+      }
+
+      const eligibility = checkCoachEligibility(puzzle);
+      if (!eligibility.eligible || eligibility.qualityTier !== "coach-ready") {
+        issues.push({
+          puzzleId: id,
+          rule: "coachReadyIds",
+          detail: `coach-ready ID must pass deep coach gates (reason=${eligibility.reason}, tier=${eligibility.qualityTier})`,
+        });
+      }
+    },
+  });
+
+  const groupIds = new Set<string>();
+  for (const [index, group] of (variationGroups as unknown[]).entries()) {
+    const parsed = CoachVariationGroupSchema.safeParse(group);
+    if (!parsed.success) {
+      for (const err of parsed.error.issues) {
+        const path = err.path.length > 0 ? err.path.join(".") : "value";
+        issues.push({
+          puzzleId: `<variation-groups:${index}>`,
+          rule: "variationGroups",
+          detail: `${path}: ${err.message}`,
+        });
+      }
+      continue;
+    }
+
+    if (groupIds.has(parsed.data.id)) {
       issues.push({
-        puzzleId: id,
-        rule: "coachAllowlist",
-        detail: `allowlisted puzzle is not coach-eligible (reason=${eligibility.reason}, tier=${eligibility.qualityTier})`,
+        puzzleId: parsed.data.id,
+        rule: "variationGroups",
+        detail: "duplicate variation group ID",
       });
+    }
+    groupIds.add(parsed.data.id);
+
+    const seenPuzzleIds = new Set<string>();
+    for (const puzzleId of parsed.data.puzzleIds) {
+      if (seenPuzzleIds.has(puzzleId)) {
+        issues.push({
+          puzzleId,
+          rule: "variationGroups",
+          detail: `duplicate puzzle ID in variation group ${parsed.data.id}`,
+        });
+      }
+      seenPuzzleIds.add(puzzleId);
+
+      if (!readySet.has(puzzleId)) {
+        issues.push({
+          puzzleId,
+          rule: "variationGroups",
+          detail: `variation-ready puzzle must exist in coachReadyIds.json (group=${parsed.data.id})`,
+        });
+      }
+    }
+  }
+
+  const byId = new Map(PUZZLES.map((puzzle) => [puzzle.id, puzzle]));
+  const batchIds = new Set<string>();
+  for (const [index, batch] of (contentReviewBatches as unknown[]).entries()) {
+    const parsed = ContentReviewBatchSchema.safeParse(batch);
+    if (!parsed.success) {
+      for (const err of parsed.error.issues) {
+        const path = err.path.length > 0 ? err.path.join(".") : "value";
+        issues.push({
+          puzzleId: `<content-review-batches:${index}>`,
+          rule: "contentReviewBatches",
+          detail: `${path}: ${err.message}`,
+        });
+      }
+      continue;
+    }
+
+    if (batchIds.has(parsed.data.id)) {
+      issues.push({
+        puzzleId: parsed.data.id,
+        rule: "contentReviewBatches",
+        detail: "duplicate content review batch ID",
+      });
+    }
+    batchIds.add(parsed.data.id);
+
+    const seenPuzzleIds = new Set<string>();
+    for (const puzzleId of parsed.data.puzzleIds) {
+      if (seenPuzzleIds.has(puzzleId)) {
+        issues.push({
+          puzzleId,
+          rule: "contentReviewBatches",
+          detail: `duplicate puzzle ID in content review batch ${parsed.data.id}`,
+        });
+      }
+      seenPuzzleIds.add(puzzleId);
+
+      if (!byId.has(puzzleId)) {
+        issues.push({
+          puzzleId,
+          rule: "contentReviewBatches",
+          detail: `batch puzzle does not exist in PUZZLES (batch=${parsed.data.id})`,
+        });
+        continue;
+      }
+
+      if (parsed.data.scope === "coach-ready-backfill" && parsed.data.status === "approved") {
+        if (!readySet.has(puzzleId)) {
+          issues.push({
+            puzzleId,
+            rule: "contentReviewBatches",
+            detail: `approved coach-ready batch puzzle must exist in coachReadyIds.json (batch=${parsed.data.id})`,
+          });
+        }
+      }
     }
   }
 }
@@ -348,7 +509,7 @@ function main(): void {
   if (indexSummaries.length > 0) {
     compareSummaryIndex(expectedSummaries, indexSummaries, issues);
   }
-  validateCoachAllowlist(issues);
+  validateCoachContentTiers(issues);
 
   if (issues.length === 0) {
     console.log(`\x1b[32m✓\x1b[0m Validated ${PUZZLES.length} puzzles`);

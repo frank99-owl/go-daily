@@ -81,6 +81,27 @@ export const WrongBranchSchema = z.object({
   note: LocalizedTextSchema,
 });
 
+export const CoachVariationGroupSchema = z.object({
+  id: z.string().trim().min(1),
+  puzzleIds: z.array(z.string().trim().min(1)).min(2),
+  theme: z.string().trim().min(1).max(120),
+  status: z.enum(["candidate", "reviewed"]),
+  note: LocalizedTextSchema.optional(),
+});
+
+export const ContentReviewBatchSchema = z.object({
+  id: z.string().trim().min(1),
+  scope: z.enum(["coach-ready-backfill", "variation-governance", "introductory-expansion"]),
+  status: z.enum(["planned", "editing", "reviewed", "approved", "blocked"]),
+  updatedAt: z.string().datetime(),
+  puzzleIds: z.array(z.string().trim().min(1)).min(1),
+  generatedSolutionContent: z.boolean(),
+  requiresHumanReview: z.boolean(),
+  checklist: z.array(z.string().trim().min(1)).min(1),
+  verification: z.array(z.string().trim().min(1)).min(1),
+  notes: z.string().trim().min(1).optional(),
+});
+
 export const PuzzleSchema = z.object({
   id: z.string(),
   date: z.string(),

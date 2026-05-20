@@ -1,4 +1,4 @@
-import coachEligibleIds from "@/content/data/coachEligibleIds.json";
+import { COACH_BASIC_ELIGIBLE_ID_SET } from "@/content/coachContent";
 import { getPuzzleById } from "@/content/puzzles.server";
 import { getAllSummaries } from "@/content/puzzleSummaries.server";
 import type { Puzzle, PuzzleSummary } from "@/types";
@@ -23,12 +23,11 @@ const LEVEL_CONFIG: Record<OnboardingLevel, OnboardingLevelConfig> = {
   advanced: { fallbackId: "p-00416" },
 };
 
-const coachEligibleSet = new Set<string>(coachEligibleIds);
-
 export function getOnboardingSummaries(level: OnboardingLevel): PuzzleSummary[] {
   const difficulties = getDifficultiesForOnboardingLevel(level);
   return getAllSummaries().filter(
-    (summary) => difficulties.includes(summary.difficulty) && coachEligibleSet.has(summary.id),
+    (summary) =>
+      difficulties.includes(summary.difficulty) && COACH_BASIC_ELIGIBLE_ID_SET.has(summary.id),
   );
 }
 
@@ -36,7 +35,11 @@ export function getOnboardingPuzzle(level: OnboardingLevel): Puzzle {
   const config = LEVEL_CONFIG[level];
   const difficulties = getDifficultiesForOnboardingLevel(level);
   const fallback = getPuzzleById(config.fallbackId);
-  if (fallback && difficulties.includes(fallback.difficulty) && coachEligibleSet.has(fallback.id)) {
+  if (
+    fallback &&
+    difficulties.includes(fallback.difficulty) &&
+    COACH_BASIC_ELIGIBLE_ID_SET.has(fallback.id)
+  ) {
     return fallback;
   }
 

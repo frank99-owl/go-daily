@@ -23,7 +23,7 @@ describe("onboarding puzzle selection", () => {
     expect(parseOnboardingLevel(null)).toBeNull();
   });
 
-  it("returns coach-ready starter pools by level", () => {
+  it("returns coach-eligible starter pools by level", () => {
     expect(getOnboardingSummaries("beginner")[0]?.difficulty).toBe(1);
     expect(getOnboardingSummaries("intermediate").every((p) => [2, 3].includes(p.difficulty))).toBe(
       true,

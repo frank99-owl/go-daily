@@ -1,0 +1,41 @@
+[
+  {
+    "id": "p0-d-coach-ready-2026-05-18",
+    "scope": "coach-ready-backfill",
+    "status": "approved",
+    "updatedAt": "2026-05-20T00:00:00.000Z",
+    "puzzleIds": [
+      "p-00419",
+      "p-00473",
+      "p-00503",
+      "p-00509",
+      "p-00580",
+      "p-00587",
+      "p-00605",
+      "p-00607",
+      "p-00610",
+      "p-00657",
+      "p-00681",
+      "p-00711",
+      "p-00721",
+      "p-00758",
+      "p-00837",
+      "p-01022",
+      "p-01034",
+      "p-02109",
+      "p-02121",
+      "p-02128"
+    ],
+    "generatedSolutionContent": false,
+    "requiresHumanReview": true,
+    "checklist": [
+      "Verify correct moves against stones and side to play.",
+      "Confirm solutionSequence follows the reviewed main line.",
+      "Confirm each wrongBranches entry has a plausible wrong move, refutation, and four localized notes.",
+      "Run npm run validate:puzzles after puzzle data edits.",
+      "Keep variation-ready closed until duplicate or same-shape groups are reviewed."
+    ],
+    "verification": ["npm run validate:puzzles", "npm run queue:content"],
+    "notes": "Initial 20-puzzle coach-ready batch. No variation groups are approved yet."
+  }
+]

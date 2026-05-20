@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import coachEligibleIds from "../content/data/coachEligibleIds.json";
+import { COACH_READY_IDS } from "../content/coachContent";
 import { PUZZLES } from "../content/puzzles.server";
 import { checkCoachEligibility, type CoachQualityTier } from "../lib/coach/coachEligibility";
 import type { Coord, Locale, Puzzle, PuzzleSummary, PuzzleTag, Stone } from "../types";
@@ -303,7 +303,7 @@ export function buildContentQueue(
   puzzles: Puzzle[],
   options: QueueOptions = {},
 ): ContentQueueResult {
-  const approvedIds = new Set(options.approvedIds ?? (coachEligibleIds as string[]));
+  const approvedIds = new Set(options.approvedIds ?? COACH_READY_IDS);
   const audit = auditPuzzles(puzzles, {
     today: options.today,
     summaryIndex: options.summaryIndex,

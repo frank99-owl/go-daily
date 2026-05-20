@@ -35,7 +35,7 @@ describe("coachAccess", () => {
     expect(
       getCoachAccess(
         makePuzzle({
-          id: "p-00001",
+          id: "p-00419",
           solutionSequence: [{ x: 1, y: 1, color: "black" }],
           wrongBranches: [
             {
@@ -79,6 +79,38 @@ describe("coachAccess", () => {
       qualityTier: "explained",
       capabilities: {
         staticExplanation: true,
+        basicCoach: true,
+        fullCoach: false,
+      },
+    });
+  });
+
+  it("does not unlock full coach for deep fields until the puzzle is approved as coach-ready", () => {
+    expect(
+      getCoachAccess(
+        makePuzzle({
+          id: "p-00001",
+          solutionSequence: [{ x: 1, y: 1, color: "black" }],
+          wrongBranches: [
+            {
+              userWrongMove: { x: 2, y: 2 },
+              refutation: [{ x: 1, y: 1, color: "black" }],
+              note: {
+                zh: "白会先手封住眼位。",
+                en: "White seals the eye space first.",
+                ja: "白が先に眼を封鎖します。",
+                ko: "백이 먼저 눈자리를 막습니다.",
+              },
+            },
+          ],
+        }),
+      ),
+    ).toMatchObject({
+      available: false,
+      reason: "restricted",
+      contentTier: "coach-eligible",
+      qualityTier: "coach-ready",
+      capabilities: {
         basicCoach: true,
         fullCoach: false,
       },

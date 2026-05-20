@@ -8,7 +8,9 @@ import type { z } from "zod";
 
 import type {
   CoachMessageSchema,
+  CoachVariationGroupSchema,
   ColorSchema,
+  ContentReviewBatchSchema,
   CoordSchema,
   LocaleSchema,
   LocalizedTextSchema,
@@ -27,6 +29,8 @@ export type PuzzleTag = z.infer<typeof PuzzleTagSchema>;
 export type WrongBranch = z.infer<typeof WrongBranchSchema>;
 export type Puzzle = z.infer<typeof PuzzleSchema>;
 export type CoachMessage = z.infer<typeof CoachMessageSchema>;
+export type CoachVariationGroup = z.infer<typeof CoachVariationGroupSchema>;
+export type ContentReviewBatch = z.infer<typeof ContentReviewBatchSchema>;
 
 export type PublicPuzzle = Pick<
   Puzzle,
