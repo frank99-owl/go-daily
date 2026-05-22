@@ -52,13 +52,13 @@ go-daily 已具备每日围棋题库、四语言本地化、DeepSeek 流式 AI �
 
 - **题库结构**：3033 道题全部为 19×19；难度 3 占 46.5%，难度 4 占 35.1%；题型以 `tesuji` 为主（1822，道 60.1%），`life-death` 1187 道，`endgame` 和 `opening` 各 12 道。
 - **内容解释**：全量审计显示 3033 道均达到 `explained`，没有缺字段、缺正解或明显占位解释；190 条解析超过 500 字，需要抽查是否冗长或重复。
-- **教练完整度**：Coach 数据源已拆成 `coachBasicEligibleIds.json`（3033）、`coachReadyIds.json`（20）和 `variationGroups.json`（0 组）；`getCoachAccess()` 还会叠加运行时质量校验。P0-D 已给 20 道题补齐 `solutionSequence` 与 `wrongBranches`，其余 **3013** 道仍不能把“有文字解析”视为“完整 AI 教练题”。
+- **教练完整度**：Coach 数据源已拆成 `coachBasicEligibleIds.json`（3033）、`coachReadyIds.json`（3030）和 `variationGroups.json`（0 组）；`getCoachAccess()` 还会叠加运行时质量校验。P0-D 已给 20 道题补齐 `solutionSequence` 与 `wrongBranches`，近期回填又新增 3010 道；其余 **3** 道仍不能把“有文字解析”视为“完整 AI 教练题”。
 - **质量抽样**：195 个抽样题全部建议复审；P0-D 首批之外的题仍普遍缺 `solutionSequence` 与 `wrongBranches`，高难题、重复相邻题和随机样本仍需继续补强。
 - **重复题**：89 个部分重复组，共 243 道题；没有完全重复组。重复组多为同盘面但解析不同，应优先合并为变例或标注为同主题练习，而不是简单删除。
 
 ## 四、内容提升路线
 
-1. **先建立分层事实**：把题目区分为 `basic-explained`、`coach-eligible`、`coach-ready`、`variation-ready`。当前全库可视为 `coach-eligible` 的基础候选；P0-D 首批 20 道已进入 `coach-ready`，其余题仍主要是“有正解与解析，缺少主线和错误分支”。
+1. **先建立分层事实**：把题目区分为 `basic-explained`、`coach-eligible`、`coach-ready`、`variation-ready`。当前全库可视为 `coach-eligible` 的基础候选；P0-D 首批 20 道与新增回填的 3010 道已进入 `coach-ready`，其余 3 道题仍停留在缺少主线和错误分支的阶段（因为有多正解分支）。
 2. **优先补高价值题**：从难度 4-5、重复组、稀缺标签（`endgame` / `opening`）开始人工或半自动补 `solutionSequence` 与 `wrongBranches`，每批小规模进入 review。
 3. **把重复组变成教学资产**：同盘面不同解析的重复组优先整理为“同形题 / 变化题”，保留可解释差异；完全没有差异时再考虑去重。
 4. **控制题库结构偏差**：新增内容优先补 9×9/13×13 入门路径、官子和布局专题，避免继续扩大 19×19 中级手筋的单点集中。

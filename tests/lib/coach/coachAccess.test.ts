@@ -89,7 +89,7 @@ describe("coachAccess", () => {
     expect(
       getCoachAccess(
         makePuzzle({
-          id: "p-00001",
+          id: "p-00122",
           solutionSequence: [{ x: 1, y: 1, color: "black" }],
           wrongBranches: [
             {

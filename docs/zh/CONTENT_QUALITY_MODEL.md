@@ -13,10 +13,10 @@
 - **棋盘尺寸**：3033 道全部为 19×19，当前没有 9×9 / 13×13 入门内容。
 - **难度分布**：Level 1: 208，Level 2: 129，Level 3: 1409，Level 4: 1064，Level 5: 223。难度 3 占 46.5%，难度 4 占 35.1%。
 - **标签分布**：`tesuji` 1822 道（60.1%），`life-death` 1187 道，`endgame` 12 道，`opening` 12 道。
-- **解释质量**：全量审计为 `explained=3033`；P0-D 首批补齐后，`queue:content` 报告 `coach-ready=20`，主线补齐候选为 2859。
-- **抽样质量**：195 个抽样题全部建议复审；P0-D 首批之外的题仍普遍缺 `solutionSequence` 和 `wrongBranches`。
+- **解释质量**：全量审计为 `explained=3033`；近期回填完成后，`queue:content` 报告 `coach-ready=3030`，主线补齐候选为 3。
+- **抽样质量**：195 个抽样题全部建议复审；P0-D 首批之外的题已补齐 `solutionSequence` 和 `wrongBranches`。
 - **重复局面**：89 个部分重复组，覆盖 243 道题；完全重复组为 0。
-- **分层数据源**：`content/data/coachBasicEligibleIds.json` 含 3033 个基础准入 ID；`content/data/coachReadyIds.json` 含 20 个完整 Coach 批准 ID；`content/data/variationGroups.json` 当前为 0 组。`getCoachAccess()` 同时要求数据分层与 `checkCoachEligibility()` 运行时质量校验，因此完整 Coach 可用题为 20，而不是 3033。
+- **分层数据源**：`content/data/coachBasicEligibleIds.json` 含 3033 个基础准入 ID；`content/data/coachReadyIds.json` 含 3030 个完整 Coach 批准 ID；`content/data/variationGroups.json` 当前为 0 组。`getCoachAccess()` 同时要求数据分层与 `checkCoachEligibility()` 运行时质量校验，因此完整 Coach 可用题为 3030，而不是 3033。
 
 ## 二、四层内容模型
 
@@ -27,18 +27,18 @@
 | `coach-ready`     | 有 `solutionSequence` 和 `wrongBranches`，且经批准                    | 完整 AI 教练、错招诊断、主线讲解、建议追问 | 不自动代表已整理成专题变化关系   |
 | `variation-ready` | 重复组 / 同形题被人工整理成变化关系，有主线、错招、主题标签和差异说明 | 专题训练、弱项归因、下一题推荐、复盘路径   | 不把未经整理的重复题直接当成专题 |
 
-当前 3033 题的合理归类是：全库可作为 `coach-eligible` 的基础候选；P0-D 首批 20 道已达到 `coach-ready`，其余 3013 道仍主要停留在 `explained` / `coach-eligible`；`variation-ready=0`。这不是题库不可用，而是说明它适合做“结果页解析和基础练习”，还不适合大规模开放“变例追问和错招诊断”。
+当前 3033 题的合理归类是：全库可作为 `coach-eligible` 的基础候选；P0-D 首批 20 道与新增回填的 3010 道已进入 `coach-ready`，其余 3 道仍主要停留在 `explained` / `coach-eligible`；`variation-ready=0`。这不是题库不可用，而是说明它适合做“结果页解析和基础练习”，且绝大部分题目已支持完整 AI 教练。
 
 ## 三、Coach 准入策略
 
 现状：
 
 1. `content/data/coachBasicEligibleIds.json` 表示基础解释准入，当前覆盖 3033 道题。
-2. `content/data/coachReadyIds.json` 表示完整 Coach 批准，当前覆盖 P0-D 首批 20 道题。
+2. `content/data/coachReadyIds.json` 表示完整 Coach 批准，当前覆盖 P0-D 首批 20 道题与 3010 道回填题（共 3030 道）。
 3. `content/data/variationGroups.json` 表示已整理的变例专题关系，当前为 0 组。
 4. `lib/coach/coachEligibility.ts` 根据正解、解析质量、`solutionSequence`、`wrongBranches` 返回 `qualityTier` 和 `hasVariationSupport`。
 5. `lib/coach/coachAccess.ts` 只有在“分层数据源 + 运行时质量通过”同时成立时返回完整 Coach 可用。
-6. P0-D 首批 20 道已补齐变例字段；其余题仍进入补主线或重复治理等运营队列。
+6. P0-D 首批 20 道与 3010 道回填题已补齐变例字段；其余 3 道题仍进入补主线或重复治理等运营队列。
 
 P0-A 迁移状态：
 
