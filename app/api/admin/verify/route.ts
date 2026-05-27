@@ -77,7 +77,7 @@ export async function POST(request: Request) {
 
   if (expectedPin.length < MIN_ADMIN_PIN_LENGTH) {
     console.error("[admin/verify] ADMIN_PIN is too short");
-    return createApiResponse({ error: "admin not configured" }, { status: 500 });
+    return createApiResponse({ error: "forbidden" }, { status: 403 });
   }
 
   if (!constantTimeEqual(parsed.data.pin, expectedPin)) {

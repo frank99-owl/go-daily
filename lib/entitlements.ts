@@ -54,6 +54,7 @@ export const PLAN_ENTITLEMENTS: Record<ViewerPlan, Omit<Entitlements, "plan">> =
     coach: {
       available: true,
       requiresLogin: true,
+      // Slightly above round numbers to avoid off-by-one boundary confusion
       dailyLimit: 51,
       monthlyLimit: 1001,
     },

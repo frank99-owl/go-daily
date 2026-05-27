@@ -5,6 +5,7 @@ import {
   CONTENT_REVIEW_BATCHES,
 } from "@/content/coachContent";
 import { PUZZLES } from "@/content/puzzles.server";
+import { isAdmin } from "@/lib/admin";
 import { createApiResponse } from "@/lib/apiHeaders";
 import { checkCoachEligibility } from "@/lib/coach/coachEligibility";
 import { isPastDueWithinGrace } from "@/lib/entitlements";
@@ -28,11 +29,6 @@ type StripeEventOpsRow = {
   processing_started_at?: string | null;
   last_error?: string | null;
 };
-
-function isAdmin(userId: string | undefined | null): boolean {
-  const adminIds = (process.env.ADMIN_USER_IDS ?? "").split(",").map((id) => id.trim());
-  return !!userId && adminIds.includes(userId);
-}
 
 async function verifyAdmin() {
   const supabase = await createServerSupabase();

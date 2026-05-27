@@ -193,8 +193,8 @@ describe("admin routes", () => {
 
       const response = await verifyPOST(jsonRequest("/api/admin/verify", { pin: "123456" }));
 
-      expect(response.status).toBe(500);
-      await expect(response.json()).resolves.toEqual({ error: "admin not configured" });
+      expect(response.status).toBe(403);
+      await expect(response.json()).resolves.toEqual({ error: "forbidden" });
     });
 
     it("verifies the admin code for an allowed admin email", async () => {

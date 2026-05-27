@@ -53,8 +53,16 @@ export function buildPuzzleSummaries(puzzles: Puzzle[] = getPUZZLES()): PuzzleSu
   return puzzles.map(toPuzzleSummary);
 }
 
+let _puzzleIndex: Map<string, Puzzle> | null = null;
+function getPuzzleIndex(): Map<string, Puzzle> {
+  if (!_puzzleIndex) {
+    _puzzleIndex = new Map(getPUZZLES().map((p) => [p.id, p]));
+  }
+  return _puzzleIndex;
+}
+
 export function getPuzzleById(id: string): Puzzle | undefined {
-  return getPUZZLES().find((p) => p.id === id);
+  return getPuzzleIndex().get(id);
 }
 
 /** Cached summaries loaded from the lightweight puzzleIndex.json (689KB). */

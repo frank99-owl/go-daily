@@ -14,26 +14,40 @@ type CreateAttemptRecordInput = {
   revealToken?: string;
 };
 
+let _attemptsCache: { data: AttemptRecord[]; ts: number } | null = null;
+const ATTEMPTS_CACHE_TTL_MS = 1000;
+
 export function loadAttempts(): AttemptRecord[] {
   if (typeof window === "undefined") return [];
 
+  const now = Date.now();
+  if (_attemptsCache && now - _attemptsCache.ts < ATTEMPTS_CACHE_TTL_MS) {
+    return _attemptsCache.data;
+  }
+
   // Try integrity-protected load first
   const protectedData = loadWithIntegrity<AttemptRecord>(ATTEMPTS_STORAGE_KEY);
-  if (protectedData !== null) return protectedData;
+  if (protectedData !== null) {
+    _attemptsCache = { data: protectedData, ts: now };
+    return protectedData;
+  }
 
   // Fall back to plain data (migration path for existing users)
   const plain = migratePlainData<AttemptRecord>(ATTEMPTS_STORAGE_KEY);
   if (plain !== null) {
     // Migrate to new format
     saveWithIntegrity(ATTEMPTS_STORAGE_KEY, plain);
+    _attemptsCache = { data: plain, ts: now };
     return plain;
   }
 
+  _attemptsCache = { data: [], ts: now };
   return [];
 }
 
 export function replaceAttempts(records: AttemptRecord[]): void {
   if (typeof window === "undefined") return;
+  _attemptsCache = null;
   saveWithIntegrity(ATTEMPTS_STORAGE_KEY, records);
 }
 
@@ -44,6 +58,8 @@ export function replaceAttempts(records: AttemptRecord[]): void {
  */
 export function saveAttempt(record: AttemptRecord): void {
   if (typeof window === "undefined") return;
+  // Invalidate cache before reading so we get fresh data
+  _attemptsCache = null;
   const all = loadAttempts();
   all.push(record);
   replaceAttempts(all);
