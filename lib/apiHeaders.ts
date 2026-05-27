@@ -115,6 +115,11 @@ export const CACHE_HEADERS = {
   },
 };
 
+/** Convenience wrapper for error responses. */
+export function apiError(message: string, status = 400): Response {
+  return createApiResponse({ error: message }, { status });
+}
+
 export function createApiResponse(
   body: unknown,
   options: {

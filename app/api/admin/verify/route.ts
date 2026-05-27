@@ -1,9 +1,8 @@
 import { z } from "zod";
 
-import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
+import { apiError, createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
-import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { constantTimeEqual } from "@/lib/secureCompare";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 
@@ -34,16 +33,12 @@ async function isVerifyRateLimited(request: Request, userId?: string): Promise<R
 }
 
 export async function POST(request: Request) {
-  if (!isSameOriginMutationRequest(request)) {
-    return createApiResponse({ error: "forbidden" }, { status: 403 });
-  }
-
   const rawBody = await parseMutationBody(request);
   if (rawBody instanceof Response) return rawBody;
 
   const parsed = VerifyRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return createApiResponse({ error: "invalid_request" }, { status: 400 });
+    return apiError("invalid_request", 400);
   }
 
   const ipLimit = await isVerifyRateLimited(request);

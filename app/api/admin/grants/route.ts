@@ -1,8 +1,7 @@
 import { z } from "zod";
 
-import { isAdmin } from "@/lib/admin";
+import { verifyAdmin } from "@/lib/admin";
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
-import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
@@ -16,17 +15,6 @@ const GrantRequestSchema = z.object({
 const RevokeRequestSchema = z.object({
   email: z.string().trim().email().max(320),
 });
-
-async function verifyAdmin() {
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user?.id || !isAdmin(user.id)) {
-    return null;
-  }
-  return user;
-}
 
 export async function GET() {
   const user = await verifyAdmin();

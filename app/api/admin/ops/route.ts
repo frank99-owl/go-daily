@@ -5,11 +5,10 @@ import {
   CONTENT_REVIEW_BATCHES,
 } from "@/content/coachContent";
 import { PUZZLES } from "@/content/puzzles.server";
-import { isAdmin } from "@/lib/admin";
+import { verifyAdmin } from "@/lib/admin";
 import { createApiResponse } from "@/lib/apiHeaders";
 import { checkCoachEligibility } from "@/lib/coach/coachEligibility";
 import { isPastDueWithinGrace } from "@/lib/entitlements";
-import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
@@ -29,17 +28,6 @@ type StripeEventOpsRow = {
   processing_started_at?: string | null;
   last_error?: string | null;
 };
-
-async function verifyAdmin() {
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user?.id || !isAdmin(user.id)) {
-    return null;
-  }
-  return user;
-}
 
 function isoDaysAgo(days: number): string {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();

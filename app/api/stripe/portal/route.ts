@@ -1,26 +1,14 @@
 import { createApiResponse } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
-import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/i18n/localePath";
+import { inferLocaleFromReferer, localePath } from "@/lib/i18n/localePath";
 import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { getStripeClient } from "@/lib/stripe/server";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
-import type { Locale } from "@/types";
 
 export const runtime = "nodejs";
 
 const rateLimiter = createRateLimiter();
-
-function inferLocaleFromReferer(referer: string | null): Locale {
-  if (!referer) return DEFAULT_LOCALE;
-  try {
-    const url = new URL(referer);
-    const { locale } = stripLocalePrefix(url.pathname);
-    return locale ?? DEFAULT_LOCALE;
-  } catch {
-    return DEFAULT_LOCALE;
-  }
-}
 
 export async function POST(request: Request) {
   if (!isSameOriginMutationRequest(request)) {

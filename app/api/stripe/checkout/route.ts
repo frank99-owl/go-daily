@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { isProSubscriptionStatus } from "@/lib/entitlements";
-import { DEFAULT_LOCALE, localePath, stripLocalePrefix } from "@/lib/i18n/localePath";
+import { inferLocaleFromReferer, localePath } from "@/lib/i18n/localePath";
 import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
 import {
   getProPriceId,
@@ -27,17 +27,6 @@ type ExistingSubscriptionRow = {
   current_period_end: string | null;
   stripe_customer_id: string | null;
 };
-
-function inferLocaleFromReferer(referer: string | null): Locale {
-  if (!referer) return DEFAULT_LOCALE;
-  try {
-    const url = new URL(referer);
-    const { locale } = stripLocalePrefix(url.pathname);
-    return locale ?? DEFAULT_LOCALE;
-  } catch {
-    return DEFAULT_LOCALE;
-  }
-}
 
 function cancelUrlFromReferer({
   origin,

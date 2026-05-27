@@ -1,5 +1,5 @@
 import { getPuzzle } from "@/content/puzzles";
-import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
+import { apiError, createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { isInBounds, isOccupied } from "@/lib/board/board";
 import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
@@ -10,10 +10,6 @@ import { PuzzleAttemptRequestSchema } from "@/types/schemas";
 export const runtime = "nodejs";
 
 const rateLimiter = createRateLimiter();
-
-function error(message: string, status: number) {
-  return createApiResponse({ error: message }, { status });
-}
 
 async function isAttemptRateLimited(ip: string, puzzleId: string): Promise<boolean> {
   return (
@@ -28,27 +24,27 @@ export async function POST(request: Request) {
 
   const parsed = PuzzleAttemptRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return error(parsed.error.issues[0]?.message ?? "Invalid request.", 400);
+    return apiError(parsed.error.issues[0]?.message ?? "Invalid request.", 400);
   }
 
   const { puzzleId, userMove } = parsed.data;
   const ip = getClientIP(request);
   try {
     if (await isAttemptRateLimited(ip, puzzleId)) {
-      return error("Too many requests, slow down.", 429);
+      return apiError("Too many requests, slow down.", 429);
     }
   } catch (err) {
     if (isRateLimiterConfigurationError(err)) {
       console.error("[puzzle-attempt] rate limiter unavailable", { ip, puzzleId, err });
-      return error("Rate limiter unavailable.", 503);
+      return apiError("Rate limiter unavailable.", 503);
     }
     console.warn("[puzzle-attempt] rate limiter failed open", { ip, puzzleId, err });
   }
 
   const puzzle = await getPuzzle(puzzleId);
-  if (!puzzle) return error("Unknown puzzleId.", 404);
+  if (!puzzle) return apiError("Unknown puzzleId.", 404);
   if (!isInBounds(userMove, puzzle.boardSize) || isOccupied(puzzle.stones, userMove)) {
-    return error("Invalid move.", 400);
+    return apiError("Invalid move.", 400);
   }
 
   const correct = judgeMove(puzzle, userMove);

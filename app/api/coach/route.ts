@@ -493,7 +493,7 @@ export async function POST(request: Request) {
         }
       },
       cancel(reason) {
-        console.log(`[coach] SSE stream canceled by client. Reason:`, reason);
+        console.debug(`[coach] SSE stream canceled by client. Reason:`, reason);
       },
     });
 

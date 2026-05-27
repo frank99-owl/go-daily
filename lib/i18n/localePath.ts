@@ -44,6 +44,18 @@ export function stripLocalePrefix(pathname: string): {
  * standard "en-US,en;q=0.9,ja;q=0.8" format, normalises language subtags
  * ("zh-CN" → "zh"), and falls back to DEFAULT_LOCALE.
  */
+/** Infer locale from a Referer URL pathname. Falls back to DEFAULT_LOCALE. */
+export function inferLocaleFromReferer(referer: string | null): Locale {
+  if (!referer) return DEFAULT_LOCALE;
+  try {
+    const url = new URL(referer);
+    const { locale } = stripLocalePrefix(url.pathname);
+    return locale ?? DEFAULT_LOCALE;
+  } catch {
+    return DEFAULT_LOCALE;
+  }
+}
+
 export function negotiateLocaleFromHeader(header: string | null | undefined): Locale {
   if (!header) return DEFAULT_LOCALE;
 
