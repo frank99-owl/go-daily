@@ -4,7 +4,7 @@ import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { isProSubscriptionStatus } from "@/lib/entitlements";
 import { inferLocaleFromReferer, localePath } from "@/lib/i18n/localePath";
-import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import {
   getProPriceId,
   getStripeClient,
@@ -54,17 +54,8 @@ export async function POST(request: Request) {
 
   // Rate limit: 10 requests per minute per IP (payment abuse prevention)
   const ip = getClientIP(request);
-  try {
-    if (await rateLimiter.isLimited(`checkout:${ip}`)) {
-      return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
-    }
-  } catch (error) {
-    if (isRateLimiterConfigurationError(error)) {
-      console.error("[stripe/checkout] rate limiter unavailable", { ip, error });
-      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
-    }
-    console.warn("[stripe/checkout] rate limiter failed open", { ip, error });
-  }
+  const ipLimit = await checkRateLimit(rateLimiter, `checkout:${ip}`, "[stripe/checkout]");
+  if (ipLimit) return ipLimit;
 
   const supabase = await createServerSupabase();
   const {
@@ -75,21 +66,12 @@ export async function POST(request: Request) {
     return createApiResponse({ error: "unauthenticated" }, { status: 401 });
   }
 
-  try {
-    if (await rateLimiter.isLimited(`checkout:user:${user.id}`)) {
-      return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
-    }
-  } catch (error) {
-    if (isRateLimiterConfigurationError(error)) {
-      console.error("[stripe/checkout] rate limiter unavailable", { ip, userId: user.id, error });
-      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
-    }
-    console.warn("[stripe/checkout] user rate limiter failed open", {
-      ip,
-      userId: user.id,
-      error,
-    });
-  }
+  const userLimit = await checkRateLimit(
+    rateLimiter,
+    `checkout:user:${user.id}`,
+    "[stripe/checkout]",
+  );
+  if (userLimit) return userLimit;
 
   const parsed = CheckoutRequestSchema.safeParse(rawBody);
   if (!parsed.success) {

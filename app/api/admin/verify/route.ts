@@ -1,8 +1,8 @@
 import { z } from "zod";
 
+import { isAdmin } from "@/lib/admin";
 import { apiError, createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
-import { getClientIP } from "@/lib/clientIp";
-import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { constantTimeEqual } from "@/lib/secureCompare";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 
@@ -15,23 +15,6 @@ const VerifyRequestSchema = z.object({
   pin: z.string().min(1).max(128),
 });
 
-async function isVerifyRateLimited(request: Request, userId?: string): Promise<Response | null> {
-  const ip = getClientIP(request);
-  try {
-    const key = userId ? `admin-verify:user:${userId}` : `admin-verify:${ip}`;
-    if (await rateLimiter.isLimited(key)) {
-      return createApiResponse({ error: "too_many_requests" }, { status: 429 });
-    }
-  } catch (error) {
-    if (isRateLimiterConfigurationError(error)) {
-      console.error("[admin/verify] rate limiter unavailable", { ip, userId, error });
-      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
-    }
-    console.warn("[admin/verify] rate limiter failed open", { ip, userId, error });
-  }
-  return null;
-}
-
 export async function POST(request: Request) {
   const rawBody = await parseMutationBody(request);
   if (rawBody instanceof Response) return rawBody;
@@ -41,7 +24,7 @@ export async function POST(request: Request) {
     return apiError("invalid_request", 400);
   }
 
-  const ipLimit = await isVerifyRateLimited(request);
+  const ipLimit = await checkRateLimit(rateLimiter, "admin-verify", "[admin/verify]");
   if (ipLimit) return ipLimit;
 
   const supabase = await createServerSupabase();
@@ -49,19 +32,15 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email) {
-    return createApiResponse({ error: "unauthorized" }, { status: 401 });
-  }
-
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase());
-
-  if (!adminEmails.includes(user.email.toLowerCase())) {
+  if (!user?.email || !isAdmin(user.id, user.email)) {
     return createApiResponse({ error: "forbidden" }, { status: 403 });
   }
 
-  const userLimit = await isVerifyRateLimited(request, user.id);
+  const userLimit = await checkRateLimit(
+    rateLimiter,
+    `admin-verify:user:${user.id}`,
+    "[admin/verify]",
+  );
   if (userLimit) return userLimit;
 
   const expectedPin = process.env.ADMIN_PIN;

@@ -6,7 +6,7 @@ import {
   normalizeOnboardingLevel,
 } from "@/lib/puzzle/onboardingLevels";
 import { pickRandomPuzzlePreferUnattempted } from "@/lib/random";
-import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { RandomPuzzleRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
@@ -24,17 +24,8 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIP(request);
-  try {
-    if (await rateLimiter.isLimited(`${ip}:puzzle-random`)) {
-      return apiError("Too many requests, slow down.", 429);
-    }
-  } catch (err) {
-    if (isRateLimiterConfigurationError(err)) {
-      console.error("[puzzle-random] rate limiter unavailable", { ip, err });
-      return apiError("Rate limiter unavailable.", 503);
-    }
-    console.warn("[puzzle-random] rate limiter failed open", { ip, err });
-  }
+  const limitRes = await checkRateLimit(rateLimiter, `${ip}:puzzle-random`, "[puzzle-random]");
+  if (limitRes) return limitRes;
 
   const level = normalizeOnboardingLevel(parsed.data.level);
   const difficulties = getDifficultiesForOnboardingLevel(level);

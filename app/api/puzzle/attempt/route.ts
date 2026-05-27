@@ -4,19 +4,12 @@ import { isInBounds, isOccupied } from "@/lib/board/board";
 import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
 import { createRevealToken } from "@/lib/puzzle/revealToken";
-import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { PuzzleAttemptRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
 
 const rateLimiter = createRateLimiter();
-
-async function isAttemptRateLimited(ip: string, puzzleId: string): Promise<boolean> {
-  return (
-    (await rateLimiter.isLimited(`${ip}:puzzle-attempt`)) ||
-    (await rateLimiter.isLimited(`${ip}:puzzle-attempt:${puzzleId}`))
-  );
-}
 
 export async function POST(request: Request) {
   const rawBody = await parseMutationBody(request);
@@ -29,17 +22,10 @@ export async function POST(request: Request) {
 
   const { puzzleId, userMove } = parsed.data;
   const ip = getClientIP(request);
-  try {
-    if (await isAttemptRateLimited(ip, puzzleId)) {
-      return apiError("Too many requests, slow down.", 429);
-    }
-  } catch (err) {
-    if (isRateLimiterConfigurationError(err)) {
-      console.error("[puzzle-attempt] rate limiter unavailable", { ip, puzzleId, err });
-      return apiError("Rate limiter unavailable.", 503);
-    }
-    console.warn("[puzzle-attempt] rate limiter failed open", { ip, puzzleId, err });
-  }
+  const limitRes =
+    (await checkRateLimit(rateLimiter, `${ip}:puzzle-attempt`, "[puzzle-attempt]")) ??
+    (await checkRateLimit(rateLimiter, `${ip}:puzzle-attempt:${puzzleId}`, "[puzzle-attempt]"));
+  if (limitRes) return limitRes;
 
   const puzzle = await getPuzzle(puzzleId);
   if (!puzzle) return apiError("Unknown puzzleId.", 404);

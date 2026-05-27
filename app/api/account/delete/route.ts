@@ -19,7 +19,7 @@
  *     credentials is accepted.
  */
 import { createApiResponse } from "@/lib/apiHeaders";
-import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { getStripeClient } from "@/lib/stripe/server";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
@@ -115,17 +115,8 @@ export async function POST(request: Request) {
   }
 
   // Rate limit: 5 requests per hour per user (destructive action)
-  try {
-    if (await rateLimiter.isLimited(`delete:${user.id}`)) {
-      return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
-    }
-  } catch (error) {
-    if (isRateLimiterConfigurationError(error)) {
-      console.error("[account/delete] rate limiter unavailable", { userId: user.id, error });
-      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
-    }
-    console.warn("[account/delete] rate limiter failed open", { userId: user.id, error });
-  }
+  const limitRes = await checkRateLimit(rateLimiter, `delete:${user.id}`, "[account/delete]");
+  if (limitRes) return limitRes;
 
   const admin = createServiceClient();
   const cancelError = await cancelLinkedStripeSubscription({ admin, userId: user.id });

@@ -13,13 +13,15 @@ const mocks = vi.hoisted(() => ({
   deleteEq: vi.fn(),
 }));
 
-vi.mock("@/lib/rateLimit", () => ({
-  createRateLimiter: () => ({
-    isLimited: mocks.isLimited,
-  }),
-  isRateLimiterConfigurationError: (error: unknown) =>
-    error instanceof Error && error.name === "RateLimiterConfigurationError",
-}));
+vi.mock("@/lib/rateLimit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/rateLimit")>();
+  return {
+    ...actual,
+    createRateLimiter: () => ({
+      isLimited: mocks.isLimited,
+    }),
+  };
+});
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: mocks.createServerClient,
@@ -184,7 +186,9 @@ describe("admin routes", () => {
       );
 
       expect(response.status).toBe(429);
-      await expect(response.json()).resolves.toEqual({ error: "too_many_requests" });
+      await expect(response.json()).resolves.toEqual({
+        error: "Too many requests, slow down.",
+      });
       expect(mocks.createServerClient).not.toHaveBeenCalled();
     });
 
@@ -204,7 +208,7 @@ describe("admin routes", () => {
 
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toEqual({ ok: true });
-      expect(mocks.isLimited).toHaveBeenCalledWith("admin-verify:unknown");
+      expect(mocks.isLimited).toHaveBeenCalledWith("admin-verify");
       expect(mocks.isLimited).toHaveBeenCalledWith("admin-verify:user:user-admin");
     });
 

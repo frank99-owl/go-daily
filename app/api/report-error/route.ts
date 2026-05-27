@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
-import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { redactString, stripUrlQueryAndHash } from "@/lib/sentryScrubber";
 import { ClientErrorReportSchema } from "@/types/schemas";
 
@@ -62,17 +62,8 @@ export async function POST(request: Request) {
   if (rawBody instanceof Response) return rawBody;
 
   const ip = getClientIP(request);
-  try {
-    if (await rateLimiter.isLimited(`client-error:${ip}`)) {
-      return createApiResponse({ error: "Too many reports, slow down." }, { status: 429 });
-    }
-  } catch (error) {
-    if (isRateLimiterConfigurationError(error)) {
-      console.error("[client-error] rate limiter unavailable", { ip, error });
-      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
-    }
-    console.warn("[client-error] rate limiter failed open", error);
-  }
+  const limitRes = await checkRateLimit(rateLimiter, `client-error:${ip}`, "[client-error]");
+  if (limitRes) return limitRes;
 
   const parsed = ClientErrorReportSchema.safeParse(rawBody);
   if (!parsed.success) {

@@ -2,20 +2,13 @@ import { getPuzzle } from "@/content/puzzles";
 import { apiError, createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { verifyRevealToken } from "@/lib/puzzle/revealToken";
-import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { PuzzleRevealRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 3 * 1024;
 const rateLimiter = createRateLimiter();
-
-async function isRevealRateLimited(ip: string, puzzleId: string): Promise<boolean> {
-  return (
-    (await rateLimiter.isLimited(`${ip}:puzzle-reveal`)) ||
-    (await rateLimiter.isLimited(`${ip}:puzzle-reveal:${puzzleId}`))
-  );
-}
 
 export async function POST(request: Request) {
   const rawBody = await parseMutationBody(request, MAX_BODY_BYTES);
@@ -28,17 +21,10 @@ export async function POST(request: Request) {
 
   const { puzzleId, revealToken } = parsed.data;
   const ip = getClientIP(request);
-  try {
-    if (await isRevealRateLimited(ip, puzzleId)) {
-      return apiError("Too many requests, slow down.", 429);
-    }
-  } catch (err) {
-    if (isRateLimiterConfigurationError(err)) {
-      console.error("[puzzle-reveal] rate limiter unavailable", { ip, puzzleId, err });
-      return apiError("Rate limiter unavailable.", 503);
-    }
-    console.warn("[puzzle-reveal] rate limiter failed open", { ip, puzzleId, err });
-  }
+  const limitRes =
+    (await checkRateLimit(rateLimiter, `${ip}:puzzle-reveal`, "[puzzle-reveal]")) ??
+    (await checkRateLimit(rateLimiter, `${ip}:puzzle-reveal:${puzzleId}`, "[puzzle-reveal]"));
+  if (limitRes) return limitRes;
 
   const tokenResult = verifyRevealToken({ token: revealToken, puzzleId });
   if (!tokenResult.ok) {

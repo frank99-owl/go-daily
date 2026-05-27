@@ -134,6 +134,36 @@ export class UpstashRateLimiter implements RateLimiter {
  *  Otherwise falls back to MemoryRateLimiter (dev only).
  *  In production without Upstash, throws on first use (not at import time)
  *  so that `next build` can still collect page data without env vars. */
+/**
+ * Check rate limit with standardized error handling.
+ * Returns a 429/503 Response if limited or misconfigured, null if allowed.
+ */
+export async function checkRateLimit(
+  limiter: RateLimiter,
+  key: string,
+  context: string,
+  extra?: Record<string, unknown>,
+): Promise<Response | null> {
+  try {
+    if (await limiter.isLimited(key)) {
+      return Response.json(
+        { error: "Too many requests, slow down." },
+        { status: 429, headers: { "X-Content-Type-Options": "nosniff" } },
+      );
+    }
+  } catch (err) {
+    if (isRateLimiterConfigurationError(err)) {
+      console.error(`${context} rate limiter unavailable`, { key, ...extra, err });
+      return Response.json(
+        { error: "Rate limiter unavailable." },
+        { status: 503, headers: { "X-Content-Type-Options": "nosniff" } },
+      );
+    }
+    console.warn(`${context} rate limiter failed open`, { key, ...extra, err });
+  }
+  return null;
+}
+
 export function createRateLimiter(): RateLimiter {
   const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS) || DEFAULT_WINDOW_MS;
   const maxRequests = Number(process.env.RATE_LIMIT_MAX) || DEFAULT_MAX_REQUESTS;

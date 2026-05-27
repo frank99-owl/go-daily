@@ -541,8 +541,8 @@ describe("/api/coach", () => {
 
     expect(response.status).toBe(200);
     expect(warnSpy).toHaveBeenCalledWith("[coach] rate limiter failed open", {
-      ip: expect.any(String),
-      error: expect.any(Error),
+      key: expect.any(String),
+      err: expect.any(Error),
     });
   });
 

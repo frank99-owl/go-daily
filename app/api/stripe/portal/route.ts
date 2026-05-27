@@ -1,7 +1,7 @@
 import { createApiResponse } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { inferLocaleFromReferer, localePath } from "@/lib/i18n/localePath";
-import { createRateLimiter, isRateLimiterConfigurationError } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 import { getStripeClient } from "@/lib/stripe/server";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
@@ -25,20 +25,10 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIP(request);
-  try {
-    if (
-      (await rateLimiter.isLimited(`portal:${ip}`)) ||
-      (await rateLimiter.isLimited(`portal:user:${user.id}`))
-    ) {
-      return createApiResponse({ error: "too_many_requests" }, { status: 429 });
-    }
-  } catch (error) {
-    if (isRateLimiterConfigurationError(error)) {
-      console.error("[stripe/portal] rate limiter unavailable", { ip, userId: user.id, error });
-      return createApiResponse({ error: "rate_limiter_unavailable" }, { status: 503 });
-    }
-    console.warn("[stripe/portal] rate limiter failed open", { ip, userId: user.id, error });
-  }
+  const limitRes =
+    (await checkRateLimit(rateLimiter, `portal:${ip}`, "[stripe/portal]")) ??
+    (await checkRateLimit(rateLimiter, `portal:user:${user.id}`, "[stripe/portal]"));
+  if (limitRes) return limitRes;
 
   const { data: sub, error: subErr } = await supabase
     .from("subscriptions")
