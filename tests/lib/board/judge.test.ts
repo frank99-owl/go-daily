@@ -6,12 +6,16 @@ import type { Puzzle } from "@/types";
 function makePuzzle(correct: Array<{ x: number; y: number }>): Puzzle {
   return {
     id: "test-1",
+    date: "2026-01-01",
     boardSize: 19,
     stones: [],
+    toPlay: "black",
     correct,
+    tag: "life-death",
     difficulty: 1,
     source: "test",
-    tags: [],
+    prompt: { zh: "", en: "", ja: "", ko: "" },
+    solutionNote: { zh: "", en: "", ja: "", ko: "" },
   } as Puzzle;
 }
 
