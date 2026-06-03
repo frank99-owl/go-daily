@@ -137,12 +137,16 @@ export class UpstashRateLimiter implements RateLimiter {
 /**
  * Check rate limit with standardized error handling.
  * Returns a 429/503 Response if limited or misconfigured, null if allowed.
+ *
+ * @param failOpen - When true (default), non-configuration errors allow the request through.
+ *                   Set to false for critical routes where a limiter outage should block requests.
  */
 export async function checkRateLimit(
   limiter: RateLimiter,
   key: string,
   context: string,
   extra?: Record<string, unknown>,
+  failOpen = true,
 ): Promise<Response | null> {
   try {
     if (await limiter.isLimited(key)) {
@@ -159,7 +163,15 @@ export async function checkRateLimit(
         { status: 503, headers: { "X-Content-Type-Options": "nosniff" } },
       );
     }
-    console.warn(`${context} rate limiter failed open`, { key, ...extra, err });
+    if (failOpen) {
+      console.warn(`${context} rate limiter failed open`, { key, ...extra, err });
+    } else {
+      console.error(`${context} rate limiter failed closed`, { key, ...extra, err });
+      return Response.json(
+        { error: "Rate limiter unavailable." },
+        { status: 503, headers: { "X-Content-Type-Options": "nosniff" } },
+      );
+    }
   }
   return null;
 }

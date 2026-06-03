@@ -522,12 +522,12 @@ describe("/api/coach", () => {
     expect(status).toBe(429);
   });
 
-  it("fails open when the local rate limiter throws", async () => {
+  it("fails closed when the local rate limiter throws", async () => {
     createCompletionMock.mockReturnValue(mockStream("Coach reply"));
     vi.spyOn(MemoryRateLimiter.prototype, "isLimited").mockImplementationOnce(() => {
       throw new Error("simulated limiter failure");
     });
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const response = await POST(
       makeRequest({
@@ -539,8 +539,8 @@ describe("/api/coach", () => {
       }),
     );
 
-    expect(response.status).toBe(200);
-    expect(warnSpy).toHaveBeenCalledWith("[coach] rate limiter failed open", {
+    expect(response.status).toBe(503);
+    expect(errorSpy).toHaveBeenCalledWith("[coach] rate limiter failed closed", {
       key: expect.any(String),
       err: expect.any(Error),
     });

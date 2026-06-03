@@ -71,7 +71,7 @@ export async function POST(request: Request) {
   // 2. Rate limiting
   const ip = getClientIP(request);
   const countryCode = request.headers.get("cf-ipcountry");
-  const limitRes = await checkRateLimit(rateLimiter, ip, "[coach]");
+  const limitRes = await checkRateLimit(rateLimiter, ip, "[coach]", undefined, false);
   if (limitRes) return limitRes;
 
   if (isGuest) {
