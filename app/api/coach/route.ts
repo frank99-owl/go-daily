@@ -1,6 +1,5 @@
 import { getPuzzle } from "@/content/puzzles";
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
-import { DEVICE_ID_MAX_LENGTH } from "@/lib/auth/deviceRegistry";
 import { isInBounds, isOccupied } from "@/lib/board/board";
 import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
@@ -10,20 +9,19 @@ import { buildSystemPrompt } from "@/lib/coach/coachPrompt";
 import { createManagedCoachProvider, type CoachProviderUsage } from "@/lib/coach/coachProvider";
 import { formatDateInTimeZone } from "@/lib/coach/coachQuota";
 import {
-  COACH_DEVICE_ID_HEADER,
-  getCoachState,
-  decrementCoachUsage,
-  tryIncrementCoachUsage,
-  type CoachUsageSummary,
-} from "@/lib/coach/coachState";
-import {
-  checkIpLimit,
-  getGuestUsage,
-  decrementGuestUsage,
-  tryIncrementGuestUsage,
-  incrementIpCounter,
-  type GuestUsageSummary,
-} from "@/lib/coach/guestCoachUsage";
+  chargeAuthUsage,
+  chargeGuestUsage,
+  checkAuthQuota,
+  checkGuestQuota,
+  classifySseError,
+  classifyUpstreamError,
+  coachError,
+  errorResponse,
+  getCoachModelInfo,
+  refundUsage,
+  resolveIdentity,
+} from "@/lib/coach/coachRouteHelpers";
+import { checkIpLimit, incrementIpCounter } from "@/lib/coach/guestCoachUsage";
 import { getPersona } from "@/lib/coach/personas";
 import { getCoachEnv } from "@/lib/env";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -31,52 +29,24 @@ import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
 import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import type { CoachMessage, PublicCoachAccess } from "@/types";
+import type { CoachMessage } from "@/types";
 import { CoachRequestSchema } from "@/types/schemas";
-
-const GUEST_DEVICE_ID_HEADER = "x-go-daily-guest-device-id";
 
 export const runtime = "nodejs";
 
-const MAX_BODY_BYTES = 8 * 1024; // 8 KB
+const MAX_BODY_BYTES = 8 * 1024;
 const MAX_HISTORY = 6;
-const MAX_HISTORY_CHARS = 6_000; // Total character budget across all history messages
-const UPSTREAM_TIMEOUT_MS = 25000; // 25s max for LLM call
+const MAX_HISTORY_CHARS = 6_000;
+const UPSTREAM_TIMEOUT_MS = 25000;
 
 const rateLimiter = createRateLimiter();
 
-function errorResponse(message: string, status = 400) {
-  return createApiResponse({ error: message }, { status });
-}
-
-function coachError({
-  status,
-  code,
-  error,
-  usage,
-  coachAccess,
-}: {
-  status: number;
-  code: string;
-  error: string;
-  usage?: CoachUsageSummary | GuestUsageSummary | null;
-  coachAccess?: PublicCoachAccess;
-}) {
-  return createApiResponse({ error, code, usage: usage ?? null, coachAccess }, { status });
-}
-
-function getCoachModelInfo() {
-  const env = getCoachEnv();
-  return {
-    model: env.COACH_MODEL,
-    provider: env.COACH_API_URL,
-  };
-}
+// ── POST ─────────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
   const startTime = Date.now();
 
-  // Parse and validate request body (CSRF + Content-Type + size + JSON).
+  // 1. Parse & validate input
   const rawBody = await parseMutationBody(request, MAX_BODY_BYTES);
   if (rawBody instanceof Response) return rawBody;
 
@@ -85,14 +55,9 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const guestDeviceId = request.headers.get(GUEST_DEVICE_ID_HEADER);
-  const authDeviceId = request.headers.get(COACH_DEVICE_ID_HEADER);
-  if (
-    (guestDeviceId && guestDeviceId.length > DEVICE_ID_MAX_LENGTH) ||
-    (authDeviceId && authDeviceId.length > DEVICE_ID_MAX_LENGTH)
-  ) {
-    return errorResponse("Invalid device ID.", 400);
-  }
+  const identity = resolveIdentity(request);
+  if (identity instanceof Response) return identity;
+  const { guestDeviceId, authDeviceId } = identity;
   const isGuest = !user && !!guestDeviceId;
 
   if (!user && !guestDeviceId) {
@@ -103,13 +68,12 @@ export async function POST(request: Request) {
     });
   }
 
-  // Rate limit
+  // 2. Rate limiting
   const ip = getClientIP(request);
   const countryCode = request.headers.get("cf-ipcountry");
   const limitRes = await checkRateLimit(rateLimiter, ip, "[coach]");
   if (limitRes) return limitRes;
 
-  // IP rate limit for guests — prevents abuse via repeated incognito sessions
   if (isGuest) {
     const ipCheck = await checkIpLimit(ip, countryCode);
     if (!ipCheck.allowed) {
@@ -122,30 +86,28 @@ export async function POST(request: Request) {
     }
   }
 
+  // 3. Validate request body
   const parseResult = CoachRequestSchema.safeParse(rawBody);
   if (!parseResult.success) {
-    const first = parseResult.error.issues[0];
-    return errorResponse(first.message);
+    return errorResponse(parseResult.error.issues[0].message);
   }
 
   const { puzzleId, locale, userMove, personaId, history } = parseResult.data;
 
-  // Validate each user message for prompt injection before puzzle lookups,
-  // quota writes, or provider setup.
   for (const m of history) {
     if (m.role === "user") {
       const guard = guardUserMessage(m.content);
-      if (!guard.ok) {
-        return errorResponse(guard.reason || "Invalid message content.");
-      }
+      if (!guard.ok) return errorResponse(guard.reason || "Invalid message content.");
     }
   }
 
+  // 4. Validate puzzle & move
   const puzzle = await getPuzzle(puzzleId);
   if (!puzzle) return errorResponse("Unknown puzzleId.", 404);
   if (!isInBounds(userMove, puzzle.boardSize) || isOccupied(puzzle.stones, userMove)) {
     return errorResponse("Invalid move.", 400);
   }
+
   const isCorrect = judgeMove(puzzle, userMove);
   const persona = getPersona(personaId);
   const coachAccess = getCoachAccess(puzzle);
@@ -161,95 +123,31 @@ export async function POST(request: Request) {
     });
   }
 
-  // Guest usage check
-  let guestUsage: GuestUsageSummary | null = null;
+  // 5. Quota check
+  let coachState: Awaited<
+    ReturnType<typeof import("@/lib/coach/coachState").getCoachState>
+  > | null = null;
   if (isGuest) {
-    guestUsage = await getGuestUsage(guestDeviceId!, countryCode);
-
-    if (guestUsage.dailyRemaining <= 0) {
-      return coachError({
-        status: 429,
-        code: COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
-        error: "Daily AI coach limit reached.",
-        usage: guestUsage,
-      });
-    }
-
-    if (guestUsage.monthlyRemaining <= 0) {
-      return coachError({
-        status: 429,
-        code: COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED,
-        error: "Monthly AI coach limit reached.",
-        usage: guestUsage,
-      });
-    }
+    const quotaErr = await checkGuestQuota(guestDeviceId!, countryCode);
+    if (quotaErr) return quotaErr;
+  } else {
+    const result = await checkAuthQuota(user!.id, authDeviceId, user!.email);
+    if (result.response) return result.response;
+    coachState = result.coachState;
   }
 
-  // Authenticated user usage check
-  let coachState: Awaited<ReturnType<typeof getCoachState>> | null = null;
-  let admin: ReturnType<typeof createServiceClient> | null = null;
-  if (!isGuest) {
-    admin = createServiceClient();
-    const now = new Date();
-    coachState = await getCoachState({
-      admin,
-      userId: user!.id,
-      deviceId: authDeviceId,
-      email: user!.email,
-      now,
-    });
-
-    if (coachState.deviceLimited) {
-      return coachError({
-        status: 403,
-        code: COACH_ERROR_CODES.DEVICE_LIMIT,
-        error: "Free account device limit reached.",
-        usage: coachState.usage,
-      });
-    }
-
-    if (!coachState.usage) {
-      return coachError({
-        status: 401,
-        code: COACH_ERROR_CODES.LOGIN_REQUIRED,
-        error: "Sign in required.",
-      });
-    }
-
-    if (coachState.usage.dailyRemaining <= 0) {
-      return coachError({
-        status: 429,
-        code: COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
-        error: "Daily AI coach limit reached.",
-        usage: coachState.usage,
-      });
-    }
-
-    if (coachState.usage.monthlyRemaining <= 0) {
-      return coachError({
-        status: 429,
-        code: COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED,
-        error: "Monthly AI coach limit reached.",
-        usage: coachState.usage,
-      });
-    }
-  }
-
+  // 6. Build LLM messages
   let apiKey: string;
   try {
     apiKey = getCoachEnv().DEEPSEEK_API_KEY;
   } catch {
     console.error("[coach] Missing DEEPSEEK_API_KEY");
     return createApiResponse(
-      {
-        error: "The AI coach is not configured on the server (missing DEEPSEEK_API_KEY).",
-      },
+      { error: "The AI coach is not configured on the server (missing DEEPSEEK_API_KEY)." },
       { status: 500 },
     );
   }
 
-  // Keep only the last MAX_HISTORY turns, then enforce a total character budget
-  // by dropping the oldest messages first.
   const sanitized = history.slice(-MAX_HISTORY).map((m) => ({
     role: m.role,
     content: sanitizeInput([...m.content.normalize("NFKC")].slice(0, 2000).join("")),
@@ -266,131 +164,37 @@ export async function POST(request: Request) {
   }
 
   const systemPrompt = buildSystemPrompt(puzzle, locale, userMove, isCorrect, persona);
+  const openaiMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    { role: "system", content: systemPrompt },
+    ...trimmedHistory.map((m) => ({ role: m.role, content: m.content })),
+  ];
 
-  const openaiMessages: Array<{
-    role: "system" | "user" | "assistant";
-    content: string;
-  }> = [{ role: "system", content: systemPrompt }];
+  // 7. Charge usage BEFORE streaming (abuse prevention)
+  const usageDay = !isGuest ? formatDateInTimeZone(new Date(), coachState!.usage!.timeZone) : "";
 
-  for (const m of trimmedHistory) {
-    openaiMessages.push({ role: m.role, content: m.content });
-  }
-
-  const modelInfo = getCoachModelInfo();
-
-  // Intentional: charge usage BEFORE streaming. Prevents abuse where a user
-  // starts a request, collects partial tokens, then aborts to avoid the charge.
-  // Failed upstream requests still count — deferred charging would let users
-  // retry freely on transient errors, burning LLM budget.
-  const usageDay = !isGuest ? formatDateInTimeZone(new Date(), coachState!.usage!.timeZone) : null;
   try {
+    let updatedUsage;
     if (isGuest) {
-      const incrementResult = await tryIncrementGuestUsage(guestDeviceId!, countryCode);
-      if (!incrementResult.allowed) {
-        const currentUsage = await getGuestUsage(guestDeviceId!, countryCode).catch(
-          () => guestUsage,
-        );
-        return coachError({
-          status: 429,
-          code:
-            incrementResult.reason === "monthly_limit_reached"
-              ? COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED
-              : COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
-          error:
-            incrementResult.reason === "monthly_limit_reached"
-              ? "Monthly AI coach limit reached."
-              : "Daily AI coach limit reached.",
-          usage: currentUsage,
-        });
-      }
+      const result = await chargeGuestUsage({ guestDeviceId: guestDeviceId!, countryCode });
+      if (result.error) return result.error;
+      updatedUsage = result.updatedUsage!;
       incrementIpCounter(ip, countryCode).catch((error) => {
         console.warn("[coach] failed to increment guest IP counter", { ip, error });
       });
     } else {
-      const usage = coachState!.usage!;
-      const incrementResult = await tryIncrementCoachUsage({
-        admin: admin!,
+      const result = await chargeAuthUsage({
         userId: user!.id,
-        day: usageDay!,
-        monthWindowStart: usage.monthWindowStart,
-        monthWindowEnd: usage.monthWindowEnd,
-        dailyLimit: usage.dailyLimit,
-        monthlyLimit: usage.monthlyLimit,
-      });
-      if (!incrementResult.allowed) {
-        const currentState = await getCoachState({
-          admin: admin!,
-          userId: user!.id,
-          deviceId: authDeviceId,
-          email: user!.email,
-          now: new Date(),
-        }).catch(() => coachState);
-        return coachError({
-          status: 429,
-          code:
-            incrementResult.reason === "monthly_limit_reached"
-              ? COACH_ERROR_CODES.MONTHLY_LIMIT_REACHED
-              : COACH_ERROR_CODES.DAILY_LIMIT_REACHED,
-          error:
-            incrementResult.reason === "monthly_limit_reached"
-              ? "Monthly AI coach limit reached."
-              : "Daily AI coach limit reached.",
-          usage: currentState?.usage ?? coachState!.usage,
-        });
-      }
-    }
-  } catch (err) {
-    console.error("[coach] failed to increment usage", err);
-    return coachError({
-      status: 500,
-      code: COACH_ERROR_CODES.QUOTA_WRITE_FAILED,
-      error: "Failed to record usage. Please try again.",
-    });
-  }
-
-  let updatedUsage: CoachUsageSummary | GuestUsageSummary;
-  try {
-    if (isGuest) {
-      const postIncrementUsage = await getGuestUsage(guestDeviceId!, countryCode);
-      updatedUsage = postIncrementUsage;
-    } else {
-      const postIncrementState = await getCoachState({
-        admin: admin!,
-        userId: user!.id,
-        deviceId: authDeviceId,
         email: user!.email,
-        now: new Date(),
+        usageDay,
+        usage: coachState!.usage!,
       });
-      const postIncrementUsage = postIncrementState.usage;
-      if (!postIncrementUsage) {
-        throw new Error("missing usage after increment");
-      }
-      updatedUsage = postIncrementUsage;
+      if (result.error) return result.error;
+      updatedUsage = result.updatedUsage!;
     }
-  } catch (err) {
-    console.error("[coach] failed to verify usage after increment", err);
-    if (isGuest) {
-      await decrementGuestUsage(guestDeviceId!, countryCode).catch(() => {});
-    } else {
-      await decrementCoachUsage({
-        admin: admin!,
-        userId: user!.id,
-        day: usageDay!,
-      }).catch(() => {});
-    }
-    return coachError({
-      status: 500,
-      code: COACH_ERROR_CODES.QUOTA_WRITE_FAILED,
-      error: "Failed to record usage. Please try again.",
-    });
-  }
 
-  try {
-    const provider = createManagedCoachProvider({
-      apiKey,
-      timeout: UPSTREAM_TIMEOUT_MS,
-    });
-
+    // 8. Stream response
+    const modelInfo = getCoachModelInfo();
+    const provider = createManagedCoachProvider({ apiKey, timeout: UPSTREAM_TIMEOUT_MS });
     const stream = provider.createReplyStream(openaiMessages, { signal: request.signal });
     let tokenUsage: CoachProviderUsage | null = null;
     let modelName: string | null = null;
@@ -405,7 +209,6 @@ export async function POST(request: Request) {
             if (chunk.usage) tokenUsage = chunk.usage;
 
             if (chunk.delta) {
-              // Strip "system:" prefix from the very first token batch
               if (firstToken) {
                 firstToken = false;
                 chunk.delta = chunk.delta.replace(/^(system|SYSTEM)\s*[:：]\s*/i, "");
@@ -416,14 +219,11 @@ export async function POST(request: Request) {
             }
           }
 
-          // Stream finished — send done event with usage
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ done: true, usage: updatedUsage })}\n\n`),
           );
           controller.close();
 
-          // Fire-and-forget analytics
-          const durationMs = Date.now() - startTime;
           captureServerEvent({
             distinctId: isGuest ? guestDeviceId! : user!.id,
             event: "coach_request_completed",
@@ -433,7 +233,7 @@ export async function POST(request: Request) {
               plan: isGuest ? "guest" : coachState!.usage!.plan,
               model: modelName ?? modelInfo.model,
               provider: modelInfo.provider,
-              durationMs,
+              durationMs: Date.now() - startTime,
               inputTokens: tokenUsage?.inputTokens ?? null,
               outputTokens: tokenUsage?.outputTokens ?? null,
               totalTokens: tokenUsage?.totalTokens ?? null,
@@ -442,27 +242,13 @@ export async function POST(request: Request) {
           }).catch(() => {});
         } catch (err) {
           const error = err as Error;
-          const durationMs = Date.now() - startTime;
-
-          // Refund usage on upstream failure
-          if (isGuest) {
-            await decrementGuestUsage(guestDeviceId!, countryCode).catch(() => {});
-          } else {
-            await decrementCoachUsage({
-              admin: admin!,
-              userId: user!.id,
-              day: usageDay!,
-            }).catch(() => {});
-          }
-
-          let errorCode = "upstream_error";
-          if (error.name === "AbortError" || error.message?.includes("timeout")) {
-            errorCode = "timeout";
-          } else if (error.message?.includes("429") || error.message?.includes("rate limit")) {
-            errorCode = "rate_limit";
-          } else if (error.message?.includes("401") || error.message?.includes("auth")) {
-            errorCode = "auth_error";
-          }
+          await refundUsage(isGuest, {
+            guestDeviceId: guestDeviceId!,
+            countryCode,
+            userId: user!.id,
+            usageDay,
+          });
+          const errorCode = classifySseError(error);
 
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorCode })}\n\n`));
           controller.close();
@@ -476,7 +262,7 @@ export async function POST(request: Request) {
               plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),
               model: modelInfo.model,
               provider: modelInfo.provider,
-              durationMs,
+              durationMs: Date.now() - startTime,
               errorCode,
               httpStatus: 0,
             },
@@ -498,34 +284,14 @@ export async function POST(request: Request) {
       },
     });
   } catch (err) {
-    // Provider construction failed — return a normal JSON error
     const error = err as Error;
-    const durationMs = Date.now() - startTime;
-
-    // Refund usage on upstream failure
-    if (isGuest) {
-      await decrementGuestUsage(guestDeviceId!, countryCode).catch(() => {});
-    } else {
-      await decrementCoachUsage({
-        admin: admin!,
-        userId: user!.id,
-        day: usageDay!,
-      }).catch(() => {});
-    }
-
-    let httpStatus = 502;
-    let errorCode = "upstream_error";
-
-    if (error.name === "AbortError" || error.message?.includes("timeout")) {
-      httpStatus = 504;
-      errorCode = "timeout";
-    } else if (error.message?.includes("429") || error.message?.includes("rate limit")) {
-      httpStatus = 429;
-      errorCode = "rate_limit";
-    } else if (error.message?.includes("401") || error.message?.includes("auth")) {
-      httpStatus = 500;
-      errorCode = "auth_error";
-    }
+    await refundUsage(isGuest, {
+      guestDeviceId: guestDeviceId!,
+      countryCode,
+      userId: user!.id,
+      usageDay,
+    });
+    const { httpStatus, errorCode } = classifyUpstreamError(error);
 
     captureServerEvent({
       distinctId: isGuest ? guestDeviceId! : (user?.id ?? "unknown"),
@@ -534,9 +300,9 @@ export async function POST(request: Request) {
         locale,
         personaId: personaId || "default",
         plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),
-        model: modelInfo.model,
-        provider: modelInfo.provider,
-        durationMs,
+        model: getCoachModelInfo().model,
+        provider: getCoachModelInfo().provider,
+        durationMs: Date.now() - startTime,
         errorCode,
         httpStatus,
       },
@@ -556,27 +322,22 @@ export async function POST(request: Request) {
   }
 }
 
+// ── GET ──────────────────────────────────────────────────────────────
+
 export async function GET(request: Request) {
   const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const guestDeviceId = request.headers.get(GUEST_DEVICE_ID_HEADER);
-  const authDeviceId = request.headers.get(COACH_DEVICE_ID_HEADER);
+  const identity = resolveIdentity(request);
+  if (identity instanceof Response) return identity;
+  const { guestDeviceId, authDeviceId } = identity;
   const countryCode = request.headers.get("cf-ipcountry");
 
-  if (
-    (guestDeviceId && guestDeviceId.length > DEVICE_ID_MAX_LENGTH) ||
-    (authDeviceId && authDeviceId.length > DEVICE_ID_MAX_LENGTH)
-  ) {
-    return errorResponse("Invalid device ID.", 400);
-  }
-
-  // Guest usage query
   if (!user && guestDeviceId) {
-    const usage = await getGuestUsage(guestDeviceId, countryCode);
-    return createApiResponse({ usage });
+    const { getGuestUsage } = await import("@/lib/coach/guestCoachUsage");
+    return createApiResponse({ usage: await getGuestUsage(guestDeviceId, countryCode) });
   }
 
   if (!user) {
@@ -587,6 +348,7 @@ export async function GET(request: Request) {
     });
   }
 
+  const { getCoachState } = await import("@/lib/coach/coachState");
   const coachState = await getCoachState({
     admin: createServiceClient(),
     userId: user.id,
