@@ -18,6 +18,7 @@ jobs:
       - run: npm run validate:puzzles
       - run: npm run validate:messages
       - run: npx tsc --noEmit
+      - run: npx tsc --project tsconfig.scripts.json
       - run: npm run test
       - run: npm run build
         env:

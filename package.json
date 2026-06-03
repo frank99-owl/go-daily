@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "typecheck:scripts": "tsc --project tsconfig.scripts.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "import:puzzles": "tsx scripts/importTsumego.ts",
