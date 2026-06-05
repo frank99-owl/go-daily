@@ -289,7 +289,7 @@ describe("/api/coach", () => {
       boardSize: 19,
       stones: [],
       toPlay: "black",
-      correct: [{ x: 18, y: 0 }],
+      correct: [{ x: 19, y: 1 }],
       tag: "life-death",
       difficulty: 2,
       prompt: {
@@ -321,7 +321,7 @@ describe("/api/coach", () => {
       body: JSON.stringify({
         puzzleId: "p-00001",
         locale: "en",
-        userMove: { x: 18, y: 0 },
+        userMove: { x: 19, y: 1 },
         history: [],
       }),
     });
@@ -395,14 +395,16 @@ describe("/api/coach", () => {
       makeRequest({
         puzzleId: "p-00001",
         locale: "en",
-        userMove: { x: -1, y: 3 },
+        userMove: { x: 0, y: 3 },
         isCorrect: false,
         history: [{ role: "user", content: "Why?", ts: 1 }],
       }),
     );
 
     expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toEqual({ error: "Invalid move." });
+    // With 1-based coordinates, x=0 fails Zod's min(1) validation
+    const body = await response.json();
+    expect(body.error).toMatch(/expected number to be >=1|Invalid move/);
     expect(supabaseMocks.createServiceClient).not.toHaveBeenCalled();
     expect(createCompletionMock).not.toHaveBeenCalled();
   });
@@ -414,7 +416,7 @@ describe("/api/coach", () => {
       boardSize: 19,
       stones: [{ x: 3, y: 3, color: "black" }],
       toPlay: "white",
-      correct: [{ x: 18, y: 0 }],
+      correct: [{ x: 19, y: 1 }],
       tag: "life-death",
       difficulty: 2,
       prompt: {
@@ -767,7 +769,7 @@ describe("/api/coach", () => {
       makeRequest({
         puzzleId: "p-00001",
         locale: "en",
-        userMove: { x: 18, y: 0 },
+        userMove: { x: 19, y: 1 },
         isCorrect: false,
         history: [{ role: "user", content: "Why?", ts: 1 }],
       }),

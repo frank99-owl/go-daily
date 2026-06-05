@@ -24,7 +24,7 @@ function coordFromKey(k: string): Coord {
 }
 
 function inBounds(c: Coord, size: number): boolean {
-  return c.x >= 0 && c.x < size && c.y >= 0 && c.y < size;
+  return c.x >= 1 && c.x <= size && c.y >= 1 && c.y <= size;
 }
 
 function neighbors(c: Coord): Coord[] {

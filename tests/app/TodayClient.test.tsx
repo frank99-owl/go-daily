@@ -103,13 +103,13 @@ describe("TodayClient keyboard support", () => {
       "/api/puzzle/attempt",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ puzzleId: "cld-001", userMove: { x: 4, y: 4 } }),
+        body: JSON.stringify({ puzzleId: "cld-001", userMove: { x: 5, y: 5 } }),
       }),
     );
     expect(saveAttempt).toHaveBeenCalledWith(
       expect.objectContaining({
         puzzleId: "cld-001",
-        userMove: { x: 4, y: 4 },
+        userMove: { x: 5, y: 5 },
         correct: true,
         revealToken: "reveal-token",
       }),

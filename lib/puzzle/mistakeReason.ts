@@ -33,14 +33,14 @@ function distance(a: Coord, b: Coord): number {
 }
 
 function isNearEdge(coord: Coord, boardSize: number): boolean {
-  return coord.x <= 1 || coord.y <= 1 || coord.x >= boardSize - 2 || coord.y >= boardSize - 2;
+  return coord.x <= 2 || coord.y <= 2 || coord.x >= boardSize - 1 || coord.y >= boardSize - 1;
 }
 
 function isNearCorner(coord: Coord, boardSize: number): boolean {
-  const low = coord.x <= 3 && coord.y <= 3;
-  const topRight = coord.x >= boardSize - 4 && coord.y <= 3;
-  const bottomLeft = coord.x <= 3 && coord.y >= boardSize - 4;
-  const high = coord.x >= boardSize - 4 && coord.y >= boardSize - 4;
+  const low = coord.x <= 4 && coord.y <= 4;
+  const topRight = coord.x >= boardSize - 3 && coord.y <= 4;
+  const bottomLeft = coord.x <= 4 && coord.y >= boardSize - 3;
+  const high = coord.x >= boardSize - 3 && coord.y >= boardSize - 3;
   return low || topRight || bottomLeft || high;
 }
 

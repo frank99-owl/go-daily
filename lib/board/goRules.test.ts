@@ -62,29 +62,29 @@ describe("playMove", () => {
   });
 
   describe("boardSize", () => {
-    // On a 9×9 board, the corner (8,8) has only two real liberties: (7,8) and (8,7).
+    // On a 9×9 board, the corner (9,9) has only two real liberties: (8,9) and (9,8).
     // With the old hardcoded-19 implementation, floodFill would also consider
-    // (9,8) and (8,9) as liberties, incorrectly keeping the stone alive.
+    // (10,9) and (9,10) as liberties, incorrectly keeping the stone alive.
     it("captures a corner stone on a 9×9 board (regression: hardcoded 19)", () => {
       const board = makeBoard([
-        { coord: { x: 8, y: 8 }, color: "white" },
-        { coord: { x: 7, y: 8 }, color: "black" },
+        { coord: { x: 9, y: 9 }, color: "white" },
+        { coord: { x: 8, y: 9 }, color: "black" },
       ]);
-      const result = playMove(board, { color: "black", coord: { x: 8, y: 7 } }, { boardSize: 9 });
+      const result = playMove(board, { color: "black", coord: { x: 9, y: 8 } }, { boardSize: 9 });
       expect(result.captured).toHaveLength(1);
-      expect(result.captured[0]).toEqual({ x: 8, y: 8 });
-      expect(result.board.has("8,8")).toBe(false);
+      expect(result.captured[0]).toEqual({ x: 9, y: 9 });
+      expect(result.board.has("9,9")).toBe(false);
     });
 
     it("13×13: captures edge group correctly", () => {
       const board = makeBoard([
-        { coord: { x: 12, y: 5 }, color: "white" },
-        { coord: { x: 12, y: 6 }, color: "white" },
-        { coord: { x: 11, y: 5 }, color: "black" },
-        { coord: { x: 11, y: 6 }, color: "black" },
-        { coord: { x: 12, y: 4 }, color: "black" },
+        { coord: { x: 13, y: 5 }, color: "white" },
+        { coord: { x: 13, y: 6 }, color: "white" },
+        { coord: { x: 12, y: 5 }, color: "black" },
+        { coord: { x: 12, y: 6 }, color: "black" },
+        { coord: { x: 13, y: 4 }, color: "black" },
       ]);
-      const result = playMove(board, { color: "black", coord: { x: 12, y: 7 } }, { boardSize: 13 });
+      const result = playMove(board, { color: "black", coord: { x: 13, y: 7 } }, { boardSize: 13 });
       expect(result.captured).toHaveLength(2);
     });
   });
@@ -190,7 +190,7 @@ describe("isKo", () => {
 describe("isLegalMove", () => {
   it("rejects out-of-bounds moves", () => {
     const board = makeBoard([]);
-    const result = isLegalMove(board, { color: "black", coord: { x: 19, y: 0 } });
+    const result = isLegalMove(board, { color: "black", coord: { x: 20, y: 1 } });
     expect(result).toEqual({ legal: false, reason: "out_of_bounds" });
   });
 
@@ -217,12 +217,12 @@ describe("isLegalMove", () => {
     expect(result).toEqual({ legal: true });
   });
 
-  it("respects boardSize: (8,0) is legal on 9×9 but OOB on... itself minus one", () => {
+  it("respects boardSize: (9,1) is legal on 9×9 but (10,1) is OOB", () => {
     const board = makeBoard([]);
-    expect(isLegalMove(board, { color: "black", coord: { x: 8, y: 0 } }, { boardSize: 9 })).toEqual(
+    expect(isLegalMove(board, { color: "black", coord: { x: 9, y: 1 } }, { boardSize: 9 })).toEqual(
       { legal: true },
     );
-    expect(isLegalMove(board, { color: "black", coord: { x: 9, y: 0 } }, { boardSize: 9 })).toEqual(
+    expect(isLegalMove(board, { color: "black", coord: { x: 10, y: 1 } }, { boardSize: 9 })).toEqual(
       { legal: false, reason: "out_of_bounds" },
     );
   });

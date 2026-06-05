@@ -10,14 +10,14 @@ describe("random", () => {
     {
       puzzleId: "p1",
       date: "2026-04-21",
-      userMove: { x: 0, y: 0 },
+      userMove: { x: 1, y: 1 },
       correct: true,
       solvedAtMs: 1,
     }, // p1 solved
     {
       puzzleId: "p2",
       date: "2026-04-21",
-      userMove: { x: 1, y: 1 },
+      userMove: { x: 2, y: 2 },
       correct: false,
       solvedAtMs: 2,
     }, // p2 attempted (wrong)

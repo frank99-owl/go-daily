@@ -8,11 +8,11 @@ function makePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {
     id: "puzzle-1",
     date: "2026-04-21",
     boardSize: 19,
-    stones: [{ x: 0, y: 0, color: "black" }],
+    stones: [{ x: 1, y: 1, color: "black" }],
     toPlay: "black",
-    correct: [{ x: 1, y: 1 }],
+    correct: [{ x: 2, y: 2 }],
     tag: "life-death",
-    difficulty: 1,
+    difficulty: 2,
     prompt: {
       zh: "黑先活",
       en: "Black to play and live",
@@ -36,11 +36,11 @@ describe("coachAccess", () => {
       getCoachAccess(
         makePuzzle({
           id: "p-00419",
-          solutionSequence: [{ x: 1, y: 1, color: "black" }],
+          solutionSequence: [{ x: 2, y: 2, color: "black" }],
           wrongBranches: [
             {
-              userWrongMove: { x: 2, y: 2 },
-              refutation: [{ x: 1, y: 1, color: "black" }],
+              userWrongMove: { x: 3, y: 3 },
+              refutation: [{ x: 2, y: 2, color: "black" }],
               note: {
                 zh: "白会先手封住眼位。",
                 en: "White seals the eye space first.",
@@ -90,11 +90,11 @@ describe("coachAccess", () => {
       getCoachAccess(
         makePuzzle({
           id: "p-00122",
-          solutionSequence: [{ x: 1, y: 1, color: "black" }],
+          solutionSequence: [{ x: 2, y: 2, color: "black" }],
           wrongBranches: [
             {
-              userWrongMove: { x: 2, y: 2 },
-              refutation: [{ x: 1, y: 1, color: "black" }],
+              userWrongMove: { x: 3, y: 3 },
+              refutation: [{ x: 2, y: 2, color: "black" }],
               note: {
                 zh: "白会先手封住眼位。",
                 en: "White seals the eye space first.",

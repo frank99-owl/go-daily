@@ -8,11 +8,11 @@ function makeBasePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {
     id: "puzzle-1",
     date: "2026-04-21",
     boardSize: 19,
-    stones: [{ x: 0, y: 0, color: "black" }],
+    stones: [{ x: 1, y: 1, color: "black" }],
     toPlay: "black",
-    correct: [{ x: 1, y: 1 }],
+    correct: [{ x: 2, y: 2 }],
     tag: "life-death",
-    difficulty: 1,
+    difficulty: 2,
     prompt: {
       zh: "黑先活",
       en: "Black to play and live",
@@ -33,11 +33,11 @@ function makeBasePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {
 describe("checkCoachEligibility", () => {
   it("accepts curated-style high-context puzzles", () => {
     const puzzle = makeBasePuzzle({
-      solutionSequence: [{ x: 1, y: 1, color: "black" }],
+      solutionSequence: [{ x: 2, y: 2, color: "black" }],
       wrongBranches: [
         {
-          userWrongMove: { x: 2, y: 2 },
-          refutation: [{ x: 2, y: 3, color: "white" }],
+          userWrongMove: { x: 3, y: 3 },
+          refutation: [{ x: 3, y: 4, color: "white" }],
           note: {
             zh: "如果黑贪别处，白就能先手封住眼位。",
             en: "If Black plays elsewhere, White seals the eye space immediately.",

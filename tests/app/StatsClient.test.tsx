@@ -14,7 +14,7 @@ vi.mock("@/lib/posthog/events", () => ({
 function summary(id: string, tag: PuzzleSummary["tag"]): PuzzleSummary {
   return {
     id,
-    difficulty: 2,
+    difficulty: 3,
     source: "test",
     date: "2026-05-01",
     prompt: {
@@ -94,7 +94,7 @@ describe("StatsClient", () => {
               {
                 puzzleId: "cld-001",
                 date: "2026-04-21",
-                userMove: { x: 18, y: 0 },
+                userMove: { x: 19, y: 1 },
                 correct: true,
                 solvedAtMs: 123,
               },
@@ -188,7 +188,7 @@ describe("StatsClient", () => {
     });
 
     expect(screen.getByText("Life & Death · 1")).toBeInTheDocument();
-    expect(screen.getByText("Liberty counting · 1")).toBeInTheDocument();
+    expect(screen.getByText("Shape reading · 2")).toBeInTheDocument();
     expect(screen.getByText("1/4 correct · 25%")).toBeInTheDocument();
     expect(screen.getByText("33%")).toBeInTheDocument();
     expect(screen.getByText("1 cleared · 2 waiting")).toBeInTheDocument();

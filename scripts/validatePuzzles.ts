@@ -42,10 +42,10 @@ function inBounds(c: Coord, size: number): boolean {
   return (
     Number.isInteger(c.x) &&
     Number.isInteger(c.y) &&
-    c.x >= 0 &&
-    c.x < size &&
-    c.y >= 0 &&
-    c.y < size
+    c.x >= 1 &&
+    c.x <= size &&
+    c.y >= 1 &&
+    c.y <= size
   );
 }
 

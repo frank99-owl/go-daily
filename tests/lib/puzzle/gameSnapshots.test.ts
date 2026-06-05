@@ -5,8 +5,8 @@ import { buildSnapshots } from "@/lib/puzzle/gameSnapshots";
 describe("gameSnapshots", () => {
   it("builds snapshots correctly for a sequence of moves", () => {
     const moves = [
-      { coord: { x: 0, y: 0 }, color: "black" as const },
-      { coord: { x: 1, y: 1 }, color: "white" as const },
+      { coord: { x: 1, y: 1 }, color: "black" as const },
+      { coord: { x: 2, y: 2 }, color: "white" as const },
     ];
 
     const snapshots = buildSnapshots(moves);
@@ -22,12 +22,12 @@ describe("gameSnapshots", () => {
     // Move 1
     expect(snapshots[1].moveNumber).toBe(1);
     expect(snapshots[1].stones.length).toBe(1);
-    expect(snapshots[1].lastMove).toEqual({ x: 0, y: 0 });
+    expect(snapshots[1].lastMove).toEqual({ x: 1, y: 1 });
 
     // Move 2
     expect(snapshots[2].moveNumber).toBe(2);
     expect(snapshots[2].stones.length).toBe(2);
-    expect(snapshots[2].lastMove).toEqual({ x: 1, y: 1 });
+    expect(snapshots[2].lastMove).toEqual({ x: 2, y: 2 });
   });
 
   it("returns single snapshot for empty moves", () => {

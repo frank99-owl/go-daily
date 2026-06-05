@@ -1058,7 +1058,7 @@ function findOutOfBoundsCoord(text, boardSize) {
   for (const match of matches) {
     const x = Number(match[1]);
     const y = Number(match[2]);
-    if (x < 0 || y < 0 || x >= boardSize || y >= boardSize) return match[0];
+    if (x < 1 || y < 1 || x > boardSize || y > boardSize) return match[0];
   }
   return "";
 }

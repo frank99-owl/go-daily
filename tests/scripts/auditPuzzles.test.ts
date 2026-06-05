@@ -9,11 +9,11 @@ describe("auditPuzzles", () => {
       id: "cld-001",
       date: "2026-04-21",
       boardSize: 9,
-      stones: [{ x: 0, y: 0, color: "black" }],
+      stones: [{ x: 1, y: 1, color: "black" }],
       toPlay: "black",
-      correct: [{ x: 1, y: 1 }],
+      correct: [{ x: 2, y: 2 }],
       tag: "life-death",
-      difficulty: 1,
+      difficulty: 2,
       prompt: {
         zh: "黑先活",
         en: "Black to play and live",
@@ -27,13 +27,13 @@ describe("auditPuzzles", () => {
         ko: "흑은 귀의 급소를 먼저 차지해야 백의 눈 모양을 줄이고 이후 두 눈을 확보할 수 있습니다.",
       },
       solutionSequence: [
-        { x: 1, y: 1, color: "black" },
-        { x: 1, y: 2, color: "white" },
+        { x: 2, y: 2, color: "black" },
+        { x: 2, y: 3, color: "white" },
       ],
       wrongBranches: [
         {
-          userWrongMove: { x: 2, y: 2 },
-          refutation: [{ x: 1, y: 1, color: "black" }],
+          userWrongMove: { x: 3, y: 3 },
+          refutation: [{ x: 2, y: 2, color: "black" }],
           note: {
             zh: "如果黑先走别处，白会抢先补眼位。",
             en: "If Black plays elsewhere, White takes the eye point first.",
@@ -48,11 +48,11 @@ describe("auditPuzzles", () => {
       id: "cho-e-001",
       date: "2026-04-22",
       boardSize: 19,
-      stones: [{ x: 3, y: 3, color: "white" }],
+      stones: [{ x: 4, y: 4, color: "white" }],
       toPlay: "black",
-      correct: [{ x: 2, y: 2 }],
+      correct: [{ x: 3, y: 3 }],
       tag: "tesuji",
-      difficulty: 3,
+      difficulty: 4,
       prompt: {
         zh: "黑先，找到正确的急所",
         en: "Black to play — find the vital point",
@@ -75,7 +75,7 @@ describe("auditPuzzles", () => {
       toPlay: "black",
       correct: [],
       tag: "life-death",
-      difficulty: 3,
+      difficulty: 4,
       prompt: {
         zh: "黑先，找到正确的急所",
         en: "Black to play — find the vital point",
@@ -95,7 +95,7 @@ describe("auditPuzzles", () => {
   const summaryIndex: PuzzleSummary[] = [
     {
       id: "cld-001",
-      difficulty: 1,
+      difficulty: 2,
       source: "Editorial",
       date: "2026-04-21",
       prompt: {
@@ -109,7 +109,7 @@ describe("auditPuzzles", () => {
     },
     {
       id: "cho-e-001",
-      difficulty: 3,
+      difficulty: 4,
       source: "Classical Go",
       date: "2026-04-22",
       prompt: {
@@ -123,7 +123,7 @@ describe("auditPuzzles", () => {
     },
     {
       id: "stale-001",
-      difficulty: 2,
+      difficulty: 3,
       source: "stale",
       date: "2026-04-20",
       prompt: {

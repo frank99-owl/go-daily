@@ -2,9 +2,9 @@ import type { Coord } from "@/types";
 
 export type Move = { color: "black" | "white"; coord: Coord };
 
-// SGF-ish coord "eb" → { x: 4, y: 1 }  (a=0, b=1, ..., s=18)
+// SGF-ish coord "eb" → { x: 5, y: 2 }  (a=1, b=2, ..., s=19, 1-based)
 function sgfToCoord(s: string): Coord {
-  return { x: s.charCodeAt(0) - 97, y: s.charCodeAt(1) - 97 };
+  return { x: s.charCodeAt(0) - 96, y: s.charCodeAt(1) - 96 };
 }
 
 /**

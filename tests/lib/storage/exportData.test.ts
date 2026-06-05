@@ -41,7 +41,7 @@ describe("exportData", () => {
       {
         puzzleId: "cld-001",
         date: "2026-04-21",
-        userMove: { x: 18, y: 0 },
+        userMove: { x: 19, y: 1 },
         correct: true,
         solvedAtMs: 123,
       },
@@ -126,7 +126,7 @@ describe("exportData", () => {
       {
         puzzleId: "cld-001",
         date: "2026-04-21",
-        userMove: { x: 18, y: 0 },
+        userMove: { x: 19, y: 1 },
         correct: true,
         solvedAtMs: 123,
       },
@@ -142,14 +142,14 @@ describe("exportData", () => {
             {
               puzzleId: "cld-001",
               date: "2026-04-21",
-              userMove: { x: 18, y: 0 },
+              userMove: { x: 19, y: 1 },
               correct: true,
               solvedAtMs: 123,
             },
             {
               puzzleId: "cld-002",
               date: "2026-04-22",
-              userMove: { x: 17, y: 0 },
+              userMove: { x: 18, y: 1 },
               correct: false,
               solvedAtMs: 456,
             },

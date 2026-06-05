@@ -14,17 +14,17 @@ describe("coordEquals", () => {
 });
 
 describe("isInBounds", () => {
-  it("accepts origin", () => {
-    expect(isInBounds({ x: 0, y: 0 }, 19)).toBe(true);
+  it("accepts origin (1,1)", () => {
+    expect(isInBounds({ x: 1, y: 1 }, 19)).toBe(true);
   });
-  it("accepts max coord", () => {
-    expect(isInBounds({ x: 18, y: 18 }, 19)).toBe(true);
+  it("accepts max coord (19,19)", () => {
+    expect(isInBounds({ x: 19, y: 19 }, 19)).toBe(true);
   });
-  it("rejects negative", () => {
-    expect(isInBounds({ x: -1, y: 0 }, 19)).toBe(false);
+  it("rejects zero", () => {
+    expect(isInBounds({ x: 0, y: 1 }, 19)).toBe(false);
   });
   it("rejects out of range", () => {
-    expect(isInBounds({ x: 19, y: 0 }, 19)).toBe(false);
+    expect(isInBounds({ x: 20, y: 1 }, 19)).toBe(false);
   });
 });
 
@@ -50,6 +50,6 @@ describe("starPoints", () => {
   });
   it("includes tengen for 19x19", () => {
     const points = starPoints(19);
-    expect(points.some((p) => p.x === 9 && p.y === 9)).toBe(true);
+    expect(points.some((p) => p.x === 10 && p.y === 10)).toBe(true);
   });
 });

@@ -13,7 +13,7 @@ function describePosition(puzzle: Puzzle): string {
   const solution = puzzle.correct.map((c) => coordLabel(c)).join(", ");
   return [
     `Board size: ${puzzle.boardSize}x${puzzle.boardSize}.`,
-    "Use only the displayed local 0-indexed (x,y) coordinates from the student's current view.",
+    "Use only the displayed local 1-based (x,y) coordinates from the student's current view.",
     `Black stones on board: ${describe(blacks)}.`,
     `White stones on board: ${describe(whites)}.`,
     `To play: ${puzzle.toPlay}.`,
@@ -39,7 +39,7 @@ export function buildSystemPrompt(
     "Keep replies short: 2–4 short paragraphs, no lists unless helpful.",
     "You are given the exact position and the accepted solution point(s). Treat the 'Accepted correct point(s)' and the 'Solution note' as ground truth. Never contradict them; never invent new solutions.",
     "Do not casually describe the visible board as a full 19x19 board if the UI is only showing a cropped local corner. Focus on the local shape first.",
-    "If you mention coordinates, use the exact (x,y) format used in the UI. Do not switch to letter-number Go notation unless the student explicitly asks for it.",
+    "If you mention coordinates, use the exact (x,y) format used in the UI (1-based, where (1,1) is top-left). Do not switch to letter-number Go notation unless the student explicitly asks for it.",
     "If the student asks about a variation you're unsure about, say so honestly and defer to the solution note.",
     "The student has already submitted a move — answer their questions about it (or about the shape) naturally. Do NOT pre-empt with an unsolicited critique; wait for what they actually ask.",
     "If the student sends a greeting (e.g. 'hello', 'hi', '你好'), respond warmly and briefly, then gently guide them toward the puzzle. Do not immediately analyze the position unless they ask.",

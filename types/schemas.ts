@@ -16,8 +16,8 @@ export const LocalizedTextSchema = z.object({
 });
 
 export const CoordSchema = z.object({
-  x: z.number().int(),
-  y: z.number().int(),
+  x: z.number().int().min(1),
+  y: z.number().int().min(1),
 });
 
 export const ColorSchema = z.enum(["black", "white"]);

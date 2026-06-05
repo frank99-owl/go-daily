@@ -86,8 +86,8 @@ function findInitialKeyboardCursor(
   return candidates.find((candidate) => !isOccupied(stones, candidate)) ?? candidates[0] ?? null;
 }
 
-// Canvas-drawn Go board. HiDPI aware. Coordinates are 0-indexed from top-left,
-// where (0, 0) is the top-left intersection and (size-1, size-1) is bottom-right.
+// Canvas-drawn Go board. HiDPI aware. Coordinates are 1-based,
+// where (1, 1) is the top-left intersection and (size, size) is bottom-right.
 export function GoBoard({
   size,
   stones,

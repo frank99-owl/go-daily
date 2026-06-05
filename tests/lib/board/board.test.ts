@@ -21,33 +21,33 @@ describe("coordEquals", () => {
 });
 
 describe("isInBounds", () => {
-  it("accepts (0,0) on any board", () => {
-    expect(isInBounds({ x: 0, y: 0 }, 19)).toBe(true);
+  it("accepts (1,1) on any board", () => {
+    expect(isInBounds({ x: 1, y: 1 }, 19)).toBe(true);
   });
 
-  it("accepts max valid coord (size-1)", () => {
-    expect(isInBounds({ x: 18, y: 18 }, 19)).toBe(true);
+  it("accepts max valid coord (size,size)", () => {
+    expect(isInBounds({ x: 19, y: 19 }, 19)).toBe(true);
   });
 
-  it("rejects negative x", () => {
-    expect(isInBounds({ x: -1, y: 0 }, 19)).toBe(false);
+  it("rejects zero x", () => {
+    expect(isInBounds({ x: 0, y: 1 }, 19)).toBe(false);
   });
 
-  it("rejects x >= size", () => {
-    expect(isInBounds({ x: 19, y: 0 }, 19)).toBe(false);
+  it("rejects x > size", () => {
+    expect(isInBounds({ x: 20, y: 1 }, 19)).toBe(false);
   });
 
-  it("rejects negative y", () => {
-    expect(isInBounds({ x: 0, y: -1 }, 19)).toBe(false);
+  it("rejects zero y", () => {
+    expect(isInBounds({ x: 1, y: 0 }, 19)).toBe(false);
   });
 
-  it("rejects y >= size", () => {
-    expect(isInBounds({ x: 0, y: 19 }, 19)).toBe(false);
+  it("rejects y > size", () => {
+    expect(isInBounds({ x: 1, y: 20 }, 19)).toBe(false);
   });
 
   it("works for 9x9 board", () => {
-    expect(isInBounds({ x: 8, y: 8 }, 9)).toBe(true);
-    expect(isInBounds({ x: 9, y: 0 }, 9)).toBe(false);
+    expect(isInBounds({ x: 9, y: 9 }, 9)).toBe(true);
+    expect(isInBounds({ x: 10, y: 1 }, 9)).toBe(false);
   });
 });
 
@@ -76,11 +76,11 @@ describe("isOccupied", () => {
 
 describe("fullWindow", () => {
   it("returns full board window for 19x19", () => {
-    expect(fullWindow(19)).toEqual({ xMin: 0, xMax: 18, yMin: 0, yMax: 18 });
+    expect(fullWindow(19)).toEqual({ xMin: 1, xMax: 19, yMin: 1, yMax: 19 });
   });
 
   it("returns full board window for 9x9", () => {
-    expect(fullWindow(9)).toEqual({ xMin: 0, xMax: 8, yMin: 0, yMax: 8 });
+    expect(fullWindow(9)).toEqual({ xMin: 1, xMax: 9, yMin: 1, yMax: 9 });
   });
 });
 
@@ -97,13 +97,13 @@ describe("starPoints", () => {
     expect(starPoints(19)).toHaveLength(9);
   });
 
-  it("center point is at (4,4) for 9x9", () => {
+  it("center point is at (5,5) for 9x9", () => {
     const points = starPoints(9);
-    expect(points).toContainEqual({ x: 4, y: 4 });
+    expect(points).toContainEqual({ x: 5, y: 5 });
   });
 
-  it("center point is at (9,9) for 19x19", () => {
+  it("center point is at (10,10) for 19x19", () => {
     const points = starPoints(19);
-    expect(points).toContainEqual({ x: 9, y: 9 });
+    expect(points).toContainEqual({ x: 10, y: 10 });
   });
 });
