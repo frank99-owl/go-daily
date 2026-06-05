@@ -31,13 +31,32 @@ Operators can grant Pro by email without Stripe using the `manual_grants` table 
 
 ## 2. Spaced Repetition (SRS) Logic (`lib/puzzle/srs.ts`)
 
-We implement a modified SuperMemo-2 (SM-2) algorithm.
+We implement a modified SuperMemo-2 (SM-2) algorithm with mistake-reason-aware quality mapping.
 
-- **Initial State**: Ease Factor 2.5, Interval 0.
-- **Quality Mapping**:
-  - Incorrect -> 2 (Triggers immediate re-queue)
-  - Correct -> 5 (Calculates next interval based on Ease Factor)
-- **Scheduling**: Puzzles are queued in `due_date` ascending order. Pro users can clear their backlog to achieve "Inbox Zero" for Go mistakes.
+- **Initial State**: Ease Factor 2.5, Interval 0. Minimum Ease Factor floor: 1.3.
+- **Quality Mapping** (per `qualityFromAttemptWithReason`):
+  - Correct (any reason) -> 5
+  - Incorrect, `missed-vital-point` (near-miss) -> 3 (mild penalty; treated as a "pass" by SM-2, interval advances to 1 day)
+  - Incorrect, `shape-reading` or `liberty-counting` (core calculation error) -> 1 (aggressive penalty; ease factor drops more, interval stays at 0)
+  - Incorrect, `endgame-value`, `opening-direction`, or unknown reason -> 2 (standard penalty; triggers immediate re-queue)
+- **Ease Factor Update**: `nextEase = currentEaseFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))`, clamped to minimum 1.3.
+- **Interval Progression** (quality >= 3): 0 -> 1 day -> 6 days -> then `ceil(previousInterval * nextEase)`.
+- **Quality < 3**: Resets interval to 0 (immediate re-queue on same day).
+- **Scheduling**: Puzzles are queued in `due_date` ascending order. Review list is sorted by weak-area match first (puzzles matching the user's most frequent mistake reasons appear earlier). Pro users can clear their backlog to achieve "Inbox Zero" for Go mistakes.
+
+### Mistake Reason Classification (`lib/puzzle/mistakeReason.ts`)
+
+The system automatically classifies mistake reasons based on puzzle tag, difficulty, and user move position — 5 types total:
+
+| Mistake Reason ID    | Classification Logic                                              | Meaning                          |
+| -------------------- | ----------------------------------------------------------------- | -------------------------------- |
+| `missed-vital-point` | User move within Chebyshev distance <= 1 of correct point         | Near-miss, almost correct        |
+| `shape-reading`      | Tesuji or high-difficulty (>= 4) life-death; move far from answer | Misread the local shape          |
+| `liberty-counting`   | Low-difficulty (<= 3) life-death; move far from answer            | Liberty count error              |
+| `endgame-value`      | Puzzle tag is `endgame`                                           | Endgame value judgment error     |
+| `opening-direction`  | Puzzle tag is `opening`                                           | Opening direction choice error   |
+
+Mistake reason data drives three systems: SRS quality mapping (affects review intervals), recommendation engine (weak-area targeting), and training stats dashboard (weakness display).
 
 ## 3. Subscription Management (`lib/stripe/`)
 
@@ -79,7 +98,18 @@ The target path is `onboarding → first puzzle → result → coach → review 
 | Result              | Pass/fail, correct sequence, shape explanation, whether to review | `correct`, `solutionNote`, attempt record                      |
 | Coach               | Q&A capability boundaries; full Q&A only on approved puzzles      | `qualityTier`, quotas, approval list, persona                  |
 | Review              | Last mistake reason, review goal, next SRS time                   | Attempt history, `reviewSrs.ts`                                |
-| Next recommendation | Next best puzzle instead of purely random selection               | Difficulty, tags, SRS expiration, recent errors, content tiers |
+| Next recommendation | Next best puzzle instead of purely random selection               | Difficulty, tags, SRS expiration, recent errors, mistake reasons, content tiers, adaptive accuracy |
+
+**Next recommendation logic** (`lib/puzzle/nextRecommendation.ts`): The engine selects the next puzzle based on primary action (`continue-practice` or `review-mistakes`), adaptive difficulty hints (`same-level`, `step-up`, `step-down`), and a reason ID. Key behaviors:
+
+- Onboarding: stays on selected level.
+- No prior attempts: fallback to current level.
+- Large review backlog (>= 5 unanswered wrong attempts): prioritizes `review-mistakes`.
+- Wrong answer: targets same topic and mistake reason.
+- Correct answer with weak areas: targets the weakest mistake reason category (if different from current tag).
+- Correct answer with high recent accuracy (>= 80% of last 10): steps up difficulty.
+- Correct answer with low recent accuracy (<= 40% of last 10): steps down difficulty.
+- Default: conservative step-up if no prior wrong attempts for this puzzle.
 
 The core metrics of this loop are first puzzle completion rate, continuation rate from the result page, next-day return rate after Coach use, mistake review completion rate, and Pro upsell conversion point quality.
 

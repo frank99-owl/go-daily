@@ -31,13 +31,32 @@ Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts`
 
 ## 2. 间隔复习 (SRS) 逻辑 (`lib/puzzle/srs.ts`)
 
-我们实现了改进后的 SuperMemo-2 (SM-2) 算法。
+我们实现了改进后的 SuperMemo-2 (SM-2) 算法，并增加了基于错因的质量映射。
 
-- **初始状态**：易难度因子 (Ease Factor) 2.5，间隔 0。
-- **质量映射**：
-  - 做错 -> 2 (触发立即重新入队)
-  - 做对 -> 5 (根据 Ease Factor 计算下一个间隔)
-- **排期**：题目按 `due_date` 升序排列。Pro 用户可以清理积压，实现错题管理的“收件箱清零”。
+- **初始状态**：易难度因子 (Ease Factor) 2.5，间隔 0。最小易度因子下限 1.3。
+- **质量映射**（`qualityFromAttemptWithReason`）：
+  - 做对（任何错因） -> 5
+  - 做错，`missed-vital-point`（近似正确） -> 3（轻度惩罚；SM-2 视为”通过”，间隔推进至 1 天）
+  - 做错，`shape-reading` 或 `liberty-counting`（核心计算错误） -> 1（重罚；易度因子下降更剧烈，间隔归 0）
+  - 做错，`endgame-value`、`opening-direction` 或未知错因 -> 2（标准惩罚；触发立即重新入队）
+- **易度因子更新**：`nextEase = currentEaseFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))`，下限钳位至 1.3。
+- **间隔递进**（质量 >= 3）：0 -> 1 天 -> 6 天 -> 之后 `ceil(上次间隔 * nextEase)`。
+- **质量 < 3**：间隔重置为 0（同日立即重新入队）。
+- **排期**：题目按 `due_date` 升序排列。复习列表按弱项优先排序（匹配用户高频错因的题目排在前面）。Pro 用户可以清理积压，实现错题管理的”收件箱清零”。
+
+### 错因分类 (`lib/puzzle/mistakeReason.ts`)
+
+系统根据题目标签、难度和用户落子位置自动归类错因，共 5 种：
+
+| 错因 ID               | 判定逻辑                                                   | 含义               |
+| --------------------- | ---------------------------------------------------------- | ------------------ |
+| `missed-vital-point`  | 用户落子与正解的切比雪夫距离 <= 1                          | 近似正确，差一点   |
+| `shape-reading`       | 手筋题或高难度 (>= 4) 死活题，落子远离正解                 | 棋形判断错误       |
+| `liberty-counting`    | 低难度 (<= 3) 死活题，落子远离正解                         | 数气计算错误       |
+| `endgame-value`       | 题目标签为 `endgame`                                       | 官子价值判断错误   |
+| `opening-direction`   | 题目标签为 `opening`                                       | 布局方向选择错误   |
+
+错因数据用于三个地方：SRS 质量映射（影响复习间隔）、推荐引擎（弱项定向练习）、训练统计面板（弱项展示）。
 
 ## 3. 订阅管理 (`lib/stripe/`)
 
@@ -79,7 +98,18 @@ Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts`
 | Result              | 对错、正解、关键形状解释、是否进入复习             | `correct`、`solutionNote`、attempt 记录      |
 | Coach               | 可追问的讲解边界；只有完整题提供主线与错误分支问答 | `qualityTier`、配额、批准列表、人设          |
 | Review              | 上次错因、本次复习目标、SRS 下一次时间             | attempt 历史、`reviewSrs.ts`                 |
-| Next recommendation | 下一道更适合的题，而不是单纯随机                   | 难度、标签、SRS 到期、近期错误、内容质量分层 |
+| Next recommendation | 下一道更适合的题，而不是单纯随机                   | 难度、标签、SRS 到期、近期错误、错因、内容质量分层、自适应准确率 |
+
+**推荐引擎逻辑**（`lib/puzzle/nextRecommendation.ts`）：引擎根据主行动（`continue-practice` 或 `review-mistakes`）、难度提示（`same-level`、`step-up`、`step-down`）和原因 ID 选择下一题。关键行为：
+
+- Onboarding：保持选定水平。
+- 无历史记录：回退到当前难度。
+- 复习积压 >= 5：优先推荐 `review-mistakes`。
+- 答错：定向同题型和同错因。
+- 答对且有弱项：定向最弱错因对应的题型（与当前题型不同时）。
+- 答对且近期准确率 >= 80%（最近 10 题）：自动升级难度。
+- 答对且近期准确率 <= 40%（最近 10 题）：自动降级难度。
+- 默认：若当前题无历史错答，保守升级一档。
 
 该闭环的核心指标不是题库总量，而是首题完成率、结果页继续率、Coach 使用后的次日回访、错题复习完成率和 Pro 转化触点质量。
 
