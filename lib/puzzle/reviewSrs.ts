@@ -187,10 +187,7 @@ export async function syncAndReadDueSrsItems({
 
   // Compute weak areas from wrong attempts for prioritized sorting.
   const summaryById = new Map(summaries.map((s) => [s.id, s]));
-  const weakReasons = computeWeakReasons(
-    (attemptRows ?? []) as AttemptRow[],
-    summaryById,
-  );
+  const weakReasons = computeWeakReasons((attemptRows ?? []) as AttemptRow[], summaryById);
 
   return Array.from(cardsByPuzzle.entries())
     .filter(([puzzleId, card]) => knownPuzzleIds.has(puzzleId) && card.dueDate <= today)

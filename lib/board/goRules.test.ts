@@ -222,8 +222,8 @@ describe("isLegalMove", () => {
     expect(isLegalMove(board, { color: "black", coord: { x: 9, y: 1 } }, { boardSize: 9 })).toEqual(
       { legal: true },
     );
-    expect(isLegalMove(board, { color: "black", coord: { x: 10, y: 1 } }, { boardSize: 9 })).toEqual(
-      { legal: false, reason: "out_of_bounds" },
-    );
+    expect(
+      isLegalMove(board, { color: "black", coord: { x: 10, y: 1 } }, { boardSize: 9 }),
+    ).toEqual({ legal: false, reason: "out_of_bounds" });
   });
 });

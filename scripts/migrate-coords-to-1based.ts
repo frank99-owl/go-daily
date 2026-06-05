@@ -111,7 +111,9 @@ for (const p of migrated) {
   }
   for (const c of p.correct) {
     if (c.x < 1 || c.x > p.boardSize || c.y < 1 || c.y > p.boardSize) {
-      console.error(`  ERROR ${p.id}: correct out of bounds (${c.x},${c.y}) for size ${p.boardSize}`);
+      console.error(
+        `  ERROR ${p.id}: correct out of bounds (${c.x},${c.y}) for size ${p.boardSize}`,
+      );
       errors++;
     }
   }

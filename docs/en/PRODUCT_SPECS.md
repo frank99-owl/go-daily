@@ -48,13 +48,13 @@ We implement a modified SuperMemo-2 (SM-2) algorithm with mistake-reason-aware q
 
 The system automatically classifies mistake reasons based on puzzle tag, difficulty, and user move position — 5 types total:
 
-| Mistake Reason ID    | Classification Logic                                              | Meaning                          |
-| -------------------- | ----------------------------------------------------------------- | -------------------------------- |
-| `missed-vital-point` | User move within Chebyshev distance <= 1 of correct point         | Near-miss, almost correct        |
-| `shape-reading`      | Tesuji or high-difficulty (>= 4) life-death; move far from answer | Misread the local shape          |
-| `liberty-counting`   | Low-difficulty (<= 3) life-death; move far from answer            | Liberty count error              |
-| `endgame-value`      | Puzzle tag is `endgame`                                           | Endgame value judgment error     |
-| `opening-direction`  | Puzzle tag is `opening`                                           | Opening direction choice error   |
+| Mistake Reason ID    | Classification Logic                                              | Meaning                        |
+| -------------------- | ----------------------------------------------------------------- | ------------------------------ |
+| `missed-vital-point` | User move within Chebyshev distance <= 1 of correct point         | Near-miss, almost correct      |
+| `shape-reading`      | Tesuji or high-difficulty (>= 4) life-death; move far from answer | Misread the local shape        |
+| `liberty-counting`   | Low-difficulty (<= 3) life-death; move far from answer            | Liberty count error            |
+| `endgame-value`      | Puzzle tag is `endgame`                                           | Endgame value judgment error   |
+| `opening-direction`  | Puzzle tag is `opening`                                           | Opening direction choice error |
 
 Mistake reason data drives three systems: SRS quality mapping (affects review intervals), recommendation engine (weak-area targeting), and training stats dashboard (weakness display).
 
@@ -91,13 +91,13 @@ In the implementation, `lib/coach/coachEligibility.ts` returns `qualityTier` and
 
 The target path is `onboarding → first puzzle → result → coach → review → next recommendation`:
 
-| Step                | Feedback for User                                                 | System Basis                                                   |
-| ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------- |
-| Onboarding          | Suitable training intensity, tag entries, and today's goal        | Training level preference, locale, auth state                  |
-| First puzzle        | Clear tag, difficulty, active turn, instant move feedback         | Puzzle index, daily selection, board rules                     |
-| Result              | Pass/fail, correct sequence, shape explanation, whether to review | `correct`, `solutionNote`, attempt record                      |
-| Coach               | Q&A capability boundaries; full Q&A only on approved puzzles      | `qualityTier`, quotas, approval list, persona                  |
-| Review              | Last mistake reason, review goal, next SRS time                   | Attempt history, `reviewSrs.ts`                                |
+| Step                | Feedback for User                                                 | System Basis                                                                                       |
+| ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Onboarding          | Suitable training intensity, tag entries, and today's goal        | Training level preference, locale, auth state                                                      |
+| First puzzle        | Clear tag, difficulty, active turn, instant move feedback         | Puzzle index, daily selection, board rules                                                         |
+| Result              | Pass/fail, correct sequence, shape explanation, whether to review | `correct`, `solutionNote`, attempt record                                                          |
+| Coach               | Q&A capability boundaries; full Q&A only on approved puzzles      | `qualityTier`, quotas, approval list, persona                                                      |
+| Review              | Last mistake reason, review goal, next SRS time                   | Attempt history, `reviewSrs.ts`                                                                    |
 | Next recommendation | Next best puzzle instead of purely random selection               | Difficulty, tags, SRS expiration, recent errors, mistake reasons, content tiers, adaptive accuracy |
 
 **Next recommendation logic** (`lib/puzzle/nextRecommendation.ts`): The engine selects the next puzzle based on primary action (`continue-practice` or `review-mistakes`), adaptive difficulty hints (`same-level`, `step-up`, `step-down`), and a reason ID. Key behaviors:
