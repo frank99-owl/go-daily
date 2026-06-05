@@ -200,6 +200,7 @@
       "cta": {
         "sameLevel": "Continue same level",
         "stepUp": "Try slightly harder",
+        "stepDown": "Step back to consolidate",
         "sameTopic": "Practice same topic",
         "loading": "Finding next puzzle…"
       },
@@ -229,6 +230,18 @@
         "fallback-practice": {
           "title": "Keep practicing from here",
           "body": "There is not enough history yet, so the next puzzle stays near the current difficulty."
+        },
+        "correct-step-down": {
+          "title": "Step back to consolidate",
+          "body": "Recent accuracy suggests the current level is a stretch. Dropping down one notch lets you rebuild confidence before climbing again."
+        },
+        "target-weak-area": {
+          "title": "Strengthen your weak spot",
+          "body": "Your recent errors cluster around this topic. A targeted practice round now is worth more than pushing to harder puzzles."
+        },
+        "review-backlog": {
+          "title": "Clear your review backlog first",
+          "body": "You have several unresolved mistakes waiting. Reviewing them now strengthens retention more than adding new puzzles."
         }
       }
     },

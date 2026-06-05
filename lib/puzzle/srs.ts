@@ -1,4 +1,5 @@
 import { formatDateInTimeZone } from "@/lib/coach/coachQuota";
+import type { MistakeReasonId } from "@/lib/puzzle/mistakeReason";
 
 export type SrsQuality = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -36,6 +37,30 @@ function addDaysToDayKey(dayKey: string, days: number): string {
 
 export function qualityFromAttempt(correct: boolean): SrsQuality {
   return correct ? 5 : 2;
+}
+
+/**
+ * Mistake-reason-aware quality mapping.
+ *
+ * Conceptual errors (shape-reading, liberty-counting) get the lowest quality,
+ * which causes the ease factor to drop more aggressively and the review
+ * interval to stay short.  Near-miss errors (missed-vital-point) are treated
+ * more leniently because the user's understanding is close to correct.
+ */
+export function qualityFromAttemptWithReason(
+  correct: boolean,
+  mistakeReasonId?: MistakeReasonId | null,
+): SrsQuality {
+  if (correct) return 5;
+  switch (mistakeReasonId) {
+    case "missed-vital-point":
+      return 3; // near-miss: mild penalty
+    case "shape-reading":
+    case "liberty-counting":
+      return 1; // core calculation error: aggressive penalty
+    default:
+      return 2; // endgame-value, opening-direction, unknown: standard penalty
+  }
 }
 
 export function nextEaseFactor(currentEaseFactor: number, quality: number): number {
@@ -89,16 +114,18 @@ export function nextSrsCardForAttempt({
   correct,
   solvedAt,
   timeZone = "UTC",
+  mistakeReasonId,
 }: {
   card: Pick<SrsCardState, "easeFactor" | "intervalDays"> | null;
   correct: boolean;
   solvedAt: Date;
   timeZone?: string;
+  mistakeReasonId?: MistakeReasonId | null;
 }): SrsCardState | null {
   if (correct && !card) return null;
   return reviewSrsCard({
     card,
-    quality: qualityFromAttempt(correct),
+    quality: qualityFromAttemptWithReason(correct, mistakeReasonId),
     reviewedAt: solvedAt,
     timeZone,
   });

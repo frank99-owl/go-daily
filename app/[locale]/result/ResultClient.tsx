@@ -329,9 +329,11 @@ export function ResultClient({
     ? t.result.nextRecommendation.cta.loading
     : nextRecommendation.difficultyHint === "step-up"
       ? t.result.nextRecommendation.cta.stepUp
-      : nextRecommendation.targetTag
-        ? t.result.nextRecommendation.cta.sameTopic
-        : t.result.nextRecommendation.cta.sameLevel;
+      : nextRecommendation.difficultyHint === "step-down"
+        ? t.result.nextRecommendation.cta.stepDown
+        : nextRecommendation.targetTag
+          ? t.result.nextRecommendation.cta.sameTopic
+          : t.result.nextRecommendation.cta.sameLevel;
   const coachPrompts = [
     t.result.coachPromptMainLine,
     t.result.coachPromptWhyWrong,
