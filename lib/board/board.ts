@@ -10,8 +10,17 @@ export function isInBounds(c: Coord, size: number): boolean {
   return c.x >= 1 && c.x <= size && c.y >= 1 && c.y <= size;
 }
 
-export function isOccupied(stones: Stone[], c: Coord): boolean {
-  return stones.some((s) => coordEquals(s, c));
+export function isOccupied(stones: Stone[], c: Coord): boolean;
+export function isOccupied(stoneSet: Set<string>, c: Coord): boolean;
+export function isOccupied(stonesOrSet: Stone[] | Set<string>, c: Coord): boolean {
+  const key = `${c.x},${c.y}`;
+  if (stonesOrSet instanceof Set) return stonesOrSet.has(key);
+  return stonesOrSet.some((s) => coordEquals(s, c));
+}
+
+/** Build a position-key Set for O(1) occupancy checks. */
+export function buildStoneSet(stones: Stone[]): Set<string> {
+  return new Set(stones.map((s) => `${s.x},${s.y}`));
 }
 
 export function fullWindow(size: number): BoardWindow {

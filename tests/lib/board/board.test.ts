@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { coordEquals, isInBounds, isOccupied, fullWindow, starPoints } from "@/lib/board/board";
+import {
+  buildStoneSet,
+  coordEquals,
+  fullWindow,
+  isInBounds,
+  isOccupied,
+  starPoints,
+} from "@/lib/board/board";
 
 describe("coordEquals", () => {
   it("returns true for identical coords", () => {
@@ -71,6 +78,31 @@ describe("isOccupied", () => {
 
   it("returns false for empty stones array", () => {
     expect(isOccupied([], { x: 3, y: 3 })).toBe(false);
+  });
+
+  it("accepts a pre-built Set for O(1) lookup", () => {
+    const set = buildStoneSet(stones);
+    expect(isOccupied(set, { x: 3, y: 3 })).toBe(true);
+    expect(isOccupied(set, { x: 5, y: 5 })).toBe(true);
+    expect(isOccupied(set, { x: 0, y: 0 })).toBe(false);
+  });
+});
+
+describe("buildStoneSet", () => {
+  it("creates a Set with position keys", () => {
+    const stones = [
+      { x: 3, y: 3, color: "black" as const },
+      { x: 5, y: 5, color: "white" as const },
+    ];
+    const set = buildStoneSet(stones);
+    expect(set.size).toBe(2);
+    expect(set.has("3,3")).toBe(true);
+    expect(set.has("5,5")).toBe(true);
+    expect(set.has("1,1")).toBe(false);
+  });
+
+  it("returns empty set for empty array", () => {
+    expect(buildStoneSet([]).size).toBe(0);
   });
 });
 

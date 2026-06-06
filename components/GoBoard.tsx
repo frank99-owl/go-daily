@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  buildStoneSet,
   coordEquals,
   fullWindow,
   isInBounds,
@@ -242,6 +243,7 @@ export function GoBoard({
     };
 
     const allStones = [...stones, ...(extraStones || [])];
+    const stoneSet = buildStoneSet(allStones);
     for (const s of allStones) {
       if (inWindow(s)) drawStone(s, s.color);
     }
@@ -305,7 +307,7 @@ export function GoBoard({
       !disabled &&
       hover &&
       inWindow(hover) &&
-      !isOccupied(allStones, hover) &&
+      !isOccupied(stoneSet, hover) &&
       !(userMove && coordEquals(userMove, hover))
     ) {
       drawStone(hover, toPlay, 0.35);
