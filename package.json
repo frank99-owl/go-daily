@@ -35,7 +35,6 @@
     "generate:icons": "tsx scripts/generateIcons.ts"
   },
   "dependencies": {
-    "@sabaki/sgf": "^3.4.7",
     "@sentry/nextjs": "^10.49.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
