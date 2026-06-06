@@ -13,7 +13,7 @@ go-daily 已具备每日围棋题库、四语言本地化、DeepSeek 流式 AI �
 最近一次验证结果：
 
 - **题库校验**：`npm run validate:puzzles` 通过，当前为 **3033** 道题。
-- **i18n 校验**：`npm run validate:messages` 通过，**4 个语言 × 499 个 key path** 对齐。
+- **i18n 校验**：`npm run validate:messages` 通过，**4 个语言 × 509 个 key path** 对齐。
 - **P2-C 定向测试**：`npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` 通过，**9 个测试文件，66 个测试用例**。
 - **Lint / 类型检查**：`npm run lint` 与 `npx tsc --noEmit` 均通过。
 - **P2-D 定向测试**：`npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts` 通过，**4 个测试文件，66 个测试用例**；扩展运行 `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts lib/sentryScrubber.test.ts` 通过，**5 个测试文件，79 个测试用例**。P2-D 已提交为 `32f98c4 security: harden coach guard and telemetry privacy`。

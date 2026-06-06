@@ -13,7 +13,7 @@ go-daily now has a daily Go puzzle database, 4-locale i18n support, streaming AI
 Latest verification results:
 
 - **Puzzle Validation**: `npm run validate:puzzles` passed, currently at **3033** puzzles.
-- **i18n Validation**: `npm run validate:messages` passed, aligning **4 locales × 499 key paths**.
+- **i18n Validation**: `npm run validate:messages` passed, aligning **4 locales × 509 key paths**.
 - **P2-C Targeted Tests**: `npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` passed, **9 test files, 66 test cases**.
 - **Lint & Type Check**: Both `npm run lint` and `npx tsc --noEmit` passed.
 - **P2-D Targeted Tests**: `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts` passed, **4 test files, 66 test cases**; expanded suite running `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts lib/sentryScrubber.test.ts` passed, **5 test files, 79 test cases**. P2-D has been committed as `32f98c4 security: harden coach guard and telemetry privacy`.
