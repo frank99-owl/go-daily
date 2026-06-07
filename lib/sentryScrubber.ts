@@ -1,5 +1,5 @@
 /** Minimal shape of a Sentry event for scrubbing purposes. */
-interface ScrubbableEvent {
+export interface ScrubbableEvent {
   message?: string | null;
   exception?: { values?: Array<{ value?: string; stacktrace?: { frames?: unknown[] } }> } | null;
   request?: (Record<string, unknown> & { url?: string }) | null;
@@ -91,7 +91,6 @@ function scrubValue(value: unknown, key = ""): unknown {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function scrubSentryEvent(event: any): any {
-  const e = event as ScrubbableEvent;
   if (event.message) {
     event.message = redactString(event.message);
   }

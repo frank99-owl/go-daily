@@ -4,6 +4,12 @@ import { createApiResponse, readRequestBodyBytes } from "@/lib/apiHeaders";
 import { isProSubscriptionStatus } from "@/lib/entitlements";
 import { getStripeClient, inferPlanFromPriceId } from "@/lib/stripe/server";
 import {
+  claimStripeEvent,
+  markStripeEventFailed,
+  markStripeEventProcessed,
+  type StripeEventClaim,
+} from "@/lib/stripe/stripeEventStore";
+import {
   captureInvoicePaid,
   capturePaymentFailed,
   captureSubscriptionCanceled,
@@ -19,12 +25,6 @@ import {
   minItemPeriodEnd,
   toIsoOrNull,
 } from "@/lib/stripe/stripeWebhookHelpers";
-import {
-  claimStripeEvent,
-  markStripeEventFailed,
-  markStripeEventProcessed,
-  type StripeEventClaim,
-} from "@/lib/stripe/stripeEventStore";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";

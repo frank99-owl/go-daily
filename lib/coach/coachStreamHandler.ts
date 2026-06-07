@@ -9,6 +9,7 @@ import { createManagedCoachProvider, type CoachProviderUsage } from "@/lib/coach
 import { classifySseError, refundUsage, getCoachModelInfo } from "@/lib/coach/coachRouteHelpers";
 import { sanitizeInput } from "@/lib/promptGuard";
 import type { CoachMessage } from "@/types";
+
 import { captureCoachCompleted, captureCoachFailed } from "./coachAnalytics";
 
 // ── Types ─────────────────────────────────────────────────────────────
