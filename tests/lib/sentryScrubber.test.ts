@@ -70,7 +70,7 @@ describe("scrubSentryEvent", () => {
       },
     };
     const result = scrubSentryEvent(event);
-    expect(result.exception.values[0].value).not.toContain("admin@test.org");
+    expect(result.exception!.values![0].value).not.toContain("admin@test.org");
   });
 
   it("scrubs sensitive keys in request", () => {
@@ -80,8 +80,9 @@ describe("scrubSentryEvent", () => {
       },
     };
     const result = scrubSentryEvent(event);
-    expect(result.request.headers.authorization).toBe("[redacted-token]");
-    expect(result.request.headers.cookie).toBe("[redacted-token]");
+    const req = result.request as Record<string, Record<string, string>>;
+    expect(req.headers.authorization).toBe("[redacted-token]");
+    expect(req.headers.cookie).toBe("[redacted-token]");
   });
 
   it("scrubs URLs in request", () => {
@@ -89,7 +90,7 @@ describe("scrubSentryEvent", () => {
       request: { url: "https://example.com/api?token=secret" },
     };
     const result = scrubSentryEvent(event);
-    expect(result.request.url).not.toContain("token=secret");
+    expect((result.request as { url: string }).url).not.toContain("token=secret");
   });
 
   it("redacts emails in breadcrumbs", () => {
@@ -97,7 +98,7 @@ describe("scrubSentryEvent", () => {
       breadcrumbs: [{ message: "User user@site.com clicked" }],
     };
     const result = scrubSentryEvent(event);
-    expect(result.breadcrumbs[0].message).not.toContain("user@site.com");
+    expect(result.breadcrumbs![0].message).not.toContain("user@site.com");
   });
 
   it("handles null/undefined fields gracefully", () => {
@@ -110,6 +111,6 @@ describe("scrubSentryEvent", () => {
       user: { email: "user@example.com", id: "123" },
     };
     const result = scrubSentryEvent(event);
-    expect(result.user.email).not.toContain("user@example.com");
+    expect((result.user as { email: string }).email).not.toContain("user@example.com");
   });
 });

@@ -1,3 +1,16 @@
+/** Minimal shape of a Sentry event for scrubbing purposes. */
+interface ScrubbableEvent {
+  message?: string | null;
+  exception?: { values?: Array<{ value?: string; stacktrace?: { frames?: unknown[] } }> } | null;
+  request?: (Record<string, unknown> & { url?: string }) | null;
+  breadcrumbs?: Array<{ message?: string; data?: Record<string, unknown> }> | null;
+  contexts?: Record<string, Record<string, unknown>> | null;
+  user?: Record<string, unknown> | null;
+  extra?: Record<string, unknown> | null;
+  tags?: Record<string, unknown> | null;
+  [key: string]: unknown;
+}
+
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const TOKEN_RE = /\b(?:reveal|token|unsubscribe)[_-]?[A-Za-z0-9_-]{8,}\b/gi;
 const SENSITIVE_KEY_RE = /(?:token|secret|api_?key|authorization|cookie|password|session)/i;
@@ -67,11 +80,18 @@ function scrubValue(value: unknown, key = ""): unknown {
   return value;
 }
 
-// Sentry SDK's beforeSend signature requires ErrorEvent, which lacks a string index
-// signature — making it incompatible with Record<string, unknown>. We use `any` here
-// because Sentry's type system doesn't allow a narrower compatible type.
+/**
+ * Scrub sensitive data from a Sentry event before sending.
+ *
+ * Sentry SDK's beforeSend signature requires ErrorEvent, which lacks a string
+ * index signature — making it incompatible with Record<string, unknown>. We
+ * use `any` in the public signature because Sentry's type system doesn't allow
+ * a narrower compatible type.  Internally we cast to ScrubbableEvent for
+ * structured access to the fields we scrub.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function scrubSentryEvent(event: any): any {
+  const e = event as ScrubbableEvent;
   if (event.message) {
     event.message = redactString(event.message);
   }
