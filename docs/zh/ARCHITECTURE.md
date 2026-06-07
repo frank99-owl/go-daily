@@ -44,6 +44,9 @@
 - **质量准入**：`coachEligibility.ts` 负责把题目分为 `blocked`、`thin`、`explained`、`coach-ready`，并显式返回 `hasVariationSupport`。`coachBasicEligibleIds.json`、`coachReadyIds.json`、`variationGroups.json` 分别承载基础准入、完整 Coach 批准和变例组；`getCoachAccess()` 叠加运行时质量校验。有四语言解析但缺少 `solutionSequence` / `wrongBranches` 的题目只属于解释充分，不等同于完整 AI 教练题。
 - **配额与时间窗**：`coachQuota.ts` 提供按用户时区格式化日期与自然月 / 计费锚定月窗口（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）。各档位的条数上限定义在 `lib/entitlements.ts`（并受 `getCoachState` 等消费）。
 - **使用量计数**：登录与访客教练消息次数持久化在 Postgres；并发下通过 RPC（`increment_coach_usage`、`increment_guest_coach_usage`）原子自增，避免读改写竞态。
+- **路由辅助**：`coachRouteHelpers.ts` 提供身份解析、配额校验、用量扣费/退还、上游错误分类。
+- **流式处理**：`coachStreamHandler.ts` 负责 SSE 响应构建、历史裁剪、上游流式转发及错误恢复。
+- **分析埋点**：`coachAnalytics.ts` 将教练请求完成与失败事件上报 PostHog。
 
 ### `lib/i18n/` (全球化呈现)
 
@@ -67,7 +70,11 @@
 
 ### `lib/stripe/` (支付)
 
-- **服务端 SDK 封装**：单一 `server.ts` 文件，封装 Stripe Node SDK，用于服务端结账、订阅管理和 Webhook 验证。
+- **服务端 SDK 封装**：`server.ts` 封装 Stripe Node SDK，负责客户端初始化、价格 ID 解析和方案推断。
+- **事件存储**：`stripeEventStore.ts` 基于 `stripe_events` 表实现幂等事件认领与过期检测。
+- **Webhook 分析**：`stripeWebhookAnalytics.ts` 将订阅生命周期事件（试用、付款、取消）上报 PostHog。
+- **Webhook 邮件**：`stripeWebhookEmail.ts` 通过 Resend 发送事务性邮件（订阅生效、扣款失败）。
+- **Webhook 工具**：`stripeWebhookHelpers.ts` 包含共享工具函数（ID 提取、时间戳转换、周期结束计算）。
 
 ### `lib/posthog/` (数据分析)
 

@@ -44,6 +44,9 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 - **품질 관리 및 접근성**: `coachEligibility.ts`는 문제를 `blocked`, `thin`, `explained`, `coach-ready` 등급으로 분류하며 `hasVariationSupport` 여부를 반환합니다. `coachBasicEligibleIds.json`, `coachReadyIds.json`, `variationGroups.json`은 각각 기초 승인, 전체 코치 승인, 변화도 승인 목록을 관리하며 `getCoachAccess()`가 런타임에 이들을 복합 검증합니다. 4개 국어 해설이 존재하더라도 `solutionSequence`나 `wrongBranches`가 누락된 문제는 단순히 '해설 포함' 단계일 뿐, 완전한 AI 코칭 가능 문제로 분류되지 않습니다.
 - **할당량·날짜 창**: `coachQuota.ts`는 사용자 타임존 기준 날짜 서식 및 자연월/청구 앵커 월 창(`formatDateInTimeZone`, `getNaturalMonthWindow`, `getBillingAnchoredMonthWindow`)을 제공합니다. 메시지 횟수 상한은 `lib/entitlements.ts`에 정의되며 `getCoachState` 등에서 적용됩니다.
 - **사용 카운터**: 로그인·게스트 코치 메시지 수는 Postgres에 저장되며, 동시 접속 시 RPC(`increment_coach_usage`, `increment_guest_coach_usage`)로 원자적 upsert 증분합니다.
+- **라우트 헬퍼**: `coachRouteHelpers.ts`가 ID 확인, 할당량 검증, 사용량 과금/환불, 상류 오류 분류를 담당합니다.
+- **스트리밍**: `coachStreamHandler.ts`가 SSE 응답 구성, 기록 트리밍, 상류 스트리밍 전달 및 오류 복구를 처리합니다.
+- **분석**: `coachAnalytics.ts`가 코치 요청 완료·실패 이벤트를 PostHog에 전송합니다.
 
 ### `lib/i18n/` (글로벌 존재감)
 
@@ -66,7 +69,11 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 
 ### `lib/stripe/` (결제)
 
-- **서버 SDK 래퍼**: 서버 사이드 결제, 구독 관리, 웹훅 검증을 위한 Stripe Node SDK를 래핑하는 단일 `server.ts` 파일.
+- **서버 SDK 래퍼**: `server.ts`가 Stripe Node SDK를 래핑하여 클라이언트 초기화, 가격 ID 확인, 플랜 추론을 담당합니다.
+- **이벤트 저장소**: `stripeEventStore.ts`가 `stripe_events` 테이블에 대해 멱등성 이벤트 클레임과 스테일 감지를 제공합니다.
+- **웹훅 분석**: `stripeWebhookAnalytics.ts`가 구독 생명주기 이벤트(체험, 결제, 취소)를 PostHog에 전송합니다.
+- **웹훅 이메일**: `stripeWebhookEmail.ts`가 Resend를 통해 트랜잭션 이메일(구독 시작, 결제 실패)을 발송합니다.
+- **웹훅 헬퍼**: `stripeWebhookHelpers.ts`가 공유 유틸리티(ID 추출, 타임스탬프 변환, 기간 종료 계산)를 제공합니다.
 
 ### `lib/posthog/` (애널리틱스)
 

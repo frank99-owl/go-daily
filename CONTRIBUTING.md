@@ -58,11 +58,13 @@ npm run test:coverage # Check coverage (Target: 70%+)
 Run the same checks that CI expects before opening a pull request:
 
 ```bash
+npm audit --audit-level=high
 npm run format:check
 npm run lint
 npm run validate:puzzles
 npm run validate:messages
 npx tsc --noEmit
+npx tsc --project tsconfig.scripts.json
 npm run test
 npm run build
 ```

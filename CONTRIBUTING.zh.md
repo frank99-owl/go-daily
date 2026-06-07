@@ -58,11 +58,13 @@ npm run test:coverage # 检查覆盖率（目标：70%+）
 发起 PR 前请尽量在本地执行与 CI 对齐的检查：
 
 ```bash
+npm audit --audit-level=high
 npm run format:check
 npm run lint
 npm run validate:puzzles
 npm run validate:messages
 npx tsc --noEmit
+npx tsc --project tsconfig.scripts.json
 npm run test
 npm run build
 ```

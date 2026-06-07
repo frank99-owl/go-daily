@@ -61,7 +61,7 @@ Mistake reason data drives three systems: SRS quality mapping (affects review in
 ## 3. Subscription Management (`lib/stripe/`)
 
 - **Checkout**: We use Stripe Adaptive Pricing to automatically localize $4.9 USD to the appropriate JPY/KRW equivalent based on the user's IP.
-- **Webhook Idempotency**: Every Stripe event is logged in the `stripe_events` table before processing. If an event is re-delivered, the system detects the duplicate and skips processing.
+- **Webhook Idempotency**: Every Stripe event is logged in the `stripe_events` table before processing. If an event is re-delivered, the system detects the duplicate and skips processing. Webhook logic is modularized across `stripeEventStore.ts` (claiming), `stripeWebhookAnalytics.ts` (PostHog events), `stripeWebhookEmail.ts` (transactional emails), and `stripeWebhookHelpers.ts` (shared utilities).
 - **Trial Period**: A 3-day trial is mandatory for all new Pro subscriptions. Users must provide a payment method upfront (`payment_method_collection: 'always'`), which significantly increases the trial-to-paid conversion rate.
 
 ## 4. Puzzle Collections & Filtering (`lib/puzzle/puzzleCollections.ts`)

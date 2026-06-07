@@ -67,7 +67,7 @@ npm run lint          # ESLint
 npm run format:check  # Prettier check
 ```
 
-CI pipeline (`.github/workflows/ci.yml`): format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
+CI pipeline (`.github/workflows/ci.yml`): npm audit → format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
 
 ## Common Pitfalls
 

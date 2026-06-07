@@ -44,6 +44,9 @@ The system operates on a three-state synchronization model:
 - **Quality Gates**: `coachEligibility.ts` groups puzzles into `blocked`, `thin`, `explained`, or `coach-ready` tiers, returning `hasVariationSupport`. Data files `coachBasicEligibleIds.json`, `coachReadyIds.json`, and `variationGroups.json` carry basic eligibility, full Coach approval, and variation groups respectively. `getCoachAccess()` layers these with runtime quality checks. Puzzles with explanations but lacking `solutionSequence` or `wrongBranches` are explained but do not qualify as full Coach-ready.
 - **Budgeting**: `coachQuota.ts` provides date utility functions (`formatDateInTimeZone`, `getNaturalMonthWindow`, `getBillingAnchoredMonthWindow`) used for billing-period calculations. The actual quota limits are enforced in `lib/entitlements.ts`.
 - **Usage counters**: Logged-in and guest coach message counts persist in Postgres; increments go through RPCs (`increment_coach_usage`, `increment_guest_coach_usage`) for atomic upserts under concurrency.
+- **Route Helpers**: `coachRouteHelpers.ts` provides identity resolution, quota checking, usage charging/refunding, and upstream error classification.
+- **Streaming**: `coachStreamHandler.ts` handles SSE response construction, history trimming, and upstream streaming with error recovery.
+- **Analytics**: `coachAnalytics.ts` captures coach request completion and failure events for PostHog.
 
 ### `lib/i18n/` (Global Presence)
 
@@ -66,7 +69,11 @@ The system operates on a three-state synchronization model:
 
 ### `lib/stripe/` (Payments)
 
-- **Server SDK Wrapper**: A single `server.ts` file that wraps the Stripe Node SDK for server-side checkout, subscription management, and webhook verification.
+- **Server SDK Wrapper**: `server.ts` wraps the Stripe Node SDK for client initialization, price ID resolution, and plan inference.
+- **Event Store**: `stripeEventStore.ts` provides idempotent event claiming with stale-detection against the `stripe_events` table.
+- **Webhook Analytics**: `stripeWebhookAnalytics.ts` captures subscription lifecycle events (trial, payment, cancellation) for PostHog.
+- **Webhook Email**: `stripeWebhookEmail.ts` sends transactional emails (subscription started, payment failed) via Resend.
+- **Webhook Helpers**: `stripeWebhookHelpers.ts` contains shared utilities (ID extraction, timestamp conversion, period-end calculation).
 
 ### `lib/posthog/` (Analytics)
 

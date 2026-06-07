@@ -44,6 +44,9 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 - **品質管理とアクセス制限**：`coachEligibility.ts` は問題を `blocked`、`thin`、`explained`、`coach-ready` の各品質層に区分し、`hasVariationSupport` を返します。`coachBasicEligibleIds.json` は基礎説明の対象、`coachReadyIds.json` は完全なコーチの承認対象、`variationGroups.json` は変化図整理済みのグループを表し、`getCoachAccess()` が実行時チェックと重ねて制御します。四言語の解説があっても、`solutionSequence` や `wrongBranches` が欠けている問題は「説明十分」に留まり、完全な AI コーチ対応問題とはみなされません。
 - **割り当てと日付ウィンドウ**：`coachQuota.ts` はユーザー TZ の日付整形と自然月／請求アンカー月ウィンドウ（`formatDateInTimeZone`、`getNaturalMonthWindow`、`getBillingAnchoredMonthWindow`）を提供。メッセージ回数上限は `lib/entitlements.ts` で定义され、`getCoachState` 等で消費されます。
 - **利用カウンタ**：ログイン／ゲストのコーチ回数は Postgres に保存。同時実行下では RPC（`increment_coach_usage`、`increment_guest_coach_usage`）により原子的な upsert で加算します。
+- **ルートヘルパー**：`coachRouteHelpers.ts` が ID 解決、割り当て確認、利用量チャージ／返金、上流エラー分類を担当。
+- **ストリーミング**：`coachStreamHandler.ts` が SSE 応答構築、履歴トリミング、上流ストリーム転送とエラー回復を処理。
+- **アナリティクス**：`coachAnalytics.ts` がコーチリクエストの完了・失敗イベントを PostHog に送信。
 
 ### `lib/i18n/` (グローバル展開)
 
@@ -66,7 +69,11 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 
 ### `lib/stripe/` (決済)
 
-- **サーバー SDK ラッパー**：サーバーサイドのチェックアウト、サブスクリプション管理、Webhook 検証のための Stripe Node SDK をラップする単一の `server.ts` ファイル。
+- **サーバー SDK ラッパー**：`server.ts` が Stripe Node SDK をラップし、クライアント初期化、価格 ID 解決、プラン推論を担当。
+- **イベントストア**：`stripeEventStore.ts` が `stripe_events` テーブルに対してべき等なイベントクレームとステール検出を提供。
+- **Webhook アナリティクス**：`stripeWebhookAnalytics.ts` がサブスクリプションライフサイクルイベント（試用、支払い、キャンセル）を PostHog に送信。
+- **Webhook メール**：`stripeWebhookEmail.ts` が Resend 経由でトランザクショナルメール（サブスクリプション開始、支払い失敗）を送信。
+- **Webhook ヘルパー**：`stripeWebhookHelpers.ts` が共通ユーティリティ（ID 抽出、タイムスタンプ変換、期間終了計算）を提供。
 
 ### `lib/posthog/` (アナリティクス)
 

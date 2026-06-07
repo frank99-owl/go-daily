@@ -85,7 +85,7 @@ All logic changes require unit tests. UI changes should have component tests for
 
 ## CI Pipeline
 
-`.github/workflows/ci.yml`: format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → test → build.
+`.github/workflows/ci.yml`: npm audit → format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
 
 ## Common Pitfalls
 
