@@ -1,35 +1,40 @@
 import type Stripe from "stripe";
 
 import { createApiResponse, readRequestBodyBytes } from "@/lib/apiHeaders";
-import { sendPaymentFailedEmail, sendSubscriptionStartedEmail } from "@/lib/email";
 import { isProSubscriptionStatus } from "@/lib/entitlements";
-import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/localePath";
-import { captureServerEvent } from "@/lib/posthog/server";
-import { absoluteUrl } from "@/lib/siteUrl";
 import { getStripeClient, inferPlanFromPriceId } from "@/lib/stripe/server";
+import {
+  captureInvoicePaid,
+  capturePaymentFailed,
+  captureSubscriptionCanceled,
+  captureTrialStarted,
+} from "@/lib/stripe/stripeWebhookAnalytics";
+import {
+  sendPaymentFailedNotice,
+  sendSubscriptionStartedNotice,
+} from "@/lib/stripe/stripeWebhookEmail";
+import {
+  anchorDayFromIso,
+  getStringId,
+  minItemPeriodEnd,
+  toIsoOrNull,
+} from "@/lib/stripe/stripeWebhookHelpers";
+import {
+  claimStripeEvent,
+  markStripeEventFailed,
+  markStripeEventProcessed,
+  type StripeEventClaim,
+} from "@/lib/stripe/stripeEventStore";
 import { createServiceClient } from "@/lib/supabase/service";
-import type { Locale } from "@/types";
 
 export const runtime = "nodejs";
 
-const EVENT_PROCESSING_STALE_MS = 10 * 60 * 1000;
-const UNIQUE_VIOLATION = "23505";
+// Event claiming uses the stripe_events table for idempotent processing.
 const FOREIGN_KEY_VIOLATION = "23503";
 const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
-type StripeEventClaim = "claimed" | "duplicate" | "in_progress";
-
-function toIsoOrNull(epochSeconds: number | null | undefined): string | null {
-  if (!epochSeconds) return null;
-  return new Date(epochSeconds * 1000).toISOString();
-}
-
-function minItemPeriodEnd(sub: Stripe.Subscription): number | null {
-  const ends = sub.items?.data
-    ?.map((item) => item.current_period_end)
-    .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-  if (!ends || ends.length === 0) return null;
-  return Math.min(...ends);
+function isForeignKeyViolation(error: { code?: string } | null | undefined): boolean {
+  return error?.code === FOREIGN_KEY_VIOLATION;
 }
 
 function normalizePlan({
@@ -43,134 +48,6 @@ function normalizePlan({
   const inferred = inferPlanFromPriceId(priceId);
   if (inferred) return inferred;
   return "unknown";
-}
-
-function getStringId(value: unknown): string | null {
-  if (!value) return null;
-  if (typeof value === "string") return value;
-  if (typeof value === "object" && value && "id" in value) {
-    const maybe = value as { id?: unknown };
-    if (typeof maybe.id === "string") return maybe.id;
-  }
-  return null;
-}
-
-function isUniqueViolation(error: { code?: string } | null | undefined): boolean {
-  return error?.code === UNIQUE_VIOLATION;
-}
-
-function isForeignKeyViolation(error: { code?: string } | null | undefined): boolean {
-  return error?.code === FOREIGN_KEY_VIOLATION;
-}
-
-function truncateErrorMessage(message: string): string {
-  return message.length > 1000 ? `${message.slice(0, 997)}...` : message;
-}
-
-async function tryClaimExistingStripeEvent(
-  admin: ReturnType<typeof createServiceClient>,
-  event: Stripe.Event,
-  processingStartedAt: string | null,
-): Promise<StripeEventClaim> {
-  const now = new Date();
-  const nextProcessingStartedAt = now.toISOString();
-  const staleBefore = new Date(now.getTime() - EVENT_PROCESSING_STALE_MS).toISOString();
-
-  let update = admin
-    .from("stripe_events")
-    .update({
-      event_type: event.type,
-      processing_started_at: nextProcessingStartedAt,
-      last_error: null,
-    })
-    .eq("id", event.id)
-    .is("processed_at", null);
-
-  update = processingStartedAt
-    ? update.lt("processing_started_at", staleBefore)
-    : update.is("processing_started_at", null);
-
-  const { data, error } = await update.select("id").maybeSingle();
-  if (error) {
-    throw new Error(`failed to claim existing stripe event: ${error.message}`);
-  }
-
-  return data?.id ? "claimed" : "in_progress";
-}
-
-async function claimStripeEvent(
-  admin: ReturnType<typeof createServiceClient>,
-  event: Stripe.Event,
-): Promise<StripeEventClaim> {
-  const now = new Date().toISOString();
-  const { error } = await admin.from("stripe_events").insert({
-    id: event.id,
-    event_type: event.type,
-    processing_started_at: now,
-    last_error: null,
-  });
-
-  if (!error) return "claimed";
-  if (!isUniqueViolation(error)) {
-    throw new Error(`failed to claim stripe event: ${error.message}`);
-  }
-
-  const { data: existing, error: lookupErr } = await admin
-    .from("stripe_events")
-    .select("processed_at, processing_started_at")
-    .eq("id", event.id)
-    .maybeSingle();
-
-  if (lookupErr) {
-    throw new Error(`failed to inspect duplicate stripe event: ${lookupErr.message}`);
-  }
-  if (existing?.processed_at) return "duplicate";
-
-  return tryClaimExistingStripeEvent(
-    admin,
-    event,
-    typeof existing?.processing_started_at === "string" ? existing.processing_started_at : null,
-  );
-}
-
-async function markStripeEventProcessed(
-  admin: ReturnType<typeof createServiceClient>,
-  eventId: string,
-) {
-  const { error } = await admin
-    .from("stripe_events")
-    .update({
-      processed_at: new Date().toISOString(),
-      processing_started_at: null,
-      last_error: null,
-    })
-    .eq("id", eventId);
-
-  if (error) {
-    throw new Error(`failed to mark stripe event processed: ${error.message}`);
-  }
-}
-
-async function markStripeEventFailed(
-  admin: ReturnType<typeof createServiceClient>,
-  eventId: string,
-  message: string,
-) {
-  const { error } = await admin
-    .from("stripe_events")
-    .update({
-      processing_started_at: null,
-      last_error: truncateErrorMessage(message),
-    })
-    .eq("id", eventId)
-    .is("processed_at", null);
-
-  if (error) {
-    console.warn("[stripe/webhook] failed to release failed stripe event claim", {
-      eventId,
-      message: error.message,
-    });
-  }
 }
 
 async function upsertSubscriptionFromStripe(
@@ -268,257 +145,7 @@ async function upsertSubscriptionFromStripe(
   }
 }
 
-function invoicePaidAt(invoice: Stripe.Invoice): string | null {
-  const paidAt =
-    typeof invoice.status_transitions?.paid_at === "number"
-      ? invoice.status_transitions.paid_at
-      : typeof invoice.created === "number"
-        ? invoice.created
-        : null;
-  return toIsoOrNull(paidAt);
-}
-
-function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
-  const parentSubscription = invoice.parent?.subscription_details?.subscription;
-  if (parentSubscription) return getStringId(parentSubscription);
-
-  const legacyInvoice = invoice as Stripe.Invoice & { subscription?: unknown };
-  return getStringId(legacyInvoice.subscription);
-}
-
-function anchorDayFromIso(iso: string | null): number | null {
-  if (!iso) return null;
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed.getUTCDate();
-}
-
-function subscriptionInterval(sub: Stripe.Subscription): "monthly" | "yearly" | "unknown" {
-  const interval = sub.items.data[0]?.price?.recurring?.interval;
-  if (interval === "month") return "monthly";
-  if (interval === "year") return "yearly";
-  return "unknown";
-}
-
-function subscriptionAnalyticsProps(sub: Stripe.Subscription) {
-  const priceId = sub.items.data[0]?.price?.id ?? null;
-  return {
-    plan: normalizePlan({ metadataPlan: sub.metadata?.plan, priceId }),
-    interval: subscriptionInterval(sub),
-  };
-}
-
-function subscriptionDistinctId(sub: Stripe.Subscription, fallbackUserId?: string | null): string {
-  return sub.metadata?.user_id || fallbackUserId || getStringId(sub.customer) || sub.id;
-}
-
-async function captureTrialStarted(sub: Stripe.Subscription, fallbackUserId?: string | null) {
-  if (!sub.trial_end) return;
-  await captureServerEvent({
-    distinctId: subscriptionDistinctId(sub, fallbackUserId),
-    event: "trial_started",
-    properties: {
-      ...subscriptionAnalyticsProps(sub),
-      trialEnd: toIsoOrNull(sub.trial_end),
-    },
-  });
-}
-
-async function captureInvoicePaid(sub: Stripe.Subscription, invoice: Stripe.Invoice) {
-  const revenueUsd =
-    typeof invoice.amount_paid === "number" ? Math.round(invoice.amount_paid) / 100 : null;
-  const currency = typeof invoice.currency === "string" ? invoice.currency : null;
-  const firstPaidAt = invoicePaidAt(invoice);
-
-  await captureServerEvent({
-    distinctId: subscriptionDistinctId(sub),
-    event: "subscription_activated",
-    properties: {
-      ...subscriptionAnalyticsProps(sub),
-      revenueUsd,
-      currency,
-    },
-  });
-
-  if (sub.trial_end && firstPaidAt) {
-    const trialEndIso = toIsoOrNull(sub.trial_end);
-    if (trialEndIso && firstPaidAt >= trialEndIso) {
-      await captureServerEvent({
-        distinctId: subscriptionDistinctId(sub),
-        event: "trial_converted",
-        properties: {
-          ...subscriptionAnalyticsProps(sub),
-          revenueUsd,
-          currency,
-        },
-      });
-    }
-  }
-}
-
-async function capturePaymentFailed(sub: Stripe.Subscription) {
-  const props = subscriptionAnalyticsProps(sub);
-  await captureServerEvent({
-    distinctId: subscriptionDistinctId(sub),
-    event: "subscription_past_due",
-    properties: props,
-  });
-
-  if (sub.trial_end) {
-    await captureServerEvent({
-      distinctId: subscriptionDistinctId(sub),
-      event: "trial_abandoned",
-      properties: {
-        ...props,
-        reason: "payment_failed",
-      },
-    });
-  }
-}
-
-async function captureSubscriptionCanceled(sub: Stripe.Subscription) {
-  await captureServerEvent({
-    distinctId: subscriptionDistinctId(sub),
-    event: "subscription_canceled",
-    properties: {
-      ...subscriptionAnalyticsProps(sub),
-      cancelAtPeriodEnd: sub.cancel_at_period_end,
-    },
-  });
-}
-
-type PaymentEmailProfile = {
-  locale?: string | null;
-  email_opt_out?: boolean | null;
-  email_unsubscribe_token?: string | null;
-};
-
-type SubscriptionEmailContact = {
-  email: string;
-  locale: Locale;
-  unsubscribeToken?: string | null;
-};
-
-function localeFromProfile(value: string | null | undefined): Locale {
-  return isLocale(value) ? value : DEFAULT_LOCALE;
-}
-
-async function loadSubscriptionEmailContact({
-  admin,
-  userId,
-  context,
-}: {
-  admin: ReturnType<typeof createServiceClient>;
-  userId: string | null | undefined;
-  context: string;
-}): Promise<SubscriptionEmailContact | null> {
-  if (!userId) return null;
-
-  const { data: profile, error: profileError } = await admin
-    .from("profiles")
-    .select("locale, email_opt_out, email_unsubscribe_token")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (profileError) {
-    console.warn(`[stripe/webhook] ${context} profile lookup failed`, {
-      userId,
-      message: profileError.message,
-    });
-    return null;
-  }
-
-  const emailProfile = profile as PaymentEmailProfile | null;
-  if (emailProfile?.email_opt_out) return null;
-
-  const { data: userData, error: userError } = await admin.auth.admin.getUserById(userId);
-  const email = userData.user?.email;
-  if (userError || !email) {
-    if (userError) {
-      console.warn(`[stripe/webhook] ${context} user lookup failed`, {
-        userId,
-        message: userError.message,
-      });
-    }
-    return null;
-  }
-
-  return {
-    email,
-    locale: localeFromProfile(emailProfile?.locale),
-    unsubscribeToken: emailProfile?.email_unsubscribe_token,
-  };
-}
-
-async function sendSubscriptionStartedNotice({
-  admin,
-  sub,
-  fallbackUserId,
-}: {
-  admin: ReturnType<typeof createServiceClient>;
-  sub: Stripe.Subscription;
-  fallbackUserId?: string | null;
-}): Promise<void> {
-  const userId = sub.metadata?.user_id || fallbackUserId;
-  if (!userId) return;
-
-  try {
-    const contact = await loadSubscriptionEmailContact({
-      admin,
-      userId,
-      context: "subscription started email",
-    });
-    if (!contact) return;
-
-    await sendSubscriptionStartedEmail({
-      to: contact.email,
-      locale: contact.locale,
-      trialing: sub.status === "trialing" || Boolean(sub.trial_end),
-      unsubscribeToken: contact.unsubscribeToken,
-    });
-  } catch (error) {
-    console.warn("[stripe/webhook] subscription started email skipped", error);
-  }
-}
-
-async function sendPaymentFailedNotice({
-  admin,
-  stripe,
-  sub,
-}: {
-  admin: ReturnType<typeof createServiceClient>;
-  stripe: ReturnType<typeof getStripeClient>;
-  sub: Stripe.Subscription;
-}): Promise<void> {
-  const userId = sub.metadata?.user_id;
-  if (!userId) return;
-
-  try {
-    const customerId = getStringId(sub.customer);
-    if (!customerId) return;
-
-    const contact = await loadSubscriptionEmailContact({
-      admin,
-      userId,
-      context: "payment failed email",
-    });
-    if (!contact) return;
-
-    const portal = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: absoluteUrl(localePath(contact.locale, "/account")),
-    });
-
-    await sendPaymentFailedEmail({
-      to: contact.email,
-      locale: contact.locale,
-      portalUrl: portal.url,
-      unsubscribeToken: contact.unsubscribeToken,
-    });
-  } catch (error) {
-    console.warn("[stripe/webhook] payment failed email skipped", error);
-  }
-}
+// ── POST handler ──────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
   let stripe: ReturnType<typeof getStripeClient>;
@@ -542,7 +169,6 @@ export async function POST(request: Request) {
     return createApiResponse({ error: "missing_signature" }, { status: 400 });
   }
 
-  // Stripe events are typically < 10 KB; 1 MB is a generous safety ceiling.
   const rawBody = await readRequestBodyBytes(request, MAX_WEBHOOK_BODY_BYTES, "payload_too_large");
   if (rawBody instanceof Response) return rawBody;
   const body = Buffer.from(rawBody);
@@ -634,7 +260,6 @@ export async function POST(request: Request) {
         break;
       }
       default:
-        // Ignore other events for now.
         break;
     }
 
@@ -653,7 +278,26 @@ export async function POST(request: Request) {
     const err = error as Error;
     console.error("[stripe/webhook] handler failed", { eventId: event.id, message: err.message });
     await markStripeEventFailed(admin, event.id, err.message);
-    // Return 500 so Stripe retries; upserts are idempotent.
     return createApiResponse({ error: "handler_failed" }, { status: 500 });
   }
+}
+
+// ── Invoice helpers ───────────────────────────────────────────────────
+
+function invoicePaidAt(invoice: Stripe.Invoice): string | null {
+  const paidAt =
+    typeof invoice.status_transitions?.paid_at === "number"
+      ? invoice.status_transitions.paid_at
+      : typeof invoice.created === "number"
+        ? invoice.created
+        : null;
+  return toIsoOrNull(paidAt);
+}
+
+function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const parentSubscription = invoice.parent?.subscription_details?.subscription;
+  if (parentSubscription) return getStringId(parentSubscription);
+
+  const legacyInvoice = invoice as Stripe.Invoice & { subscription?: unknown };
+  return getStringId(legacyInvoice.subscription);
 }
