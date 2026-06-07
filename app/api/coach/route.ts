@@ -4,16 +4,15 @@ import { isInBounds, isOccupied } from "@/lib/board/board";
 import { judgeMove } from "@/lib/board/judge";
 import { getClientIP } from "@/lib/clientIp";
 import { getCoachAccess } from "@/lib/coach/coachAccess";
+import { captureCoachFailed } from "@/lib/coach/coachAnalytics";
 import { COACH_ERROR_CODES } from "@/lib/coach/coachErrorCodes";
 import { buildSystemPrompt } from "@/lib/coach/coachPrompt";
-import { createManagedCoachProvider, type CoachProviderUsage } from "@/lib/coach/coachProvider";
 import { formatDateInTimeZone } from "@/lib/coach/coachQuota";
 import {
   chargeAuthUsage,
   chargeGuestUsage,
   checkAuthQuota,
   checkGuestQuota,
-  classifySseError,
   classifyUpstreamError,
   coachError,
   errorResponse,
@@ -21,15 +20,18 @@ import {
   refundUsage,
   resolveIdentity,
 } from "@/lib/coach/coachRouteHelpers";
+import {
+  buildSseResponse,
+  createCoachSseStream,
+  trimHistory,
+} from "@/lib/coach/coachStreamHandler";
 import { checkIpLimit, incrementIpCounter } from "@/lib/coach/guestCoachUsage";
 import { getPersona } from "@/lib/coach/personas";
 import { getCoachEnv } from "@/lib/env";
-import { captureServerEvent } from "@/lib/posthog/server";
-import { guardUserMessage, sanitizeInput } from "@/lib/promptGuard";
+import { guardUserMessage } from "@/lib/promptGuard";
 import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import type { CoachMessage } from "@/types";
 import { CoachRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
@@ -44,7 +46,7 @@ const rateLimiter = createRateLimiter();
 // ── POST ─────────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
-  const startTime = Date.now();
+  const startTime = performance.now();
 
   // 1. Parse & validate input
   const rawBody = await parseMutationBody(request, MAX_BODY_BYTES);
@@ -148,28 +150,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const sanitized = history.slice(-MAX_HISTORY).map((m) => ({
-    role: m.role,
-    content: sanitizeInput([...m.content.normalize("NFKC")].slice(0, 2000).join("")),
-    ts: 0,
-  }));
-
-  let charBudget = MAX_HISTORY_CHARS;
-  const trimmedHistory: CoachMessage[] = [];
-  for (let i = sanitized.length - 1; i >= 0; i--) {
-    const m = sanitized[i];
-    if (m.content.length > charBudget && trimmedHistory.length > 0) break;
-    trimmedHistory.unshift(m);
-    charBudget -= m.content.length;
-  }
-
+  const trimmedHistory = trimHistory(history, MAX_HISTORY, MAX_HISTORY_CHARS);
   const systemPrompt = buildSystemPrompt(puzzle, locale, userMove, isCorrect, persona);
-  const openaiMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
-    { role: "system", content: systemPrompt },
-    ...trimmedHistory.map((m) => ({ role: m.role, content: m.content })),
+  const openaiMessages = [
+    { role: "system" as const, content: systemPrompt },
+    ...trimmedHistory.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
   ];
 
-  // 7. Charge usage BEFORE streaming (abuse prevention)
+  // 7. Charge usage & stream response
   const usageDay = !isGuest ? formatDateInTimeZone(new Date(), coachState!.usage!.timeZone) : "";
 
   try {
@@ -192,121 +180,49 @@ export async function POST(request: Request) {
       updatedUsage = result.updatedUsage!;
     }
 
-    // 8. Stream response
-    const modelInfo = getCoachModelInfo();
-    const provider = createManagedCoachProvider({ apiKey, timeout: UPSTREAM_TIMEOUT_MS });
-    const stream = provider.createReplyStream(openaiMessages, { signal: request.signal });
-    let tokenUsage: CoachProviderUsage | null = null;
-    let modelName: string | null = null;
-    let firstToken = true;
+    const distinctId = isGuest ? guestDeviceId! : user!.id;
+    const plan = isGuest ? "guest" : coachState!.usage!.plan;
 
-    const encoder = new TextEncoder();
-    const sseStream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of stream) {
-            if (chunk.model) modelName = chunk.model;
-            if (chunk.usage) tokenUsage = chunk.usage;
-
-            if (chunk.delta) {
-              if (firstToken) {
-                firstToken = false;
-                chunk.delta = chunk.delta.replace(/^(system|SYSTEM)\s*[:：]\s*/i, "");
-              }
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ delta: chunk.delta })}\n\n`),
-              );
-            }
-          }
-
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ done: true, usage: updatedUsage })}\n\n`),
-          );
-          controller.close();
-
-          captureServerEvent({
-            distinctId: isGuest ? guestDeviceId! : user!.id,
-            event: "coach_request_completed",
-            properties: {
-              locale,
-              personaId: personaId || "default",
-              plan: isGuest ? "guest" : coachState!.usage!.plan,
-              model: modelName ?? modelInfo.model,
-              provider: modelInfo.provider,
-              durationMs: Date.now() - startTime,
-              inputTokens: tokenUsage?.inputTokens ?? null,
-              outputTokens: tokenUsage?.outputTokens ?? null,
-              totalTokens: tokenUsage?.totalTokens ?? null,
-              usageAvailable: tokenUsage?.usageAvailable ?? false,
-            },
-          }).catch(() => {});
-        } catch (err) {
-          const error = err as Error;
-          await refundUsage(isGuest, {
-            guestDeviceId: guestDeviceId!,
-            countryCode,
-            userId: user!.id,
-            usageDay,
-          });
-          const errorCode = classifySseError(error);
-
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorCode })}\n\n`));
-          controller.close();
-
-          captureServerEvent({
-            distinctId: isGuest ? guestDeviceId! : (user?.id ?? "unknown"),
-            event: "coach_request_failed",
-            properties: {
-              locale,
-              personaId: personaId || "default",
-              plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),
-              model: modelInfo.model,
-              provider: modelInfo.provider,
-              durationMs: Date.now() - startTime,
-              errorCode,
-              httpStatus: 0,
-            },
-          }).catch(() => {});
-        }
-      },
-      cancel(reason) {
-        console.debug(`[coach] SSE stream canceled by client. Reason:`, reason);
-      },
-    });
-
-    return new Response(sseStream, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache, no-transform",
-        Connection: "keep-alive",
-        "X-Accel-Buffering": "no",
-      },
-    });
+    return buildSseResponse(
+      createCoachSseStream({
+        apiKey,
+        upstreamTimeoutMs: UPSTREAM_TIMEOUT_MS,
+        openaiMessages,
+        locale,
+        personaId: personaId || "default",
+        plan,
+        distinctId,
+        isGuest,
+        refundParams: {
+          guestDeviceId: guestDeviceId!,
+          countryCode,
+          userId: user?.id ?? "",
+          usageDay,
+        },
+        updatedUsage,
+        signal: request.signal,
+      }),
+    );
   } catch (err) {
     const error = err as Error;
     await refundUsage(isGuest, {
       guestDeviceId: guestDeviceId!,
       countryCode,
-      userId: user!.id,
+      userId: user?.id ?? "",
       usageDay,
     });
     const { httpStatus, errorCode } = classifyUpstreamError(error);
 
-    captureServerEvent({
-      distinctId: isGuest ? guestDeviceId! : (user?.id ?? "unknown"),
-      event: "coach_request_failed",
-      properties: {
-        locale,
-        personaId: personaId || "default",
-        plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),
-        model: getCoachModelInfo().model,
-        provider: getCoachModelInfo().provider,
-        durationMs: Date.now() - startTime,
-        errorCode,
-        httpStatus,
-      },
-    }).catch(() => {});
+    captureCoachFailed(isGuest ? guestDeviceId! : (user?.id ?? "unknown"), {
+      locale,
+      personaId: personaId || "default",
+      plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),
+      model: getCoachModelInfo().model,
+      provider: getCoachModelInfo().provider,
+      durationMs: Math.round(performance.now() - startTime),
+      errorCode,
+      httpStatus,
+    });
 
     const messages: Record<number, string> = {
       504: "Coach is taking too long. Please try again.",
