@@ -19,6 +19,8 @@ if (typeof HTMLCanvasElement !== "undefined") {
   const gradient = { addColorStop: vi.fn() };
   const mockContext = {
     scale: vi.fn(),
+    setTransform: vi.fn(),
+    drawImage: vi.fn(),
     fillRect: vi.fn(),
     beginPath: vi.fn(),
     moveTo: vi.fn(),
@@ -33,6 +35,8 @@ if (typeof HTMLCanvasElement !== "undefined") {
     setLineDash: vi.fn(),
     createRadialGradient: vi.fn(() => gradient),
     createLinearGradient: vi.fn(() => gradient),
+    shadowColor: "",
+    shadowBlur: 0,
   };
 
   HTMLCanvasElement.prototype.getContext = vi.fn(
