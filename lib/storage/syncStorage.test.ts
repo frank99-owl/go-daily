@@ -55,7 +55,7 @@ vi.mock("@/lib/supabase/client", () => ({
       select: () => ({
         eq: () => ({
           order: () => ({
-            limit: async () => selectHandler(),
+            range: async () => selectHandler(),
           }),
         }),
       }),
@@ -71,6 +71,7 @@ import {
   flushSyncQueue,
   MAX_QUEUE_SIZE,
   queueAttempts,
+  REMOTE_PAGE_SIZE,
   SYNC_FAILED_STORAGE_KEY,
   SYNC_QUEUE_KEY,
 } from "./syncStorage";
@@ -255,6 +256,38 @@ describe("syncStorage — authed", () => {
     const { pulled } = await store.sync();
     expect(pulled).toBe(1);
     expect(localAttempts.find((a) => a.puzzleId === "p-remote")).toBeTruthy();
+  });
+
+  it("sync() paginates remote history beyond a single page (no 10k truncation)", async () => {
+    const store = createSyncStorage("user-1");
+    // A full first page forces a second fetch; the overflow row would have been
+    // dropped by the old fixed `.limit()` path.
+    const firstPage = Array.from({ length: REMOTE_PAGE_SIZE }, (_, i) => ({
+      puzzle_id: `p-${i}`,
+      date: "2026-04-22",
+      user_move_x: 1,
+      user_move_y: 1,
+      correct: true,
+      client_solved_at_ms: 1_700_000_000_000 + i,
+    }));
+    const secondPage = [
+      {
+        puzzle_id: "p-overflow",
+        date: "2026-04-22",
+        user_move_x: 2,
+        user_move_y: 2,
+        correct: false,
+        client_solved_at_ms: 1_700_000_500_000,
+      },
+    ];
+    const pages: unknown[][] = [firstPage, secondPage];
+    let call = 0;
+    selectHandler = () => ({ data: pages[call++] ?? [], error: null });
+
+    const { pulled } = await store.sync();
+    expect(call).toBe(2); // proves a second page was actually requested
+    expect(pulled).toBe(REMOTE_PAGE_SIZE + 1);
+    expect(localAttempts.find((a) => a.puzzleId === "p-overflow")).toBeTruthy();
   });
 });
 
