@@ -2,7 +2,7 @@ import { getPuzzle } from "@/content/puzzles";
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { isInBounds, isOccupied } from "@/lib/board/board";
 import { judgeMove } from "@/lib/board/judge";
-import { getClientIP } from "@/lib/clientIp";
+import { getClientCountry, getClientIP } from "@/lib/clientIp";
 import { getCoachAccess } from "@/lib/coach/coachAccess";
 import { captureCoachFailed } from "@/lib/coach/coachAnalytics";
 import { COACH_ERROR_CODES } from "@/lib/coach/coachErrorCodes";
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
 
   // 2. Rate limiting
   const ip = getClientIP(request);
-  const countryCode = request.headers.get("cf-ipcountry");
+  const countryCode = getClientCountry(request);
   const limitRes = await checkRateLimit(rateLimiter, ip, "[coach]", undefined, false);
   if (limitRes) return limitRes;
 
@@ -249,7 +249,7 @@ export async function GET(request: Request) {
   const identity = resolveIdentity(request);
   if (identity instanceof Response) return identity;
   const { guestDeviceId, authDeviceId } = identity;
-  const countryCode = request.headers.get("cf-ipcountry");
+  const countryCode = getClientCountry(request);
 
   if (!user && guestDeviceId) {
     const { getGuestUsage } = await import("@/lib/coach/guestCoachUsage");

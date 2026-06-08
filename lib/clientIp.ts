@@ -2,13 +2,13 @@
  * Extract the real client IP from an incoming request, honoring the
  * deployment trust chain.
  *
- * Priority:
- *   1. `CF-Connecting-IP` — set by Cloudflare when the orange cloud is on.
- *      Without this check every request behind Cloudflare would carry the
- *      Cloudflare edge IP, collapsing rate limiting to global.
- *   2. `X-Forwarded-For` — first hop set by the trusted proxy (Vercel, etc.).
- *      Only the first entry is trusted; subsequent entries are user-supplied.
- *   3. `X-Real-IP` — legacy fallback from some proxies.
+ * Priority (matches the resolution order in the body below):
+ *   1. `X-Forwarded-For` — first hop set by the trusted proxy (Vercel, the
+ *      primary host). Only the first entry is trusted; subsequent entries are
+ *      user-supplied and must be ignored.
+ *   2. `X-Real-IP` — legacy fallback from some proxies.
+ *   3. `CF-Connecting-IP` — only meaningful when strictly behind Cloudflare;
+ *      trivially spoofed otherwise, so it is the last resort.
  *
  * Falls back to `"unknown"` so downstream rate limiters still key on a
  * stable sentinel rather than short-circuiting.
@@ -29,6 +29,32 @@ export function getClientIP(request: Request): string {
   if (cf && isValidIP(cf)) return cf;
 
   return "unknown";
+}
+
+/**
+ * Resolve the client's ISO 3166-1 alpha-2 country code from edge headers,
+ * independent of which CDN/proxy fronts the deployment.
+ *
+ * Priority:
+ *   1. `x-vercel-ip-country` — set by Vercel's edge network (the primary host).
+ *   2. `cf-ipcountry` — set by Cloudflare when the orange cloud is on.
+ *
+ * Returns an uppercase 2-letter code, or `null` when no usable geo header is
+ * present. Cloudflare's `XX` (unknown) / `T1` (Tor) sentinels and any
+ * malformed value resolve to `null` so callers degrade to a UTC window
+ * rather than keying off a bogus country.
+ */
+export function getClientCountry(request: Request): string | null {
+  const candidates = [
+    request.headers.get("x-vercel-ip-country"),
+    request.headers.get("cf-ipcountry"),
+  ];
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const code = raw.trim().toUpperCase();
+    if (/^[A-Z]{2}$/.test(code) && code !== "XX") return code;
+  }
+  return null;
 }
 
 export function isValidIP(ip: string): boolean {
