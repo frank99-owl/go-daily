@@ -151,6 +151,9 @@ export async function queueAttempts(records: AttemptRecord[]): Promise<void> {
   const queue = await readQueue();
   const merged = dedupeAttempts([...queue, ...records.map(withoutRevealToken)]);
   if (merged.length > MAX_QUEUE_SIZE) {
+    // Overflow drops the OLDEST unsynced attempts. They already live in
+    // localStorage (saveAttempt writes there first), so no local history is
+    // lost — only the cloud sync of that backlog overflow is sacrificed.
     merged.splice(0, merged.length - MAX_QUEUE_SIZE);
   }
   await writeQueue(merged);
@@ -188,6 +191,38 @@ function createAnonSyncStorage(): SyncStorage {
       return { pushed: 0, pulled: 0 };
     },
   };
+}
+
+/** PostgREST caps a single response, so pull remote history in pages instead
+ *  of a fixed `.limit()` that silently truncates heavy users' attempt history
+ *  (and with it their stats / SRS reconstruction on a fresh device). */
+export const REMOTE_PAGE_SIZE = 1000;
+/** Defensive upper bound so a misbehaving backend can't spin this forever. */
+const REMOTE_MAX_PAGES = 50;
+
+async function fetchAllRemoteAttempts(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<AttemptRecord[]> {
+  const all: AttemptRecord[] = [];
+  for (let page = 0; page < REMOTE_MAX_PAGES; page++) {
+    const from = page * REMOTE_PAGE_SIZE;
+    const { data, error } = await supabase
+      .from("attempts")
+      .select("puzzle_id, date, user_move_x, user_move_y, correct, client_solved_at_ms")
+      .eq("user_id", userId)
+      .order("client_solved_at_ms", { ascending: false })
+      .range(from, from + REMOTE_PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(`failed to fetch remote attempts: ${error.message}`);
+    }
+
+    const rows = data ?? [];
+    all.push(...rows.map(fromRow));
+    if (rows.length < REMOTE_PAGE_SIZE) break;
+  }
+  return all;
 }
 
 // ---------------------------------------------------------------------------
@@ -302,16 +337,13 @@ function createAuthedSyncStorage(userId: string): SyncStorage {
     async sync() {
       const pushed = await runFlush();
 
-      const { data, error } = await supabase
-        .from("attempts")
-        .select("puzzle_id, date, user_move_x, user_move_y, correct, client_solved_at_ms")
-        .eq("user_id", userId)
-        .order("client_solved_at_ms", { ascending: false })
-        .limit(10_000);
+      let remote: AttemptRecord[];
+      try {
+        remote = await fetchAllRemoteAttempts(supabase, userId);
+      } catch {
+        return { pushed, pulled: 0 };
+      }
 
-      if (error) return { pushed, pulled: 0 };
-
-      const remote = (data ?? []).map(fromRow);
       const local = loadLocalAttempts();
       const seen = new Set(local.map(attemptKey));
       const toAdd = remote.filter((r) => !seen.has(attemptKey(r)));
@@ -324,19 +356,7 @@ function createAuthedSyncStorage(userId: string): SyncStorage {
 }
 
 export async function fetchRemoteAttempts(userId: string): Promise<AttemptRecord[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("attempts")
-    .select("puzzle_id, date, user_move_x, user_move_y, correct, client_solved_at_ms")
-    .eq("user_id", userId)
-    .order("client_solved_at_ms", { ascending: false })
-    .limit(10_000);
-
-  if (error) {
-    throw new Error(`failed to fetch remote attempts: ${error.message}`);
-  }
-
-  return (data ?? []).map(fromRow);
+  return fetchAllRemoteAttempts(createClient(), userId);
 }
 
 export function createSyncStorage(userId: string | null): SyncStorage {

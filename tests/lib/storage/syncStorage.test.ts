@@ -62,7 +62,7 @@ describe("SyncStorage Queue & Backoff Mechanism", () => {
     mockSelect.mockReturnValue({
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      range: vi.fn().mockResolvedValue({ data: [], error: null }),
     });
   });
 
