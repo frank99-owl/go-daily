@@ -241,6 +241,12 @@ export async function POST(request: Request) {
 // ── GET ──────────────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
+  // Quota lookups are read-only but still hit the service-role client, so
+  // throttle them on their own key namespace (independent of the POST bucket).
+  const ip = getClientIP(request);
+  const limitRes = await checkRateLimit(rateLimiter, `coach-get:${ip}`, "[coach:get]");
+  if (limitRes) return limitRes;
+
   const supabase = await createServerSupabase();
   const {
     data: { user },
