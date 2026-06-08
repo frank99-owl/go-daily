@@ -41,6 +41,53 @@ function keyOf(c: Coord): string {
   return `${c.x},${c.y}`;
 }
 
+/** Draw a single stone onto `ctx` at board coordinate `c`. Pure — does not close over any render state. */
+function drawStone(
+  ctx: CanvasRenderingContext2D,
+  c: Coord,
+  color: Color,
+  stoneR: number,
+  px_: (i: number) => number,
+  py_: (j: number) => number,
+  isDark: boolean,
+  px: number,
+  alpha = 1,
+) {
+  const cx = px_(c.x);
+  const cy = py_(c.y);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // subtle radial gradient for polish
+  const grad = ctx.createRadialGradient(
+    cx - stoneR * 0.3,
+    cy - stoneR * 0.3,
+    stoneR * 0.1,
+    cx,
+    cy,
+    stoneR,
+  );
+  if (color === "black") {
+    grad.addColorStop(0, isDark ? "#333" : "#555");
+    grad.addColorStop(1, "#0a0a0a");
+  } else {
+    grad.addColorStop(0, "#ffffff");
+    grad.addColorStop(1, isDark ? "#c8c4ba" : "#d7d4ca");
+  }
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, stoneR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // thin outline on white stones for contrast against board
+  if (color === "white") {
+    ctx.strokeStyle = isDark ? "#6b665d" : "#8a8375";
+    ctx.lineWidth = Math.max(0.5, px / 1040);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 export function computeBoardGeometry(px: number, cellsAcross: number) {
   if (cellsAcross <= 1) {
     const pad = px / 2;
@@ -107,6 +154,7 @@ export function GoBoard({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const staticCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [cssSize, setCssSize] = useState(maxPx);
   const [hover, setHover] = useState<Coord | null>(null);
   const [keyboardCursor, setKeyboardCursor] = useState<Coord | null>(null);
@@ -153,8 +201,142 @@ export function GoBoard({
     wrapRef.current?.focus();
   }, [keyboardEnabled, focusOnMount]);
 
-  // Derive rendering geometry.
+  // ---- Offscreen static layer (grid, stars, stones, userMove, moveNumbers, highlight) ----
+  const drawStaticLayer = useCallback(() => {
+    const px = cssSize;
+    const dpr = window.devicePixelRatio || 1;
+    let sc = staticCanvasRef.current;
+    if (!sc) {
+      sc = document.createElement("canvas");
+      staticCanvasRef.current = sc;
+    }
+    sc.width = px * dpr;
+    sc.height = px * dpr;
+    const sctx = sc.getContext("2d");
+    if (!sctx) return;
+    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.scale(dpr, dpr);
+
+    // Board background.
+    sctx.fillStyle = isDark ? "#1f1611" : "#e8c594";
+    sctx.fillRect(0, 0, px, px);
+
+    // Grid geometry.
+    const cellsAcross = win.xMax - win.xMin + 1;
+    const { pad, step } = computeBoardGeometry(px, cellsAcross);
+    const px_ = (i: number) => pad + (i - win.xMin) * step;
+    const py_ = (j: number) => pad + (j - win.yMin) * step;
+    const stoneR = step * 0.46;
+
+    // Grid lines.
+    sctx.strokeStyle = isDark ? "rgba(0, 242, 255, 0.28)" : "#6b4a1e";
+    sctx.lineWidth = Math.max(1, px / 520);
+    sctx.beginPath();
+    for (let i = win.xMin; i <= win.xMax; i++) {
+      sctx.moveTo(px_(i), py_(win.yMin));
+      sctx.lineTo(px_(i), py_(win.yMax));
+    }
+    for (let j = win.yMin; j <= win.yMax; j++) {
+      sctx.moveTo(px_(win.xMin), py_(j));
+      sctx.lineTo(px_(win.xMax), py_(j));
+    }
+    sctx.stroke();
+
+    // Star points.
+    sctx.fillStyle = isDark ? "rgba(0, 242, 255, 0.5)" : "#3a2a10";
+    const starR = Math.max(2.5, step * 0.09);
+    for (const s of starPoints(size)) {
+      if (!inWindow(s)) continue;
+      sctx.beginPath();
+      sctx.arc(px_(s.x), py_(s.y), starR, 0, Math.PI * 2);
+      sctx.fill();
+    }
+
+    // Stones.
+    const allStones = [...stones, ...(extraStones || [])];
+    for (const s of allStones) {
+      if (inWindow(s)) drawStone(sctx, s, s.color, stoneR, px_, py_, isDark, px);
+    }
+    if (userMove && inWindow(userMove))
+      drawStone(sctx, userMove, toPlay, stoneR, px_, py_, isDark, px);
+
+    // Move numbers.
+    if (moveNumbers?.size) {
+      sctx.textAlign = "center";
+      sctx.textBaseline = "middle";
+      for (const s of allStones) {
+        const k = keyOf(s);
+        const num = moveNumbers.get(k);
+        if (num === undefined) continue;
+        if (!inWindow(s)) continue;
+        const cx = px_(s.x);
+        const cy = py_(s.y);
+        sctx.fillStyle = s.color === "black" ? "#fff" : "#0a0a0a";
+        sctx.font = `bold ${Math.max(8, Math.floor(stoneR * 0.6))}px Inter, sans-serif`;
+        sctx.fillText(String(num), cx, cy);
+      }
+    }
+
+    // Mark the last extra stone.
+    if (extraStones?.length) {
+      const last = extraStones[extraStones.length - 1];
+      if (inWindow(last)) {
+        sctx.save();
+        sctx.strokeStyle = accent === "var(--color-accent)" ? "#00f2ff" : accent;
+        sctx.lineWidth = Math.max(2, px / 260);
+        sctx.beginPath();
+        sctx.arc(px_(last.x), py_(last.y), stoneR * 0.9, 0, Math.PI * 2);
+        sctx.stroke();
+        sctx.restore();
+      }
+    }
+
+    // Highlight markers.
+    if (highlight?.length) {
+      const accentColor = accent === "var(--color-accent)" ? "#00f2ff" : accent;
+      for (const h of highlight) {
+        if (!inWindow(h)) continue;
+        const existing = allStones.find((s) => coordEquals(s, h));
+        const color = existing ? existing.color : toPlay;
+        drawStone(sctx, h, color, stoneR, px_, py_, isDark, px);
+        sctx.save();
+        sctx.shadowColor = accentColor;
+        sctx.shadowBlur = Math.max(6, px / 120);
+        sctx.strokeStyle = accentColor;
+        sctx.lineWidth = Math.max(2.5, px / 200);
+        sctx.beginPath();
+        sctx.arc(px_(h.x), py_(h.y), stoneR * 1.15, 0, Math.PI * 2);
+        sctx.stroke();
+        sctx.restore();
+      }
+    }
+  }, [
+    cssSize,
+    size,
+    stones,
+    toPlay,
+    userMove,
+    highlight,
+    extraStones,
+    moveNumbers,
+    isDark,
+    accent,
+    win,
+    inWindow,
+  ]);
+
+  // ---- Composite render: drawImage(static) + dynamic (hover / keyboard cursor) ----
+  // Uses the drawStaticLayer callback reference itself as the "static inputs changed" signal,
+  // avoiding both manual signature tracking and setState-in-effect.
+  const lastStaticDrawRef = useRef<typeof drawStaticLayer | null>(null);
+
   const render = useCallback(() => {
+    // Rebuild offscreen static layer only when its inputs have changed.
+    if (drawStaticLayer !== lastStaticDrawRef.current) {
+      drawStaticLayer();
+      lastStaticDrawRef.current = drawStaticLayer;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
@@ -166,143 +348,25 @@ export function GoBoard({
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    // 1:1 copy of static layer at physical-pixel level (identity transform).
+    const sc = staticCanvasRef.current;
+    if (sc) ctx.drawImage(sc, 0, 0);
+
+    // Scale for CSS-pixel coordinate dynamic drawing.
     ctx.scale(dpr, dpr);
 
-    // Board background.
-    ctx.fillStyle = isDark ? "#1f1611" : "#e8c594";
-    ctx.fillRect(0, 0, px, px);
-
-    // Grid geometry: padding so edge intersections aren't right on the rim.
-    const cellsAcross = win.xMax - win.xMin + 1; // === cellsDown (window is square)
+    // Geometry for dynamic elements.
+    const cellsAcross = win.xMax - win.xMin + 1;
     const { pad, step } = computeBoardGeometry(px, cellsAcross);
     const px_ = (i: number) => pad + (i - win.xMin) * step;
     const py_ = (j: number) => pad + (j - win.yMin) * step;
-
-    // Grid lines — only the portion within the visible window.
-    ctx.strokeStyle = isDark ? "rgba(0, 242, 255, 0.28)" : "#6b4a1e";
-    ctx.lineWidth = Math.max(1, px / 520);
-    ctx.beginPath();
-    for (let i = win.xMin; i <= win.xMax; i++) {
-      // vertical line at column i
-      ctx.moveTo(px_(i), py_(win.yMin));
-      ctx.lineTo(px_(i), py_(win.yMax));
-    }
-    for (let j = win.yMin; j <= win.yMax; j++) {
-      // horizontal line at row j
-      ctx.moveTo(px_(win.xMin), py_(j));
-      ctx.lineTo(px_(win.xMax), py_(j));
-    }
-    ctx.stroke();
-
-    // Star points (only those inside the window).
-    ctx.fillStyle = isDark ? "rgba(0, 242, 255, 0.5)" : "#3a2a10";
-    const starR = Math.max(2.5, step * 0.09);
-    for (const s of starPoints(size)) {
-      if (!inWindow(s)) continue;
-      ctx.beginPath();
-      ctx.arc(px_(s.x), py_(s.y), starR, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Stones.
     const stoneR = step * 0.46;
-    const drawStone = (c: Coord, color: Color, alpha = 1) => {
-      const cx = px_(c.x);
-      const cy = py_(c.y);
-      ctx.save();
-      ctx.globalAlpha = alpha;
-
-      // subtle radial gradient for polish
-      const grad = ctx.createRadialGradient(
-        cx - stoneR * 0.3,
-        cy - stoneR * 0.3,
-        stoneR * 0.1,
-        cx,
-        cy,
-        stoneR,
-      );
-      if (color === "black") {
-        grad.addColorStop(0, isDark ? "#333" : "#555");
-        grad.addColorStop(1, "#0a0a0a");
-      } else {
-        grad.addColorStop(0, "#ffffff");
-        grad.addColorStop(1, isDark ? "#c8c4ba" : "#d7d4ca");
-      }
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, stoneR, 0, Math.PI * 2);
-      ctx.fill();
-
-      // thin outline on white stones for contrast against board
-      if (color === "white") {
-        ctx.strokeStyle = isDark ? "#6b665d" : "#8a8375";
-        ctx.lineWidth = Math.max(0.5, px / 1040);
-        ctx.stroke();
-      }
-      ctx.restore();
-    };
 
     const allStones = [...stones, ...(extraStones || [])];
     const stoneSet = buildStoneSet(allStones);
-    for (const s of allStones) {
-      if (inWindow(s)) drawStone(s, s.color);
-    }
-    if (userMove && inWindow(userMove)) drawStone(userMove, toPlay);
 
-    // Move numbers (drawn on top of stones).
-    if (moveNumbers?.size) {
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      for (const s of allStones) {
-        const k = keyOf(s);
-        const num = moveNumbers.get(k);
-        if (num === undefined) continue;
-        if (!inWindow(s)) continue;
-        const cx = px_(s.x);
-        const cy = py_(s.y);
-        ctx.fillStyle = s.color === "black" ? "#fff" : "#0a0a0a";
-        ctx.font = `bold ${Math.max(8, Math.floor(stoneR * 0.6))}px Inter, sans-serif`;
-        ctx.fillText(String(num), cx, cy);
-      }
-    }
-
-    // Mark the last extra stone (solution sequence tip).
-    if (extraStones?.length) {
-      const last = extraStones[extraStones.length - 1];
-      if (inWindow(last)) {
-        ctx.save();
-        ctx.strokeStyle = accent === "var(--color-accent)" ? "#00f2ff" : accent;
-        ctx.lineWidth = Math.max(2, px / 260);
-        ctx.beginPath();
-        ctx.arc(px_(last.x), py_(last.y), stoneR * 0.9, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
-
-    // Highlight markers (e.g. correct answer) — draw stone + glowing outer ring.
-    if (highlight?.length) {
-      const accentColor = accent === "var(--color-accent)" ? "#00f2ff" : accent;
-      for (const h of highlight) {
-        if (!inWindow(h)) continue;
-        // Draw the actual stone in the correct color.
-        const existing = allStones.find((s) => coordEquals(s, h));
-        const color = existing ? existing.color : toPlay;
-        drawStone(h, color);
-        // Draw the glowing accent ring around the stone.
-        ctx.save();
-        ctx.shadowColor = accentColor;
-        ctx.shadowBlur = Math.max(6, px / 120);
-        ctx.strokeStyle = accentColor;
-        ctx.lineWidth = Math.max(2.5, px / 200);
-        ctx.beginPath();
-        ctx.arc(px_(h.x), py_(h.y), stoneR * 1.15, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
-
-    // Ghost stone on hover (only when interactive and cell is empty and in-window).
+    // Ghost stone on hover.
     if (
       !disabled &&
       hover &&
@@ -310,9 +374,10 @@ export function GoBoard({
       !isOccupied(stoneSet, hover) &&
       !(userMove && coordEquals(userMove, hover))
     ) {
-      drawStone(hover, toPlay, 0.35);
+      drawStone(ctx, hover, toPlay, stoneR, px_, py_, isDark, px, 0.35);
     }
 
+    // Keyboard cursor.
     if (
       keyboardEnabled &&
       keyboardCursorVisible &&
@@ -332,12 +397,10 @@ export function GoBoard({
     }
   }, [
     cssSize,
-    size,
     stones,
+    extraStones,
     toPlay,
     userMove,
-    highlight,
-    extraStones,
     disabled,
     hover,
     activeKeyboardCursor,
@@ -347,7 +410,7 @@ export function GoBoard({
     inWindow,
     isDark,
     accent,
-    moveNumbers,
+    drawStaticLayer,
   ]);
 
   useEffect(() => {
