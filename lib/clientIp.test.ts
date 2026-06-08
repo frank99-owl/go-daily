@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { getClientIP, isValidIP } from "./clientIp";
+import { getClientCountry, getClientIP, isValidIP } from "./clientIp";
 
 function req(headers: Record<string, string>): Request {
   return new Request("http://localhost/", { headers });
@@ -91,5 +91,32 @@ describe("getClientIP — priority chain", () => {
       }),
     );
     expect(ip).toBe("1.2.3.4");
+  });
+});
+
+describe("getClientCountry — edge geo headers", () => {
+  it("reads the Vercel country header (primary host)", () => {
+    expect(getClientCountry(req({ "x-vercel-ip-country": "CN" }))).toBe("CN");
+  });
+
+  it("prefers the Vercel header over the Cloudflare one", () => {
+    const country = getClientCountry(req({ "x-vercel-ip-country": "JP", "cf-ipcountry": "US" }));
+    expect(country).toBe("JP");
+  });
+
+  it("falls back to the Cloudflare header when Vercel's is absent", () => {
+    expect(getClientCountry(req({ "cf-ipcountry": "kr" }))).toBe("KR");
+  });
+
+  it("normalises case and surrounding whitespace", () => {
+    expect(getClientCountry(req({ "x-vercel-ip-country": "  de  " }))).toBe("DE");
+  });
+
+  it("returns null for unknown/sentinel/malformed codes so callers fall back to UTC", () => {
+    expect(getClientCountry(req({}))).toBeNull();
+    expect(getClientCountry(req({ "x-vercel-ip-country": "XX" }))).toBeNull(); // unknown
+    expect(getClientCountry(req({ "cf-ipcountry": "T1" }))).toBeNull(); // Tor
+    expect(getClientCountry(req({ "x-vercel-ip-country": "USA" }))).toBeNull(); // not alpha-2
+    expect(getClientCountry(req({ "x-vercel-ip-country": "" }))).toBeNull();
   });
 });
