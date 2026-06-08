@@ -123,11 +123,20 @@ export function CoachDialogue({
     }
   }, [messages, puzzleId, locale, personaId]);
 
-  // Auto-scroll to the newest message.
+  // Auto-scroll to the newest content. During streaming we follow instantly:
+  // a smooth scroll would be restarted on every token and visibly stutter.
+  // Smooth scrolling is reserved for finalized messages, and skipped when the
+  // user prefers reduced motion.
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
+    const el = scrollRef.current;
+    if (!el) return;
+    const isStreaming = pending || streamingContent.length > 0;
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: isStreaming || prefersReducedMotion ? "auto" : "smooth",
     });
   }, [messages.length, pending, streamingContent]);
 
