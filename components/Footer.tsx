@@ -1,10 +1,12 @@
 "use client";
 
+import { useIsAdmin } from "@/lib/auth/useIsAdmin";
 import { useLocale } from "@/lib/i18n/i18n";
 
 import { LocalizedLink } from "./LocalizedLink";
 
-export function Footer({ isAdmin = false }: { isAdmin?: boolean }) {
+export function Footer() {
+  const { isAdmin } = useIsAdmin();
   const { t } = useLocale();
   const year = new Date().getFullYear();
 

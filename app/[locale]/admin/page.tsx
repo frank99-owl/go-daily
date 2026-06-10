@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { AdminContext } from "@/components/AdminProvider";
-import { useCurrentUser } from "@/lib/auth/auth";
+import { useIsAdmin } from "@/lib/auth/useIsAdmin";
 
 type Grant = {
   email: string;
@@ -55,8 +54,7 @@ type OpsSummary = {
 };
 
 export default function AdminPage() {
-  const { loading } = useCurrentUser();
-  const isAdmin = useContext(AdminContext);
+  const { isAdmin, loading } = useIsAdmin();
   const [pin, setPin] = useState("");
   const [verified, setVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);

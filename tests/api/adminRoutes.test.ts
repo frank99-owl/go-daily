@@ -33,7 +33,7 @@ vi.mock("@/lib/supabase/service", () => ({
 
 import { DELETE as grantsDELETE, POST as grantsPOST } from "@/app/api/admin/grants/route";
 import { GET as opsGET } from "@/app/api/admin/ops/route";
-import { POST as verifyPOST } from "@/app/api/admin/verify/route";
+import { GET as verifyGET, POST as verifyPOST } from "@/app/api/admin/verify/route";
 
 const originalEnv = process.env;
 
@@ -230,6 +230,43 @@ describe("admin routes", () => {
 
       expect(response.status).toBe(403);
       await expect(response.json()).resolves.toEqual({ error: "invalid pin" });
+    });
+
+    it("GET reports admin status for an admin session", async () => {
+      const response = await verifyGET(new Request("https://go-daily.app/api/admin/verify"));
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ isAdmin: true });
+    });
+
+    it("GET reports non-admin status without leaking details", async () => {
+      mocks.getUser.mockResolvedValue({
+        data: { user: { id: "user-regular", email: "user@example.com" } },
+        error: null,
+      });
+
+      const response = await verifyGET(new Request("https://go-daily.app/api/admin/verify"));
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ isAdmin: false });
+    });
+
+    it("GET reports non-admin status for anonymous sessions", async () => {
+      mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
+
+      const response = await verifyGET(new Request("https://go-daily.app/api/admin/verify"));
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ isAdmin: false });
+    });
+
+    it("GET rate limits by client IP", async () => {
+      mocks.isLimited.mockResolvedValueOnce(true);
+
+      const response = await verifyGET(new Request("https://go-daily.app/api/admin/verify"));
+
+      expect(response.status).toBe(429);
+      expect(mocks.createServerClient).not.toHaveBeenCalled();
     });
   });
 
