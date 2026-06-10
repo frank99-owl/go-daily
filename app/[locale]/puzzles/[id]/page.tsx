@@ -44,9 +44,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// RootLayout reads request headers to set <html lang>, so puzzle detail pages
-// must render dynamically in production instead of ISR/SSG.
-export const dynamic = "force-dynamic";
+// Puzzle pages are pure content (personalization is client-side), so they
+// render statically. A small seed set is prerendered at build time; the
+// remaining ~3000 ids × 4 locales are generated on first request and then
+// served from the ISR cache until the next deploy (puzzle content only
+// changes via deploys, so the cache stays correct by construction).
+const PRERENDERED_PUZZLES = 8;
+
+export async function generateStaticParams(): Promise<Array<{ id: string }>> {
+  const { getAllSummaries } = await import("@/content/puzzleSummaries.server");
+  return getAllSummaries()
+    .slice(0, PRERENDERED_PUZZLES)
+    .map((summary) => ({ id: summary.id }));
+}
 
 export default async function PuzzleDetailPage({ params }: Props) {
   const { id } = await params;
