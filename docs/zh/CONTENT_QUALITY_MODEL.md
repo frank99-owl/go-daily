@@ -42,7 +42,7 @@
 
 P0-A 迁移状态：
 
-1. 旧 `coachEligibleIds.json` 不再作为运行时事实源，仅作为迁移兼容文件保留。
+1. 旧 `coachEligibleIds.json` 已于 2026-06-10 删除（确认零代码引用后执行，原计划见 TECH_DEBT）。
 2. 完整 Coach 要求 `qualityTier === "coach-ready"` 且题目在 `coachReadyIds.json` 中。
 3. `variation-ready` 要求题目在已复核的 `variationGroups.json` 中。
 4. `validate:puzzles` 会校验三个分层数据源、变例组和 `contentReviewBatches.json` 的一致性。
