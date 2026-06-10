@@ -103,6 +103,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Hide the native cursor only where GlobalCursor renders its replacement
+   (must stay in sync with FINE_POINTER_QUERY in components/GlobalCursor.tsx). */
+@media (hover: hover) and (pointer: fine) {
+  body {
+    cursor: none;
+  }
+}
+
 @keyframes dotPulse {
   0%,
   80%,

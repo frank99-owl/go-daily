@@ -120,7 +120,7 @@ export default async function LocaleLayout({
           />
         )}
       </head>
-      <body className="min-h-full flex flex-col bg-paper text-ink cursor-none">
+      <body className="min-h-full flex flex-col bg-paper text-ink">
         <PostHogProvider>
           <LocaleProvider initialLocale={locale}>
             <Suspense fallback={null}>
