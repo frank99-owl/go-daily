@@ -11,11 +11,9 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
+          # Caches ~/.npm; a separate node_modules cache is pointless because
+          # `npm ci` always deletes node_modules before installing.
           cache: "npm"
-      - uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: npm-${{ hashFiles('package-lock.json') }}
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run format:check
