@@ -122,7 +122,7 @@ export function HeroSection() {
     <section
       ref={sectionRef}
       id="hero-section"
-      className="sticky top-0 h-screen z-10 flex items-center overflow-hidden"
+      className="sticky top-0 h-dvh z-10 flex items-center overflow-hidden"
     >
       {/* Background Image - parallax */}
       <motion.div className="absolute inset-0 z-0 overflow-hidden" style={{ y: bgY }}>
