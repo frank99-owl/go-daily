@@ -1,24 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef } from "react";
+
+import { useMediaQuery } from "@/lib/useMediaQuery";
 
 // Must stay in sync with the `cursor: none` media query in app/globals.css.
 const FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)";
 
-function subscribeFinePointer(onChange: () => void) {
-  const mql = window.matchMedia?.(FINE_POINTER_QUERY);
-  if (!mql) return () => {};
-  mql.addEventListener("change", onChange);
-  return () => mql.removeEventListener("change", onChange);
-}
-
-function hasFinePointer() {
-  return window.matchMedia?.(FINE_POINTER_QUERY).matches ?? false;
-}
-
 export function GlobalCursor() {
   const cursorRef = useRef<HTMLDivElement | null>(null);
-  const enabled = useSyncExternalStore(subscribeFinePointer, hasFinePointer, () => false);
+  const enabled = useMediaQuery(FINE_POINTER_QUERY);
 
   useEffect(() => {
     if (!enabled) return;
