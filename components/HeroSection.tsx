@@ -122,7 +122,7 @@ export function HeroSection() {
     <section
       ref={sectionRef}
       id="hero-section"
-      className="sticky top-0 h-dvh z-10 flex items-center overflow-hidden"
+      className="relative md:sticky top-0 h-dvh z-10 flex items-center overflow-hidden"
     >
       {/* Background Image - parallax */}
       <motion.div className="absolute inset-0 z-0 overflow-hidden" style={{ y: bgY }}>
@@ -141,7 +141,7 @@ export function HeroSection() {
 
       {/* Content - fade out on scroll */}
       <motion.div
-        className="container mx-auto px-12 max-w-7xl relative z-20"
+        className="container mx-auto px-6 md:px-12 max-w-7xl relative z-20"
         style={{
           opacity: contentOpacity,
           y: contentY,
@@ -183,7 +183,7 @@ export function HeroSection() {
               type="button"
               onClick={scrollToBoard}
               data-hover-target
-              className="group flex items-center gap-4 text-white/50 hover:text-white font-[family-name:var(--font-sans)] font-light text-sm tracking-[0.2em] uppercase transition-all"
+              className="group hidden md:flex items-center gap-4 text-white/50 hover:text-white font-[family-name:var(--font-sans)] font-light text-sm tracking-[0.2em] uppercase transition-all"
             >
               <span className="w-8 h-px bg-white/10 group-hover:w-12 group-hover:bg-white transition-all duration-500" />
               {t.hero.watchMatch}
@@ -196,7 +196,7 @@ export function HeroSection() {
       <motion.button
         type="button"
         onClick={scrollToBoard}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/40 hover:text-white transition-colors"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 hidden md:block text-white/40 hover:text-white transition-colors"
         aria-label="Scroll to board showcase"
         style={{ opacity: contentOpacity }}
       >

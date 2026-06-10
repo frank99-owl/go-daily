@@ -1,17 +1,13 @@
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
 
 import { HeroSection } from "@/components/HeroSection";
 import { HomeLoginReminder } from "@/components/HomeLoginReminder";
+import { HomeShowcase } from "@/components/HomeShowcase";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { absoluteUrl, buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
-
-const BoardShowcase = dynamic(() =>
-  import("@/components/BoardShowcase").then((m) => m.BoardShowcase),
-);
 
 export async function generateMetadata({
   params,
@@ -81,7 +77,7 @@ export default async function Home({ params }: { params: Promise<{ locale: Local
       />
       <HomeLoginReminder />
       <HeroSection />
-      <BoardShowcase />
+      <HomeShowcase />
     </>
   );
 }
