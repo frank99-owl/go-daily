@@ -21,6 +21,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 - **Trial period reduced**: Free trial shortened from 7 days to 3 days (`STRIPE_TRIAL_DAYS` default in `lib/stripe/server.ts` and `lib/env.ts`). All four locale message files and pricing page copy updated.
 - **`geminiSolutionNotes.js` pipeline**: Renamed all references from `coachEligibleIds` → `coachBasicEligibleIds` to write to the correct file after the tier split.
 - **Docs synced (2026-05-20)**: All locale `PROJECT_STATUS`, `PRODUCT_SPECS`, `API_REFERENCE`, `ARCHITECTURE`, `OPERATIONS_QA`, `CONCEPT`, `docs/README.md`, `AGENTS.md`, `CLAUDE.md`, `.env.example`, `docs/zh/CONTENT_QUALITY_MODEL.md`, `CONTENT_EDITING_WORKFLOW.md`, `ROADMAP.md`, and `TECH_DEBT.md` updated to reflect the coach tier model, past_due grace, trial reduction, and admin ops endpoint. Test count: **99 files / 787 cases**.
+- **Static rendering for content pages (2026-06-10)**: `app/[locale]/layout.tsx` is now the root layout, deriving `<html lang>` from the locale segment instead of the middleware `x-locale` header, and no longer resolves auth server-side (admin status moved to a client hook backed by rate-limited `GET /api/admin/verify`). Home, about, mentors, legal, stats, and puzzle collection pages are prerendered (SSG); puzzle detail pages serve from on-demand ISR (seed set prerendered, the rest cached on first request until the next deploy). Unmatched localized URLs render a styled localized 404 via a `[...rest]` catch-all. Verified in production: `x-vercel-cache: PRERENDER/HIT` on content pages.
+- **CI**: Removed the `actions/cache@v4` node_modules cache step — `npm ci` deletes node_modules before installing, so the cache was pure overhead (and raised GitHub's Node 20 deprecation annotation). `setup-node`'s built-in npm cache remains.
+
+### Fixed
+
+- **`/api/admin/verify` config disclosure**: A missing `ADMIN_PIN` now returns the same opaque `403 forbidden` as a failed check instead of `500 "admin not configured"`.
+
+### Removed
+
+- **`content/data/coachEligibleIds.json`**: Deleted the migrated single-allowlist file (2026-06-10) after verifying zero code references; the three tier files are the only runtime sources.
 
 ---
 
