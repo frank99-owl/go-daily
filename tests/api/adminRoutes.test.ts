@@ -201,6 +201,17 @@ describe("admin routes", () => {
       await expect(response.json()).resolves.toEqual({ error: "forbidden" });
     });
 
+    it("returns the same opaque forbidden response when ADMIN_PIN is not configured", async () => {
+      delete process.env.ADMIN_PIN;
+
+      const response = await verifyPOST(
+        jsonRequest("/api/admin/verify", { pin: "long-random-admin-code" }),
+      );
+
+      expect(response.status).toBe(403);
+      await expect(response.json()).resolves.toEqual({ error: "forbidden" });
+    });
+
     it("verifies the admin code for an allowed admin email", async () => {
       const response = await verifyPOST(
         jsonRequest("/api/admin/verify", { pin: "long-random-admin-code" }),

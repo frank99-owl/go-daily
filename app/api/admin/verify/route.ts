@@ -45,12 +45,10 @@ export async function POST(request: Request) {
 
   const expectedPin = process.env.ADMIN_PIN;
 
-  if (!expectedPin) {
-    return createApiResponse({ error: "admin not configured" }, { status: 500 });
-  }
-
-  if (expectedPin.length < MIN_ADMIN_PIN_LENGTH) {
-    console.error("[admin/verify] ADMIN_PIN is too short");
+  // Missing and too-short PINs return the same opaque response so callers
+  // cannot distinguish server configuration state from a failed check.
+  if (!expectedPin || expectedPin.length < MIN_ADMIN_PIN_LENGTH) {
+    console.error("[admin/verify] ADMIN_PIN is missing or too short");
     return createApiResponse({ error: "forbidden" }, { status: 403 });
   }
 
