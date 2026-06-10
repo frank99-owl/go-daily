@@ -82,7 +82,7 @@ const SMOKE_API_ROUTES = [
 
 const ERROR_BOUNDARY_FILES = [
   "app/global-error.tsx",
-  "app/error.tsx",
+  "app/[locale]/error.tsx",
   "app/[locale]/today/error.tsx",
   "app/[locale]/puzzles/error.tsx",
   "app/[locale]/result/error.tsx",
@@ -414,7 +414,7 @@ function validateLocalSmokeSurface(): void {
 }
 
 function validateSeoSurface(): void {
-  requireFileContains("app/layout.tsx", "Root metadata includes SEO/PWA defaults", [
+  requireFileContains("app/[locale]/layout.tsx", "Root metadata includes SEO/PWA defaults", [
     /metadataBase:/,
     /openGraph:/,
     /twitter:/,
@@ -510,7 +510,7 @@ function validateStripeSafetySurface(): void {
 }
 
 function validatePerformanceBudgets(): void {
-  requireFileExcludes("app/layout.tsx", "Build avoids Google Font network dependency", [
+  requireFileExcludes("app/[locale]/layout.tsx", "Build avoids Google Font network dependency", [
     /next\/font\/google/,
   ]);
   checkFileBudget("public/sw.js", 10 * ONE_KB, "Service worker budget");

@@ -20,10 +20,10 @@ import type { Locale } from "@/types";
  *      session on every navigation.
  *   2. Redirect unprefixed paths (e.g. `/today`) to their locale-prefixed
  *      equivalent using: URL override > cookie > Accept-Language > default.
- *   3. Expose `x-locale` to downstream server components via the forwarded
- *      request headers — the root layout reads it for the `<html lang>`
- *      attribute on routes like /auth/callback that don't have a locale
- *      segment.
+ *   3. Expose `x-locale` to downstream route handlers via the forwarded
+ *      request headers — `app/manifest.ts` reads it to localise the PWA
+ *      manifest. Page layouts derive locale from the `[locale]` segment
+ *      params instead, so they can render statically.
  *
  * Routes excluded from this middleware (see matcher below): /api, /auth,
  * /_next/static, /_next/image, favicon/manifest/sitemap assets.

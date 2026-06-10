@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense } from "react";
+
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { useLocale } from "@/lib/i18n/i18n";
 
@@ -56,7 +58,11 @@ export function Nav() {
             Pro
           </LocalizedLink>
           <div className="w-3" />
-          <UserMenu />
+          {/* UserMenu reads useSearchParams(); the boundary keeps statically
+              rendered pages from bailing out to client-side rendering. */}
+          <Suspense fallback={null}>
+            <UserMenu />
+          </Suspense>
           <div className="w-2" />
           <LanguageToggle />
         </div>
