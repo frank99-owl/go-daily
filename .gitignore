@@ -81,3 +81,7 @@ scripts/anonymizePuzzles.ts
 # Data Pipeline Isolation
 data_pipeline/
 temp_sources/
+
+# Tauri desktop build artifacts
+desktop/src-tauri/target/
+desktop/src-tauri/gen/

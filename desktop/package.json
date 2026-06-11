@@ -1,0 +1,11 @@
+{
+  "name": "go-daily-desktop",
+  "private": true,
+  "version": "1.3.0",
+  "description": "Go Daily desktop app (Tauri)",
+  "scripts": {
+    "dev": "cargo tauri dev",
+    "build": "cargo tauri build",
+    "tauri": "cargo tauri"
+  }
+}
