@@ -545,7 +545,8 @@ export function ResultClient({
       </div>
       <div className="flex flex-col gap-2 text-center text-sm text-white/45">
         <p>{t.result.boardCoordinateHint}</p>
-        <p>{t.result.keyboardShortcuts}</p>
+        {/* Keyboard hints are meaningless on touch-only phones. */}
+        <p className="hidden md:block">{t.result.keyboardShortcuts}</p>
       </div>
 
       <section className="rounded-xl border border-white/10 bg-white/[0.04] p-5">

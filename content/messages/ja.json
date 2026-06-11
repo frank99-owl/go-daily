@@ -56,7 +56,7 @@
     "randomPractice": "ランダム練習",
     "randomPracticeTitle": "ランダムな問題で練習",
     "hint": "空いている交点をタップして打ってください",
-    "boardCoordinateHint": "座標は (x,y) で統一され、左上が (0,0) です。19路の問題は一部だけ表示されることがあります。",
+    "boardCoordinateHint": "座標は (x,y) で統一され、左上が (1,1) です。19路の問題は一部だけ表示されることがあります。",
     "keyboardShortcuts": "ショートカット: 矢印キーでカーソル移動 · Enter または Space で着手 · R でリセット · Esc で現在の着手を解除"
   },
   "onboarding": {
@@ -254,7 +254,7 @@
     "coachPromptNextJudgment": "次に似た形をどう判断しますか？",
     "coachPromptBasicExplanation": "この解説で最も注目すべき点は何ですか？",
     "coachPromptReviewNote": "完全なコーチを開くには何の確認が必要ですか？",
-    "boardCoordinateHint": "AI コーチの座標はページ表示と同じ (x,y) 形式で、左上が (0,0) です。",
+    "boardCoordinateHint": "AI コーチの座標はページ表示と同じ (x,y) 形式で、左上が (1,1) です。",
     "keyboardShortcuts": "ショートカット: R で再挑戦 · 左右キーで解答手順を送る/戻す · Esc で現在の解答表示を閉じる",
     "attemptCount": "{{count}} 回目",
     "historyTally": "通算 {{correct}} 正解 · {{wrong}} 不正解"

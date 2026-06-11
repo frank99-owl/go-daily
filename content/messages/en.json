@@ -56,7 +56,7 @@
     "randomPractice": "Random practice",
     "randomPracticeTitle": "Practice a random puzzle",
     "hint": "Tap an empty intersection to place a stone",
-    "boardCoordinateHint": "Coordinates use (x,y) with the top-left as (0,0). 19x19 puzzles may show only a local corner.",
+    "boardCoordinateHint": "Coordinates use (x,y) with the top-left as (1,1). 19x19 puzzles may show only a local corner.",
     "keyboardShortcuts": "Shortcuts: Arrow keys move the cursor · Enter or Space places a stone · R resets · Esc clears the current move"
   },
   "onboarding": {
@@ -258,7 +258,7 @@
     "coachPromptNextJudgment": "How should I judge this next time?",
     "coachPromptBasicExplanation": "What should I focus on in the explanation?",
     "coachPromptReviewNote": "What needs to be reviewed before full Coach opens?",
-    "boardCoordinateHint": "The AI coach uses the same (x,y) coordinates as the page, with the top-left as (0,0).",
+    "boardCoordinateHint": "The AI coach uses the same (x,y) coordinates as the page, with the top-left as (1,1).",
     "keyboardShortcuts": "Shortcuts: R retries · Left and right arrows step through the solution · Esc closes the current solution view",
     "attemptCount": "Attempt #{{count}}",
     "historyTally": "{{correct}} correct · {{wrong}} wrong overall"

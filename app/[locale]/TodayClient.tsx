@@ -337,7 +337,8 @@ export function TodayClient({
       )}
       <div className="flex flex-col gap-2 text-center text-sm text-white/45">
         <p>{t.home.boardCoordinateHint}</p>
-        <p>{t.home.keyboardShortcuts}</p>
+        {/* Keyboard hints are meaningless on touch-only phones. */}
+        <p className="hidden md:block">{t.home.keyboardShortcuts}</p>
       </div>
       <div className="flex items-center justify-center gap-3">
         <button

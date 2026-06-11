@@ -56,7 +56,7 @@
     "randomPractice": "随机练习",
     "randomPracticeTitle": "随机练习一题",
     "hint": "点击空交叉点落子",
-    "boardCoordinateHint": "坐标统一使用 (x,y)，左上角是 (0,0)。19 路题目可能只显示局部。",
+    "boardCoordinateHint": "坐标统一使用 (x,y)，左上角是 (1,1)。19 路题目可能只显示局部。",
     "keyboardShortcuts": "快捷键：方向键移动光标 · Enter 或 Space 落子 · R 重置 · Esc 清除当前选择"
   },
   "onboarding": {
@@ -254,7 +254,7 @@
     "coachPromptNextJudgment": "下次遇到类似棋形该怎么判断？",
     "coachPromptBasicExplanation": "这题讲解里最该抓住哪一点？",
     "coachPromptReviewNote": "补齐哪些内容后才能开放完整教练？",
-    "boardCoordinateHint": "AI 教练提到的坐标与页面一致：使用 (x,y)，左上角为 (0,0)。",
+    "boardCoordinateHint": "AI 教练提到的坐标与页面一致：使用 (x,y)，左上角为 (1,1)。",
     "keyboardShortcuts": "快捷键：R 重新挑战 · 左右方向键查看解答步骤 · Esc 关闭当前解答视图",
     "attemptCount": "第 {{count}} 次尝试",
     "historyTally": "累计 {{correct}} 对 · {{wrong}} 错"
