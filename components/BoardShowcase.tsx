@@ -48,10 +48,12 @@ export function BoardShowcase() {
   }, []);
 
   return (
+    // Hidden below md: the fixed 560px board column would force horizontal
+    // overflow on phones and break the mobile layout viewport.
     <section
       id="board-showcase"
       ref={sectionRef}
-      className="sticky top-0 min-h-screen z-20 flex items-center bg-paper"
+      className="sticky top-0 min-h-screen z-20 hidden md:flex items-center bg-paper"
     >
       <div
         className="grid mx-auto w-full"
