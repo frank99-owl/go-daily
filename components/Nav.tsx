@@ -38,7 +38,9 @@ export function Nav() {
         >
           GO-DAILY
         </LocalizedLink>
-        <div className="flex flex-1 items-center justify-end gap-4">
+        {/* gap-2 below md: wider locales (en/ja sign-in labels) otherwise push
+            the hamburger button past the right edge of phone viewports. */}
+        <div className="flex flex-1 items-center justify-end gap-2 md:gap-4">
           <nav className="ml-12 hidden flex-nowrap items-center gap-7 text-xs font-light uppercase text-white/60 md:flex lg:ml-16 lg:gap-9 xl:gap-10">
             {links.map(([href, label]) => (
               <LocalizedLink key={href} href={href} className={linkBase}>
@@ -46,24 +48,24 @@ export function Nav() {
               </LocalizedLink>
             ))}
           </nav>
-          <div className="w-3" />
+          <div className="hidden w-3 md:block" />
           <LocalizedLink
             href="/pricing"
             className="whitespace-nowrap text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] transition-opacity hover:opacity-80"
           >
             Pro
           </LocalizedLink>
-          <div className="w-3" />
+          <div className="hidden w-3 md:block" />
           {/* UserMenu reads useSearchParams(); the boundary keeps statically
               rendered pages from bailing out to client-side rendering. */}
           <Suspense fallback={null}>
             <UserMenu />
           </Suspense>
-          <div className="w-2" />
+          <div className="hidden w-2 md:block" />
           <LanguageToggle />
           <button
             type="button"
-            className="ml-1 flex h-10 w-10 items-center justify-center text-white/70 transition-colors hover:text-white md:hidden"
+            className="flex h-10 w-10 items-center justify-center text-white/70 transition-colors hover:text-white md:hidden"
             aria-label={t.nav.menu}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
