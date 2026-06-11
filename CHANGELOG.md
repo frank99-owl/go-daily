@@ -6,7 +6,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ---
 
-## [Unreleased]
+## [1.3.0] - 2026-06-11
 
 ### Added
 
