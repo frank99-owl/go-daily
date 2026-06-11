@@ -34,13 +34,13 @@ export function Nav() {
       <div className="mx-auto flex h-16 w-full max-w-[1800px] items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-12">
         <LocalizedLink
           href="/"
-          className="shrink-0 whitespace-nowrap font-[family-name:var(--font-headline)] text-xl tracking-[0.2em] text-white"
+          className="shrink-0 whitespace-nowrap font-[family-name:var(--font-headline)] text-base md:text-xl tracking-[0.2em] text-white"
         >
           GO-DAILY
         </LocalizedLink>
-        {/* gap-2 below md: wider locales (en/ja sign-in labels) otherwise push
+        {/* gap-3 below md: wider locales (en/ja sign-in labels) otherwise push
             the hamburger button past the right edge of phone viewports. */}
-        <div className="flex flex-1 items-center justify-end gap-2 md:gap-4">
+        <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
           <nav className="ml-12 hidden flex-nowrap items-center gap-7 text-xs font-light uppercase text-white/60 md:flex lg:ml-16 lg:gap-9 xl:gap-10">
             {links.map(([href, label]) => (
               <LocalizedLink key={href} href={href} className={linkBase}>
