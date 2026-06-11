@@ -91,7 +91,7 @@ fn build_app_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(
             tauri_plugin_log::Builder::default()
@@ -128,7 +128,7 @@ pub fn run() {
             let bg = Color(10, 10, 26, 255);
 
             #[allow(deprecated)]
-            let _window =
+            let window =
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::External(nav_url))
                     .title("Go Daily")
                     .inner_size(1080.0, 674.0)
@@ -150,8 +150,26 @@ pub fn run() {
                     })
                     .build()?;
 
+            let win_handle = window.clone();
+            window.on_window_event(move |event| {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    api.prevent_close();
+                    let _ = win_handle.hide();
+                }
+            });
+
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running Go Daily desktop app");
+        .build(tauri::generate_context!())
+        .expect("error while building Go Daily desktop app");
+
+    app.run(|app_handle, event| {
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Reopen { .. } = event {
+            if let Some(win) = app_handle.get_webview_window("main") {
+                let _ = win.show();
+                let _ = win.set_focus();
+            }
+        }
+    });
 }
