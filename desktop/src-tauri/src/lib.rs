@@ -1,4 +1,5 @@
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
+use tauri::window::Color;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_shell::ShellExt;
 
@@ -113,21 +114,24 @@ pub fn run() {
 
             let app_handle = app.handle().clone();
             let base = base_url.clone();
-
-            // Show loading page first, then navigate to the real URL
             let nav_url = url::Url::parse(&base_url).expect("invalid URL");
+
+            // go-daily dark background — matches the site's deep dark tone
+            // Prevents white flash on load and keeps the window feeling seamless
+            let bg = Color(10, 10, 26, 255);
 
             #[allow(deprecated)]
             let _window =
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::External(nav_url))
                     .title("Go Daily")
-                    .inner_size(1100.0, 780.0)
-                    .min_inner_size(800.0, 600.0)
+                    .inner_size(1080.0, 674.0)
+                    .min_inner_size(800.0, 500.0)
                     .resizable(true)
                     .fullscreen(false)
                     .center()
                     .title_bar_style(tauri::TitleBarStyle::Overlay)
                     .hidden_title(true)
+                    .background_color(bg)
                     .on_navigation(move |url| {
                         let url_str = url.as_str();
                         if is_external_url(url_str, &base) {
