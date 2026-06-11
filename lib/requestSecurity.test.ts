@@ -42,6 +42,43 @@ describe("isSameOriginMutationRequest", () => {
     });
   });
 
+  describe("Host header fallback (request.url rebuilt from bind address)", () => {
+    it("accepts when Origin matches the Host header even if request.url differs", () => {
+      // next start reconstructs request.url as localhost; the browser on a
+      // LAN device sends the IP in both Origin and Host.
+      expect(
+        isSameOriginMutationRequest(
+          req("http://localhost:3001/api/foo", {
+            origin: "http://192.168.2.162:3001",
+            host: "192.168.2.162:3001",
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it("rejects a cross-origin POST even when a Host header is present", () => {
+      expect(
+        isSameOriginMutationRequest(
+          req("http://localhost:3001/api/foo", {
+            origin: "https://evil.example",
+            host: "192.168.2.162:3001",
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it("rejects a malformed Origin header", () => {
+      expect(
+        isSameOriginMutationRequest(
+          req("http://localhost:3001/api/foo", {
+            origin: "not-a-url",
+            host: "192.168.2.162:3001",
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
   describe("Sec-Fetch-Site fallback", () => {
     it("accepts 'same-origin' when Origin is absent", () => {
       expect(

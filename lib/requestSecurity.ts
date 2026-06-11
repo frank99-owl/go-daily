@@ -8,7 +8,20 @@ export function isSameOriginMutationRequest(request: Request): boolean {
   const requestOrigin = new URL(request.url).origin;
   const origin = request.headers.get("origin");
   if (origin) {
-    return origin === requestOrigin;
+    if (origin === requestOrigin) return true;
+    // request.url can be reconstructed from the server's bind address
+    // (e.g. localhost) instead of the host the browser actually used, such
+    // as a LAN IP during device testing. Fall back to the Host header —
+    // the same comparison Next.js uses for Server Action CSRF checks.
+    const host = request.headers.get("host");
+    if (host) {
+      try {
+        return new URL(origin).host === host;
+      } catch {
+        return false;
+      }
+    }
+    return false;
   }
 
   const fetchSite = request.headers.get("sec-fetch-site");
