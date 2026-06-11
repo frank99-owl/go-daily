@@ -6,10 +6,17 @@ use tauri_plugin_shell::ShellExt;
 const PRODUCTION_URL: &str = "https://go-daily.app";
 const RELOAD_ID: &str = "reload";
 
-fn is_external_url(url: &str, base: &str) -> bool {
-    match (url::Url::parse(url), url::Url::parse(base)) {
-        (Ok(target), Ok(base)) => target.host_str() != base.host_str(),
-        _ => true,
+/// Hosts that must stay inside the webview so the OAuth round-trip
+/// (go-daily.app -> supabase -> Google -> supabase -> go-daily.app)
+/// completes in-app. Everything else opens in the default browser.
+fn stays_in_webview(url: &url::Url, base_host: &str) -> bool {
+    match url.host_str() {
+        Some(h) => {
+            h == base_host
+                || h.ends_with(".supabase.co")
+                || h == "accounts.google.com"
+        }
+        None => false,
     }
 }
 
@@ -113,8 +120,8 @@ pub fn run() {
             };
 
             let app_handle = app.handle().clone();
-            let base = base_url.clone();
             let nav_url = url::Url::parse(&base_url).expect("invalid URL");
+            let base_host = nav_url.host_str().unwrap_or("").to_string();
 
             // go-daily dark background — matches the site's deep dark tone
             // Prevents white flash on load and keeps the window feeling seamless
@@ -132,13 +139,14 @@ pub fn run() {
                     .title_bar_style(tauri::TitleBarStyle::Overlay)
                     .hidden_title(true)
                     .background_color(bg)
+                    .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15")
                     .on_navigation(move |url| {
-                        let url_str = url.as_str();
-                        if is_external_url(url_str, &base) {
-                            let _ = app_handle.shell().open(url_str, None);
-                            return false;
+                        if stays_in_webview(&url, &base_host) {
+                            true
+                        } else {
+                            let _ = app_handle.shell().open(url.as_str(), None);
+                            false
                         }
-                        true
                     })
                     .build()?;
 
