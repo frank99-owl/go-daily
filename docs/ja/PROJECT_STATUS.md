@@ -1,8 +1,8 @@
 # go-daily プロジェクトステータスと次なるロードマップ
 
-**生成日**: 2026-05-19
+**生成日**: 2026-06-11（前回: 2026-05-19）
 **リポジトリ HEAD**: `main`（本番環境の構成および煙テスト結果を本書に記録）
-**ステータス**: Phase 3 初回パス完了。本番構成およびリリース窓煙テストに合格、GitHub リリースおよび公開発表の承認待ち
+**ステータス**: Phase 3 初回パス完了。モバイル適応バッチ（2026-06-11）を main にマージ、CI 合格
 
 ---
 
@@ -10,21 +10,23 @@
 
 go-daily は、日替わりの囲碁問題データベース、4言語ローカライズ、DeepSeek を活用した流式 AI コーチング、SRS 復習、Supabase の状態同期、Stripe のサブスクリプション、および多管轄区域対応の法的ページを備えています。現段階の重点は単なる基本機能の追加ではなく、これらの機能をユーザーの定着とコンバージョンを促す持続可能な学習システムとして整理することです。
 
-最新の検証結果：
+最新の検証結果（2026-06-11、CI と同じチェーン）：
 
+- **全量テスト**: `npm run test` に合格、**111 テストファイル / 982 テストケース**。
 - **問題の検証**: `npm run validate:puzzles` に合格、現在 **3033** 問。
-- **i18n の検証**: `npm run validate:messages` に合格、**4言語 × 499キーパス**が一致。
+- **i18n の検証**: `npm run validate:messages` に合格、**4言語 × 511 キーパス**が一致。
 - **P2-C ターゲットテスト**: `npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` に合格、**9個のテストファイル、66個のテストケース**。
 - **Lint と型チェック**: `npm run lint` および `npx tsc --noEmit` の両方に合格。
-- **P2-D ターゲットテスト**: `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts` に合格、**4個のテストファイル、66個의 テストケース**。拡張スイート `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts lib/sentryScrubber.test.ts` に合格、**5個のテストファイル、79個のテストケース**。P2-D は `32f98c4 security: harden coach guard and telemetry privacy` としてコミット済み。
+- **P2-D ターゲットテスト**: `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts` に合格、**4個のテストファイル、66個のテストケース**。拡張スイート `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts lib/sentryScrubber.test.ts` に合格、**5個のテストファイル、79個のテストケース**。P2-D は `32f98c4 security: harden coach guard and telemetry privacy` としてコミット済み。
 - **本番環境ライブ予備検査**: `npm run preflight:prod -- --check-remote --stripe-mode=live` に合格、**123件合格 / 0件警告 / 0件失敗**。リモートの Supabase テーブル／列、Stripe のライブ価格、およびローカルの本番境界がすべて一致。
 - **電子メールの煙テスト**: Resend の本番環境 API キーがローテーションされオンライン化。`npm run email:smoketest -- --check-remote` に合格。`go-daily.app` ドメイン、SPF、および DKIM のリモート検証に合格、実際の電子メールの煙テスト送信が成功。
 - **決済煙テスト**: Stripe での実際の $1 決済煙テストが成功し、その後に返金が成功。Stripe イベントの `pending_webhooks=0`。
 - **本番環境へのデプロイ**: Vercel 本番環境が正常に再デプロイされ、`https://go-daily.app` が新しいデプロイメントにエイリアスされました。`/api/health` が 200 を返し、Supabase のチェック結果は `ok`、`/ja/pricing` は 200 を返しました。
-- **本番環境のビルド**: `npm run build` に合格（Next.js **16.2.6**）、**131** 個の静的ページを生成。
+- **本番環境のビルド**: `npm run build` に合格（Next.js **16.2.9**）、**168** 個の静的ページを生成。
 
 ## 二、完了した機能 (Completed Capabilities)
 
+- **モバイル適応バッチ（2026-06-11）**: スマートフォン（<768px）にハンバーガーメニュー、ビューポートに収まる盤面、タップ着手（縦スクロール透過）、メンター一覧の縦積みレイアウト、`dvh` ビューポート高、ポインタ判定付きカスタムカーソルを導入。デスクトップ（≥768px）の描画と操作は意図的に変更なし。同バッチで CSRF 同一オリジン検査を Host ヘッダ比較にフォールバック（LAN IP からの送信が 403 にならない）、盤面座標ヒントを 1 始まりの (1,1) に修正。詳細は `CHANGELOG.md` Unreleased。
 - **Upstash Redis レート制限**: 本番環境では Upstash Redis でマルチインスタンスのレート制限を行います。`NODE_ENV === "production"` であり、かつ Upstash の資格情報（`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`）が設定されていない場合、`createRateLimiter()` はスタブを返し、最初の `isLimited()` 呼び出しで例外をスローします（これにより、Upstash 認証なしで `next build` を完了できます。開発環境では両方を省略して `MemoryRateLimiter` を使用します）。
 - **PWA アイコン**: Android/Chrome のインストールプロンプト用に 192×192、512×512 PNG アイコンを追加。
 - **OG 画像のローカライズ**: SNS 共有画像が閲覧者のロケール（zh/en/ja/ko）でレンダリングされるように変更。
@@ -103,4 +105,4 @@ Frank からの個別の承認が必要な外部アクション：`git push`、P
 
 ---
 
-詳細については、[docs/ja/CONCEPT.md](docs/ja/CONCEPT.md) を参照してください。
+詳細については、[CONCEPT.md](CONCEPT.md) を参照してください。

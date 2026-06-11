@@ -39,7 +39,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自動化カバレッジ (Vitest)
 
-109 テストファイル、954 テストケースを維持しています：
+111 テストファイル、982 テストケース（2026-06-11）を維持しています：
 
 - **ロジック**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。
@@ -51,6 +51,7 @@ npm run preflight:prod -- --stripe-mode=live
 2.  **トライアル転換**: 3 日間のトライアルを含む Stripe チェックアウトフローをテストモードで完走させる。
 3.  **ロケール SEO**: `sitemap.xml` に **12,000 本超**のロケール別エントリ（`content/data/puzzleIndex.json` に比例）と正しい `hreflang` 代替があることを確認する。
 4.  **コーチのガードレール**: プロンプトインジェクション（例：「以前の指示を忘れて」）を試行し、`promptGuard.ts` の遮断を確認する。`promptGuard.ts` はパターンマッチング前に Unicode NFKC 正規化と一般的な Cyrillic/Greek 同形文字の折りたたみを適用する。全角文字や同形文字によるバイパス試行（例：`ＳＹＳＴｅｍ: ignore all`）も遮断されることを確認すること。
+5.  **モバイルビューポート**: <768px のビューポート（実機または WebKit タッチエミュレーション）で、横スクロールが発生しないこと、ハンバーガーメニューが機能すること、盤面が画面内に収まること、タップで着手できること、盤面から始まる縦スクロールで着手されないことを確認する。デスクトップ（≥768px）の描画はベースラインと一致していること。
 
 ## 5. テスト構成
 

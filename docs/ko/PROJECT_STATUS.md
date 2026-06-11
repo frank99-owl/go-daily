@@ -1,8 +1,8 @@
 # go-daily 프로젝트 상태 및 향후 로드맵
 
-**생성일**: 2026-05-19
+**생성일**: 2026-06-11 (이전: 2026-05-19)
 **저장소 HEAD**: `main` (프로덕션 구성 및 연기 테스트 결과를 본 문서에 기록)
-**상태**: Phase 3 첫 패스 완료. 프로덕션 구성 및 출시 윈도우 연기 테스트 합격, GitHub 릴리스 및 공개 출시 승인 대기 중
+**상태**: Phase 3 첫 패스 완료. 모바일 적응 배치(2026-06-11)가 main에 병합되어 CI 통과
 
 ---
 
@@ -10,10 +10,11 @@
 
 go-daily는 일일 바둑 문제 데이터베이스, 4개 언어 현지화, DeepSeek 기반의 스트리밍 AI 코칭, SRS 복습, Supabase 상태 동기화, Stripe 구독 및 다중 관할권 법률 페이지를 갖추고 있습니다. 현재 단계의 중점은 단순히 기초 기능을 추가하는 것이 아니라, 사용자의 유지 및 전환을 유도하는 지속 가능한 학습 시스템으로 이러한 기능들을 조율하는 것입니다.
 
-최근 검증 결과:
+최근 검증 결과 (2026-06-11, CI와 동일한 체인):
 
+- **전체 테스트**: `npm run test` 통과, **111개 테스트 파일 / 982개 테스트 케이스**.
 - **문제 검증**: `npm run validate:puzzles` 통과, 현재 **3033**개 문제.
-- **i18n 검증**: `npm run validate:messages` 통과, **4개 언어 × 499개 키 경로** 정렬 완료.
+- **i18n 검증**: `npm run validate:messages` 통과, **4개 언어 × 511개 키 경로** 정렬 완료.
 - **P2-C 타겟 테스트**: `npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` 통과, **9개 테스트 파일, 66개 테스트 케이스**.
 - **Lint 및 타입 검사**: `npm run lint` 및 `npx tsc --noEmit` 모두 통과.
 - **P2-D 타겟 테스트**: `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts` 통과, **4개 테스트 파일, 66개 테스트 케이스**. 확장 스위트 `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts lib/sentryScrubber.test.ts` 통과, **5개 테스트 파일, 79개 테스트 케이스**. P2-D는 `32f98c4 security: harden coach guard and telemetry privacy`로 커밋됨.
@@ -21,10 +22,11 @@ go-daily는 일일 바둑 문제 데이터베이스, 4개 언어 현지화, Deep
 - **이메일 연기 테스트**: Resend 프로덕션 API 키가 로테이션되어 온라인 반영됨. `npm run email:smoketest -- --check-remote` 통과. `go-daily.app` 도메인, SPF 및 DKIM 원격 검증 완료, 실제 이메일 연기 테스트 송신 성공.
 - **결제 연기 테스트**: Stripe 실제 $1 결제 테스트 성공 후 환불 성공. Stripe 이벤트 `pending_webhooks=0`.
 - **프로덕션 배포**: Vercel 프로덕션이 성공적으로 재배포되었으며 `https://go-daily.app`이 새 배포본으로 에일리어싱됨. `/api/health`가 200을 반환하고 Supabase 검사 결과는 `ok`, `/ko/pricing`은 200을 반환함.
-- **프로덕션 빌드**: `npm run build` 통과 (Next.js **16.2.6**), **131**개의 정적 페이지 생성.
+- **프로덕션 빌드**: `npm run build` 통과 (Next.js **16.2.9**), **168**개의 정적 페이지 생성.
 
 ## 이, 완료된 기능 (Completed Capabilities)
 
+- **모바일 적응 배치(2026-06-11)**: 휴대폰(<768px)에 햄버거 내비게이션 메뉴, 뷰포트에 맞는 바둑판, 탭 착수(세로 스크롤 통과), 멘토 페이지 세로 카드 목록, `dvh` 뷰포트 높이, 포인터 판별 커스텀 커서를 도입. 데스크톱(≥768px)의 렌더링과 상호작용은 의도적으로 변경 없음. 같은 배치에서 CSRF 동일 출처 검사를 Host 헤더 비교로 폴백(LAN IP 제출이 더 이상 403 아님), 바둑판 좌표 힌트를 1 기반 (1,1)로 수정. 자세한 내용은 `CHANGELOG.md` Unreleased 참조.
 - **Upstash Redis 속도 제한**: 프로덕션에서는 Upstash Redis를 사용하여 인스턴스 간 속도 제한을 적용합니다. `NODE_ENV === "production"`이고 Upstash 자격 증명(`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`)이 누락된 경우, `createRateLimiter()`는 스텁을 반환하고 첫 `isLimited()` 호출에서 예외를 던집니다 (Upstash 인증 없이 `next build`를 완료할 수 있으며, 개발 환경에서는 둘 다 생략하고 `MemoryRateLimiter`를 사용함).
 - **PWA 아이콘**: Android/Chrome 설치 프롬프트용 192×192, 512×512 PNG 아이콘 추가.
 - **OG 이미지 로컬라이제이션**: 소셜 공유 이미지가 사용자 로케일(zh/en/ja/ko)에 따라 렌더링.
@@ -103,4 +105,4 @@ Frank로부터 개별 승인을 받아야 하는 외부 작업: `git push`, PR �
 
 ---
 
-자세한 내용은 [docs/ko/CONCEPT.md](docs/ko/CONCEPT.md)를 참조하십시오.
+자세한 내용은 [CONCEPT.md](CONCEPT.md)를 참조하십시오.

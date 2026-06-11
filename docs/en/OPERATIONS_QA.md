@@ -44,7 +44,7 @@ This script checks:
 
 ### Automated Coverage (Vitest)
 
-We maintain 109 test files with 954 test cases covering:
+We maintain 111 test files with 982 test cases (2026-06-11) covering:
 
 - **Logic**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.
@@ -56,6 +56,7 @@ We maintain 109 test files with 954 test cases covering:
 2.  **Trial Conversion**: Run a full Stripe Checkout in test mode with a 3-day trial.
 3.  **Locale SEO**: Validate `sitemap.xml` includes **12,000+** locale-specific entries (grows with `content/data/puzzleIndex.json`), with correct `hreflang` alternates.
 4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors. `promptGuard.ts` now applies Unicode NFKC normalization plus common Cyrillic/Greek confusable folding before pattern matching. Verify that fullwidth and lookalike-character bypasses (e.g., `ＳＹＳＴｅｍ: ignore all`) are also blocked.
+5.  **Mobile Viewport**: On a <768px viewport (real device or WebKit touch emulation), confirm no horizontal overflow, the hamburger menu works, the board shrinks into the screen, taps place stones, and vertical scrolls starting on the board never place one; desktop (≥768px) rendering must match the baseline.
 
 ## 5. Test Organization
 

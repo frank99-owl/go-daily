@@ -1,8 +1,8 @@
 # go-daily Project Status & Roadmap
 
-**Generated At**: May 19, 2026
+**Generated At**: June 11, 2026 (previous: May 19, 2026)
 **Repository HEAD**: `main` (production configuration and smoke results documented)
-**Status**: Phase 3 first pass complete; production configuration and release-window smoke passed; pending GitHub release / public launch approval
+**Status**: Phase 3 first pass complete; mobile adaptation batch (2026-06-11) merged to main with CI green
 
 ---
 
@@ -10,10 +10,11 @@
 
 go-daily now has a daily Go puzzle database, 4-locale i18n support, streaming AI coaching powered by DeepSeek, SRS review, Supabase state synchronization, Stripe subscriptions, and multi-jurisdictional legal pages. The focus of the current phase is no longer just adding base features, but organizing these capabilities into a sustainable learning system that drives user retention and conversion.
 
-Latest verification results:
+Latest verification results (2026-06-11, same chain as CI):
 
+- **Full test suite**: `npm run test` passed, **111 test files / 982 test cases**.
 - **Puzzle Validation**: `npm run validate:puzzles` passed, currently at **3033** puzzles.
-- **i18n Validation**: `npm run validate:messages` passed, aligning **4 locales × 509 key paths**.
+- **i18n Validation**: `npm run validate:messages` passed, aligning **4 locales × 511 key paths**.
 - **P2-C Targeted Tests**: `npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` passed, **9 test files, 66 test cases**.
 - **Lint & Type Check**: Both `npm run lint` and `npx tsc --noEmit` passed.
 - **P2-D Targeted Tests**: `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts` passed, **4 test files, 66 test cases**; expanded suite running `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts lib/sentryScrubber.test.ts` passed, **5 test files, 79 test cases**. P2-D has been committed as `32f98c4 security: harden coach guard and telemetry privacy`.
@@ -21,10 +22,11 @@ Latest verification results:
 - **Email Smoke Test**: Resend production API key rotated and online; `npm run email:smoketest -- --check-remote` passed; `go-daily.app` domain, SPF, and DKIM verified; real email smoke sent successfully.
 - **Payment Smoke Test**: Stripe live $1 payment smoke succeeded, followed by a successful refund; Stripe event `pending_webhooks=0`.
 - **Production Deployment**: Vercel Production redeployed successfully, and `https://go-daily.app` aliased to the new deployment; `/api/health` returned 200 with Supabase check `ok`; `/en/pricing` returned 200.
-- **Production Build**: `npm run build` passed under Next.js **16.2.6**, generating **131** static pages.
+- **Production Build**: `npm run build` passed under Next.js **16.2.9**, generating **168** static pages.
 
 ## 2. Completed Capabilities
 
+- **Mobile adaptation batch (2026-06-11)**: Phones (<768px) gained a hamburger nav menu, viewport-fitting board, tap-to-place input with vertical scroll passthrough, a stacked mentors list, `dvh` viewport heights, and pointer-gated custom cursor; desktop (≥768px) rendering and interactions are intentionally unchanged. Same batch fixed the CSRF origin check (Host-header fallback, no more 403 on LAN-IP submits) and the board coordinate hint, now (1,1) to match the 1-based board model and coach prompt. See `CHANGELOG.md` Unreleased.
 - **Upstash Redis Rate Limiting**: Production uses Upstash Redis for cross-instance rate limiting. When `NODE_ENV === "production"` and Upstash credentials (`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`) are missing, `createRateLimiter()` returns a stub whose first `isLimited()` call throws (allowing `next build` to complete without Upstash; dev ignores both and uses `MemoryRateLimiter`).
 - **PWA Icons**: 192×192 and 512×512 PNG icons added for Android/Chrome install prompts.
 - **Localized OG Images**: Social share images now render in the viewer's locale (zh/en/ja/ko).
@@ -103,4 +105,4 @@ External actions requiring separate approval from Frank: `git push`, creating/up
 
 ---
 
-For further details, please refer to [docs/en/CONCEPT.md](docs/en/CONCEPT.md).
+For further details, please refer to [CONCEPT.md](CONCEPT.md).

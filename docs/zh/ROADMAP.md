@@ -2,6 +2,7 @@
 
 **生成日期**: 2026-05-19
 **仓库 HEAD**: `main`（生产配置与 smoke 结果已记录）
+**状态（2026-06-11 标注）**: Phase 3 全部子项首轮已完成，本文件保留为执行存档，不再新增条目。未排期的优化想法记录在 [OPTIMIZATION_BACKLOG.md](OPTIMIZATION_BACKLOG.md)；按日期推进的节奏见 [ROADMAP_30_60_90.md](ROADMAP_30_60_90.md)；风险类债务见 [TECH_DEBT.md](TECH_DEBT.md)。
 
 目标是把 go-daily 从功能完整的每日题库，推进为学习价值明确、可留存、可转化、可运营的围棋学习系统。路线图按 P0 / P1 / P2 推进，每次只做一个明确主题。
 

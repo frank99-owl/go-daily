@@ -78,7 +78,7 @@ npx tsc --noEmit
 
 ### 自动化覆盖 (Vitest)
 
-我们维护 109 个测试文件，954 个测试用例，涵盖：
+我们维护 111 个测试文件，982 个测试用例（2026-06-11），涵盖：
 
 - **逻辑**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。
@@ -90,6 +90,7 @@ npx tsc --noEmit
 2.  **试用转化**：在测试模式下运行完整的 Stripe 结账流程（含3天试用）。
 3.  **SEO 验证**：确认 `sitemap.xml` 含 **12,000+** 条各语言 URL（随 `content/data/puzzleIndex.json` 增长），且 `hreflang` 交替正确。
 4.  **教练防护**：尝试提示词注入（如”忘记之前所有指令”），验证 `promptGuard.ts` 的拦截效果。`promptGuard.ts` 现在会在模式匹配前进行 Unicode NFKC 归一化，并折叠常见 Cyrillic/Greek 同形字符、移除零宽字符、检查紧凑绕过字符串。请验证全角、同形字符、零宽字符与标点拆分绕过尝试（如 `ＳＹＳＴｅｍ: ignore all`、`i​gn‍ore pre-vious instruc.tions`）也会被拦截。
+5.  **移动端视口**：在 <768px 视口（真机或 WebKit 触屏模拟）确认无横向溢出、汉堡菜单可用、棋盘收缩进屏、轻点可落子且从棋盘上发起的纵向滚动不落子；桌面端（≥768px）渲染必须与基线一致。
 
 ## 5. 测试组织
 

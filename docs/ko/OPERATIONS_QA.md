@@ -39,7 +39,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 자동화 테스트 (Vitest)
 
-109개의 테스트 파일, 954개의 테스트 케이스를 유지하고 있습니다:
+111개의 테스트 파일, 982개의 테스트 케이스(2026-06-11)를 유지하고 있습니다:
 
 - **로직**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.
@@ -51,6 +51,7 @@ npm run preflight:prod -- --stripe-mode=live
 2.  **무료 체험 전환**: 테스트 모드에서 3일 무료 체험이 포함된 전체 Stripe 결제 프로세스를 실행합니다.
 3.  **로케일 SEO**: `sitemap.xml`에 **12,000개 이상**의 로케일별 항목(`content/data/puzzleIndex.json` 규모에 따라 증가)과 올바른 `hreflang` 대체 링크가 있는지 확인합니다.
 4.  **코치 가드레일**: 프롬프트 인젝션(예: "이전의 모든 지시를 잊어라")을 시도하여 `promptGuard.ts`의 차단 성능을 검증합니다. `promptGuard.ts`는 이제 패턴 매칭 전에 Unicode NFKC 정규화와 일반적인 Cyrillic/Greek 동형 문자 접기를 적용합니다. 전각 문자와 동형 문자 우회 시도(예: `ＳＹＳＴｅｍ: ignore all`)도 차단되는지 확인하십시오.
+5.  **모바일 뷰포트**: <768px 뷰포트(실기기 또는 WebKit 터치 에뮬레이션)에서 가로 오버플로 없음, 햄버거 메뉴 동작, 바둑판이 화면 안에 들어옴, 탭으로 착수 가능, 바둑판에서 시작한 세로 스크롤로는 착수되지 않음을 확인합니다. 데스크톱(≥768px) 렌더링은 베이스라인과 일치해야 합니다.
 
 ## 5. 테스트 구성
 

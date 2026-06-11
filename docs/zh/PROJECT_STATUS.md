@@ -1,8 +1,8 @@
 # go-daily 项目状态与下一步路线图
 
-**生成日期**: 2026-05-19
+**生成日期**: 2026-06-11（上次：2026-05-19）
 **仓库 HEAD**: `main`（生产配置与 smoke 结果已在本文件记录）
-**版本状态**: Phase 3 首轮完成；生产配置与发布窗口 smoke 已通过，待 GitHub release / 公开发布审批
+**版本状态**: Phase 3 首轮完成；移动端适配批次（2026-06-11）已合入 main 并通过 CI
 
 ---
 
@@ -10,10 +10,11 @@
 
 go-daily 已具备每日围棋题库、四语言本地化、DeepSeek 流式 AI 教练、SRS 复习、Supabase 同步、Stripe 订阅与多地区法律页面。当前阶段的重点不再是补齐基础功能，而是把这些能力组织成可持续留存和转化的学习系统。
 
-最近一次验证结果：
+最近一次验证结果（2026-06-11，与 CI 同链路）：
 
+- **全量测试**：`npm run test` 通过，**111 个测试文件 / 982 个测试用例**。
 - **题库校验**：`npm run validate:puzzles` 通过，当前为 **3033** 道题。
-- **i18n 校验**：`npm run validate:messages` 通过，**4 个语言 × 509 个 key path** 对齐。
+- **i18n 校验**：`npm run validate:messages` 通过，**4 个语言 × 511 个 key path** 对齐。
 - **P2-C 定向测试**：`npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` 通过，**9 个测试文件，66 个测试用例**。
 - **Lint / 类型检查**：`npm run lint` 与 `npx tsc --noEmit` 均通过。
 - **P2-D 定向测试**：`npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts` 通过，**4 个测试文件，66 个测试用例**；扩展运行 `npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts lib/sentryScrubber.test.ts` 通过，**5 个测试文件，79 个测试用例**。P2-D 已提交为 `32f98c4 security: harden coach guard and telemetry privacy`。
@@ -21,10 +22,11 @@ go-daily 已具备每日围棋题库、四语言本地化、DeepSeek 流式 AI �
 - **邮件烟测**：Resend production API key 已轮换并上线；`npm run email:smoketest -- --check-remote` 通过，`go-daily.app` domain / SPF / DKIM verified；真实邮件 smoke 已发送成功。
 - **支付烟测**：Stripe live $1 payment smoke 成功，随后退款成功；Stripe event `pending_webhooks=0`。
 - **生产部署**：Vercel Production redeploy 成功，`https://go-daily.app` 已 alias 到新 deployment；`/api/health` 返回 200，Supabase check 为 `ok`，`/en/pricing` 返回 200。
-- **生产构建**：`npm run build` 通过，Next.js **16.2.6**，生成 **131** 个静态页面。
+- **生产构建**：`npm run build` 通过，Next.js **16.2.9**，生成 **168** 个静态页面。
 
 ## 二、已完成能力
 
+- **移动端适配批次（2026-06-11）**：手机（<768px）获得汉堡导航菜单、棋盘视口自适应、轻点落子（纵向滚动穿透棋盘）、导师页纵向卡片列表、`dvh` 视口高度与触屏光标门控；桌面端（≥768px）渲染与交互刻意保持不变。同批修复：CSRF 同源校验回退到 Host 头比对（局域网 IP 提交不再 403）、棋盘坐标提示修正为 (1,1)（与 1 基棋盘模型和教练 prompt 一致）。详见 `CHANGELOG.md` Unreleased。
 - **Upstash Redis 限流**：生产环境使用 Upstash Redis 做跨实例限流。当 `NODE_ENV === "production"` 且未设置 `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` 时，`createRateLimiter()` 返回桩实现，**首次**调用 `isLimited()` 时抛出错误（便于无 Upstash 凭证也能完成 `next build`；开发环境可同时省略两者并使用 `MemoryRateLimiter`）。
 - **PWA 图标**：新增 192×192 和 512×512 PNG 图标，支持 Android/Chrome 安装提示。
 - **OG 图片本地化**：社交分享图片现在根据用户语言环境（zh/en/ja/ko）渲染。
@@ -103,4 +105,4 @@ Phase 3 首轮已完成：P0 内容质量基线、P1 学习闭环、P2 发布/�
 
 ---
 
-详情请参阅 [docs/zh/CONCEPT.md](docs/zh/CONCEPT.md)。
+详情请参阅 [CONCEPT.md](CONCEPT.md)。
