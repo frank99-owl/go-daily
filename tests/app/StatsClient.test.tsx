@@ -113,10 +113,14 @@ describe("StatsClient", () => {
     });
 
     expect(screen.getByText("Puzzles solved")).toBeInTheDocument();
-    expect(trackMock).toHaveBeenCalledWith("stats_page_viewed", {
-      locale: "en",
-      source: "stats",
-      result: "has_attempts",
+    // The tracking effect fires on a later render than the import message,
+    // so poll instead of asserting synchronously (flaked on slow CI runners).
+    await waitFor(() => {
+      expect(trackMock).toHaveBeenCalledWith("stats_page_viewed", {
+        locale: "en",
+        source: "stats",
+        result: "has_attempts",
+      });
     });
   });
 
