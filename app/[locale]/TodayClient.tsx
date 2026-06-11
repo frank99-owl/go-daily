@@ -285,7 +285,10 @@ export function TodayClient({
           {randomError}
         </p>
       )}
-      <div className="mx-auto">
+      {/* w-full below md: as a shrink-to-fit flex item this div would size to
+          the board's fixed maxPx and overflow narrow phone viewports.
+          520px matches the GoBoard maxPx default. */}
+      <div className="mx-auto w-full max-w-[520px] md:w-auto md:max-w-none">
         <GoBoard
           size={puzzle.boardSize}
           stones={puzzle.stones}

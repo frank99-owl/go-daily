@@ -512,7 +512,7 @@ export function GoBoard({
     <div
       ref={wrapRef}
       className="flex justify-center rounded-lg focus:outline-none"
-      style={{ width: maxPx, maxWidth: maxPx }}
+      style={{ width: maxPx, maxWidth: "100%" }}
       tabIndex={keyboardEnabled ? 0 : -1}
       onKeyDown={handleKeyDown}
       aria-label={`Go board, ${size} by ${size}`}

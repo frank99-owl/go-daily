@@ -529,7 +529,9 @@ export function ResultClient({
         </section>
       )}
 
-      <div className="mx-auto">
+      {/* Same mobile width fix as TodayClient: stretch below md so the board
+          can shrink instead of overflowing the viewport. */}
+      <div className="mx-auto w-full max-w-[520px] md:w-auto md:max-w-none">
         <GoBoard
           size={puzzle.boardSize}
           stones={puzzle.stones}
