@@ -31,10 +31,11 @@ describe("GlobalCursor", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders nothing when matchMedia is unavailable", () => {
+  it("falls back to rendering the cursor when matchMedia is unavailable", () => {
+    // Matches the pre-gating behavior: only a confirmed coarse pointer hides it.
     vi.stubGlobal("matchMedia", undefined);
     const { container } = render(<GlobalCursor />);
-    expect(container.firstChild).toBeNull();
+    expect(container.firstChild).not.toBeNull();
   });
 
   it("unsubscribes from the media query on unmount", () => {

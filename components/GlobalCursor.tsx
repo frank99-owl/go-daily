@@ -9,7 +9,10 @@ const FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)";
 
 export function GlobalCursor() {
   const cursorRef = useRef<HTMLDivElement | null>(null);
-  const enabled = useMediaQuery(FINE_POINTER_QUERY);
+  // serverDefault true: desktop must render the cursor dot in the server
+  // HTML exactly like the pre-gating version; only confirmed touch devices
+  // drop it after hydration.
+  const enabled = useMediaQuery(FINE_POINTER_QUERY, true);
 
   useEffect(() => {
     if (!enabled) return;
