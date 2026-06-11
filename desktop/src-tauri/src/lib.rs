@@ -2,7 +2,7 @@ use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_shell::ShellExt;
 
-const PRODUCTION_URL: &str = "https://go-daily.vercel.app";
+const PRODUCTION_URL: &str = "https://go-daily.app";
 const RELOAD_ID: &str = "reload";
 
 fn is_external_url(url: &str, base: &str) -> bool {
@@ -115,9 +115,11 @@ pub fn run() {
             let base = base_url.clone();
 
             // Show loading page first, then navigate to the real URL
+            let nav_url = url::Url::parse(&base_url).expect("invalid URL");
+
             #[allow(deprecated)]
-            let window =
-                WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+            let _window =
+                WebviewWindowBuilder::new(app, "main", WebviewUrl::External(nav_url))
                     .title("Go Daily")
                     .inner_size(1100.0, 780.0)
                     .min_inner_size(800.0, 600.0)
@@ -135,15 +137,6 @@ pub fn run() {
                         true
                     })
                     .build()?;
-
-            // Navigate to production URL once the loading page is rendered
-            let w = window.clone();
-            let target = base_url.clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(std::time::Duration::from_millis(300));
-                let js = format!("window.location.replace('{}');", target);
-                let _ = w.eval(&js);
-            });
 
             Ok(())
         })

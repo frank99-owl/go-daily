@@ -96,7 +96,7 @@ Include the following on the download page:
 The URL is set in `src-tauri/src/lib.rs`:
 
 ```rust
-const PRODUCTION_URL: &str = "https://go-daily.vercel.app";
+const PRODUCTION_URL: &str = "https://go-daily.app";
 ```
 
 Change this if the production domain differs, then rebuild.
