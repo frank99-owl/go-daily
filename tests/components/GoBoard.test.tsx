@@ -40,6 +40,69 @@ describe("GoBoard", () => {
     expect(call.y).toBeLessThan(9);
   });
 
+  it("places on touch only when the tap ends near where it started", () => {
+    const onPlay = vi.fn();
+    const { container } = render(<GoBoard size={9} stones={[]} toPlay="black" onPlay={onPlay} />);
+    const canvas = container.querySelector("canvas")!;
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 520, height: 520 }) as DOMRect;
+
+    // Touch down alone must not place (a scroll may follow).
+    fireEvent.pointerDown(canvas, {
+      pointerId: 1,
+      pointerType: "touch",
+      clientX: 260,
+      clientY: 260,
+    });
+    expect(onPlay).not.toHaveBeenCalled();
+
+    // Lifting within the tap slop places the stone.
+    fireEvent.pointerUp(canvas, {
+      pointerId: 1,
+      pointerType: "touch",
+      clientX: 263,
+      clientY: 258,
+    });
+    expect(onPlay).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not place when a touch moves too far or is cancelled by scrolling", () => {
+    const onPlay = vi.fn();
+    const { container } = render(<GoBoard size={9} stones={[]} toPlay="black" onPlay={onPlay} />);
+    const canvas = container.querySelector("canvas")!;
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 520, height: 520 }) as DOMRect;
+
+    // Drag beyond the slop: no placement.
+    fireEvent.pointerDown(canvas, {
+      pointerId: 1,
+      pointerType: "touch",
+      clientX: 260,
+      clientY: 260,
+    });
+    fireEvent.pointerUp(canvas, {
+      pointerId: 1,
+      pointerType: "touch",
+      clientX: 260,
+      clientY: 340,
+    });
+    expect(onPlay).not.toHaveBeenCalled();
+
+    // Browser takes over for scrolling (pointercancel): no placement either.
+    fireEvent.pointerDown(canvas, {
+      pointerId: 2,
+      pointerType: "touch",
+      clientX: 260,
+      clientY: 260,
+    });
+    fireEvent.pointerCancel(canvas, { pointerId: 2, pointerType: "touch" });
+    fireEvent.pointerUp(canvas, {
+      pointerId: 2,
+      pointerType: "touch",
+      clientX: 260,
+      clientY: 260,
+    });
+    expect(onPlay).not.toHaveBeenCalled();
+  });
+
   it("does not call onPlay when disabled", () => {
     const onPlay = vi.fn();
     const { container } = render(

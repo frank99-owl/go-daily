@@ -155,6 +155,7 @@ export function GoBoard({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const staticCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const touchTapRef = useRef<{ id: number; x: number; y: number } | null>(null);
   const [cssSize, setCssSize] = useState(maxPx);
   const [hover, setHover] = useState<Coord | null>(null);
   const [keyboardCursor, setKeyboardCursor] = useState<Coord | null>(null);
@@ -447,14 +448,41 @@ export function GoBoard({
 
   const handleLeave = () => setHover(null);
 
-  const handleClick: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
-    wrapRef.current?.focus();
+  const placeAt = (clientX: number, clientY: number) => {
     if (disabled || !onPlay) return;
-    const c = pickCoord(e.clientX, e.clientY);
+    const c = pickCoord(clientX, clientY);
     if (!c) return;
     if (isOccupied(stones, c)) return;
     if (userMove && coordEquals(userMove, c)) return;
     onPlay(c);
+  };
+
+  // Touch taps within this distance of the start point still count as a tap.
+  const TAP_SLOP_PX = 12;
+
+  const handlePointerDown: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
+    // Touch placement waits for pointer-up: with touch-action pan-y below md,
+    // a vertical scroll that starts on the board must never drop a stone.
+    if (e.pointerType === "touch") {
+      touchTapRef.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      return;
+    }
+    wrapRef.current?.focus();
+    placeAt(e.clientX, e.clientY);
+  };
+
+  const handlePointerUp: React.PointerEventHandler<HTMLCanvasElement> = (e) => {
+    const start = touchTapRef.current;
+    touchTapRef.current = null;
+    if (!start || start.id !== e.pointerId) return;
+    if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > TAP_SLOP_PX) return;
+    wrapRef.current?.focus();
+    placeAt(e.clientX, e.clientY);
+  };
+
+  const handlePointerCancel = () => {
+    touchTapRef.current = null;
+    setHover(null);
   };
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
@@ -521,8 +549,10 @@ export function GoBoard({
         ref={canvasRef}
         onPointerMove={handleMove}
         onPointerLeave={handleLeave}
-        onPointerDown={handleClick}
-        className="rounded-md shadow-sm touch-none select-none cursor-none"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        className="rounded-md shadow-sm touch-pan-y md:touch-none select-none cursor-none"
         aria-hidden={keyboardEnabled || undefined}
         aria-label={`Go board, ${size} by ${size}`}
         role="img"
