@@ -5,13 +5,19 @@ Tauri v2 wrapper for the Go Daily web application. Loads the production site in 
 ## Features
 
 - Native macOS window with overlay title bar and traffic-light buttons
-- Loads production URL in a secure webview (~11 MB app, ~3.7 MB DMG)
-- External links (OAuth, Stripe payments) open in the default browser
+- Loads production URL in a secure webview
+- OAuth (Supabase/Google) completes inside the app window
+- Stripe checkout and other external links open in the default browser
+- Window hides on close and restores from the Dock (macOS convention)
+- Dark window background prevents white flash on load
 - Remembers window size and position between launches
 - Keyboard shortcuts: Cmd+R (reload), Cmd+Q (quit), Cmd+M (minimize), Cmd+W (close)
 - Edit menu with standard clipboard shortcuts (Cmd+C/V/X/A)
-- Loading spinner while the app initializes (no white flash)
-- CSP configured to match the web app (DeepSeek, Supabase, Stripe, PostHog, Sentry)
+
+## Known Limitations
+
+- **Magic-link login** opens in the default browser, so the session lands there instead of the desktop app. Use Google sign-in on desktop.
+- **Stripe checkout** intentionally opens in the default browser.
 
 ## Prerequisites
 
@@ -50,8 +56,8 @@ cargo tauri build
 Output location:
 
 ```
-desktop/src-tauri/target/release/bundle/dmg/Go Daily_1.3.0_aarch64.dmg    (~3.7 MB)
-desktop/src-tauri/target/release/bundle/macos/Go Daily.app                 (~11 MB)
+desktop/src-tauri/target/release/bundle/dmg/Go Daily_1.3.0_aarch64.dmg
+desktop/src-tauri/target/release/bundle/macos/Go Daily.app
 ```
 
 Optional — ad-hoc signing for a milder Gatekeeper warning:
@@ -118,11 +124,11 @@ Icons in `src-tauri/icons/` are auto-generated from `public/icon-512.png`. To re
 ```
 desktop/
 ├── package.json              # npm scripts (dev, build, tauri)
-├── public/index.html         # Loading spinner (shown briefly on launch)
+├── public/index.html         # Placeholder required by frontendDist config, never displayed
 ├── README.md                 # This file
 └── src-tauri/
     ├── Cargo.toml            # Rust dependencies
-    ├── tauri.conf.json       # Tauri config (CSP, bundle, devUrl)
+    ├── tauri.conf.json       # Tauri config (bundle, devUrl)
     ├── capabilities/         # Plugin permissions
     ├── icons/                # App icons (auto-generated)
     └── src/
