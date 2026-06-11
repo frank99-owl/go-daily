@@ -12,30 +12,48 @@ function renderMentorsPage() {
   );
 }
 
+// Each mentor card renders twice: once in the mobile stacked list and once
+// in the desktop quincunx layout (visibility is toggled via CSS).
 describe("MentorsPage", () => {
   it("opens mentor details from keyboard focus and closes with Escape", () => {
     renderMentorsPage();
 
-    const leeSedol = screen.getByRole("button", {
+    const cards = screen.getAllByRole("button", {
       name: /Lee Sedol: The Invincible Fighter/i,
     });
-    expect(leeSedol).toHaveAttribute("aria-expanded", "false");
+    expect(cards).toHaveLength(2);
+    const [mobileCard, desktopCard] = cards;
+    expect(desktopCard).toHaveAttribute("aria-expanded", "false");
 
-    fireEvent.focus(leeSedol);
-    expect(leeSedol).toHaveAttribute("aria-expanded", "true");
+    fireEvent.focus(desktopCard);
+    expect(desktopCard).toHaveAttribute("aria-expanded", "true");
+    expect(mobileCard).toHaveAttribute("aria-expanded", "true");
 
-    fireEvent.keyDown(leeSedol, { key: "Escape" });
-    expect(leeSedol).toHaveAttribute("aria-expanded", "false");
+    fireEvent.keyDown(desktopCard, { key: "Escape" });
+    expect(desktopCard).toHaveAttribute("aria-expanded", "false");
   });
 
   it("opens mentor details from click or tap", () => {
     renderMentorsPage();
 
-    const goSeigen = screen.getByRole("button", {
+    const [mobileCard] = screen.getAllByRole("button", {
       name: /Go Seigen: The Sage of Harmony/i,
     });
 
-    fireEvent.click(goSeigen);
-    expect(goSeigen).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(mobileCard);
+    expect(mobileCard).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("closes mentor details with the mobile close button", () => {
+    renderMentorsPage();
+
+    const [mobileCard] = screen.getAllByRole("button", {
+      name: /Go Seigen: The Sage of Harmony/i,
+    });
+    fireEvent.click(mobileCard);
+    expect(mobileCard).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(mobileCard).toHaveAttribute("aria-expanded", "false");
   });
 });

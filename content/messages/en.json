@@ -352,6 +352,7 @@
     "title": "Meet Your Mentors",
     "eyebrow": "AI Coaches",
     "description": "go-daily uses Go engine-assisted analysis as part of its puzzle review. AI mentors turn that material into guided explanations with distinct coaching styles.",
+    "close": "Close",
     "footer": "Powered by Go AI-assisted review."
   },
   "review": {

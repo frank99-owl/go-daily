@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { Transition } from "framer-motion";
+import { X } from "lucide-react";
 import { useState } from "react";
 import type { CSSProperties } from "react";
 
@@ -9,8 +10,10 @@ import { PERSONAS, type Persona } from "@/lib/coach/personas";
 import { useLocale } from "@/lib/i18n/i18n";
 import type { Locale } from "@/types";
 
+const noop = () => {};
+
 export default function MentorsPage() {
-  const { locale } = useLocale();
+  const { t, locale } = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const titleStyle: CSSProperties =
@@ -38,7 +41,7 @@ export default function MentorsPage() {
 
   return (
     <main
-      className="h-dvh w-full bg-[#020505] text-white/90 selection:bg-[color:var(--color-accent)]/20 relative overflow-hidden overflow-x-hidden flex items-center justify-center p-0 m-0"
+      className="min-h-dvh md:h-dvh w-full bg-[#020505] text-white/90 selection:bg-[color:var(--color-accent)]/20 relative overflow-y-auto md:overflow-hidden overflow-x-hidden flex items-start md:items-center justify-center p-0 m-0"
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           setActiveId(null);
@@ -71,27 +74,36 @@ export default function MentorsPage() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.02 }}
             transition={cinematicTransition}
-            className="fixed inset-0 z-40 flex items-center justify-center p-8 md:p-24 lg:p-32 pt-32 pointer-events-none"
+            className="fixed inset-0 z-40 flex items-center justify-center p-4 md:p-24 lg:p-32 pt-24 md:pt-32 pointer-events-none"
           >
             {/* The Glass Container */}
-            <div className="w-full max-w-7xl bg-white/[0.01] border border-white/5 rounded-[48px] p-12 md:p-20 shadow-2xl relative overflow-hidden flex flex-col md:flex-row gap-16 md:gap-24 items-stretch">
+            <div className="w-full max-w-7xl bg-white/[0.01] border border-white/5 rounded-3xl md:rounded-[48px] p-6 md:p-20 shadow-2xl relative max-h-full md:max-h-none overflow-y-auto md:overflow-hidden pointer-events-auto md:pointer-events-none flex flex-col md:flex-row gap-8 md:gap-24 items-stretch">
+              {/* Mobile-only close: desktop closes via mouse-leave instead. */}
+              <button
+                type="button"
+                onClick={() => setActiveId(null)}
+                className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-black/40 p-2 text-white/60 md:hidden"
+                aria-label={t.mentors.close}
+              >
+                <X className="h-4 w-4" />
+              </button>
               {/* Left: Identity - Fixed Width with clear spacing */}
               <div className="w-full md:w-[360px] flex flex-col items-center md:items-start border-b md:border-b-0 md:border-r border-white/5 pb-12 md:pb-0 md:pr-16 shrink-0">
-                <div className="flex flex-col items-center md:items-start gap-6 mb-12">
+                <div className="flex flex-col items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-12">
                   <div className="flex items-center gap-6">
                     <h2
-                      className="text-6xl md:text-8xl font-medium text-white tracking-tighter"
+                      className="text-4xl md:text-8xl font-medium text-white tracking-tighter"
                       style={titleStyle}
                     >
                       {activePersona.name[locale] || activePersona.name["en"]}
                     </h2>
-                    <span className="text-6xl">{activePersona.flag}</span>
+                    <span className="text-4xl md:text-6xl">{activePersona.flag}</span>
                   </div>
                   <div className="h-px w-20 bg-[color:var(--color-accent)]/40" />
                 </div>
 
-                <div className="flex flex-col gap-10">
-                  <span className="text-2xl md:text-3xl uppercase tracking-[0.4em] text-[color:var(--color-accent)] font-bold opacity-80 leading-tight">
+                <div className="flex flex-col gap-6 md:gap-10">
+                  <span className="text-lg md:text-3xl uppercase tracking-[0.4em] text-[color:var(--color-accent)] font-bold opacity-80 leading-tight">
                     {activePersona.title[locale] || activePersona.title["en"]}
                   </span>
 
@@ -109,11 +121,11 @@ export default function MentorsPage() {
               </div>
 
               {/* Right: Narrative - Flexible */}
-              <div className="flex-1 flex flex-col justify-center gap-12 overflow-hidden">
-                <blockquote className="text-3xl md:text-5xl font-light italic leading-relaxed text-white/95 border-l-4 border-[color:var(--color-accent)]/20 pl-10 py-2">
+              <div className="flex-1 flex flex-col justify-center gap-6 md:gap-12 overflow-hidden">
+                <blockquote className="text-xl md:text-5xl font-light italic leading-relaxed text-white/95 border-l-4 border-[color:var(--color-accent)]/20 pl-5 md:pl-10 py-2">
                   {activePersona.description[locale] || activePersona.description["en"]}
                 </blockquote>
-                <p className="text-lg md:text-2xl text-white/50 font-light leading-relaxed whitespace-pre-wrap overflow-y-auto scrollbar-hide pr-4">
+                <p className="text-base md:text-2xl text-white/50 font-light leading-relaxed whitespace-pre-wrap overflow-y-auto scrollbar-hide pr-4">
                   {activePersona.bio[locale] || activePersona.bio["en"]}
                 </p>
               </div>
@@ -122,8 +134,30 @@ export default function MentorsPage() {
         )}
       </AnimatePresence>
 
-      {/* Quincunx Base Layer */}
-      <div className="relative w-full h-full max-w-[1200px] max-h-[800px] z-20">
+      {/* Mobile: simple stacked list reusing the same cards. Hover handlers
+          are inert here — synthetic mouse events from taps would otherwise
+          close/reopen the detail view nondeterministically. Open on tap,
+          close via the explicit button. */}
+      <div className="z-20 flex w-full flex-col items-center gap-4 px-4 pb-12 pt-24 md:hidden">
+        {[sedol, seigen, kejie, yuta, jinseo].map((p) => (
+          <MentorBaseCard
+            key={p.id}
+            persona={p}
+            posStyle={{ position: "relative" }}
+            onShow={noop}
+            onHide={noop}
+            onActivate={() => setActiveId(p.id)}
+            locale={locale}
+            titleStyle={titleStyle}
+            isActive={activeId === p.id}
+            isDimmed={activeId !== null && activeId !== p.id}
+            isCenter
+          />
+        ))}
+      </div>
+
+      {/* Quincunx Base Layer (desktop) */}
+      <div className="relative hidden md:block w-full h-full max-w-[1200px] max-h-[800px] z-20">
         {/* Lee Sedol (Top Left) */}
         <MentorBaseCard
           persona={sedol}
