@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { Nav } from "@/components/Nav";
@@ -18,6 +18,7 @@ vi.mock("@/lib/i18n/i18n", () => ({
         review: "Review",
         stats: "Stats",
         about: "About",
+        menu: "Menu",
       },
     },
   }),
@@ -48,5 +49,27 @@ describe("Nav", () => {
     expect(screen.getByText("Review")).toBeInTheDocument();
     expect(screen.getByText("Stats")).toBeInTheDocument();
     expect(screen.queryByLabelText("Random")).toBeNull();
+  });
+
+  it("keeps the mobile menu closed by default", () => {
+    render(<Nav />);
+    const toggle = screen.getByRole("button", { name: "Menu" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getAllByText("Home")).toHaveLength(1);
+  });
+
+  it("opens the mobile menu and closes it when a link is clicked", () => {
+    render(<Nav />);
+    const toggle = screen.getByRole("button", { name: "Menu" });
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    // Desktop nav + mobile panel both render the links now.
+    const homeLinks = screen.getAllByText("Home");
+    expect(homeLinks).toHaveLength(2);
+
+    fireEvent.click(homeLinks[1]);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getAllByText("Home")).toHaveLength(1);
   });
 });
