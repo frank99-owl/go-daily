@@ -38,9 +38,9 @@ export function Nav() {
         >
           GO-DAILY
         </LocalizedLink>
-        {/* gap-3 below md: wider locales (en/ja sign-in labels) otherwise push
-            the hamburger button past the right edge of phone viewports. */}
-        <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
+        {/* gap-5 below md keeps the right-side items from crowding while the
+            widest locale (en "SIGN IN") still clears the logo by ~37px. */}
+        <div className="flex flex-1 items-center justify-end gap-5 md:gap-4">
           <nav className="ml-12 hidden flex-nowrap items-center gap-7 text-xs font-light uppercase text-white/60 md:flex lg:ml-16 lg:gap-9 xl:gap-10">
             {links.map(([href, label]) => (
               <LocalizedLink key={href} href={href} className={linkBase}>
