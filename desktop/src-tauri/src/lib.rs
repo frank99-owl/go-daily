@@ -1,8 +1,11 @@
-use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
+use chrono::Timelike;
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::TrayIconBuilder;
 use tauri::window::Color;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt as _};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_shell::ShellExt;
 
 const PRODUCTION_URL: &str = "https://go-daily.app";
@@ -36,6 +39,54 @@ fn stays_in_webview(url: &url::Url, base_host: &str) -> bool {
                 || h == "accounts.google.com"
         }
         None => false,
+    }
+}
+
+/// Shell-level preferences, stored in the app config dir as settings.json.
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+#[serde(default)]
+struct ShellSettings {
+    reminder_enabled: bool,
+    last_fired: String,
+}
+
+fn settings_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
+    app.path()
+        .app_config_dir()
+        .ok()
+        .map(|dir| dir.join("settings.json"))
+}
+
+fn load_settings(app: &tauri::AppHandle) -> ShellSettings {
+    settings_path(app)
+        .and_then(|path| std::fs::read_to_string(path).ok())
+        .and_then(|json| serde_json::from_str(&json).ok())
+        .unwrap_or_default()
+}
+
+fn save_settings(app: &tauri::AppHandle, settings: &ShellSettings) {
+    let Some(path) = settings_path(app) else {
+        return;
+    };
+    if let Some(dir) = path.parent() {
+        let _ = std::fs::create_dir_all(dir);
+    }
+    if let Ok(json) = serde_json::to_string_pretty(settings) {
+        let _ = std::fs::write(path, json);
+    }
+}
+
+/// Reminder copy follows the OS language; full i18n lives in the web app.
+fn reminder_body() -> &'static str {
+    let locale = sys_locale::get_locale().unwrap_or_default();
+    if locale.starts_with("zh") {
+        "今日死活题已更新，来保持连胜吧。"
+    } else if locale.starts_with("ja") {
+        "本日の詰碁が更新されました。連続記録を守りましょう。"
+    } else if locale.starts_with("ko") {
+        "오늘의 사활 문제가 준비되었습니다. 연승을 이어가세요."
+    } else {
+        "Today's tsumego is ready. Keep your streak going."
     }
 }
 
@@ -123,6 +174,8 @@ fn build_app_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, None))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(
             tauri_plugin_log::Builder::default()
@@ -196,13 +249,43 @@ pub fn run() {
                 }
             });
 
+            let settings = load_settings(app.handle());
             let show_item = MenuItem::with_id(app, "show", "Show Go Daily", true, None::<&str>)?;
+            let reminder_item = CheckMenuItem::with_id(
+                app,
+                "reminder",
+                "Daily Reminder (9:00)",
+                true,
+                settings.reminder_enabled,
+                None::<&str>,
+            )?;
+            let autostart_on = app.autolaunch().is_enabled().unwrap_or(false);
+            let autostart_item = CheckMenuItem::with_id(
+                app,
+                "autostart",
+                "Launch at Login",
+                true,
+                autostart_on,
+                None::<&str>,
+            )?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let tray_menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+            let tray_menu = Menu::with_items(
+                app,
+                &[
+                    &show_item,
+                    &PredefinedMenuItem::separator(app)?,
+                    &reminder_item,
+                    &autostart_item,
+                    &PredefinedMenuItem::separator(app)?,
+                    &quit_item,
+                ],
+            )?;
 
             // Monochrome template image — macOS tints it to match the menu bar
             let tray_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
 
+            let reminder_check = reminder_item.clone();
+            let autostart_check = autostart_item.clone();
             let _tray = TrayIconBuilder::new()
                 .icon(tray_icon)
                 .icon_as_template(true)
@@ -216,6 +299,21 @@ pub fn run() {
                                 let _ = win.set_focus();
                             }
                         }
+                        // CheckMenuItem toggles itself on click; persist the new state.
+                        "reminder" => {
+                            let mut settings = load_settings(app);
+                            settings.reminder_enabled =
+                                reminder_check.is_checked().unwrap_or(false);
+                            save_settings(app, &settings);
+                        }
+                        "autostart" => {
+                            let autolaunch = app.autolaunch();
+                            if autostart_check.is_checked().unwrap_or(false) {
+                                let _ = autolaunch.enable();
+                            } else {
+                                let _ = autolaunch.disable();
+                            }
+                        }
                         "quit" => {
                             app.exit(0);
                         }
@@ -223,6 +321,29 @@ pub fn run() {
                     }
                 })
                 .build(app)?;
+
+            // Daily reminder loop — fires at most once per day, any time
+            // during the 9 o'clock hour the app happens to be awake.
+            let reminder_handle = app.handle().clone();
+            std::thread::spawn(move || loop {
+                std::thread::sleep(std::time::Duration::from_secs(60));
+                let mut settings = load_settings(&reminder_handle);
+                let now = chrono::Local::now();
+                let today = now.format("%Y-%m-%d").to_string();
+                if settings.reminder_enabled && now.hour() == 9 && settings.last_fired != today {
+                    let sent = reminder_handle
+                        .notification()
+                        .builder()
+                        .title("Go Daily")
+                        .body(reminder_body())
+                        .show()
+                        .is_ok();
+                    if sent {
+                        settings.last_fired = today;
+                        save_settings(&reminder_handle, &settings);
+                    }
+                }
+            });
 
             let toggle_shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyG);
             let sc_win = window.clone();

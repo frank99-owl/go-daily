@@ -15,12 +15,16 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+chrono = "0.4"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 log = "0.4"
+sys-locale = "0.3"
 tauri = { version = "2", features = ["unstable", "tray-icon", "image-png"] }
+tauri-plugin-autostart = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-log = "2"
+tauri-plugin-notification = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-window-state = "2"
 url = "2"

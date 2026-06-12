@@ -14,7 +14,9 @@ Tauri v2 wrapper for the Go Daily web application. Loads the production site in 
 - Native Go menu: Today's Puzzle (Cmd+1), Puzzles (Cmd+2), Review (Cmd+3), Stats (Cmd+4)
 - Keyboard shortcuts: Cmd+R (reload), Cmd+Q (quit), Cmd+M (minimize), Cmd+W (close)
 - Edit menu with standard clipboard shortcuts (Cmd+C/V/X/A)
-- Monochrome template tray icon (matches the macOS menu bar style) with Show / Quit menu
+- Monochrome template tray icon (matches the macOS menu bar style) with Show / Daily Reminder / Launch at Login / Quit menu
+- Daily reminder notification at 9:00 local time (off by default, toggle in the tray menu; text follows the OS language)
+- Launch at Login toggle in the tray menu
 - Cmd+Shift+G global shortcut to toggle window visibility
 
 ## Known Limitations
