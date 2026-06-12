@@ -6,6 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **macOS desktop app (`desktop/`, 2026-06-12)**: Tauri v2 shell wrapping the production site — 1080×674 window with a transparent title bar matching the site background (`#0a0a0a`), Safari-compatible UA so the Supabase/Google OAuth round-trip completes inside the webview (`*.supabase.co` + `accounts.google.com` allowlist; everything else opens in the default browser), hide-on-close with Dock reopen, monochrome template tray icon (Show / Daily Reminder / Launch at Login / Quit), native Go menu (Cmd+1–4), Cmd+Shift+G global toggle, opt-in daily 9:00 reminder notification (OS-language copy), scrollbar hiding scoped to the app's own host, window-state persistence, and automatic ad-hoc signing. One-click `desktop/release.sh` builds and uploads `GoDaily-macOS-AppleSilicon.dmg` to the `desktop-v<version>` GitHub release.
+- **About page download section (2026-06-12)**: `#download` anchor at the bottom of `/about`, visible only on desktop web (`lg` + `pointer-fine`), with the Mac download button pointing at the latest GitHub release asset, a spec line, and first-launch Gatekeeper steps. New `about.download.*` keys in all four locales.
+
+---
+
 ## [1.3.0] - 2026-06-11
 
 ### Added
