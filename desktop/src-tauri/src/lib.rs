@@ -8,6 +8,23 @@ use tauri_plugin_shell::ShellExt;
 const PRODUCTION_URL: &str = "https://go-daily.app";
 const RELOAD_ID: &str = "reload";
 
+/// Go menu entries: (menu id, label, accelerator, site path).
+/// Paths are locale-free — the site middleware negotiates the locale.
+const NAV_ITEMS: &[(&str, &str, &str, &str)] = &[
+    ("nav-today", "Today's Puzzle", "CmdOrCtrl+1", "/today"),
+    ("nav-puzzles", "Puzzles", "CmdOrCtrl+2", "/puzzles"),
+    ("nav-review", "Review", "CmdOrCtrl+3", "/review"),
+    ("nav-stats", "Stats", "CmdOrCtrl+4", "/stats"),
+];
+
+fn base_url() -> String {
+    if cfg!(debug_assertions) {
+        std::env::var("TAURI_DEV_URL").unwrap_or_else(|_| "http://localhost:3000".to_string())
+    } else {
+        PRODUCTION_URL.to_string()
+    }
+}
+
 /// Hosts that must stay inside the webview so the OAuth round-trip
 /// (go-daily.app -> supabase -> Google -> supabase -> go-daily.app)
 /// completes in-app. Everything else opens in the default browser.
@@ -53,6 +70,16 @@ fn build_app_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         ],
     )?;
 
+    let mut nav_items: Vec<MenuItem<tauri::Wry>> = Vec::new();
+    for (id, label, accel, _path) in NAV_ITEMS {
+        nav_items.push(MenuItem::with_id(app, *id, *label, true, Some(*accel))?);
+    }
+    let nav_item_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = nav_items
+        .iter()
+        .map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>)
+        .collect();
+    let go_menu = Submenu::with_items(app, "Go", true, &nav_item_refs)?;
+
     let window_menu = Submenu::with_items(
         app,
         "Window",
@@ -84,6 +111,7 @@ fn build_app_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
             )?,
             &edit_menu,
             &view_menu,
+            &go_menu,
             &window_menu,
         ],
     )?;
@@ -108,19 +136,25 @@ pub fn run() {
         )
         .menu(build_app_menu)
         .on_menu_event(|app, event| {
-            if event.id() == RELOAD_ID {
+            let id = event.id().as_ref();
+            if id == RELOAD_ID {
                 if let Some(win) = app.get_webview_window("main") {
                     let _ = win.eval("location.reload()");
+                }
+            } else if let Some((_, _, _, path)) =
+                NAV_ITEMS.iter().find(|(item_id, ..)| *item_id == id)
+            {
+                if let Some(win) = app.get_webview_window("main") {
+                    let _ = win.show();
+                    let _ = win.set_focus();
+                    if let Ok(target) = url::Url::parse(&format!("{}{}", base_url(), path)) {
+                        let _ = win.navigate(target);
+                    }
                 }
             }
         })
         .setup(|app| {
-            let base_url = if cfg!(debug_assertions) {
-                std::env::var("TAURI_DEV_URL")
-                    .unwrap_or_else(|_| "http://localhost:3000".to_string())
-            } else {
-                PRODUCTION_URL.to_string()
-            };
+            let base_url = base_url();
 
             let app_handle = app.handle().clone();
             let nav_url = url::Url::parse(&base_url).expect("invalid URL");

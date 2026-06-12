@@ -11,6 +11,7 @@ Tauri v2 wrapper for the Go Daily web application. Loads the production site in 
 - Window hides on close and restores from the Dock (macOS convention)
 - Dark window background prevents white flash on load
 - Remembers window size and position between launches
+- Native Go menu: Today's Puzzle (Cmd+1), Puzzles (Cmd+2), Review (Cmd+3), Stats (Cmd+4)
 - Keyboard shortcuts: Cmd+R (reload), Cmd+Q (quit), Cmd+M (minimize), Cmd+W (close)
 - Edit menu with standard clipboard shortcuts (Cmd+C/V/X/A)
 - Monochrome template tray icon (matches the macOS menu bar style) with Show / Quit menu
