@@ -65,11 +65,18 @@ desktop/src-tauri/target/release/bundle/dmg/Go Daily_1.3.0_aarch64.dmg
 desktop/src-tauri/target/release/bundle/macos/Go Daily.app
 ```
 
-Optional — ad-hoc signing for a milder Gatekeeper warning:
+Builds are ad-hoc signed automatically (`signingIdentity: "-"` in `tauri.conf.json`) for a milder Gatekeeper warning.
+
+## Releasing
+
+Upload the dmg to a GitHub release (the About page download button always points to the latest release):
 
 ```bash
-codesign --force --deep --sign - "desktop/src-tauri/target/release/bundle/macos/Go Daily.app"
+cd desktop
+./release.sh
 ```
+
+The script builds, then creates or updates the `desktop-v<version>` release with the asset `GoDaily-macOS-AppleSilicon.dmg`. Publishing is an external action — run it only after approval.
 
 ## Distributing to Users
 
