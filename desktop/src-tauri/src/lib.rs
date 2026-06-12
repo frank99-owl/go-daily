@@ -166,8 +166,12 @@ pub fn run() {
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let tray_menu = Menu::with_items(app, &[&show_item, &quit_item])?;
 
+            // Monochrome template image — macOS tints it to match the menu bar
+            let tray_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
+
             let _tray = TrayIconBuilder::new()
-                .icon(app.default_window_icon().expect("bundle icon missing").clone())
+                .icon(tray_icon)
+                .icon_as_template(true)
                 .menu(&tray_menu)
                 .tooltip("Go Daily")
                 .on_menu_event(move |app, event| {

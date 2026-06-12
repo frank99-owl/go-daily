@@ -13,7 +13,7 @@ Tauri v2 wrapper for the Go Daily web application. Loads the production site in 
 - Remembers window size and position between launches
 - Keyboard shortcuts: Cmd+R (reload), Cmd+Q (quit), Cmd+M (minimize), Cmd+W (close)
 - Edit menu with standard clipboard shortcuts (Cmd+C/V/X/A)
-- System tray icon with Show / Quit menu
+- Monochrome template tray icon (matches the macOS menu bar style) with Show / Quit menu
 - Cmd+Shift+G global shortcut to toggle window visibility
 
 ## Known Limitations
