@@ -184,24 +184,23 @@ pub fn run() {
                 })
                 .build(app)?;
 
+            let toggle_shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyG);
+            let sc_win = window.clone();
+            app.global_shortcut().on_shortcut(toggle_shortcut, move |_app, _shortcut, event| {
+                if event.state == ShortcutState::Pressed {
+                    if sc_win.is_visible().unwrap_or(false) {
+                        let _ = sc_win.hide();
+                    } else {
+                        let _ = sc_win.show();
+                        let _ = sc_win.set_focus();
+                    }
+                }
+            })?;
+
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building Go Daily desktop app");
-
-    let shortcut_win = app.get_webview_window("main").unwrap();
-    let toggle_shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyG);
-    let sc_win = shortcut_win.clone();
-    let _ = app.global_shortcut().on_shortcut(toggle_shortcut, move |_app, _shortcut, event| {
-        if event.state == ShortcutState::Pressed {
-            if sc_win.is_visible().unwrap_or(false) {
-                let _ = sc_win.hide();
-            } else {
-                let _ = sc_win.show();
-                let _ = sc_win.set_focus();
-            }
-        }
-    });
 
     app.run(|app_handle, event| {
         #[cfg(target_os = "macos")]
