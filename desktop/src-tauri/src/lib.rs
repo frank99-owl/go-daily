@@ -1,6 +1,8 @@
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
+use tauri::tray::TrayIconBuilder;
 use tauri::window::Color;
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_shell::ShellExt;
 
 const PRODUCTION_URL: &str = "https://go-daily.app";
@@ -93,6 +95,7 @@ fn build_app_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(
             tauri_plugin_log::Builder::default()
                 .level(log::LevelFilter::Info)
@@ -158,10 +161,47 @@ pub fn run() {
                 }
             });
 
+            let show_item = MenuItem::with_id(app, "show", "Show Go Daily", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let tray_menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+
+            let _tray = TrayIconBuilder::new()
+                .menu(&tray_menu)
+                .tooltip("Go Daily")
+                .on_menu_event(move |app, event| {
+                    match event.id().as_ref() {
+                        "show" => {
+                            if let Some(win) = app.get_webview_window("main") {
+                                let _ = win.show();
+                                let _ = win.set_focus();
+                            }
+                        }
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        _ => {}
+                    }
+                })
+                .build(app)?;
+
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building Go Daily desktop app");
+
+    let shortcut_win = app.get_webview_window("main").unwrap();
+    let toggle_shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyG);
+    let sc_win = shortcut_win.clone();
+    let _ = app.global_shortcut().on_shortcut(toggle_shortcut, move |_app, _shortcut, event| {
+        if event.state == ShortcutState::Pressed {
+            if sc_win.is_visible().unwrap_or(false) {
+                let _ = sc_win.hide();
+            } else {
+                let _ = sc_win.show();
+                let _ = sc_win.set_focus();
+            }
+        }
+    });
 
     app.run(|app_handle, event| {
         #[cfg(target_os = "macos")]
