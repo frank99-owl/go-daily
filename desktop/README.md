@@ -4,7 +4,7 @@ Tauri v2 wrapper for the Go Daily web application. Loads the production site in 
 
 ## Features
 
-- Native macOS window with overlay title bar and traffic-light buttons
+- Native macOS window with a transparent title bar — traffic-light buttons sit in a slim strip matching the site background, never overlapping page content
 - Loads production URL in a secure webview
 - OAuth (Supabase/Google) completes inside the app window
 - Stripe checkout and other external links open in the default browser

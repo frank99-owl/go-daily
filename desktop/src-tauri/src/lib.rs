@@ -126,9 +126,10 @@ pub fn run() {
             let nav_url = url::Url::parse(&base_url).expect("invalid URL");
             let base_host = nav_url.host_str().unwrap_or("").to_string();
 
-            // go-daily dark background — matches the site's deep dark tone
-            // Prevents white flash on load and keeps the window feeling seamless
-            let bg = Color(10, 10, 26, 255);
+            // Exact page background of the site (--color-paper in app/globals.css).
+            // Shown through the transparent title bar and before the page paints,
+            // so it must match precisely to keep the window seamless.
+            let bg = Color(10, 10, 10, 255);
 
             #[allow(deprecated)]
             let window =
@@ -139,7 +140,7 @@ pub fn run() {
                     .resizable(true)
                     .fullscreen(false)
                     .center()
-                    .title_bar_style(tauri::TitleBarStyle::Overlay)
+                    .title_bar_style(tauri::TitleBarStyle::Transparent)
                     .hidden_title(true)
                     .background_color(bg)
                     .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15")
