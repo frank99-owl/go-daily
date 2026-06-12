@@ -44,7 +44,17 @@
     "section4Text2": "我本身也是一个深度的围棋爱好者，目前是业余 3 段。作为棋友，我深知在棋力上升期遇到瓶颈时的迷茫；作为开发者，我亦在思索如何用技术服务于这份古老的艺术。",
     "section4Text3": "在这个 AI 狂飙突进、一切都追求“快”的时代，我选择做一个“慢下来”的工具。go-daily 带有我的一点理想主义色彩：我希望它不只是一个死活题库，而是一个能让你在忙碌的一天中抽出 5 分钟，坐下来，认真算一步棋的地方。",
     "section4Text4": "棋道漫漫，我们都是求道者。希望这个小小的项目，能陪伴你在黑白交替的岁月中，看到更广阔的世界。",
-    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game."
+    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game.",
+    "download": {
+      "title": "Go Daily Mac 版",
+      "text": "为每日一题准备的安静桌面窗口——没有标签页，没有地址栏，只有棋盘。与网页版同一套题库、同一个账号、同一份进度。",
+      "button": "下载 Mac 版",
+      "meta": "macOS 10.15+ · Apple Silicon · 约 4 MB · 免费",
+      "firstLaunchTitle": "首次打开：应用尚未经过 Apple 公证，macOS 会要求一次性确认。",
+      "step1": "打开 .dmg，把 Go Daily 拖入「应用程序」。",
+      "step2": "右键点按应用，选择「打开」。",
+      "step3": "在弹窗中再点「打开」——只需这一次。"
+    }
   },
   "home": {
     "todaysProblem": "今日一题",

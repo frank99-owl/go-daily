@@ -4,6 +4,9 @@ import { motion, type Variants } from "framer-motion";
 
 import { useLocale } from "@/lib/i18n/i18n";
 
+const MAC_DOWNLOAD_URL =
+  "https://github.com/frank99-owl/go-daily/releases/latest/download/GoDaily-macOS-AppleSilicon.dmg";
+
 export default function AboutPage() {
   const { t, locale } = useLocale();
 
@@ -208,6 +211,39 @@ export default function AboutPage() {
               <p className="italic text-white/40 pt-4 border-t border-white/5">
                 {t.about.section4Text4}
               </p>
+            </div>
+          </motion.section>
+
+          {/* Section 5: Desktop App — desktop web only (wide viewport + mouse/trackpad) */}
+          <motion.section
+            variants={itemVariants}
+            id="download"
+            className="hidden pt-16 border-t border-white/5 space-y-10 lg:pointer-fine:block"
+          >
+            <h2 className={headingClassName} style={titleStyle}>
+              {t.about.download.title}
+            </h2>
+            <div className={bodyClassName}>
+              <p>{t.about.download.text}</p>
+            </div>
+            <div className="space-y-5">
+              <a
+                href={MAC_DOWNLOAD_URL}
+                className="inline-block border border-white/20 bg-white/5 px-10 py-4 text-xs uppercase tracking-[0.3em] text-white transition-colors duration-500 hover:border-white/40 hover:bg-white/10"
+              >
+                {t.about.download.button}
+              </a>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">
+                {t.about.download.meta}
+              </p>
+            </div>
+            <div className="space-y-3 text-sm font-[family-name:var(--font-sans)] font-light leading-relaxed text-white/50">
+              <p className="text-white/70">{t.about.download.firstLaunchTitle}</p>
+              <ol className="list-decimal space-y-1 pl-5">
+                <li>{t.about.download.step1}</li>
+                <li>{t.about.download.step2}</li>
+                <li>{t.about.download.step3}</li>
+              </ol>
             </div>
           </motion.section>
 

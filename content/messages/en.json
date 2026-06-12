@@ -44,7 +44,17 @@
     "section4Text2": "I am a deep Go enthusiast myself, currently at Amateur 3-dan. As a fellow player, I know the frustration of the plateau; as a developer, I am exploring how technology can serve this ancient art.",
     "section4Text3": "In an age of speed, go-daily is an exercise in idealism. I hope it's a place where you can take five minutes out of a busy day to simply sit down, think deeply, and place one stone with intent.",
     "section4Text4": "The Way of Go is long, and we are all seekers. I hope this project accompanies you through the alternating seasons of black and white, to see a wider world.",
-    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game."
+    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game.",
+    "download": {
+      "title": "Go Daily for Mac",
+      "text": "A quiet desktop window for the daily ritual — no tabs, no address bar, just the board. Same puzzles, same account, same progress as the web.",
+      "button": "Download for Mac",
+      "meta": "macOS 10.15+ · Apple Silicon · about 4 MB · Free",
+      "firstLaunchTitle": "First launch: the app isn't notarized by Apple yet, so macOS asks for a one-time confirmation.",
+      "step1": "Open the .dmg and drag Go Daily into Applications.",
+      "step2": "Right-click the app and choose “Open”.",
+      "step3": "Click “Open” in the dialog — needed only once."
+    }
   },
   "home": {
     "todaysProblem": "Today's Problem",

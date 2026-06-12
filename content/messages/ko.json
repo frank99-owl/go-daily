@@ -44,7 +44,17 @@
     "section4Text2": "한 명의 기객으로서 실력이 정체되었을 때의 답답함을 잘 알고 있습니다. 개발자로서 이 고전적인 예술을 어떻게 기술로 보필할 수 있을지 고민하고 있습니다.",
     "section4Text3": "속도가 미덕인 시대에, 저는 일부러 '느린' 도구를 만들었습니다. 바쁜 하루 중 5분만이라도 차분히 앉아 한 수를 읽고 마음을 정돈하는 것. 그런 이상주의를 이 프로젝트에 담았습니다.",
     "section4Text4": "기도(棋道)는 멀고, 우리는 모두 도를 구하는 자들입니다. 이 작은 프로젝트가 흑과 백이 교차하는 세월 속에서 당신이 더 넓은 세상을 보는 데 보탬이 되기를 소망합니다.",
-    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game."
+    "footer": "(C) 2026 Frank. Dedicated to the beauty of the game.",
+    "download": {
+      "title": "Go Daily for Mac",
+      "text": "매일 한 문제를 위한 조용한 데스크톱 창 — 탭도 주소창도 없이 바둑판만. 문제·계정·진행 상황은 웹과 완전히 동일합니다.",
+      "button": "Mac용 다운로드",
+      "meta": "macOS 10.15+ · Apple Silicon · 약 4 MB · 무료",
+      "firstLaunchTitle": "처음 실행: 아직 Apple 공증을 받지 않아 macOS가 한 번만 확인을 요청합니다.",
+      "step1": ".dmg를 열고 Go Daily를 '응용 프로그램'으로 드래그합니다.",
+      "step2": "앱을 우클릭하고 '열기'를 선택합니다.",
+      "step3": "대화 상자에서 '열기'를 클릭합니다 — 처음 한 번만 필요합니다."
+    }
   },
   "home": {
     "todaysProblem": "오늘의 문제",
