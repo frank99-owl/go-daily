@@ -11,6 +11,27 @@ use tauri_plugin_shell::ShellExt;
 const PRODUCTION_URL: &str = "https://go-daily.app";
 const RELOAD_ID: &str = "reload";
 
+/// Frank-approved exception to the no-injection rule (2026-06-12), strictly
+/// scoped to hiding scrollbars: the desktop shell should scroll like a native
+/// app, without WebKit scrollbar gutters. Applies only to the app's own host.
+const HIDE_SCROLLBARS: &str = r#"
+(function () {
+  if (!/(^|\.)go-daily\.app$/.test(location.hostname) && location.hostname !== "localhost") {
+    return;
+  }
+  function inject() {
+    var style = document.createElement("style");
+    style.textContent = "::-webkit-scrollbar { width: 0; height: 0; display: none; }";
+    document.head.appendChild(style);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", inject);
+  } else {
+    inject();
+  }
+})();
+"#;
+
 /// Go menu entries: (menu id, label, accelerator, site path).
 /// Paths are locale-free — the site middleware negotiates the locale.
 const NAV_ITEMS: &[(&str, &str, &str, &str)] = &[
@@ -231,6 +252,7 @@ pub fn run() {
                     .hidden_title(true)
                     .background_color(bg)
                     .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15")
+                    .initialization_script(HIDE_SCROLLBARS)
                     .on_navigation(move |url| {
                         if stays_in_webview(&url, &base_host) {
                             true
