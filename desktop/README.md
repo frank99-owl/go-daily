@@ -123,13 +123,13 @@ Change this if the production domain differs, then rebuild.
 
 Icons in `src-tauri/icons/` are auto-generated from `public/icon-512.png`. To replace:
 
-| File | Dimensions |
-|---|---|
-| `32x32.png` | 32×32 |
-| `128x128.png` | 128×128 |
-| `128x128@2x.png` | 256×256 |
-| `icon.icns` | macOS icon set (use `iconutil`) |
-| `icon.ico` | 256×256 |
+| File             | Dimensions                      |
+| ---------------- | ------------------------------- |
+| `32x32.png`      | 32×32                           |
+| `128x128.png`    | 128×128                         |
+| `128x128@2x.png` | 256×256                         |
+| `icon.icns`      | macOS icon set (use `iconutil`) |
+| `icon.ico`       | 256×256                         |
 
 ## Architecture
 
