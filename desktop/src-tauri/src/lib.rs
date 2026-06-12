@@ -166,6 +166,7 @@ pub fn run() {
             let tray_menu = Menu::with_items(app, &[&show_item, &quit_item])?;
 
             let _tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().expect("bundle icon missing").clone())
                 .menu(&tray_menu)
                 .tooltip("Go Daily")
                 .on_menu_event(move |app, event| {
