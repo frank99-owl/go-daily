@@ -15,9 +15,7 @@ type SortKey = "default" | "difficulty-asc" | "difficulty-desc" | "recent";
 type StatusFilter = "all" | "wrong" | "todo";
 
 type PuzzleCollection =
-  | { kind: "all" }
-  | { kind: "tag"; tag: PuzzleTag }
-  | { kind: "difficulty"; level: number };
+  { kind: "all" } | { kind: "tag"; tag: PuzzleTag } | { kind: "difficulty"; level: number };
 
 export function PuzzleListClient({
   summaries,

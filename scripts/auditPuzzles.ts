@@ -19,11 +19,7 @@ export const AUDIT_JSON_PATH = path.join(AUDIT_OUTPUT_DIR, "latest.json");
 export const AUDIT_MARKDOWN_PATH = path.join(AUDIT_OUTPUT_DIR, "latest.md");
 
 type SolutionNoteQualityTier =
-  | "missing"
-  | "generic-placeholder"
-  | "thin"
-  | "explained"
-  | "coach-ready";
+  "missing" | "generic-placeholder" | "thin" | "explained" | "coach-ready";
 
 interface TemplateStat {
   template: string;

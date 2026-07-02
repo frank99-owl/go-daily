@@ -1,12 +1,7 @@
 import type { Locale } from "@/types";
 
 export type PersonaId =
-  | "ke-jie"
-  | "lee-sedol"
-  | "go-seigen"
-  | "iyama-yuta"
-  | "shin-jinseo"
-  | "custom";
+  "ke-jie" | "lee-sedol" | "go-seigen" | "iyama-yuta" | "shin-jinseo" | "custom";
 
 export interface Persona {
   id: PersonaId;
