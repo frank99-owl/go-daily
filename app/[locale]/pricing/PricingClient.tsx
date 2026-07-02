@@ -13,9 +13,7 @@ import type { Locale } from "@/types";
 type Interval = "monthly" | "yearly";
 
 type CheckoutState =
-  | { kind: "idle" }
-  | { kind: "redirecting"; interval: Interval }
-  | { kind: "error" };
+  { kind: "idle" } | { kind: "redirecting"; interval: Interval } | { kind: "error" };
 
 type PortalState = { kind: "idle" } | { kind: "redirecting" } | { kind: "error" };
 

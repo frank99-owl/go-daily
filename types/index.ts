@@ -42,10 +42,7 @@ export type PublicPuzzle = Pick<
 };
 
 export type CoachContentTier =
-  | "basic-explained"
-  | "coach-eligible"
-  | "coach-ready"
-  | "variation-ready";
+  "basic-explained" | "coach-eligible" | "coach-ready" | "variation-ready";
 
 export type PublicCoachAccess = {
   available: boolean;
