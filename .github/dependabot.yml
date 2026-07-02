@@ -5,7 +5,9 @@ updates:
     schedule:
       interval: "monthly"
     ignore:
-      - dependency-name: "@types/node"
+      # Major upgrades are done deliberately by hand, not via Dependabot —
+      # they routinely break peer deps (e.g. eslint 10 vs eslint-plugin-import).
+      - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
     groups:
