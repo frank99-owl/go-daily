@@ -14,12 +14,19 @@ npm run test:e2e:ui    # Playwright's watch UI
 The runner starts `next start` on port 3100 itself. Point the suite at an
 already-running instance (a preview deployment, say) with `E2E_BASE_URL`.
 
-## Why these specs need no credentials
+## Credentials: placeholders, not real keys
 
-`refreshSupabaseSession` short-circuits to anonymous when the Supabase
-environment variables are absent, so the app boots and serves every public
-page without them. Everything here is therefore the signed-out visitor's
-path, and `npm run build`'s placeholder `DEEPSEEK_API_KEY` is never called.
+Nothing here talks to a real service, but the variables still have to be
+present. The two layers disagree about missing Supabase env: `proxy.ts`
+short-circuits to anonymous (deliberately, for local bring-up), while the
+page-level `createClient()` throws — so `/today` and `/result` would render
+their error boundary instead of a board. `playwright.config.ts` therefore
+starts the server with placeholder values. A signed-out visitor carries no
+auth cookie, so nothing is ever dialled.
+
+The runner also refuses to reuse an already-running server. One started by
+hand picks up `.env.local` and its real Supabase keys, and a suite that
+passes against those while failing in CI is worse than no suite.
 
 ## What is deliberately not covered here
 
