@@ -157,6 +157,8 @@
     "coachErrorNoResponse": "Coach returned no response body.",
     "coachErrorEmpty": "Coach returned an empty reply. Please try again.",
     "coachErrorNetwork": "Network error. Please try again.",
+    "coachErrorUnsafe": "That message looked like an attempt to change the coach's instructions, so it wasn't sent. Try rephrasing it as a question about the position.",
+    "coachErrorTooLong": "That message is too long. Please shorten it and try again.",
     "coachDeviceLimit": "Free accounts work on one device at a time. Upgrade to Pro for multi-device sync and AI Coach everywhere.",
     "coachDailyLimitReached": "You've used today's AI Coach limit.",
     "coachMonthlyLimitReached": "You've used this month's AI Coach limit.",

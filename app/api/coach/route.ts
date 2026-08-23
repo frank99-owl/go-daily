@@ -99,7 +99,11 @@ export async function POST(request: Request) {
   for (const m of history) {
     if (m.role === "user") {
       const guard = guardUserMessage(m.content);
-      if (!guard.ok) return errorResponse(guard.reason || "Invalid message content.");
+      if (!guard.ok) {
+        // `reason` is English and only reaches logs; the client renders a
+        // localized string keyed off `code`.
+        return errorResponse(guard.reason || "Invalid message content.", 400, guard.code);
+      }
     }
   }
 

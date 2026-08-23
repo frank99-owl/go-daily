@@ -10,6 +10,7 @@ import { getOrCreateDeviceId } from "@/lib/auth/deviceId";
 import { type CoachErrorCode, isCoachErrorCode } from "@/lib/coach/coachErrorCodes";
 import { DEFAULT_PERSONA, type PersonaId } from "@/lib/coach/personas";
 import { useLocale } from "@/lib/i18n/i18n";
+import { GUARD_REJECTION_CODES, isGuardRejectionCode } from "@/lib/promptGuardCodes";
 import { track } from "@/lib/posthog/events";
 import type { CoachQuotaAnalyticsState } from "@/lib/posthog/eventTypes";
 import type { CoachMessage, Coord, Locale, PublicCoachAccess } from "@/types";
@@ -22,7 +23,12 @@ type Props = {
   suggestedPromptSource?: "result" | "onboarding_result";
 };
 
-type CoachError = { kind: CoachErrorCode } | { kind: "generic"; message: string };
+type CoachError =
+  | { kind: CoachErrorCode }
+  | { kind: "generic"; message: string }
+  // The message never reached the model, so there is nothing to retry —
+  // the user has to edit the text first.
+  | { kind: "blocked"; message: string };
 type CoachQuotaState = "checking" | "available" | "near-limit" | "unavailable" | "unknown";
 
 type CoachUsageSnapshot = {
@@ -201,11 +207,13 @@ export function CoachDialogue({
     });
   }, [canUseCoach, contentTier, locale, quotaState, suggestedPromptSource]);
 
+  type ReplyOutcome = "ok" | "rejected" | "failed";
+
   async function requestReply(
     historyForApi: CoachMessage[],
     promptSource: "result" | "onboarding_result" | "composer",
-  ) {
-    if (!canUseCoach) return;
+  ): Promise<ReplyOutcome> {
+    if (!canUseCoach) return "failed";
     // Cancel any previous in-flight request.
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -239,6 +247,22 @@ export function CoachDialogue({
       // Non-200 means JSON error (auth/validation/quota) — not SSE
       if (!res.ok) {
         const data = (await res.json()) as { error?: string; code?: string };
+        if (isGuardRejectionCode(data.code)) {
+          track("coach_error_shown", {
+            locale,
+            source: promptSource,
+            contentTier,
+            result: data.code,
+          });
+          setError({
+            kind: "blocked",
+            message:
+              data.code === GUARD_REJECTION_CODES.MESSAGE_TOO_LONG
+                ? t.result.coachErrorTooLong
+                : t.result.coachErrorUnsafe,
+          });
+          return "rejected";
+        }
         if (isCoachErrorCode(data.code)) {
           track("coach_error_shown", {
             locale,
@@ -259,7 +283,7 @@ export function CoachDialogue({
             message: data.error ?? `Request failed (${res.status})`,
           });
         }
-        return;
+        return "failed";
       }
 
       // Read SSE stream
@@ -328,7 +352,7 @@ export function CoachDialogue({
       } catch (e) {
         if (e instanceof Error) {
           setError({ kind: "generic", message: e.message });
-          return;
+          return "failed";
         }
         throw e;
       }
@@ -341,7 +365,7 @@ export function CoachDialogue({
           result: "empty_response",
         });
         setError({ kind: "generic", message: t.result.coachErrorEmpty });
-        return;
+        return "failed";
       }
 
       const reply = fullContent.trim();
@@ -353,9 +377,10 @@ export function CoachDialogue({
         result: "completed",
       });
       setStreamingContent("");
+      return "ok";
     } catch (e) {
       // Ignore abort errors from locale change / unmount.
-      if (e instanceof DOMException && e.name === "AbortError") return;
+      if (e instanceof DOMException && e.name === "AbortError") return "failed";
       console.error("[coach] request failed", e);
       track("coach_error_shown", {
         locale,
@@ -367,6 +392,7 @@ export function CoachDialogue({
         kind: "generic",
         message: e instanceof Error ? e.message : t.result.coachErrorNetwork,
       });
+      return "failed";
     } finally {
       setPending(false);
       // Don't clear streamingContent here — let the error handler or success
@@ -391,7 +417,14 @@ export function CoachDialogue({
     ];
     setMessages(next);
     setInput("");
-    await requestReply(next, promptSource);
+    const outcome = await requestReply(next, promptSource);
+    if (outcome === "rejected") {
+      // The server refused this message, and every later request would resend
+      // it as history — leaving the conversation permanently stuck. Drop the
+      // optimistic bubble and hand the text back so it can be reworded.
+      setMessages(messages);
+      setInput((current) => (current ? current : normalizedText));
+    }
   };
 
   const send = async () => {
@@ -515,6 +548,14 @@ export function CoachDialogue({
             {streamingContent}
           </div>
         )}
+        {error?.kind === "blocked" && (
+          <div
+            className="flex items-start gap-2 text-sm text-[color:var(--color-warn)]"
+            role="alert"
+          >
+            <span>{error.message}</span>
+          </div>
+        )}
         {error?.kind === "generic" && (
           <div
             className="flex items-center gap-2 text-sm text-[color:var(--color-warn)]"
@@ -531,7 +572,7 @@ export function CoachDialogue({
             </button>
           </div>
         )}
-        {error && error.kind !== "generic" && (
+        {error && error.kind !== "generic" && error.kind !== "blocked" && (
           <CoachLimitCard kind={error.kind} pathname={pathname} isGuest={!user} />
         )}
       </div>

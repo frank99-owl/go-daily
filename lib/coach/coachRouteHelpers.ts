@@ -19,8 +19,8 @@ import type { PublicCoachAccess } from "@/types";
 
 // ── Generic helpers ──────────────────────────────────────────────────
 
-export function errorResponse(message: string, status = 400) {
-  return createApiResponse({ error: message }, { status });
+export function errorResponse(message: string, status = 400, code?: string) {
+  return createApiResponse({ error: message, ...(code ? { code } : {}) }, { status });
 }
 
 export function coachError({

@@ -153,6 +153,8 @@
     "coachErrorNoResponse": "AI 教练没有返回响应内容。",
     "coachErrorEmpty": "AI 教练返回了空回复，请重试。",
     "coachErrorNetwork": "网络请求失败，请重试。",
+    "coachErrorUnsafe": "这条消息看起来像是在尝试修改教练的设定，因此没有发送。换成关于这道题的问题再试试。",
+    "coachErrorTooLong": "这条消息太长了，请精简后重试。",
     "coachDeviceLimit": "免费账号同一时间只支持 1 台设备。升级到 Pro 后即可多端同步，并在所有设备使用 AI 教练。",
     "coachDailyLimitReached": "你今天的 AI 教练额度已经用完。",
     "coachMonthlyLimitReached": "你本月的 AI 教练额度已经用完。",

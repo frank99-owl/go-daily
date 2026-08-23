@@ -153,6 +153,8 @@
     "coachErrorNoResponse": "AI コーチから応答本文が返りませんでした。",
     "coachErrorEmpty": "AI コーチの返信が空でした。もう一度お試しください。",
     "coachErrorNetwork": "ネットワークエラーです。もう一度お試しください。",
+    "coachErrorUnsafe": "このメッセージはコーチの指示を書き換えようとしているように見えたため、送信されませんでした。局面についての質問として言い換えてみてください。",
+    "coachErrorTooLong": "メッセージが長すぎます。短くしてからもう一度お試しください。",
     "coachDeviceLimit": "無料アカウントは同時に 1 台のデバイスのみ利用できます。Pro にアップグレードすると複数端末同期と AI コーチが使えます。",
     "coachDailyLimitReached": "本日の AI コーチ利用上限に達しました。",
     "coachMonthlyLimitReached": "今月の AI コーチ利用上限に達しました。",

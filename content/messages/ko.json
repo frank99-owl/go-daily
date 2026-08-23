@@ -153,6 +153,8 @@
     "coachErrorNoResponse": "AI 코치가 응답 본문을 반환하지 않았습니다.",
     "coachErrorEmpty": "AI 코치가 빈 답변을 반환했습니다. 다시 시도해 주세요.",
     "coachErrorNetwork": "네트워크 오류입니다. 다시 시도해 주세요.",
+    "coachErrorUnsafe": "이 메시지는 코치의 지시를 바꾸려는 시도로 보여 전송되지 않았습니다. 현재 국면에 대한 질문으로 바꿔서 다시 시도해 보세요.",
+    "coachErrorTooLong": "메시지가 너무 깁니다. 짧게 줄여서 다시 시도해 주세요.",
     "coachDeviceLimit": "무료 계정은 동시에 1대의 기기만 사용할 수 있습니다. Pro로 업그레이드하면 다중 기기 동기화와 AI 코치를 사용할 수 있습니다.",
     "coachDailyLimitReached": "오늘의 AI 코치 한도를 모두 사용했습니다.",
     "coachMonthlyLimitReached": "이번 달 AI 코치 한도를 모두 사용했습니다.",

@@ -1,4 +1,5 @@
 import type { CoachErrorCode } from "@/lib/coach/coachErrorCodes";
+import type { GuardRejectionCode } from "@/lib/promptGuardCodes";
 import type { OnboardingLevel } from "@/lib/puzzle/onboardingLevels";
 import type { Locale, PuzzleTag, CoachContentTier } from "@/types";
 
@@ -95,7 +96,7 @@ export type EventMap = {
     result: "completed";
   };
   coach_error_shown: CoachClientProps & {
-    result: CoachErrorCode | "generic" | "stream_error" | "empty_response";
+    result: CoachErrorCode | GuardRejectionCode | "generic" | "stream_error" | "empty_response";
   };
   coach_quota_state_seen: CoachClientProps & {
     result: CoachQuotaAnalyticsState;

@@ -467,6 +467,7 @@ describe("/api/coach", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
       error: "Potentially unsafe content detected.",
+      code: "unsafe_content",
     });
     expect(vi.mocked(getPuzzle)).not.toHaveBeenCalled();
     expect(supabaseMocks.createServiceClient).not.toHaveBeenCalled();
@@ -490,6 +491,7 @@ describe("/api/coach", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
       error: "Potentially unsafe content detected.",
+      code: "unsafe_content",
     });
     expect(vi.mocked(getPuzzle)).not.toHaveBeenCalled();
     expect(supabaseMocks.createServiceClient).not.toHaveBeenCalled();
@@ -1312,6 +1314,7 @@ describe("/api/coach", () => {
       expect(response.status).toBe(400);
       await expect(response.json()).resolves.toEqual({
         error: "Potentially unsafe content detected.",
+        code: "unsafe_content",
       });
     });
   });
