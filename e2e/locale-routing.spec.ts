@@ -46,9 +46,35 @@ test.describe("locale routing", () => {
     expect(response.status()).toBe(404);
   });
 
-  test("titles the 404 in the visitor's locale", async ({ page }) => {
+  // Unknown ids and out-of-range collection params answered 200 too: they sit
+  // under puzzles/loading.tsx, the same Suspense boundary problem. The list
+  // page keeps its loading state via a (list) route group that the dynamic
+  // children stay outside of.
+  test("answers unknown puzzle ids and collection params with a real 404", async ({ request }) => {
+    for (const path of [
+      "/en/puzzles/p-99999",
+      "/en/puzzles/not-an-id",
+      "/en/puzzles/difficulty/9",
+      "/en/puzzles/tags/bogus",
+    ]) {
+      const response = await request.get(path, { maxRedirects: 0 });
+      expect(response.status(), path).toBe(404);
+    }
+  });
+
+  test("keeps valid collection pages at 200", async ({ request }) => {
+    for (const path of ["/en/puzzles", "/en/puzzles/difficulty/4", "/en/puzzles/tags/tesuji"]) {
+      const response = await request.get(path, { maxRedirects: 0 });
+      expect(response.status(), path).toBe(200);
+    }
+  });
+
+  // Language-neutral on purpose: resolving a locale in the not-found boundary
+  // needs a dynamic API, and reading headers() there turns every statically
+  // rendered page that calls notFound() dynamic at runtime, which Next rejects.
+  test("titles the 404 without inheriting the site default", async ({ page }) => {
     await page.goto("/ja/definitely-not-a-real-page");
-    await expect(page).toHaveTitle("ページが見つかりません — go-daily");
+    await expect(page).toHaveTitle("404 — go-daily");
   });
 
   // The layout sets title.template "%s — go-daily", and every message string

@@ -7,7 +7,7 @@ import { serializeJsonLd } from "@/lib/jsonLd";
 import { absoluteUrl, buildHreflangAlternates } from "@/lib/siteUrl";
 import type { Locale } from "@/types";
 
-import { PuzzleListClient } from "./PuzzleListClient";
+import { PuzzleListClient } from "../PuzzleListClient";
 
 export async function generateMetadata({
   params,

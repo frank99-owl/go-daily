@@ -64,7 +64,10 @@ const SMOKE_PAGE_ROUTES = [
   ["/", "app/[locale]/page.tsx"],
   ["/onboarding", "app/[locale]/onboarding/page.tsx"],
   ["/today", "app/[locale]/today/page.tsx"],
-  ["/puzzles", "app/[locale]/puzzles/page.tsx"],
+  // The (list) route group scopes puzzles/loading.tsx to the list page, so the
+  // dynamic children can answer notFound() with a real 404. It does not change
+  // the URL.
+  ["/puzzles", "app/[locale]/puzzles/(list)/page.tsx"],
   ["/review", "app/[locale]/review/page.tsx"],
   ["/stats", "app/[locale]/stats/page.tsx"],
   ["/pricing", "app/[locale]/pricing/page.tsx"],

@@ -494,10 +494,6 @@
       "title": "账户",
       "description": "管理你的 go-daily 账户，查看登录方式，或删除数据。"
     },
-    "notFound": {
-      "title": "页面不存在",
-      "description": "这个页面不存在。回到今天的围棋题目吧。"
-    },
     "pricing": {
       "title": "升级到 Pro",
       "description": "升级到 Pro，解锁多端同步、更高的 AI 教练额度，以及无广告体验。"

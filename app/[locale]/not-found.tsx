@@ -1,29 +1,19 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-
-import { isLocale } from "@/lib/i18n/localePath";
-import { getMessages } from "@/lib/i18n/metadata";
-import { DEFAULT_LOCALE } from "@/proxy";
 
 import { NotFoundContent } from "./NotFoundContent";
 
-// The body stays a client component so it can read the locale from context,
-// but metadata has to be resolved on the server. A page that calls notFound()
-// has its own metadata discarded, so this boundary is the only place a 404
-// title can come from — without it the response inherits the site default and
-// reads like an ordinary page in the tab and in history.
+// A page that calls notFound() has its own metadata discarded, so this
+// boundary is the only place a 404 title can come from — without one the
+// response inherits the site default and reads like an ordinary page.
 //
-// proxy.ts sets x-locale on every locale-prefixed request, which is the only
-// locale signal available here: not-found.tsx receives no route params.
-export async function generateMetadata(): Promise<Metadata> {
-  const headerLocale = (await headers()).get("x-locale");
-  const locale = isLocale(headerLocale) ? headerLocale : DEFAULT_LOCALE;
-  const t = getMessages(locale);
-  return {
-    title: t.metadata.notFound.title,
-    description: t.metadata.notFound.description,
-  };
-}
+// The title is deliberately static and language-neutral. Resolving a locale
+// here would mean a dynamic API (this boundary receives no route params), and
+// reading headers() turns any statically rendered page that calls notFound()
+// dynamic at runtime, which Next rejects outright. "404" needs no translation
+// and matches the heading the body already renders in every locale.
+export const metadata: Metadata = {
+  title: "404",
+};
 
 export default function NotFound() {
   return <NotFoundContent />;

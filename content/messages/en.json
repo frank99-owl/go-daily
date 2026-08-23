@@ -498,10 +498,6 @@
       "title": "Account",
       "description": "Manage your go-daily account, review your sign-in method, and remove your data."
     },
-    "notFound": {
-      "title": "Page not found",
-      "description": "This page does not exist. Head back to today's Go puzzle."
-    },
     "pricing": {
       "title": "Go Pro",
       "description": "Upgrade to Go Pro for cross-device sync, higher AI Coach limits, and an ad-free experience."

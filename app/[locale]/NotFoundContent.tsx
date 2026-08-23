@@ -1,10 +1,20 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { LocalizedLink } from "@/components/LocalizedLink";
 import { useLocale } from "@/lib/i18n/i18n";
 
 export function NotFoundContent() {
   const { t } = useLocale();
+
+  // The server sends the right title, but hydration resolves the route as the
+  // page that threw notFound() — which has no metadata — and the layout's
+  // default title wins. Crawlers read the served HTML and honour the 404, so
+  // this is only about the browser tab; restore it to match what was sent.
+  useEffect(() => {
+    document.title = `${t.errors.notFound} — go-daily`;
+  }, [t.errors.notFound]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">

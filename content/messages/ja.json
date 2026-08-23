@@ -494,10 +494,6 @@
       "title": "アカウント",
       "description": "go-daily アカウントの管理、ログイン方法の確認、データの削除ができます。"
     },
-    "notFound": {
-      "title": "ページが見つかりません",
-      "description": "このページは存在しません。今日の詰碁に戻りましょう。"
-    },
     "pricing": {
       "title": "Go Pro",
       "description": "Pro にアップグレードして、複数端末同期・高い AI コーチ上限・広告なしを利用しましょう。"
