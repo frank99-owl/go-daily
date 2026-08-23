@@ -12,7 +12,7 @@ go-daily 已具备每日围棋题库、四语言本地化、DeepSeek 流式 AI �
 
 最近一次验证结果（2026-06-11，与 CI 同链路）：
 
-- **全量测试**：`npm run test` 通过，**111 个测试文件 / 982 个测试用例**。
+- **全量测试**：`npm run test` 通过，**111 个测试文件 / 991 个测试用例**。
 - **题库校验**：`npm run validate:puzzles` 通过，当前为 **3033** 道题。
 - **i18n 校验**：`npm run validate:messages` 通过，**4 个语言 × 511 个 key path** 对齐。
 - **P2-C 定向测试**：`npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` 通过，**9 个测试文件，66 个测试用例**。

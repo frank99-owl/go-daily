@@ -44,7 +44,7 @@ This script checks:
 
 ### Automated Coverage (Vitest)
 
-We maintain 111 test files with 982 test cases (2026-06-11) covering:
+We maintain 111 test files with 991 test cases (2026-08-24) covering:
 
 - **Logic**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.
