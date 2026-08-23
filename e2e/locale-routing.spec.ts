@@ -45,4 +45,20 @@ test.describe("locale routing", () => {
     });
     expect(response.status()).toBe(404);
   });
+
+  test("titles the 404 in the visitor's locale", async ({ page }) => {
+    await page.goto("/ja/definitely-not-a-real-page");
+    await expect(page).toHaveTitle("ページが見つかりません — go-daily");
+  });
+
+  // The layout sets title.template "%s — go-daily", and every message string
+  // used to carry the suffix as well, so each page rendered it twice.
+  test("appends the site suffix to a page title exactly once", async ({ page }) => {
+    for (const path of ["/en/today", "/en/puzzles", "/en/pricing", "/zh/today"]) {
+      await page.goto(path);
+      const title = await page.title();
+      expect(title, path).toContain("go-daily");
+      expect(title.match(/go-daily/g)?.length, path).toBe(1);
+    }
+  });
 });

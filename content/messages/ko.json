@@ -455,47 +455,51 @@
       "description": "매일 엄선된 바둑 문제로, 공식 해설과 국면에 맞춘 AI 코치와 함께 '왜'를 이해하세요."
     },
     "today": {
-      "title": "오늘의 문제 — go-daily",
+      "title": "오늘의 문제",
       "description": "오늘의 엄선된 바둑 문제에 도전하고 막히면 AI 코치에게 물어보세요."
     },
     "onboarding": {
-      "title": "첫 훈련 — go-daily",
+      "title": "첫 훈련",
       "description": "3분 안에 첫 바둑 문제를 완료하세요. 한 수를 두고, 피드백을 받고, AI에게 이유를 물어보고 복습 경로를 저장합니다."
     },
     "puzzles": {
-      "title": "문제집 — go-daily",
+      "title": "문제집",
       "description": "사활, 기초, 끝내기 등 수백 개의 문제를 둘러보세요. 난이도별 필터링과 진행 상황 추적."
     },
     "review": {
-      "title": "오답노트 — go-daily",
+      "title": "오답노트",
       "description": "틀린 문제를 되짚어 보고 아직 익숙하지 않은 패턴을 마스터하세요."
     },
     "stats": {
-      "title": "기록 및 통계 — go-daily",
+      "title": "기록 및 통계",
       "description": "연승 기록, 정답률, 상세한 문제 히스토리를 확인하세요."
     },
     "puzzleDetail": {
-      "title": "문제 {{id}} — go-daily",
+      "title": "문제 {{id}}",
       "description": "{{prompt}}（{{boardSize}}로 바둑 문제）。매일 사활 문제, AI 코치와 함께 복기하세요."
     },
     "difficultyCollection": {
-      "title": "난이도 {{level}} 바둑 문제 — go-daily",
+      "title": "난이도 {{level}} 바둑 문제",
       "description": "go-daily 난이도 {{level}} 문제를 둘러보고 특정 수준의 읽기 과제를 집중적으로 연습하세요."
     },
     "tagCollection": {
-      "title": "{{tag}} 바둑 문제 — go-daily",
+      "title": "{{tag}} 바둑 문제",
       "description": "go-daily 문제집에서 {{tag}} 분류의 문제를 둘러보고 집중 연습에 들어가세요."
     },
     "login": {
-      "title": "로그인 — go-daily",
+      "title": "로그인",
       "description": "go-daily에 로그인하여 기록과 오답노트를 여러 기기에서 동기화하고 클라우드에 안전하게 보관하세요."
     },
     "account": {
-      "title": "계정 — go-daily",
+      "title": "계정",
       "description": "go-daily 계정을 관리하고, 로그인 방법을 확인하거나 데이터를 삭제할 수 있습니다."
     },
+    "notFound": {
+      "title": "페이지를 찾을 수 없습니다",
+      "description": "이 페이지는 존재하지 않습니다. 오늘의 바둑 문제로 돌아가세요."
+    },
     "pricing": {
-      "title": "Go Pro — go-daily",
+      "title": "Go Pro",
       "description": "Pro로 업그레이드하여 다중 기기 동기화, 더 높은 AI 코치 한도, 광고 없는 환경을 이용하세요."
     }
   },

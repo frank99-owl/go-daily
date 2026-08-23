@@ -455,47 +455,51 @@
       "description": "毎日1題の厳選囲碁問題で、公式解説と局面に沿った AI コーチと「なぜ」を読み解こう。"
     },
     "today": {
-      "title": "今日の問題 — go-daily",
+      "title": "今日の問題",
       "description": "今日の厳選囲碁問題に挑戦し、行き詰まったらAIコーチに聞こう。"
     },
     "onboarding": {
-      "title": "はじめてのトレーニング — go-daily",
+      "title": "はじめてのトレーニング",
       "description": "3分で最初の囲碁問題を完了。一手打ち、結果を見て、AI に理由を聞き、復習につなげます。"
     },
     "puzzles": {
-      "title": "問題集 — go-daily",
+      "title": "問題集",
       "description": "死活、手筋、ヨセなど数百問の問題を閲覧。難易度で絞り込み、進捗を追跡。"
     },
     "review": {
-      "title": "復習ノート — go-daily",
+      "title": "復習ノート",
       "description": "間違えた問題を振り返って、まだ習得していない棋形をマスターしよう。"
     },
     "stats": {
-      "title": "戦績 — go-daily",
+      "title": "戦績",
       "description": "連勝記録、正解率、詳細な問題履歴を確認。"
     },
     "puzzleDetail": {
-      "title": "問題 {{id}} — go-daily",
+      "title": "問題 {{id}}",
       "description": "{{prompt}}（{{boardSize}}路の囲碁問題）。毎日の詰碁をAIコーチと一緒に。"
     },
     "difficultyCollection": {
-      "title": "難易度 {{level}} の囲碁問題 — go-daily",
+      "title": "難易度 {{level}} の囲碁問題",
       "description": "go-daily の難易度{{level}}の問題を閲覧し、特定レベルの読みに集中して練習。"
     },
     "tagCollection": {
-      "title": "{{tag}} の囲碁問題 — go-daily",
+      "title": "{{tag}} の囲碁問題",
       "description": "go-daily の問題集で {{tag}} 分類の問題を閲覧し、重点的に練習に取り組む。"
     },
     "login": {
-      "title": "ログイン — go-daily",
+      "title": "ログイン",
       "description": "go-daily にログインして、戦績と復習帳を端末間で同期し、クラウドで安全に保管しましょう。"
     },
     "account": {
-      "title": "アカウント — go-daily",
+      "title": "アカウント",
       "description": "go-daily アカウントの管理、ログイン方法の確認、データの削除ができます。"
     },
+    "notFound": {
+      "title": "ページが見つかりません",
+      "description": "このページは存在しません。今日の詰碁に戻りましょう。"
+    },
     "pricing": {
-      "title": "Go Pro — go-daily",
+      "title": "Go Pro",
       "description": "Pro にアップグレードして、複数端末同期・高い AI コーチ上限・広告なしを利用しましょう。"
     }
   },

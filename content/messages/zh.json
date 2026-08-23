@@ -455,47 +455,51 @@
       "description": "每天精选一道围棋死活题；AI 教练在官方解析与盘面约束内陪你读懂「为什么」，而不只是「下哪里」。"
     },
     "today": {
-      "title": "今日一题 — go-daily",
+      "title": "今日一题",
       "description": "挑战今日精选围棋死活题，卡住了就向 AI 教练求助。"
     },
     "onboarding": {
-      "title": "第一次训练 — go-daily",
+      "title": "第一次训练",
       "description": "用 3 分钟完成第一道围棋题：落子、看反馈、让 AI 讲清为什么，并保存复习路径。"
     },
     "puzzles": {
-      "title": "题库 — go-daily",
+      "title": "题库",
       "description": "浏览数百道死活、手筋、官子题。按难度筛选，追踪进度。"
     },
     "review": {
-      "title": "错题本 — go-daily",
+      "title": "错题本",
       "description": "回顾做错的题目，攻克你还没掌握的棋形。"
     },
     "stats": {
-      "title": "战绩统计 — go-daily",
+      "title": "战绩统计",
       "description": "查看连胜记录、正确率和详细做题统计。"
     },
     "puzzleDetail": {
-      "title": "第 {{id}} 题 — go-daily",
+      "title": "第 {{id}} 题",
       "description": "{{prompt}}（{{boardSize}} 路围棋题）。每日死活题，AI 教练陪你复盘。"
     },
     "difficultyCollection": {
-      "title": "难度 {{level}} 围棋题 — go-daily",
+      "title": "难度 {{level}} 围棋题",
       "description": "浏览 go-daily 难度 {{level}} 的题目，集中练习特定水平的读棋挑战。"
     },
     "tagCollection": {
-      "title": "{{tag}} 围棋题 — go-daily",
+      "title": "{{tag}} 围棋题",
       "description": "在 go-daily 题库中浏览 {{tag}} 分类的题目，进入专项练习。"
     },
     "login": {
-      "title": "登录 — go-daily",
+      "title": "登录",
       "description": "登录 go-daily，让你的战绩与错题本跨设备同步，安稳存放在云端。"
     },
     "account": {
-      "title": "账户 — go-daily",
+      "title": "账户",
       "description": "管理你的 go-daily 账户，查看登录方式，或删除数据。"
     },
+    "notFound": {
+      "title": "页面不存在",
+      "description": "这个页面不存在。回到今天的围棋题目吧。"
+    },
     "pricing": {
-      "title": "升级到 Pro — go-daily",
+      "title": "升级到 Pro",
       "description": "升级到 Pro，解锁多端同步、更高的 AI 教练额度，以及无广告体验。"
     }
   },

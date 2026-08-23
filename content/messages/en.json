@@ -459,47 +459,51 @@
       "description": "Practice Go (Weiqi/Baduk) with one hand-picked puzzle a day. AI coaching stays aligned with official explanations—helping you understand the 'why', not just the 'where'."
     },
     "today": {
-      "title": "Today's Puzzle — go-daily",
+      "title": "Today's Puzzle",
       "description": "Challenge yourself with today's hand-picked Go puzzle and improve your reading with AI coaching."
     },
     "onboarding": {
-      "title": "First Training Session — go-daily",
+      "title": "First Training Session",
       "description": "Complete your first Go puzzle in 3 minutes: play a move, get feedback, let AI explain why, and save the review path."
     },
     "puzzles": {
-      "title": "Puzzle Library — go-daily",
+      "title": "Puzzle Library",
       "description": "Browse hundreds of life-and-death, tesuji, and endgame puzzles. Filter by difficulty and track your progress."
     },
     "review": {
-      "title": "Review Your Mistakes — go-daily",
+      "title": "Review Your Mistakes",
       "description": "Review the puzzles you've missed and revisit the shapes you find difficult."
     },
     "stats": {
-      "title": "Your Progress & Stats — go-daily",
+      "title": "Your Progress & Stats",
       "description": "View your Go puzzle solving streak, accuracy, and detailed progress statistics."
     },
     "puzzleDetail": {
-      "title": "Puzzle {{id}} — go-daily",
+      "title": "Puzzle {{id}}",
       "description": "{{prompt}} ({{boardSize}} Go problem). Solve daily tsumego with AI coach guidance."
     },
     "difficultyCollection": {
-      "title": "Difficulty {{level}} Go Puzzles — go-daily",
+      "title": "Difficulty {{level}} Go Puzzles",
       "description": "Browse go-daily puzzles at difficulty {{level}} and practice a focused band of reading challenges."
     },
     "tagCollection": {
-      "title": "{{tag}} Go Puzzles — go-daily",
+      "title": "{{tag}} Go Puzzles",
       "description": "Browse {{tag}} puzzles in the go-daily library and jump straight into focused practice."
     },
     "login": {
-      "title": "Sign in — go-daily",
+      "title": "Sign in",
       "description": "Sign in to go-daily to sync your progress across devices and keep your mistake log safe in the cloud."
     },
     "account": {
-      "title": "Account — go-daily",
+      "title": "Account",
       "description": "Manage your go-daily account, review your sign-in method, and remove your data."
     },
+    "notFound": {
+      "title": "Page not found",
+      "description": "This page does not exist. Head back to today's Go puzzle."
+    },
     "pricing": {
-      "title": "Go Pro — go-daily",
+      "title": "Go Pro",
       "description": "Upgrade to Go Pro for cross-device sync, higher AI Coach limits, and an ad-free experience."
     }
   },

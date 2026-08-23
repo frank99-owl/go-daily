@@ -50,7 +50,9 @@ describe("puzzle collection pages", () => {
         params: Promise.resolve({ tag: "endgame", locale: "en" }),
       }),
     ).resolves.toMatchObject({
-      title: "Endgame Go Puzzles — go-daily",
+      // No site suffix here: app/[locale]/layout.tsx supplies it via
+      // title.template, and carrying it in the message too rendered it twice.
+      title: "Endgame Go Puzzles",
       alternates: { canonical: "/en/puzzles/tags/endgame" },
     });
   });
@@ -65,7 +67,7 @@ describe("puzzle collection pages", () => {
         params: Promise.resolve({ level: "4", locale: "en" }),
       }),
     ).resolves.toMatchObject({
-      title: "Difficulty ★★★★☆ Go Puzzles — go-daily",
+      title: "Difficulty ★★★★☆ Go Puzzles",
       alternates: { canonical: "/en/puzzles/difficulty/4" },
     });
   });
