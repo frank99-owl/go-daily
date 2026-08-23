@@ -24,6 +24,12 @@ their error boundary instead of a board. `playwright.config.ts` therefore
 starts the server with placeholder values. A signed-out visitor carries no
 auth cookie, so nothing is ever dialled.
 
+One caveat the placeholders cannot cover: `NEXT_PUBLIC_*` is inlined at
+build time, so a build made while `.env.local` was present has the real
+Supabase URL baked into it and will reach the real project no matter what
+the server is started with. Specs must not assert on anything that turns on
+which backend answered — assert the invariant instead (see the health spec).
+
 The runner also refuses to reuse an already-running server. One started by
 hand picks up `.env.local` and its real Supabase keys, and a suite that
 passes against those while failing in CI is worse than no suite.

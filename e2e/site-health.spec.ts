@@ -11,9 +11,24 @@ test.describe("site health", () => {
     expect(await sitemap.text()).toContain("<urlset");
   });
 
-  test("reports healthy", async ({ request }) => {
+  // Whether Supabase is reachable depends on the env the build was made with
+  // (NEXT_PUBLIC_* is inlined at build time, so a local build that saw
+  // .env.local probes the real project while CI's does not). Asserting a
+  // particular verdict would therefore only ever be right in one of the two.
+  //
+  // The invariant that holds either way is that the endpoint does not lie:
+  // the HTTP status and the self-reported state have to agree. A probe that
+  // answered 200 while reporting "degraded" is exactly what would defeat
+  // uptime monitoring, and that is what this catches.
+  test("reports a health verdict its status code agrees with", async ({ request }) => {
     const response = await request.get("/api/health");
-    expect(response.ok()).toBe(true);
+    expect([200, 503]).toContain(response.status());
+
+    const body = await response.json();
+    expect(["healthy", "degraded"]).toContain(body.status);
+    expect(body.status === "healthy").toBe(response.status() === 200);
+    expect(["ok", "error", "skipped"]).toContain(body.checks.supabase);
+    expect(Date.parse(body.timestamp)).not.toBeNaN();
   });
 
   test("sends the security headers the app sets in next.config.ts", async ({ request }) => {
