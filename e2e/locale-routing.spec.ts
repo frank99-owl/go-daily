@@ -1,0 +1,48 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("locale routing", () => {
+  test("redirects an unprefixed path to a locale and remembers the choice", async ({ page }) => {
+    const response = await page.goto("/");
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveURL(/\/(zh|en|ja|ko)$/);
+
+    const cookies = await page.context().cookies();
+    expect(cookies.map((c) => c.name)).toContain("go-daily.locale");
+  });
+
+  test("honours Accept-Language when no cookie is set", async ({ browser }) => {
+    const context = await browser.newContext({ locale: "ja-JP" });
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page).toHaveURL(/\/ja$/);
+    await context.close();
+  });
+
+  test("serves a locale-prefixed path directly, without redirecting", async ({ page }) => {
+    const response = await page.goto("/en/today");
+    expect(response?.status()).toBe(200);
+    expect(new URL(page.url()).pathname).toBe("/en/today");
+  });
+
+  test("localises the PWA manifest from the negotiated locale", async ({ request }) => {
+    const ja = await request.get("/manifest.webmanifest", {
+      headers: { "accept-language": "ja" },
+    });
+    expect(ja.ok()).toBe(true);
+    expect((await ja.json()).name).toContain("囲碁");
+
+    const en = await request.get("/manifest.webmanifest", {
+      headers: { "accept-language": "en" },
+    });
+    expect((await en.json()).name).not.toContain("囲碁");
+  });
+
+  // A prerendered catch-all used to answer unmatched URLs with 200 and the
+  // site's default <title>, which is an invitation to index every typo.
+  test("answers an unmatched localized URL with a real 404", async ({ request }) => {
+    const response = await request.get("/en/definitely-not-a-real-page", {
+      maxRedirects: 0,
+    });
+    expect(response.status()).toBe(404);
+  });
+});

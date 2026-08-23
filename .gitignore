@@ -85,3 +85,9 @@ temp_sources/
 # Tauri desktop build artifacts
 desktop/src-tauri/target/
 desktop/src-tauri/gen/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

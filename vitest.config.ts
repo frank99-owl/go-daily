@@ -9,6 +9,9 @@ export default defineConfig({
     },
   },
   test: {
+    // Playwright owns e2e/; vitest's default glob would otherwise try to run
+    // those specs in jsdom and fail on the Playwright imports.
+    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**"],
     environment: "jsdom",
     globals: true,
     setupFiles: ["./tests/setup.ts"],
