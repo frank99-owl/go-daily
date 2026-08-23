@@ -4,13 +4,12 @@ import { notFound } from "next/navigation";
 // localized app/[locale]/not-found.tsx boundary renders (with nav, footer,
 // and translations) instead of Next's bare default 404 document.
 //
-// force-static keeps the response from streaming through loading.tsx, so the
-// HTTP status is a real 404 instead of a soft 200.
-export const dynamic = "force-static";
-
-export function generateStaticParams(): Array<{ rest: string[] }> {
-  return [{ rest: ["__not-found__"] }];
-}
+// The status only comes out as a real 404 if nothing has been flushed before
+// notFound() runs, so this segment must not sit under a loading.tsx: a
+// Suspense boundary above it commits the response as 200 first. There is no
+// app/[locale]/loading.tsx for that reason — the segments that need one
+// declare it themselves.
+export const dynamic = "force-dynamic";
 
 export default function CatchAllNotFound(): never {
   notFound();
