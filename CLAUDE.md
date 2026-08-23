@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **go-daily** is a daily Go (围棋) tsumego puzzle platform with streaming DeepSeek AI coaching, 4-language i18n (zh/en/ja/ko), and Stripe subscriptions.
 
-**Stack**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Supabase (Auth + Postgres + RLS), Stripe, DeepSeek AI, Vitest, Sentry, Upstash Redis (rate limiting in prod), Resend (email).
+**Stack**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Supabase (Auth + Postgres + RLS), Stripe, DeepSeek AI, Vitest + Playwright, Sentry, Upstash Redis (rate limiting in prod), Resend (email).
 
 **Runtime**: Node.js >= 22.5.0
 
@@ -18,15 +18,17 @@ npm run build            # Production build (runs prebuild + validation first)
 npm run lint             # ESLint
 npm run format           # Prettier (write)
 npm run format:check     # Prettier (check — CI runs this)
-npm run test             # Vitest single run
+npm run test             # Vitest single run (unit + integration)
 npm run test:watch       # Vitest watch mode
 npm run test:coverage    # Coverage report (target: 70%+)
+npm run test:e2e         # Playwright, against a production build (run `npm run build` first)
+npm run test:e2e:ui      # Playwright watch UI
 npm run validate:puzzles # Validate puzzle JSON data
 npm run validate:messages # Validate i18n key sync across all 4 locales
 npm run prebuild         # Validates puzzles + messages (runs before build)
 ```
 
-Run a single test file: `npx vitest run tests/lib/coach.test.ts`
+Run a single test file: `npx vitest run tests/api/coach.test.ts`
 
 ## Architecture
 
@@ -44,7 +46,7 @@ Nine domains under `lib/`, each self-contained:
 | Stripe   | `lib/stripe/`   | Payments, subscriptions, webhooks               |
 | Supabase | `lib/supabase/` | Auth SSR helpers, service client                |
 
-Cross-cutting modules in `lib/*.ts`: `entitlements.ts`, `entitlementsServer.ts`, `env.ts`, `rateLimit.ts`, `apiHeaders.ts`, `email.ts`, `errorReporting.ts`, `requestSecurity.ts`, `promptGuard.ts`, `clientIp.ts`.
+Cross-cutting modules in `lib/*.ts`: `admin.ts`, `entitlements.ts`, `entitlementsServer.ts`, `env.ts`, `rateLimit.ts`, `apiHeaders.ts`, `email.ts`, `errorReporting.ts`, `requestSecurity.ts`, `promptGuard.ts`, `promptGuardCodes.ts`, `clientIp.ts`, `jsonLd.ts`.
 
 **Key entry points**:
 
@@ -81,11 +83,21 @@ Tests mirror source structure under `tests/`: `tests/lib/`, `tests/components/`,
 
 Setup file `tests/setup.ts` provides DOM mocks (scrollTo, ResizeObserver, canvas, localStorage, sessionStorage).
 
+End-to-end specs live in `e2e/` and run under Playwright, not Vitest (`vitest.config.ts` excludes the directory). They drive a real browser against a production build and cover the signed-out visitor: locale routing, response status codes, security headers, and canvas interaction. `e2e/README.md` explains why they need placeholder — not real — Supabase env, and what the monetization chain would need before it can be covered there.
+
 All logic changes require unit tests. UI changes should have component tests for critical paths.
+
+**Routes with a module-level rate limiter need a distinct IP per test request.** `getClientIP` falls back to the string `"unknown"`, so a test file that sends no `x-forwarded-for` pools every request into one bucket and starts tripping the limiter partway through the file. See the `nextTestIp()` helper in `tests/api/coach.test.ts`.
 
 ## CI Pipeline
 
-`.github/workflows/ci.yml`: npm audit → format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
+`.github/workflows/ci.yml` runs two jobs.
+
+**`check`**: npm audit (blocking on `--omit=dev`, full scan reporting-only) → format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
+
+**`e2e`**: npm ci → install chromium → build → `npm run test:e2e`, uploading the Playwright report on failure.
+
+The audit gate is split on purpose: a high-severity advisory in a runtime dependency stops the pipeline, while a dev-only one stays visible without blocking a merge. An unsplit gate held every PR red for three weeks in August 2026 — including the Dependabot PRs carrying the fixes.
 
 ## Common Pitfalls
 
@@ -94,7 +106,9 @@ All logic changes require unit tests. UI changes should have component tests for
 - **Stripe webhook idempotency**: Events are logged in `stripe_events` before processing. Never bypass this.
 - **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
 - **Environment variables**: See `.env.example` for the full list. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.
-- **Manual Pro grants**: Email-based grants in `manual_grants` merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). Admin endpoints: `/api/admin/grants` (session UUID allowlist via `ADMIN_USER_IDS`), `/api/admin/verify` (`ADMIN_EMAILS` + `ADMIN_PIN`). Keep all server-only.
+- **Manual Pro grants**: Email-based grants in `manual_grants` merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). Admin endpoints go through `verifyAdmin()` in `lib/admin.ts`, which grants access on _either_ a `ADMIN_USER_IDS` match or an `ADMIN_EMAILS` match — not on the UUID allowlist alone. `/api/admin/verify` additionally takes `ADMIN_PIN`. Keep all server-only.
+- **`notFound()` needs an unbuffered segment**: the HTTP status is committed as soon as anything flushes, so a `loading.tsx` above a segment that calls `notFound()` turns the response into a soft 200. There is deliberately no `app/[locale]/loading.tsx`; segments that want one declare it themselves. A page that calls `notFound()` also has its own metadata discarded — the 404 title comes from `app/[locale]/not-found.tsx`.
+- **Page titles**: `app/[locale]/layout.tsx` sets `title.template` `"%s — go-daily"`. Metadata strings must _not_ carry the suffix themselves or it renders twice. The home page is the exception: a template does not apply to the page in the same segment as the layout defining it, so `metadata.home.title` is complete on its own.
 - **Production rate limiting**: Missing `UPSTASH_REDIS_*` makes `createRateLimiter()` return a stub that throws on first `isLimited()` call. Configure Upstash for real traffic.
 - **`next/og` (Satori)**: Avoid `z-index` in OG/Twitter JSX — layer gradients on root wrapper `background` instead. Root OG routes use `runtime = "nodejs"` (not Edge) and are statically prerendered.
 

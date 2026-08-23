@@ -12,7 +12,7 @@ go-daily now has a daily Go puzzle database, 4-locale i18n support, streaming AI
 
 Latest verification results (2026-06-11, same chain as CI):
 
-- **Full test suite**: `npm run test` passed, **111 test files / 991 test cases**.
+- **Full test suite**: `npm run test` passed, **111 test files / 996 test cases**; `npm run test:e2e` passed, **14 Playwright end-to-end specs**.
 - **Puzzle Validation**: `npm run validate:puzzles` passed, currently at **3033** puzzles.
 - **i18n Validation**: `npm run validate:messages` passed, aligning **4 locales × 511 key paths**.
 - **P2-C Targeted Tests**: `npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` passed, **9 test files, 66 test cases**.

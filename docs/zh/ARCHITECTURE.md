@@ -19,6 +19,14 @@
 
 **Next.js 16 范围**：全局面请求逻辑在根目录 `proxy.ts`（导出 `proxy` + `config.matcher`；Node.js 运行时）。`config.matcher` 排除 `/api/*` 与 `/auth/*`，因此 API 与 Supabase 授权回调在各自路由内完成校验（会话、Stripe 签名、同源/请求体验证等）。语言协商与 Cookie 刷新主要针对**页面**导航，而非上述前缀路径。
 
+### 需要了解的渲染约束
+
+**`notFound()` 需要一个未被缓冲的段。** HTTP 状态码在首次 flush 时就已提交，因此若调用 `notFound()` 的段上方存在 `loading.tsx`，404 会退化成 soft 200。所以 `app/[locale]/` 刻意不放 `loading.tsx`；需要加载态的段（`today`、`result`、`review`、`stats`、`puzzles`、`account`、`onboarding`）各自通过共享的 `PageSkeleton` 声明。优先级最低的兜底路由 `app/[locale]/[...rest]/page.tsx` 为 `force-dynamic` 并调用 `notFound()`，从而以真实 404 渲染本地化的 `not-found.tsx` 边界。
+
+**`notFound()` 抛出时页面自身的 metadata 会被丢弃**，因此 404 的标题来自 `app/[locale]/not-found.tsx`。该边界是服务端组件（正文在 `NotFoundContent.tsx`），并从 `proxy.ts` 注入的 `x-locale` 请求头解析语言——not-found 边界拿不到路由参数。
+
+**标题模板定义在 `app/[locale]/layout.tsx`**，为 `"%s — go-daily"`。metadata 字符串本身不能再带该后缀，否则会渲染两次。首页是例外：模板不作用于与定义它的 layout 处于同一段的 page，因此 `metadata.home.title` 是完整标题。
+
 ## 2. 核心领域模块 (`lib/`)
 
 ### `lib/env.ts` (环境变量校验)

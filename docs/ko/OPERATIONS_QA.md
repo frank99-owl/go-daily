@@ -39,7 +39,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 자동화 테스트 (Vitest)
 
-111개의 테스트 파일, 991개의 테스트 케이스(2026-08-24)를 유지하고 있습니다:
+111개의 Vitest 테스트 파일과 996개의 테스트 케이스, 그리고 14개의 Playwright E2E 스펙(2026-08-24)을 유지하고 있습니다:
 
 - **로직**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.

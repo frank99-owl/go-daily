@@ -19,6 +19,14 @@
 
 **Next.js 16 범위**: 전역 요청 처리는 프로젝트 루트의 `proxy.ts`에 있습니다(`proxy` 및 `config.matcher` 내보내기, Node.js 런타임). `config.matcher`는 `/api/*`와 `/auth/*`를 제외하므로, API와 Supabase 인증 콜백은 각 라우트에서 세션·Stripe 서명·동일 출처/본문 검증 등을 수행합니다. 로케일 협상과 쿠키 갱신은 주로 **페이지** 내비게이션용입니다.
 
+### 알아둘 렌더링 제약
+
+**`notFound()`에는 버퍼링되지 않은 세그먼트가 필요합니다.** HTTP 상태 코드는 최초 flush 시점에 확정되므로, `notFound()`를 호출하는 세그먼트 위에 `loading.tsx`가 있으면 404가 소프트 200이 됩니다. 그래서 `app/[locale]/`에는 의도적으로 `loading.tsx`를 두지 않고, 로딩 상태가 필요한 세그먼트(`today`, `result`, `review`, `stats`, `puzzles`, `account`, `onboarding`)가 공유 `PageSkeleton`으로 각자 선언합니다. 우선순위가 가장 낮은 캐치올 `app/[locale]/[...rest]/page.tsx`는 `force-dynamic`이며 `notFound()`를 호출해 현지화된 `not-found.tsx` 경계를 실제 404로 렌더링합니다.
+
+**`notFound()`가 던져지면 페이지 자체의 메타데이터는 폐기됩니다.** 따라서 404 제목은 `app/[locale]/not-found.tsx`에서 옵니다. 이 경계는 서버 컴포넌트이며(본문은 `NotFoundContent.tsx`), 라우트 파라미터를 받을 수 없으므로 `proxy.ts`가 설정하는 `x-locale` 헤더에서 로케일을 해석합니다.
+
+**제목 템플릿은 `app/[locale]/layout.tsx`** 의 `"%s — go-daily"` 입니다. 메타데이터 문자열이 같은 접미사를 다시 담으면 두 번 렌더링됩니다. 홈페이지는 예외로, 템플릿은 이를 정의한 layout과 같은 세그먼트의 page에는 적용되지 않으므로 `metadata.home.title`은 그 자체로 완결됩니다.
+
 ## 2. 핵심 도메인 모듈 (`lib/`)
 
 ### `lib/env.ts` (환경 변수 검증)

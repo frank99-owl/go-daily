@@ -4,7 +4,7 @@
 
 **What**: go-daily — a daily Go (围棋) puzzle platform with DeepSeek-backed streaming AI coaching (`coachPrompt.ts`, personas, quotas), 4-language i18n (zh/en/ja/ko), and Stripe subscriptions.
 
-**Stack**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Supabase (Auth + Postgres), Stripe, DeepSeek AI, Vitest.
+**Stack**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Supabase (Auth + Postgres), Stripe, DeepSeek AI, Vitest + Playwright.
 
 **Key entry points**:
 
@@ -15,6 +15,7 @@
 - `lib/` — core business logic (nine domains: auth, board, coach, i18n, posthog, puzzle, storage, stripe, supabase)
 - `content/` — puzzle data and i18n messages
 - `types/schemas.ts` — Zod schemas (single source of truth for shared types)
+- `e2e/` — Playwright end-to-end specs (see `e2e/README.md`)
 
 ## Architecture: Nine Domains
 
@@ -32,7 +33,7 @@ All core logic lives in `lib/` organized by domain:
 | Stripe   | `lib/stripe/`   | Payment processing, subscription management, webhooks                                            |
 | Supabase | `lib/supabase/` | Auth SSR helpers, service client, RLS bypass for admin ops                                       |
 
-**Root `lib/*.ts` (cross-cutting)**: plan/quotas and server resolution live in `entitlements.ts` / `entitlementsServer.ts`; shared infra includes `env.ts`, `rateLimit.ts`, `apiHeaders.ts`, `email.ts`, `errorReporting.ts`, `requestSecurity.ts`, `promptGuard.ts`, etc.
+**Root `lib/*.ts` (cross-cutting)**: plan/quotas and server resolution live in `entitlements.ts` / `entitlementsServer.ts`; admin gating in `admin.ts`; shared infra includes `env.ts`, `rateLimit.ts`, `apiHeaders.ts`, `email.ts`, `errorReporting.ts`, `requestSecurity.ts`, `promptGuard.ts` / `promptGuardCodes.ts`, `jsonLd.ts`, etc.
 
 ## Critical Rules
 
@@ -65,9 +66,16 @@ npm run prebuild      # Validates puzzles + i18n message keys
 npm run build         # Production build
 npm run lint          # ESLint
 npm run format:check  # Prettier check
+npm run test          # Vitest
+npm run test:e2e      # Playwright (needs a production build first)
 ```
 
-CI pipeline (`.github/workflows/ci.yml`): npm audit → format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
+CI pipeline (`.github/workflows/ci.yml`), two jobs:
+
+- **`check`**: npm audit (blocking on `--omit=dev`; the full scan runs as a reporting-only step) → format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
+- **`e2e`**: npm ci → chromium → build → `npm run test:e2e`, uploading the report on failure.
+
+The audit split keeps a dev-only advisory from blocking merges while a runtime one still stops the pipeline.
 
 ## Common Pitfalls
 
@@ -76,8 +84,12 @@ CI pipeline (`.github/workflows/ci.yml`): npm audit → format:check → lint �
 - **Stripe webhook idempotency**: Events are logged in `stripe_events` before processing. Never bypass this.
 - **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
 - **Environment variables**: See `.env.example` for the full list. Never commit `.env.local`. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.
-- **Manual Pro grants**: Email-based grants live in `manual_grants` and are merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). **`/api/admin/grants`** checks `ADMIN_USER_IDS` (session user UUID allowlist); **`/api/admin/verify`** uses `ADMIN_EMAILS` + `ADMIN_PIN`. Keep all of these server-only; do not add permissive RLS policies to `manual_grants`.
+- **Manual Pro grants**: Email-based grants live in `manual_grants` and are merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). Admin routes call `verifyAdmin()` from `lib/admin.ts`, which admits on _either_ an `ADMIN_USER_IDS` (session UUID) match or an `ADMIN_EMAILS` match; **`/api/admin/verify`** additionally requires `ADMIN_PIN`. Keep all of these server-only; do not add permissive RLS policies to `manual_grants`.
 - **Guest coach counters**: `guest_coach_usage` is written only via `service_role` in `guestCoachUsage.ts`; clients never query it directly.
+- **Coach quota refunds**: `createCoachSseStream` refunds a call only when _nothing_ was streamed. A client disconnect surfaces as an error from the upstream iteration, so refunding after delivery would let a caller read the reply and drop the connection to get the call back.
+- **`notFound()` and buffering**: the HTTP status is committed on first flush, so a `loading.tsx` above a segment that calls `notFound()` produces a soft 200. There is deliberately no `app/[locale]/loading.tsx`. A page that calls `notFound()` also loses its own metadata — the 404 title lives in `app/[locale]/not-found.tsx`.
+- **Title template**: `app/[locale]/layout.tsx` supplies `"%s — go-daily"`. Metadata strings must not repeat the suffix. The home page is exempt (a template skips the page in the layout's own segment).
+- **Rate limiters in tests**: `getClientIP` falls back to `"unknown"`, so tests hitting a rate-limited route must send a distinct `x-forwarded-for` per request or the whole file shares one bucket. See `nextTestIp()` in `tests/api/coach.test.ts`.
 - **Production rate limiting**: When `NODE_ENV === "production"`, missing `UPSTASH_REDIS_*` makes `createRateLimiter()` return a stub that throws on the first `isLimited()` call—configure Upstash for real traffic (`lib/rateLimit.ts`; `next build` can still run without it).
 - **`next/og` (Satori)**: Avoid `z-index` in OG/Twitter JSX—layer gradients on the root wrapper `background` instead. Root OG routes intentionally use **`runtime = "nodejs"`** (not Edge) so build output stays clean and those routes prerender statically.
 

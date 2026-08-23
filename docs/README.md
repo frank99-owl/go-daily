@@ -66,14 +66,15 @@ These files are **published with the repository** (e.g. on GitHub). They are wri
 | `proxy.ts` | Next.js 16 app-root **proxy** (replaces `middleware.ts`): session refresh, locale negotiation, route guarding        |
 | `types/`   | Zod schemas (`types/schemas.ts`) — shared contracts                                                                  |
 | `tests/`   | Vitest suites (mirror structure under `tests/lib`, `tests/api`, …)                                                   |
+| `e2e/`     | Playwright end-to-end specs, run against a production build (see `e2e/README.md`)                                    |
 
 ### Path notes · 路径说明 · パス説明 · 경로 안내
 
-**中文** — `app/`：Next.js App Router，多语言页面 `app/[locale]/` 与 `app/api/` 路由；`lib/`：九大领域业务逻辑（auth、board、coach 等）；`content/`：题目与静态文案；`proxy.ts`：Next.js 16 应用根代理（会话刷新、语言协商、路由守卫）；`types/`：Zod 共享契约；`tests/`：Vitest，目录结构镜像源码。
+**中文** — `app/`：Next.js App Router，多语言页面 `app/[locale]/` 与 `app/api/` 路由；`lib/`：九大领域业务逻辑（auth、board、coach 等）；`content/`：题目与静态文案；`proxy.ts`：Next.js 16 应用根代理（会话刷新、语言协商、路由守卫）；`types/`：Zod 共享契约；`tests/`：Vitest，目录结构镜像源码；`e2e/`：Playwright 端到端用例。
 
-**日本語** — `app/`：App Router、`app/[locale]/` のページと `app/api/`；`lib/`：9 ドメインのビジネスロジック；`content/`：パズルデータとメッセージ；`proxy.ts`：アプリルートのプロキシ（セッション・ロケール・ガード）；`types/`：Zod 契約；`tests/`：Vitest、ソースツリーのミラー。
+**日本語** — `app/`：App Router、`app/[locale]/` のページと `app/api/`；`lib/`：9 ドメインのビジネスロジック；`content/`：パズルデータとメッセージ；`proxy.ts`：アプリルートのプロキシ（セッション・ロケール・ガード）；`types/`：Zod 契約；`tests/`：Vitest、ソースツリーのミラー；`e2e/`：Playwright E2E スペック。
 
-**한국어** — `app/`：App Router, `app/[locale]/` 페이지 및 `app/api/` 핸들러；`lib/`：9개 도메인 로직；`content/`：퍼즐·메시지；`proxy.ts`：앱 루트 프록시(세션·로케일·가드)；`types/`：Zod 스키마；`tests/`：Vitest, 소스 구조 미러.
+**한국어** — `app/`：App Router, `app/[locale]/` 페이지 및 `app/api/` 핸들러；`lib/`：9개 도메인 로직；`content/`：퍼즐·메시지；`proxy.ts`：앱 루트 프록시(세션·로케일·가드)；`types/`：Zod 스키마；`tests/`：Vitest, 소스 구조 미러；`e2e/`：Playwright E2E 스펙.
 
 ---
 

@@ -19,6 +19,14 @@ Everything user-facing passes through root `proxy.ts` (the Next.js app-root prox
 
 **Next.js 16 scope**: Global request handling lives in root `proxy.ts` (exported `proxy` + `config.matcher`; Node.js runtime). The matcher skips `/api/*` and `/auth/*`, so API routes and the Supabase auth callback implement their own checks (cookies, Stripe signatures, same-origin / body validation, etc.). Locale negotiation and cookie refresh apply to **page** navigations, not those prefixes.
 
+### Rendering constraints worth knowing
+
+**`notFound()` needs an unbuffered segment.** The HTTP status is committed as soon as anything flushes, so a `loading.tsx` above a segment that calls `notFound()` turns a 404 into a soft 200. `app/[locale]/` therefore has no `loading.tsx`; the segments that want one (`today`, `result`, `review`, `stats`, `puzzles`, `account`, `onboarding`) declare it themselves via the shared `PageSkeleton`. The lowest-priority catch-all `app/[locale]/[...rest]/page.tsx` is `force-dynamic` and calls `notFound()`, which renders the localized `not-found.tsx` boundary with a real 404.
+
+**Page metadata is discarded when `notFound()` throws**, so the 404's own title comes from `app/[locale]/not-found.tsx`. That boundary is a server component (the body lives in `NotFoundContent.tsx`) and resolves the locale from the `x-locale` header `proxy.ts` sets, since a not-found boundary receives no route params.
+
+**The title template lives in `app/[locale]/layout.tsx`** as `"%s — go-daily"`. Metadata strings must not repeat the suffix or it renders twice. The home page is exempt: a template does not apply to the page sitting in the same segment as the layout that defines it, so `metadata.home.title` is complete on its own.
+
 ## 2. Core Domain Modules (`lib/`)
 
 ### `lib/env.ts` (Environment Validation)

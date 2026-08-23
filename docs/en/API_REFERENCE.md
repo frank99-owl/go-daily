@@ -51,6 +51,8 @@ Counters are incremented **before** streaming begins, so aborted connections sti
 | Status          | Code / body             | Condition                                                                                                                        |
 | --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | 400             | —                       | Invalid Content-Type, JSON, schema, malformed request, or a device header exceeds 128 characters                                 |
+| 400             | `unsafe_content`        | A history message tripped the prompt-injection guard (`guardUserMessage`)                                                        |
+| 400             | `message_too_long`      | A history message exceeds 2000 characters after normalization                                                                    |
 | 401             | `login_required`        | No session and no `x-go-daily-guest-device-id`                                                                                   |
 | 403             | `error: "forbidden"`    | Failed same-origin mutation / CSRF guard (`parseMutationBody`)                                                                   |
 | 403             | `device_limit`          | Free user exceeded device limit (`getCoachState`)                                                                                |
@@ -262,7 +264,7 @@ Register or refresh the signed-in browser device in `user_devices`, after resolv
 }
 ```
 
-**Errors**: `400` invalid device ID (empty or over 128 characters); `401` unauthenticated; `403 error: "forbidden"` same-origin guard; `403 error: "device_limit"` when the resolved Free plan already has a registered device; `500` subscription, device lookup, or upsert failure.
+**Errors**: `400` invalid device ID (empty or over 128 characters); `401` unauthenticated; `403 error: "forbidden"` same-origin guard; `403 error: "device_limit"` when the resolved Free plan already has a registered device; `429` IP rate limiter (checked before the session lookup); `500` subscription, device lookup, or upsert failure.
 
 ### `POST /api/profile/training-level` (`app/api/profile/training-level/route.ts`)
 
@@ -282,7 +284,7 @@ Persist the authenticated user's onboarding difficulty band to `profiles.trainin
 { "ok": true, "level": "advanced" }
 ```
 
-**Errors**: `400` invalid level; `401` unauthenticated; `403 error: "forbidden"` same-origin guard; `500` profile upsert failure.
+**Errors**: `400` invalid level; `401` unauthenticated; `403 error: "forbidden"` same-origin guard; `429` IP rate limiter (checked before the session lookup); `500` profile upsert failure.
 
 ---
 
@@ -413,6 +415,10 @@ Write endpoints use `createRateLimiter()`, which behaves as follows:
 - When **either is missing** and `NODE_ENV === "production"`: `createRateLimiter()` returns a **stub** whose `isLimited()` **throws** — production deploys must configure Upstash (see `lib/rateLimit.ts`; not at import time, so `next build` can complete without these vars).
 
 `MemoryRateLimiter` caps tracked keys at 50,000; when over cap it deletes the oldest key by insertion order, and a periodic sweep drops idle keys. Default window: 10 requests per 60-second window per key (override via `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX`).
+
+Each route namespaces its own key (`${ip}:puzzle-attempt`, `${ip}:training-level`, `${ip}:auth-device`, `coach-get:${ip}`, …) so routes never share a budget. Limiters run **before** the Supabase session lookup, so an unauthenticated flood is turned away rather than proxied into the database.
+
+`getClientIP` falls back to the literal string `"unknown"` when no forwarding header is present. Tests against a rate-limited route must therefore send a distinct `x-forwarded-for` per request, or the whole file shares one bucket — see `nextTestIp()` in `tests/api/coach.test.ts`.
 
 ### Body Parsing
 

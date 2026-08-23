@@ -78,7 +78,7 @@ npx tsc --noEmit
 
 ### 自动化覆盖 (Vitest)
 
-我们维护 111 个测试文件，991 个测试用例（2026-08-24），涵盖：
+我们维护 111 个 Vitest 测试文件、996 个测试用例，外加 14 个 Playwright 端到端用例（2026-08-24），涵盖：
 
 - **逻辑**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。

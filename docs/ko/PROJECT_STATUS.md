@@ -12,7 +12,7 @@ go-daily는 일일 바둑 문제 데이터베이스, 4개 언어 현지화, Deep
 
 최근 검증 결과 (2026-06-11, CI와 동일한 체인):
 
-- **전체 테스트**: `npm run test` 통과, **111개 테스트 파일 / 991개 테스트 케이스**.
+- **전체 테스트**: `npm run test` 통과, **111개 테스트 파일 / 996개 테스트 케이스**; `npm run test:e2e` 통과, **14개 Playwright E2E 스펙**.
 - **문제 검증**: `npm run validate:puzzles` 통과, 현재 **3033**개 문제.
 - **i18n 검증**: `npm run validate:messages` 통과, **4개 언어 × 511개 키 경로** 정렬 완료.
 - **P2-C 타겟 테스트**: `npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` 통과, **9개 테스트 파일, 66개 테스트 케이스**.

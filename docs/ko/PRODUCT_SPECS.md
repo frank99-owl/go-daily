@@ -87,6 +87,12 @@ Stripe 없이 이메일로 Pro를 부여할 때는 `manual_grants` 테이블과 
 
 구현상 `lib/coach/coachEligibility.ts`는 `qualityTier`와 `hasVariationSupport`를 반환합니다. `content/data/coachBasicEligibleIds.json`은 기초 설명 대상, `content/data/coachReadyIds.json`은 전체 코치 승인 대상, `content/data/variationGroups.json`은 정리된 변화도 그룹을 나타내며 `getCoachAccess()`가 데이터 레이어와 런타임 품질 관문을 모두 검증합니다. 퍼즐이 완전한 AI 코치 기능을 제공하는 것은 `coach-ready`에 도달하고 `coachReadyIds.json`에 포함된 경우로 제한됩니다. `variation-ready` 등급은 추가로 검토된 변화도 그룹에 포함되어야 합니다. `basic-explained` 및 `coach-eligible` 등급에서는 정적 해설이나 제한된 Q&A만 제공되며, 완전한 변화도 대화는 보장되지 않습니다.
 
+### 주제 범위
+
+코치는 바둑에 관한 것만 답합니다. 눈앞의 국면, 바둑 기술과 규칙, 학습 방법, 기사와 역사가 범위에 들어갑니다. 인사·감사·바둑 잡담도 범위 안입니다. 그 외——날씨, 프로그래밍, 숙제, 다른 게임, 개인적인 조언——은 캐릭터를 유지한 한 문장으로 거절하고 현재 국면으로 화제를 되돌립니다. 부분적으로도 답하지 않으며, 침묵이나 빈 응답으로 답하지도 않습니다. 이 규칙은 `buildSystemPrompt`(`lib/coach/coachPrompt.ts`)에 있으며 4개 언어의 문체 푸터에서도 각각 반복되어, 거절이 학습자의 언어로 전달됩니다.
+
+이는 `lib/promptGuard.ts`의 프롬프트 인젝션 방어와는 별개입니다. 후자는 코치의 지시를 다시 쓰려는 입력을 모델에 도달하기 전에 차단합니다. 주제 이탈은 모델이 처리하고, 인젝션 시도는 거기까지 가지 못합니다.
+
 ## 6. 학습 루프 (The Learning Loop)
 
 목표 사용자 경로는 `onboarding → first puzzle → result → coach → review → next recommendation`입니다:

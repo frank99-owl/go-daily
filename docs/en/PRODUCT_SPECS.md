@@ -87,18 +87,24 @@ The product layers puzzle quality into four tiers:
 
 In the implementation, `lib/coach/coachEligibility.ts` returns `qualityTier` and `hasVariationSupport`; `content/data/coachBasicEligibleIds.json` indicates basic explanation access, `content/data/coachReadyIds.json` represents full Coach approval, and `content/data/variationGroups.json` tracks organized variation groups. `getCoachAccess()` checks both data layers and runtime quality gates. Puzzles only count as full AI Coach puzzles if they reach `coach-ready` and are in `coachReadyIds.json`; `variation-ready` also requires entry in the reviewed variation groups. Tiers `basic-explained` / `coach-eligible` can offer static explanations or limited Q&A, but do not promise full variation dialogue.
 
+### Subject scope
+
+The coach answers Go only: the position in front of the student, Go technique and rules, study habits, and players or history. Greetings, thanks, and Go small talk are in scope. Anything else — the weather, programming, homework, other games, personal advice — is declined in one short in-character sentence that steers back to the current position. It is never answered partially, and never answered with silence or an empty reply. The rule lives in `buildSystemPrompt` (`lib/coach/coachPrompt.ts`) and is repeated in each of the four locale footers so the refusal lands in the student's language.
+
+This is separate from the prompt-injection guard in `lib/promptGuard.ts`, which rejects attempts to rewrite the coach's instructions before the request reaches the model. Off-topic questions are handled by the model; injection attempts never get that far.
+
 ## 6. The Learning Loop
 
 The target path is `onboarding → first puzzle → result → coach → review → next recommendation`:
 
-| Step                | Feedback for User                                                 | System Basis                                                                                       |
-| ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Onboarding          | Suitable training intensity, tag entries, and today's goal        | Training level preference, locale, auth state                                                      |
-| First puzzle        | Clear tag, difficulty, active turn, instant move feedback         | Puzzle index, daily selection, board rules                                                         |
-| Result              | Pass/fail, correct sequence, shape explanation, whether to review | `correct`, `solutionNote`, attempt record                                                          |
-| Coach               | Q&A capability boundaries; full Q&A only on approved puzzles      | `qualityTier`, quotas, approval list, persona                                                      |
-| Review              | Last mistake reason, review goal, next SRS time                   | Attempt history, `reviewSrs.ts`                                                                    |
-| Next recommendation | Next best puzzle instead of purely random selection               | Difficulty, tags, SRS expiration, recent errors, mistake reasons, content tiers, adaptive accuracy |
+| Step                | Feedback for User                                                                   | System Basis                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Onboarding          | Suitable training intensity, tag entries, and today's goal                          | Training level preference, locale, auth state                                                      |
+| First puzzle        | Clear tag, difficulty, active turn, instant move feedback                           | Puzzle index, daily selection, board rules                                                         |
+| Result              | Pass/fail, correct sequence, shape explanation, whether to review                   | `correct`, `solutionNote`, attempt record                                                          |
+| Coach               | Q&A capability boundaries; full Q&A only on approved puzzles; Go-only subject scope | `qualityTier`, quotas, approval list, persona                                                      |
+| Review              | Last mistake reason, review goal, next SRS time                                     | Attempt history, `reviewSrs.ts`                                                                    |
+| Next recommendation | Next best puzzle instead of purely random selection                                 | Difficulty, tags, SRS expiration, recent errors, mistake reasons, content tiers, adaptive accuracy |
 
 **Next recommendation logic** (`lib/puzzle/nextRecommendation.ts`): The engine selects the next puzzle based on primary action (`continue-practice` or `review-mistakes`), adaptive difficulty hints (`same-level`, `step-up`, `step-down`), and a reason ID. Key behaviors:
 

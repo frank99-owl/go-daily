@@ -19,6 +19,14 @@
 
 **Next.js 16 の範囲**: グローバルなリクエスト処理はルートの `proxy.ts`（`proxy` と `config.matcher` のエクスポート、Node.js ランタイム）。`config.matcher` は `/api/*` と `/auth/*` を除外するため、API と Supabase 認証コールバックは各ルートで検証（セッション、Stripe 署名、同一オリジン/ボディ検証など）を行います。ロケール交渉と Cookie 更新は主に**ページ**遷移向けです。
 
+### 把握しておくべきレンダリング上の制約
+
+**`notFound()` はバッファされていないセグメントを必要とします。** HTTP ステータスは最初のフラッシュ時点で確定するため、`notFound()` を呼ぶセグメントの上位に `loading.tsx` があると 404 がソフト 200 に化けます。そのため `app/[locale]/` にはあえて `loading.tsx` を置かず、ローディング表示が必要なセグメント（`today`、`result`、`review`、`stats`、`puzzles`、`account`、`onboarding`）が共有の `PageSkeleton` で個別に宣言します。最下位のキャッチオール `app/[locale]/[...rest]/page.tsx` は `force-dynamic` で `notFound()` を呼び、ローカライズされた `not-found.tsx` 境界を実 404 として描画します。
+
+**`notFound()` が投げられるとページ自身のメタデータは破棄されます。** そのため 404 のタイトルは `app/[locale]/not-found.tsx` が持ちます。この境界はサーバーコンポーネント（本体は `NotFoundContent.tsx`）で、ルートパラメータを受け取れないため `proxy.ts` が付与する `x-locale` ヘッダーからロケールを解決します。
+
+**タイトルテンプレートは `app/[locale]/layout.tsx`** の `"%s — go-daily"` です。メタデータ文字列側で同じサフィックスを持つと二重に描画されます。ホームページは例外で、テンプレートを定義した layout と同一セグメントの page には適用されないため、`metadata.home.title` は単体で完結しています。
+
 ## 2. コアドメイン・モジュール (`lib/`)
 
 ### `lib/env.ts` (環境変数検証)

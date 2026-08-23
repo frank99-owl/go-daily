@@ -51,6 +51,8 @@
 | ステータス      | 条件                                                                                            |
 | --------------- | ----------------------------------------------------------------------------------------------- |
 | 400             | Content-Type／JSON／スキーマ不正、または端末ヘッダーが 128 文字超                               |
+| 400             | `unsafe_content` … 履歴メッセージがプロンプトインジェクション防御に抵触（`guardUserMessage`）   |
+| 400             | `message_too_long` … 正規化後の履歴メッセージが 2000 文字超                                     |
 | 401             | `login_required` … セッションもゲストヘッダーも無い                                             |
 | 403             | `forbidden` … 同一オリジン／CSRF（`parseMutationBody`）                                         |
 | 403             | `device_limit` … `getCoachState` で端末制限                                                     |
@@ -254,7 +256,7 @@ Stripe の購読状態と `manual_grants` から実効プランを解決した�
 }
 ```
 
-**エラー**: `400` 端末 ID 不正（空または 128 文字超）；`401` 未認証；`403 error: "forbidden"` 同一オリジンガード失敗；`403 error: "device_limit"` 実効プランが Free で既に端末席を使用中；`500` 購読・端末検索・upsert 失敗。
+**エラー**: `400` 端末 ID 不正（空または 128 文字超）；`401` 未認証；`403 error: "forbidden"` 同一オリジンガード失敗；`403 error: "device_limit"` 実効プランが Free で既に端末席を使用中；`429` IP レート制限（セッション参照より前に判定）；`500` 購読・端末検索・upsert 失敗。
 
 ### `POST /api/profile/training-level`（`app/api/profile/training-level/route.ts`）
 
@@ -274,7 +276,7 @@ Stripe の購読状態と `manual_grants` から実効プランを解決した�
 { "ok": true, "level": "advanced" }
 ```
 
-**エラー**: `400` レベル不正；`401` 未認証；`403 error: "forbidden"` 同一オリジンガード失敗；`500` プロフィール upsert 失敗。
+**エラー**: `400` レベル不正；`401` 未認証；`403 error: "forbidden"` 同一オリジンガード失敗；`429` IP レート制限（セッション参照より前に判定）；`500` プロフィール upsert 失敗。
 
 ---
 
@@ -405,6 +407,10 @@ Stripe の購読状態と `manual_grants` から実効プランを解決した�
 - **どちらか欠け、`NODE_ENV === "production"`**: `createRateLimiter()` は**スタブ**を返し、`isLimited()` が**例外を投げる** — 本番では Upstash 必須（`lib/rateLimit.ts` 参照；インポート時ではなく、`next build` は Upstash なしで完了可）。
 
 `MemoryRateLimiter` はキー数上限 50,000。超過時は挿入順で最古キーを削除し、定期的にアイドルキーを掃除。既定: キーあたり 60 秒ウィンドウで 10 リクエスト（`RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` で上書き可能）。
+
+各ルートは独自のキー名前空間（`${ip}:puzzle-attempt`、`${ip}:training-level`、`${ip}:auth-device`、`coach-get:${ip}` など）を使い、枠を共有しません。レート制限は Supabase のセッション参照**より前**に走るため、未認証の大量リクエストは DB に届く前に弾かれます。
+
+`getClientIP` は転送ヘッダーが無い場合に文字列 `"unknown"` を返します。レート制限付きルートのテストはリクエストごとに異なる `x-forwarded-for` を送る必要があります（`tests/api/coach.test.ts` の `nextTestIp()` を参照）。
 
 ### ボディパース
 

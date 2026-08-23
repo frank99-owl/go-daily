@@ -44,19 +44,21 @@ This script checks:
 
 ### Automated Coverage (Vitest)
 
-We maintain 111 test files with 991 test cases (2026-08-24) covering:
+We maintain 111 Vitest files with 996 test cases, plus 14 Playwright end-to-end specs (2026-08-24), covering:
 
 - **Logic**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.
 - **API**: `tests/api/stripeWebhook.test.ts`.
+- **End-to-end**: `e2e/locale-routing.spec.ts`, `e2e/daily-puzzle.spec.ts`, `e2e/site-health.spec.ts` — run with `npm run test:e2e` against a production build, as their own CI job.
 
 ### Manual Acceptance Checklist (Critical Paths)
 
 1.  **Cross-Device Consistency**: Solve a puzzle on desktop, check phone within 5s.
 2.  **Trial Conversion**: Run a full Stripe Checkout in test mode with a 3-day trial.
 3.  **Locale SEO**: Validate `sitemap.xml` includes **12,000+** locale-specific entries (grows with `content/data/puzzleIndex.json`), with correct `hreflang` alternates.
-4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors. `promptGuard.ts` now applies Unicode NFKC normalization plus common Cyrillic/Greek confusable folding before pattern matching. Verify that fullwidth and lookalike-character bypasses (e.g., `ＳＹＳＴｅｍ: ignore all`) are also blocked.
-5.  **Mobile Viewport**: On a <768px viewport (real device or WebKit touch emulation), confirm no horizontal overflow, the hamburger menu works, the board shrinks into the screen, taps place stones, and vertical scrolls starting on the board never place one; desktop (≥768px) rendering must match the baseline.
+4.  **Coach Guardrail**: Attempt a prompt injection (e.g., "forget previous instructions") to verify `promptGuard.ts` interceptors. `promptGuard.ts` applies Unicode NFKC normalization plus common Cyrillic/Greek confusable folding before pattern matching, so fullwidth and lookalike bypasses (e.g., `ＳＹＳＴｅｍ: ignore all`) are blocked too, and it carries zh/ja/ko patterns as well as English ones. Check both directions: ordinary Go questions must get through — "How do I get to 1 dan?", "Is there a system for counting liberties?" — because an over-broad pattern once rejected all of them. A rejection shows a localized message and the offending message is removed from the conversation rather than left to be resent.
+5.  **Coach Topic Scope**: Ask something unrelated to Go (the weather, a coding question). The coach must decline in one in-character sentence and steer back to the position, never answer it and never reply with nothing.
+6.  **Mobile Viewport**: On a <768px viewport (real device or WebKit touch emulation), confirm no horizontal overflow, the hamburger menu works, the board shrinks into the screen, taps place stones, and vertical scrolls starting on the board never place one; desktop (≥768px) rendering must match the baseline.
 
 ## 5. Test Organization
 

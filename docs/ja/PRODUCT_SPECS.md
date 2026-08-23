@@ -87,6 +87,12 @@ Stripe を経由せずメールで Pro を付与する場合は `manual_grants` 
 
 実装上、`lib/coach/coachEligibility.ts` は `qualityTier` と `hasVariationSupport` を返します。`content/data/coachBasicEligibleIds.json` は基礎説明の対象、`content/data/coachReadyIds.json` は完全なコーチの承認対象、`content/data/variationGroups.json` は整理済みの変化図グループを管理しています。`getCoachAccess()` はデータ層と実行時品質ゲートの両方を検証します。パズルが完全な AI コーチ機能を提供するのは、`coach-ready` に達し、かつ `coachReadyIds.json` に含まれている場合に限られます。`variation-ready` の場合はさらに、レビュー済みの変化図グループに含まれている必要があります。`basic-explained` および `coach-eligible` の品質層では、静的解説や制限付きの Q&A は提供されますが、完全な変化図対話は保証されません。
 
+### 対象範囲
+
+コーチが答えるのは囲碁に関することだけです。目の前の局面、囲碁の技術とルール、学習法、棋士や歴史が範囲に入ります。挨拶・お礼・囲碁の雑談も範囲内です。それ以外——天気、プログラミング、宿題、他のゲーム、個人的な相談——はキャラクターを保った一文で断り、今の局面に話を戻します。部分的にも答えず、沈黙や空の返答も返しません。このルールは `buildSystemPrompt`（`lib/coach/coachPrompt.ts`）にあり、4 言語それぞれの文体フッターでも繰り返されるため、拒否は学習者の言語で返ります。
+
+これは `lib/promptGuard.ts` のプロンプトインジェクション防御とは別物です。後者はコーチの指示を書き換えようとする入力をモデルに届く前に弾きます。話題逸れはモデルが処理し、インジェクションはそこまで到達しません。
+
 ## 6. 学習ループ (The Learning Loop)
 
 ターゲットとなるユーザー導線は `onboarding → first puzzle → result → coach → review → next recommendation` です：

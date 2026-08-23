@@ -39,7 +39,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自動化カバレッジ (Vitest)
 
-111 テストファイル、991 テストケース（2026-08-24）を維持しています：
+111 の Vitest テストファイル・996 テストケースに加え、14 の Playwright E2E スペック（2026-08-24）を維持しています：
 
 - **ロジック**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。

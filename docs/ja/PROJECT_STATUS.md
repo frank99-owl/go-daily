@@ -12,7 +12,7 @@ go-daily は、日替わりの囲碁問題データベース、4言語ローカ�
 
 最新の検証結果（2026-06-11、CI と同じチェーン）：
 
-- **全量テスト**: `npm run test` に合格、**111 テストファイル / 991 テストケース**。
+- **全量テスト**: `npm run test` に合格、**111 テストファイル / 996 テストケース**。`npm run test:e2e` に合格、**14 の Playwright E2E スペック**。
 - **問題の検証**: `npm run validate:puzzles` に合格、現在 **3033** 問。
 - **i18n の検証**: `npm run validate:messages` に合格、**4言語 × 511 キーパス**が一致。
 - **P2-C ターゲットテスト**: `npm run test -- tests/api/health.test.ts tests/app/sitemap.test.ts tests/app/pwaShell.test.ts tests/api/report-error.test.ts tests/api/stripeWebhook.test.ts tests/api/stripeCheckoutPortal.test.ts tests/api/dailyEmailCron.test.ts tests/scripts/productionPreflight.test.ts tests/scripts/emailSmoketest.test.ts` に合格、**9個のテストファイル、66個のテストケース**。

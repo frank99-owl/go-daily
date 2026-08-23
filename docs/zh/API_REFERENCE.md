@@ -51,6 +51,8 @@
 | 状态码          | 判定                    | 触发条件                                                                                                 |
 | --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
 | 400             | —                       | Content-Type / JSON / Schema 无效，或设备请求头超过 128 字符                                             |
+| 400             | `unsafe_content`        | 历史消息触发提示词注入防护（`guardUserMessage`）                                                         |
+| 400             | `message_too_long`      | 归一化后历史消息超过 2000 字符                                                                           |
 | 401             | `login_required`        | 无会话且无 `x-go-daily-guest-device-id`                                                                  |
 | 403             | `error: "forbidden"`    | 同源变异 / CSRF 校验失败（`parseMutationBody`）                                                          |
 | 403             | `device_limit`          | 超出免费档设备限制（`getCoachState`）                                                                    |
@@ -262,7 +264,7 @@ Supabase OAuth/魔法链接回调。交换认证码获取会话，并重定向�
 }
 ```
 
-**错误**：`400` 设备 ID 无效（空或超过 128 字符）；`401` 未登录；`403 error: "forbidden"` 同源校验失败；`403 error: "device_limit"` 表示最终判定为 Free 且已占用设备席位；`500` 表示订阅、设备查询或写入失败。
+**错误**：`400` 设备 ID 无效（空或超过 128 字符）；`401` 未登录；`403 error: "forbidden"` 同源校验失败；`403 error: "device_limit"` 表示最终判定为 Free 且已占用设备席位；`429` IP 限频（在会话查询之前执行）；`500` 表示订阅、设备查询或写入失败。
 
 ### `POST /api/profile/training-level` (`app/api/profile/training-level/route.ts`)
 
@@ -282,7 +284,7 @@ Supabase OAuth/魔法链接回调。交换认证码获取会话，并重定向�
 { "ok": true, "level": "advanced" }
 ```
 
-**错误**：`400` 档位无效；`401` 未登录；`403 error: "forbidden"` 同源校验失败；`500` 个人资料写入失败。
+**错误**：`400` 档位无效；`401` 未登录；`403 error: "forbidden"` 同源校验失败；`429` IP 限频（在会话查询之前执行）；`500` 个人资料写入失败。
 
 ---
 
@@ -413,6 +415,10 @@ Vercel Cron 处理器，发送每日题目提醒邮件。
 - **任一未设置**且 `NODE_ENV === "production"`：`createRateLimiter()` 返回**桩**，其 `isLimited()` **抛出错误**——生产必须配置 Upstash（见 `lib/rateLimit.ts`；非导入时抛错，`next build` 可无凭证完成）。
 
 `MemoryRateLimiter` 对键数量上限为 50,000；超限时按插入顺序删除最旧键，并定期清理空闲键。默认：每键每 60 秒窗口内 10 次请求（可通过 `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` 覆盖）。
+
+各路由使用各自的键命名空间（`${ip}:puzzle-attempt`、`${ip}:training-level`、`${ip}:auth-device`、`coach-get:${ip}` 等），彼此不共享额度。限频在 Supabase 会话查询**之前**执行，未认证的洪水请求会被直接拒绝，不会打到数据库。
+
+`getClientIP` 在没有转发头时回退为字符串 `"unknown"`。因此针对限频路由的测试必须为每个请求提供不同的 `x-forwarded-for`，否则整个测试文件会共用同一个桶——参见 `tests/api/coach.test.ts` 中的 `nextTestIp()`。
 
 ### 请求体解析
 

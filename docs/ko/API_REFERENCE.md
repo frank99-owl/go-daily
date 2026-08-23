@@ -51,6 +51,8 @@
 | 상태            | 조건                                                                                     |
 | --------------- | ---------------------------------------------------------------------------------------- |
 | 400             | Content-Type / JSON / 스키마 문제, 또는 기기 헤더가 128자 초과                           |
+| 400             | `unsafe_content` … 기록 메시지가 프롬프트 인젝션 방어에 걸림 (`guardUserMessage`)        |
+| 400             | `message_too_long` … 정규화 후 기록 메시지가 2000자 초과                                 |
 | 401             | `login_required` … 세션·게스트 헤더 모두 없음                                            |
 | 403             | `forbidden` … 동일 출처 변이 / CSRF (`parseMutationBody`)                                |
 | 403             | `device_limit` … `getCoachState` 기기 한도                                               |
@@ -254,7 +256,7 @@ Stripe 구독 상태와 `manual_grants`로 실효 플랜을 해석한 뒤, 로�
 }
 ```
 
-**오류**: `400` 잘못된 기기 ID(비어 있음 또는 128자 초과); `401` 미인증; `403 error: "forbidden"` 동일 출처 가드 실패; `403 error: "device_limit"` 실효 플랜이 Free이고 이미 등록된 기기가 있음; `500` 구독, 기기 조회, 또는 upsert 실패.
+**오류**: `400` 잘못된 기기 ID(비어 있음 또는 128자 초과); `401` 미인증; `403 error: "forbidden"` 동일 출처 가드 실패; `403 error: "device_limit"` 실효 플랜이 Free이고 이미 등록된 기기가 있음; `429` IP 속도 제한(세션 조회 이전에 확인); `500` 구독, 기기 조회, 또는 upsert 실패.
 
 ### `POST /api/profile/training-level` (`app/api/profile/training-level/route.ts`)
 
@@ -274,7 +276,7 @@ Stripe 구독 상태와 `manual_grants`로 실효 플랜을 해석한 뒤, 로�
 { "ok": true, "level": "advanced" }
 ```
 
-**오류**: `400` 잘못된 레벨; `401` 미인증; `403 error: "forbidden"` 동일 출처 가드 실패; `500` 프로필 upsert 실패.
+**오류**: `400` 잘못된 레벨; `401` 미인증; `403 error: "forbidden"` 동일 출처 가드 실패; `429` IP 속도 제한(세션 조회 이전에 확인); `500` 프로필 upsert 실패.
 
 ---
 
@@ -405,6 +407,10 @@ Stripe 구독 상태와 `manual_grants`로 실효 플랜을 해석한 뒤, 로�
 - **둘 중 하나라도 없고 `NODE_ENV === "production"`**: `createRateLimiter()`가 **스텁**을 반환하고 `isLimited()`가 **예외를 던짐** — 프로덕션에서는 Upstash 필수(`lib/rateLimit.ts` 참고; 임포트 시가 아니며 `next build`는 Upstash 없이 완료 가능).
 
 `MemoryRateLimiter`는 키 상한 50,000개, 초과 시 가장 먼저 들어온 키를 제거하고 주기적으로 유휴 키를 정리합니다. 기본값: 키당 60초 윈도우에 10회(`RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX`로 재정의 가능).
+
+각 라우트는 고유한 키 네임스페이스(`${ip}:puzzle-attempt`, `${ip}:training-level`, `${ip}:auth-device`, `coach-get:${ip}` 등)를 사용하여 서로 한도를 공유하지 않습니다. 속도 제한은 Supabase 세션 조회**보다 먼저** 실행되므로 미인증 요청 폭주는 DB에 도달하기 전에 차단됩니다.
+
+`getClientIP`는 전달 헤더가 없으면 문자열 `"unknown"`을 반환합니다. 따라서 속도 제한 라우트를 대상으로 하는 테스트는 요청마다 다른 `x-forwarded-for`를 보내야 합니다(`tests/api/coach.test.ts`의 `nextTestIp()` 참조).
 
 ### 요청 본문 파싱
 

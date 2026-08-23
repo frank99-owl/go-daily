@@ -87,6 +87,12 @@ Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts`
 
 实现上，`lib/coach/coachEligibility.ts` 返回 `qualityTier` 与 `hasVariationSupport`；`content/data/coachBasicEligibleIds.json` 表示基础解释准入，`content/data/coachReadyIds.json` 表示完整 Coach 批准，`content/data/variationGroups.json` 表示已整理的变例专题关系。`getCoachAccess()` 同时检查数据分层与运行时质量门槛。只有达到 `coach-ready` 并进入 `coachReadyIds.json` 的题目，才视为完整 AI 教练题；`variation-ready` 还必须进入已复核的变例组。`basic-explained` / `coach-eligible` 题可以提供静态解析或受限问答，但不应承诺完整变例讲解。
 
+### 话题范围
+
+教练只回答围棋相关内容：当前局面、围棋技术与规则、学习方法，以及棋手与历史。问候、致谢和围棋闲聊都在范围内。其他内容——天气、编程、作业、别的棋类游戏、个人建议——会以一句符合人设的话婉拒，并把话题带回当前这道题；不作部分回答，也绝不以沉默或空回复应对。该规则位于 `buildSystemPrompt`（`lib/coach/coachPrompt.ts`），并在四个语种的文风段落中各重复一次，确保拒答使用学生的语言。
+
+这与 `lib/promptGuard.ts` 中的提示词注入防护是两件事：后者在请求到达模型之前拦截试图改写教练设定的输入。跑题问题由模型处理，注入尝试则根本到不了模型。
+
 ## 6. 学习闭环
 
 目标路径是 `onboarding → first puzzle → result → coach → review → next recommendation`：
