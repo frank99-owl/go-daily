@@ -19,3 +19,21 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+  # The Tauri desktop shell has its own dependency tree. GitHub already raises
+  # security alerts against desktop/src-tauri/Cargo.lock, but without an entry
+  # here nothing ever opened a pull request to act on them.
+  - package-ecosystem: "cargo"
+    directory: "/desktop/src-tauri"
+    schedule:
+      interval: "monthly"
+    ignore:
+      # Same policy as npm: majors are done by hand. A major bump here means a
+      # Tauri release, which has to be verified against a real desktop build.
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+    groups:
+      cargo-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
