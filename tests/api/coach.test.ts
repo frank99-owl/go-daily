@@ -1218,6 +1218,74 @@ describe("/api/coach", () => {
       expect(guestUsageMocks.incrementIpCounter).toHaveBeenCalled();
     });
 
+    it("refunds a guest call when the stream fails before any content is delivered", async () => {
+      guestUsageMocks.decrementGuestUsage.mockClear();
+      createCompletionMock.mockRejectedValue(new Error("connection reset"));
+
+      const response = await POST(
+        makeRequest(
+          {
+            puzzleId: "p-00001",
+            locale: "en",
+            userMove: { x: 3, y: 3 },
+            history: [{ role: "user", content: "Why?", ts: 1 }],
+          },
+          { headers: { "x-go-daily-guest-device-id": "guest-123" } },
+        ),
+      );
+
+      expect(response.status).toBe(200);
+      const events = await readSse(response);
+      expect(events).toContainEqual({ error: "upstream_error" });
+      expect(guestUsageMocks.decrementGuestUsage).toHaveBeenCalledWith("guest-123", null);
+    });
+
+    // A client that disconnects mid-stream surfaces here the same way: the
+    // abort propagates into the upstream iteration and throws. Refunding once
+    // content is out would let a caller read the reply as it streams, drop the
+    // connection, and get the call back — an unlimited quota bypass.
+    it("does not refund a guest call once part of the reply has been delivered", async () => {
+      guestUsageMocks.decrementGuestUsage.mockClear();
+      createCompletionMock.mockReturnValue({
+        [Symbol.asyncIterator]() {
+          let sent = false;
+          return {
+            async next() {
+              if (!sent) {
+                sent = true;
+                return {
+                  done: false,
+                  value: {
+                    choices: [{ delta: { content: "partial" }, finish_reason: null }],
+                    model: "test-model",
+                  },
+                };
+              }
+              throw new Error("connection reset");
+            },
+          };
+        },
+      });
+
+      const response = await POST(
+        makeRequest(
+          {
+            puzzleId: "p-00001",
+            locale: "en",
+            userMove: { x: 3, y: 3 },
+            history: [{ role: "user", content: "Why?", ts: 1 }],
+          },
+          { headers: { "x-go-daily-guest-device-id": "guest-123" } },
+        ),
+      );
+
+      expect(response.status).toBe(200);
+      const events = await readSse(response);
+      expect(events.filter((e) => e.delta).map((e) => e.delta)).toContain("partial");
+      expect(events).toContainEqual({ error: "upstream_error" });
+      expect(guestUsageMocks.decrementGuestUsage).not.toHaveBeenCalled();
+    });
+
     it("rejects guests when the atomic quota check reports a concurrent daily limit hit", async () => {
       guestUsageMocks.getGuestUsage
         .mockResolvedValueOnce({

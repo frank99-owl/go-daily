@@ -89,6 +89,10 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
 
   return new ReadableStream({
     async start(controller) {
+      // Whether any of the reply actually reached the client. Declared out
+      // here so the catch block can see it — it drives the refund decision.
+      let deliveredContent = false;
+
       try {
         const stream = provider.createReplyStream(ctx.openaiMessages, { signal: ctx.signal });
 
@@ -108,6 +112,7 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ delta: chunk.delta })}\n\n`),
             );
+            deliveredContent = true;
           }
         }
 
@@ -130,7 +135,14 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
         });
       } catch (err) {
         const error = err as Error;
-        await refundUsage(ctx.isGuest, ctx.refundParams);
+        // Refund only when the student never received any of the reply.
+        // A disconnect mid-stream also lands here (request.signal aborts the
+        // upstream iteration), and refunding then would make the quota free
+        // to bypass: read the answer as it streams, drop the connection, get
+        // the call back. A partially delivered reply is a spent call.
+        if (!deliveredContent) {
+          await refundUsage(ctx.isGuest, ctx.refundParams);
+        }
         const errorCode = classifySseError(error);
 
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorCode })}\n\n`));
