@@ -15,6 +15,7 @@ import type {
   LocaleSchema,
   LocalizedTextSchema,
   PuzzleSchema,
+  PersonaIdSchema,
   PuzzleTagSchema,
   StoneSchema,
   WrongBranchSchema,
@@ -29,6 +30,7 @@ export type PuzzleTag = z.infer<typeof PuzzleTagSchema>;
 export type WrongBranch = z.infer<typeof WrongBranchSchema>;
 export type Puzzle = z.infer<typeof PuzzleSchema>;
 export type CoachMessage = z.infer<typeof CoachMessageSchema>;
+export type PersonaId = z.infer<typeof PersonaIdSchema>;
 export type CoachVariationGroup = z.infer<typeof CoachVariationGroupSchema>;
 export type ContentReviewBatch = z.infer<typeof ContentReviewBatchSchema>;
 

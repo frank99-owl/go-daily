@@ -28,17 +28,33 @@ export const StoneSchema = CoordSchema.extend({
 
 export const CoachMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
-  content: z.string(),
+  // Structural outer bound only. The 8KB request body cap and the prompt
+  // guard's MAX_MESSAGE_LENGTH (2000, post-normalization) both trip well
+  // before this, and the guard is what users should hit — it answers with a
+  // localized message_too_long, where a schema failure is a raw Zod string.
+  // Sized to the body cap so it can never become the first check to fire.
+  content: z.string().max(8000),
   ts: z.number(),
 });
+
+/**
+ * The coach personas defined in lib/coach/personas.ts. `PersonaId` is derived
+ * from this so the two can never drift; the list used to be repeated there by
+ * hand, and carried a "custom" id that no persona ever implemented.
+ */
+export const PersonaIdSchema = z.enum([
+  "ke-jie",
+  "lee-sedol",
+  "go-seigen",
+  "iyama-yuta",
+  "shin-jinseo",
+]);
 
 export const CoachRequestSchema = z.object({
   puzzleId: z.string().min(1),
   locale: LocaleSchema,
   userMove: CoordSchema,
-  personaId: z
-    .enum(["ke-jie", "lee-sedol", "go-seigen", "iyama-yuta", "shin-jinseo", "custom"])
-    .optional(),
+  personaId: PersonaIdSchema.optional(),
   history: z.array(CoachMessageSchema).min(1, "History must contain at least the user's question."),
 });
 

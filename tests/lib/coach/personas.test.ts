@@ -1,10 +1,24 @@
 import { describe, expect, it } from "vitest";
 
 import { PERSONAS, DEFAULT_PERSONA, getPersona } from "@/lib/coach/personas";
+import { PersonaIdSchema } from "@/types/schemas";
 
 describe("PERSONAS", () => {
   it("has 5 personas", () => {
     expect(PERSONAS).toHaveLength(5);
+  });
+
+  // PersonaId is derived from PersonaIdSchema, so the accepted API values and
+  // the implemented personas are the same list by construction. This guards
+  // the other direction: a schema value with no persona behind it would fall
+  // back to the default silently, which is how "custom" went unnoticed.
+  it("implements exactly the ids the request schema accepts", () => {
+    expect([...PERSONAS.map((p) => p.id)].sort()).toEqual([...PersonaIdSchema.options].sort());
+  });
+
+  it("rejects ids that no persona implements", () => {
+    expect(PersonaIdSchema.safeParse("custom").success).toBe(false);
+    expect(PersonaIdSchema.safeParse("ke-jie").success).toBe(true);
   });
 
   it("each persona has required fields", () => {

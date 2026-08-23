@@ -1,7 +1,8 @@
-import type { Locale } from "@/types";
+import type { Locale, PersonaId } from "@/types";
 
-export type PersonaId =
-  "ke-jie" | "lee-sedol" | "go-seigen" | "iyama-yuta" | "shin-jinseo" | "custom";
+// Derived from PersonaIdSchema in types/schemas.ts — the schema is the single
+// source of truth, so the API contract and this list cannot drift apart.
+export type { PersonaId };
 
 export interface Persona {
   id: PersonaId;

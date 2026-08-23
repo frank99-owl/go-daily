@@ -1218,6 +1218,26 @@ describe("/api/coach", () => {
       expect(guestUsageMocks.incrementIpCounter).toHaveBeenCalled();
     });
 
+    // Pins the ordering: an over-long message must reach the prompt guard and
+    // come back with a localizable code, not die on the schema's structural
+    // bound with a raw Zod string.
+    it("reports over-long messages through the guard, not the schema", async () => {
+      const response = await POST(
+        makeRequest(
+          {
+            puzzleId: "p-00001",
+            locale: "en",
+            userMove: { x: 3, y: 3 },
+            history: [{ role: "user", content: "a".repeat(2500), ts: 1 }],
+          },
+          { headers: { "x-go-daily-guest-device-id": "guest-123" } },
+        ),
+      );
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ code: "message_too_long" });
+    });
+
     it("refunds a guest call when the stream fails before any content is delivered", async () => {
       guestUsageMocks.decrementGuestUsage.mockClear();
       createCompletionMock.mockRejectedValue(new Error("connection reset"));

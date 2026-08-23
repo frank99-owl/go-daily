@@ -116,13 +116,13 @@ export function CoachPersonaSelector({ selectedId, onSelect }: Props) {
               </p>
             </div>
             <div className="py-1.5 overflow-y-auto" style={{ maxHeight: panelPos.maxHeight - 40 }}>
-              {PERSONAS.filter((p) => p.id !== "custom").map((p) => {
+              {PERSONAS.map((p) => {
                 const isSelected = selectedId === p.id;
                 return (
                   <button
                     key={p.id}
                     onClick={() => {
-                      onSelect(p.id as PersonaId);
+                      onSelect(p.id);
                       setIsOpen(false);
                     }}
                     className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-all group ${
