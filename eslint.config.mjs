@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     "content/data/*.json",
     "scripts/**",
     "**/*.py",
+    // Rust/Tauri build output — generated, gitignored, and not ours to lint.
+    "desktop/src-tauri/target/**",
+    "desktop/src-tauri/gen/**",
   ]),
   {
     plugins: {

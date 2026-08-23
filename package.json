@@ -44,7 +44,7 @@
     "framer-motion": "^12.42.2",
     "idb-keyval": "^6.2.6",
     "lucide-react": "^1.23.0",
-    "next": "16.2.10",
+    "next": "16.3.2",
     "openai": "^6.45.0",
     "posthog-js": "^1.396.4",
     "posthog-node": "^5.39.2",
@@ -54,9 +54,9 @@
     "zod": "^4.4.3"
   },
   "overrides": {
-    "fast-uri": "3.1.2",
+    "fast-uri": "3.1.6",
     "next": {
-      "postcss": "8.5.14"
+      "postcss": "8.5.26"
     }
   },
   "devDependencies": {
@@ -69,7 +69,8 @@
     "@vitest/coverage-v8": "^4.1.9",
     "dotenv": "^17.4.2",
     "eslint": "^9.39.4",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.3.2",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.4",

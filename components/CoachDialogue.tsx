@@ -10,9 +10,9 @@ import { getOrCreateDeviceId } from "@/lib/auth/deviceId";
 import { type CoachErrorCode, isCoachErrorCode } from "@/lib/coach/coachErrorCodes";
 import { DEFAULT_PERSONA, type PersonaId } from "@/lib/coach/personas";
 import { useLocale } from "@/lib/i18n/i18n";
-import { GUARD_REJECTION_CODES, isGuardRejectionCode } from "@/lib/promptGuardCodes";
 import { track } from "@/lib/posthog/events";
 import type { CoachQuotaAnalyticsState } from "@/lib/posthog/eventTypes";
+import { GUARD_REJECTION_CODES, isGuardRejectionCode } from "@/lib/promptGuardCodes";
 import type { CoachMessage, Coord, Locale, PublicCoachAccess } from "@/types";
 
 type Props = {
