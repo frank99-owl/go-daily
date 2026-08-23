@@ -1,8 +1,12 @@
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
+import { getClientIP } from "@/lib/clientIp";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { createClient } from "@/lib/supabase/server";
 import { TrainingLevelPreferenceRequestSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
+
+const rateLimiter = createRateLimiter();
 
 export async function POST(request: Request) {
   const rawBody = await parseMutationBody(request);
@@ -12,6 +16,16 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return createApiResponse({ error: "invalid_request" }, { status: 400 });
   }
+
+  // Throttle before the auth round-trip so an unauthenticated flood cannot
+  // drive Supabase calls. Own key namespace so it shares no budget with the
+  // other routes' limiters.
+  const limitRes = await checkRateLimit(
+    rateLimiter,
+    `${getClientIP(request)}:training-level`,
+    "[profile/training-level]",
+  );
+  if (limitRes) return limitRes;
 
   const supabase = await createClient();
   const {

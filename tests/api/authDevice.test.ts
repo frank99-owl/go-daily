@@ -64,6 +64,14 @@ function buildAdminClient({
   };
 }
 
+// Each call gets a fresh, valid-looking IPv4 so the route's module-level rate
+// limiter keys per-test instead of pooling every request under one sentinel.
+let ipCounter = 0;
+function nextTestIp(): string {
+  ipCounter = (ipCounter + 1) % (1 << 24);
+  return `10.${(ipCounter >> 16) & 0xff}.${(ipCounter >> 8) & 0xff}.${ipCounter & 0xff}`;
+}
+
 function makeRequest(body: unknown, headers: HeadersInit = {}) {
   return new Request("https://go-daily.app/api/auth/device", {
     method: "POST",
@@ -71,6 +79,7 @@ function makeRequest(body: unknown, headers: HeadersInit = {}) {
       "content-type": "application/json",
       origin: "https://go-daily.app",
       "user-agent": "Vitest Browser",
+      "x-forwarded-for": nextTestIp(),
       ...headers,
     },
     body: JSON.stringify(body),
@@ -106,6 +115,29 @@ describe("/api/auth/device", () => {
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({ error: "unauthenticated" });
+  });
+
+  it("rate limits before the auth round-trip", async () => {
+    const ip = nextTestIp();
+    let limited: Response | null = null;
+    // The route's limiter is real (memory-backed in tests), so hammer a single
+    // IP until it trips rather than reaching into module internals.
+    for (let i = 0; i < 40; i++) {
+      const response = await POST(makeRequest({ deviceId: "device-1" }, { "x-forwarded-for": ip }));
+      if (response.status === 429) {
+        limited = response;
+        break;
+      }
+    }
+
+    expect(limited).not.toBeNull();
+    await expect(limited!.json()).resolves.toEqual({ error: "Too many requests, slow down." });
+
+    // Once tripped, a further request must not reach Supabase at all.
+    mocks.createServerClient.mockClear();
+    const after = await POST(makeRequest({ deviceId: "device-1" }, { "x-forwarded-for": ip }));
+    expect(after.status).toBe(429);
+    expect(mocks.createServerClient).not.toHaveBeenCalled();
   });
 
   it("rejects invalid device IDs", async () => {

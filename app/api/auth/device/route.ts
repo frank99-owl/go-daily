@@ -5,11 +5,15 @@ import {
   getDeviceLimitForPlan,
   type DeviceSeat,
 } from "@/lib/auth/deviceRegistry";
+import { getClientIP } from "@/lib/clientIp";
 import { resolveViewerPlan } from "@/lib/entitlementsServer";
+import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
+
+const rateLimiter = createRateLimiter();
 
 type SubscriptionRow = {
   status: string | null;
@@ -35,6 +39,16 @@ export async function POST(request: Request) {
 
   const deviceId = parseDeviceId(rawBody);
   if (!deviceId) return invalidDeviceResponse();
+
+  // Device registration writes through the service-role client, so throttle
+  // before the auth round-trip rather than leaving the seat table exposed to
+  // an unauthenticated flood. Own key namespace.
+  const limitRes = await checkRateLimit(
+    rateLimiter,
+    `${getClientIP(request)}:auth-device`,
+    "[auth/device]",
+  );
+  if (limitRes) return limitRes;
 
   const supabase = await createServerSupabase();
   const {
