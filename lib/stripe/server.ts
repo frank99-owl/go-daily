@@ -16,7 +16,7 @@ type StripeConfig = NonNullable<ConstructorParameters<typeof Stripe>[1]>;
 
 // Keep in sync with the installed Stripe SDK's latest API version (see
 // node_modules/stripe/esm/apiVersion.js).
-const STRIPE_API_VERSION: StripeConfig["apiVersion"] = "2026-06-24.dahlia";
+const STRIPE_API_VERSION: StripeConfig["apiVersion"] = "2026-07-29.dahlia";
 
 export type ProInterval = "monthly" | "yearly";
 export type ProPlan = "pro_monthly" | "pro_yearly";
