@@ -15,7 +15,15 @@ jobs:
           # `npm ci` always deletes node_modules before installing.
           cache: "npm"
       - run: npm ci
+      # Blocking gate: only what actually ships to users. A high-severity
+      # advisory in a runtime dependency should stop the pipeline.
+      - run: npm audit --omit=dev --audit-level=high
+      # Dev-only advisories are worth seeing but must not block merging. In
+      # August 2026 a DoS advisory in eslint's brace-expansion chain failed
+      # this step for three weeks and held up every Dependabot PR — including
+      # the ones that would have fixed the runtime advisories underneath it.
       - run: npm audit --audit-level=high
+        continue-on-error: true
       - run: npm run format:check
       - run: npm run lint
       - run: npm run validate:puzzles
