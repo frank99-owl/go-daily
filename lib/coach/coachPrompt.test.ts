@@ -81,6 +81,41 @@ describe("buildSystemPrompt — always included", () => {
   });
 });
 
+describe("buildSystemPrompt — topic scope", () => {
+  const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];
+
+  it("tells the model to refuse anything outside Go rather than go silent", () => {
+    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
+    expect(prompt).toContain("Stay on topic");
+    expect(prompt).toContain("do not answer it");
+    expect(prompt).toContain("Never answer with silence or an empty message");
+  });
+
+  it("keeps greetings and Go small talk explicitly allowed", () => {
+    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
+    expect(prompt).toContain("Greetings, thanks, and small talk about Go itself are fine");
+  });
+
+  it("repeats the refusal instruction in every shipped locale", () => {
+    const markers: Record<Locale, string> = {
+      zh: "遇到与围棋无关的问题时",
+      en: "When a question falls outside Go",
+      ja: "囲碁と関係のない質問には",
+      ko: "바둑과 무관한 질문에는",
+    };
+    for (const locale of LOCALES) {
+      const prompt = buildSystemPrompt(
+        make19Puzzle(),
+        locale,
+        { x: 18, y: 2 },
+        true,
+        DEFAULT_PERSONA,
+      );
+      expect(prompt, locale).toContain(markers[locale]);
+    }
+  });
+});
+
 describe("buildSystemPrompt — 19×19 full board", () => {
   it("uses full-board framing, not a cropped-window banner", () => {
     const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
