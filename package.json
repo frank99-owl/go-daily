@@ -50,8 +50,8 @@
     "openai": "^6.45.0",
     "posthog-js": "^1.396.4",
     "posthog-node": "^5.39.2",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "stripe": "^22.5.0",
     "zod": "^4.4.3"
   },
