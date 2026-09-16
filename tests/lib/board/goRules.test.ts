@@ -1,8 +1,14 @@
 import { describe, it, expect } from "vitest";
 
+import {
+  hasLiberty,
+  isKo,
+  isLegalMove,
+  isSuicide,
+  playMove,
+  type GoBoard,
+} from "@/lib/board/goRules";
 import type { Color, Coord } from "@/types";
-
-import { hasLiberty, isKo, isLegalMove, isSuicide, playMove, type GoBoard } from "./goRules";
 
 function makeBoard(stones: { coord: Coord; color: Color }[]): GoBoard {
   const b: GoBoard = new Map();

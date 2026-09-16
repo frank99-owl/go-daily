@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isLikelyEmail, nextForLocale } from "./auth";
+import { isLikelyEmail, nextForLocale } from "@/lib/auth/auth";
 import {
   parsePendingAuthRedirect,
   readCookieValue,
   serializePendingAuthRedirect,
-} from "./authRedirect";
+} from "@/lib/auth/authRedirect";
 
 describe("isLikelyEmail", () => {
   it("accepts typical addresses", () => {

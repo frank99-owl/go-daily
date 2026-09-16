@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createAttemptRecord } from "./storage";
+import { createAttemptRecord } from "@/lib/storage/storage";
 
 describe("createAttemptRecord", () => {
   it("defaults the attempt date to the actual local day", () => {

@@ -11,7 +11,7 @@ import {
   sendSubscriptionStartedEmail,
   sendWelcomeEmail,
   unsubscribeUrl,
-} from "./email";
+} from "@/lib/email";
 
 const ORIGINAL_FETCH = globalThis.fetch;
 

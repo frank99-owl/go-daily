@@ -7,7 +7,7 @@ import {
   parsePendingAuthRedirect,
   readCookieValue,
   serializePendingAuthRedirect,
-} from "./authRedirect";
+} from "@/lib/auth/authRedirect";
 
 describe("normalizeAuthNext — same-origin guard", () => {
   it("falls back to the locale home for null / undefined / empty values", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isAuthSessionMissingError } from "./authErrors";
+import { isAuthSessionMissingError } from "@/lib/supabase/authErrors";
 
 describe("auth error helpers", () => {
   it("treats missing auth sessions as an expected anonymous state", () => {

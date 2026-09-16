@@ -33,7 +33,7 @@ class MemoryStorage implements Storage {
 
 async function importFresh() {
   vi.resetModules();
-  return await import("./errorReporting");
+  return await import("@/lib/errorReporting");
 }
 
 function seedBuffer(entries: unknown[]): void {

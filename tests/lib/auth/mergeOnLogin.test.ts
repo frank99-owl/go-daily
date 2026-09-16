@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { applyMergeDecision, planMerge } from "@/lib/auth/mergeOnLogin";
 import type { AttemptRecord } from "@/types";
-
-import { applyMergeDecision, planMerge } from "./mergeOnLogin";
 
 function a(puzzleId: string, solvedAtMs: number, correct = true): AttemptRecord {
   return {

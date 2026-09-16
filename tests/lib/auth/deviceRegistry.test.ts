@@ -6,7 +6,7 @@ import {
   PRO_TIER_DEVICE_LIMIT,
   formatDeviceLabel,
   isPaidSubscription,
-} from "./deviceRegistry";
+} from "@/lib/auth/deviceRegistry";
 
 describe("evaluateDeviceAccess", () => {
   it("allows a known device unconditionally", () => {

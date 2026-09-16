@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { parseSgfMoves } from "./sgf";
+import { parseSgfMoves } from "@/lib/board/sgf";
 
 describe("parseSgfMoves", () => {
   it("returns empty for empty string", () => {

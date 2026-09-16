@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getPuzzleForDate, todayLocalKey } from "./puzzleOfTheDay";
+import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzle/puzzleOfTheDay";
 
 describe("getPuzzleForDate", () => {
   it("rotates through all puzzles daily", async () => {
