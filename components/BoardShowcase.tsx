@@ -100,6 +100,11 @@ export function BoardShowcase() {
           <p className="text-white/50 text-sm leading-relaxed max-w-sm font-[family-name:var(--font-sans)] font-light">
             {t.boardShowcase.description}
           </p>
+          {/* A factual account of a public game is fine; implying the players or
+              the organizations behind the match endorse go-daily is not. */}
+          <p className="text-white/30 text-[11px] leading-relaxed max-w-sm font-[family-name:var(--font-sans)]">
+            {t.boardShowcase.affiliationNote}
+          </p>
 
           {/* HUD */}
           <div className="flex items-center gap-6">

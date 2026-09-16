@@ -20,14 +20,14 @@
 
 - **正解／不正解はリクエストに含めません**。サーバー側で `judgeMove(puzzle, userMove)` を実行し、結果はシステムプロンプト（`buildSystemPrompt`）に渡します。
 - 履歴は合計 **6,000** 文字（新しいメッセージ優先）＋ メッセージごと最大 **2,000** 文字に制限。その前に最大 **6** 往復まで保持されます。
-- `personaId` を送る場合は `ke-jie`、`lee-sedol`、`go-seigen`、`iyama-yuta`、`shin-jinseo`、`custom` のいずれか（`CoachRequestSchema`）。省略時は碁聖（`go-seigen`）。
+- `personaId` は任意で、`tempest`、`deep-current`、`still-water`、`bedrock`、`clear-mirror` のいずれか（`CoachRequestSchema`）。省略時は `still-water`。認識できない値でもリクエストは失敗せず、省略扱いとしてデフォルトにフォールバックします。メンターは解説の語り口を選ぶだけなので、古い id のために有料機能を 400 にする価値はありません。メンターはすべて架空のキャラクターであり、id に実在の人物名を使ってはいけません（`lib/coach/personas.ts` 冒頭のコンプライアンス注記を参照）。
 
 ```typescript
 {
   puzzleId: string;      // min 1 char
   locale: "zh" | "en" | "ja" | "ko";
   userMove: { x: number; y: number };
-  personaId?: string;    // defaults to Go Seigen
+  personaId?: string;    // デフォルトは still-water、未知の値はフォールバック
   history: Array<{       // min 1 entry
     role: "user" | "assistant";
     content: string;

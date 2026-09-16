@@ -151,6 +151,10 @@ export default function AboutPage() {
                 <p className="text-white font-normal bg-white/5 px-4 py-3 border-l-2 border-white/20">
                   {t.about.section2Text4}
                 </p>
+                {/* Same match as the home page showcase, so the same note. The
+                    line above ties the brand to this game's story; this keeps
+                    that from reading as an association with the players. */}
+                <p className="text-xs text-white/35">{t.boardShowcase.affiliationNote}</p>
               </div>
             </div>
           </motion.section>

@@ -365,7 +365,8 @@
     "eyebrow": "AI Coaches",
     "description": "go-daily uses Go engine-assisted analysis as part of its puzzle review. AI mentors turn that material into guided explanations with distinct coaching styles.",
     "close": "Close",
-    "footer": "Powered by Go AI-assisted review."
+    "footer": "Powered by Go AI-assisted review.",
+    "disclaimer": "All mentors are fictional characters representing AI teaching styles. They are not based on, and do not represent, any real player."
   },
   "review": {
     "title": "Review",
@@ -446,7 +447,8 @@
     "phaseIdle": "Ready",
     "phaseShowGod": "Divine Move",
     "phasePlaying": "Replay",
-    "phaseEnded": "Final Position"
+    "phaseEnded": "Final Position",
+    "affiliationNote": "go-daily is not affiliated with, authorized by, or endorsed by the players or organizations involved in this match. This is an account of a public historical game."
   },
   "manifest": {
     "name": "go-daily — Daily Go Puzzle",

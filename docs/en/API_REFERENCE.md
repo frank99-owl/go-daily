@@ -20,14 +20,14 @@ Send a user message and receive an AI coach reply as a streamed assistant messag
 
 - Move correctness is **not** part of the request. The handler runs `judgeMove(puzzle, userMove)` and passes the result into the system prompt (`buildSystemPrompt`).
 - History messages are subject to a total character budget of 6,000 characters (newest-first truncation), in addition to per-message truncation at 2,000 characters. At most the last 6 turns are kept before the budget trim.
-- When provided, `personaId` must be one of: `ke-jie`, `lee-sedol`, `go-seigen`, `iyama-yuta`, `shin-jinseo`, `custom` (`CoachRequestSchema`); omitted selects Go Seigen (`go-seigen`).
+- `personaId` is optional and one of `tempest`, `deep-current`, `still-water`, `bedrock`, `clear-mirror` (`CoachRequestSchema`); omitted selects `still-water`. An unrecognized value does not fail the request — it is treated as omitted and falls back to the default, because the persona only picks a teaching register and a stale id is not worth a 400 on the paid feature. Personas are fictional characters and ids must never be named after a real person (see the compliance note at the top of `lib/coach/personas.ts`).
 
 ```typescript
 {
   puzzleId: string;      // min 1 char
   locale: "zh" | "en" | "ja" | "ko";
   userMove: { x: number; y: number };
-  personaId?: string;    // defaults to Go Seigen
+  personaId?: string;    // defaults to still-water; unknown values fall back
   history: Array<{       // min 1 entry
     role: "user" | "assistant";
     content: string;

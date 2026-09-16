@@ -20,14 +20,14 @@
 
 - **정답 여부는 클라이언트가 보내지 않습니다**. 서버가 `judgeMove(puzzle, userMove)`로 판별하고 시스템 프롬프트(`buildSystemPrompt`)에 반영합니다.
 - 히스토리는 총 **6,000자**(최신 우선) + 메시지당 **2,000자**까지, 그 전에 최대 **6**턴까지 유지됩니다.
-- `personaId`를 보낼 때는 `ke-jie`, `lee-sedol`, `go-seigen`, `iyama-yuta`, `shin-jinseo`, `custom` 중 하나(`CoachRequestSchema`). 생략 시 기본은 `go-seigen`(고 세이겐 스타일).
+- `personaId`는 선택이며 `tempest`, `deep-current`, `still-water`, `bedrock`, `clear-mirror` 중 하나(`CoachRequestSchema`). 생략 시 기본은 `still-water`. 인식할 수 없는 값이어도 요청은 실패하지 않고, 생략한 것으로 처리되어 기본 멘토로 대체됩니다. 멘토는 해설 어조만 결정하므로, 오래된 id 때문에 유료 기능이 400을 반환할 이유가 없습니다. 멘토는 모두 가상의 캐릭터이며 id에 실존 인물의 이름을 써서는 안 됩니다(`lib/coach/personas.ts` 상단의 컴플라이언스 설명 참조).
 
 ```typescript
 {
   puzzleId: string;      // min 1 char
   locale: "zh" | "en" | "ja" | "ko";
   userMove: { x: number; y: number };
-  personaId?: string;    // defaults to Go Seigen
+  personaId?: string;    // 기본값 still-water, 알 수 없는 값은 대체
   history: Array<{       // min 1 entry
     role: "user" | "assistant";
     content: string;

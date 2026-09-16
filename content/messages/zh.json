@@ -361,7 +361,8 @@
     "eyebrow": "AI 导师阵容",
     "description": "go-daily 的题目复核会结合围棋 AI 辅助分析。AI 导师会把这些材料整理成不同风格的引导式讲解。",
     "close": "关闭",
-    "footer": "导师讲解基于围棋 AI 辅助复核。"
+    "footer": "导师讲解基于围棋 AI 辅助复核。",
+    "disclaimer": "所有导师均为虚构角色，代表不同的 AI 教学风格，与任何真实棋手无关。"
   },
   "review": {
     "title": "错题本",
@@ -442,7 +443,8 @@
     "phaseIdle": "准备中",
     "phaseShowGod": "神之一手",
     "phasePlaying": "回放中",
-    "phaseEnded": "终局"
+    "phaseEnded": "终局",
+    "affiliationNote": "go-daily 与该局对局双方及相关机构均无关联，亦未获其授权或认可。本内容仅为对公开历史对局的介绍。"
   },
   "manifest": {
     "name": "go-daily — 每日围棋一题",

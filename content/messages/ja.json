@@ -361,7 +361,8 @@
     "eyebrow": "AI メンター陣",
     "description": "go-daily は問題レビューの一部に囲碁 AI の補助分析を使います。AI メンターはその材料をもとに、スタイル別のガイド解説を行います。",
     "close": "閉じる",
-    "footer": "メンター解説は囲碁 AI 補助レビューをもとにしています。"
+    "footer": "メンター解説は囲碁 AI 補助レビューをもとにしています。",
+    "disclaimer": "メンターはすべて AI の指導スタイルを表す架空のキャラクターであり、実在の棋士をモデルにしたものではありません。"
   },
   "review": {
     "title": "復習ノート",
@@ -442,7 +443,8 @@
     "phaseIdle": "準備中",
     "phaseShowGod": "神の一手",
     "phasePlaying": "再生中",
-    "phaseEnded": "終局"
+    "phaseEnded": "終局",
+    "affiliationNote": "go-daily は本局の対局者および関係団体とは一切関係がなく、その許諾や推薦を受けたものではありません。本内容は公開された歴史的対局の紹介です。"
   },
   "manifest": {
     "name": "go-daily — 毎日の囲碁詰碁",

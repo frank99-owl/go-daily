@@ -41,20 +41,31 @@ export const CoachMessageSchema = z.object({
  * The coach personas defined in lib/coach/personas.ts. `PersonaId` is derived
  * from this so the two can never drift; the list used to be repeated there by
  * hand, and carried a "custom" id that no persona ever implemented.
+ *
+ * These ids are style archetypes, not people. They replaced ids named after
+ * real professional players in 2026-09 — see the compliance note at the top of
+ * lib/coach/personas.ts. Never name a persona id after a real person: the id
+ * travels in the API request body and in analytics event properties.
  */
 export const PersonaIdSchema = z.enum([
-  "ke-jie",
-  "lee-sedol",
-  "go-seigen",
-  "iyama-yuta",
-  "shin-jinseo",
+  "tempest",
+  "deep-current",
+  "still-water",
+  "bedrock",
+  "clear-mirror",
 ]);
 
 export const CoachRequestSchema = z.object({
   puzzleId: z.string().min(1),
   locale: LocaleSchema,
   userMove: CoordSchema,
-  personaId: PersonaIdSchema.optional(),
+  // An unrecognized persona id degrades to "no preference" (the default
+  // persona) instead of failing the request. The persona only picks a teaching
+  // register, so a stale id is never worth a 400 on the paid feature — and one
+  // is guaranteed to arrive: a tab left open across the 2026-09 persona rename
+  // still runs the old bundle and sends the old id. PersonaIdSchema itself
+  // stays strict; only request parsing is lenient.
+  personaId: PersonaIdSchema.optional().catch(undefined),
   history: z.array(CoachMessageSchema).min(1, "History must contain at least the user's question."),
 });
 

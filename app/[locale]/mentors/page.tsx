@@ -25,11 +25,11 @@ export default function MentorsPage() {
           ? { fontFamily: 'var(--font-headline), "Gowun Batang", "LXGW WenKai", serif' }
           : { fontFamily: 'var(--font-headline), "Playfair Display", serif' };
 
-  const kejie = PERSONAS.find((p) => p.id === "ke-jie")!;
-  const sedol = PERSONAS.find((p) => p.id === "lee-sedol")!;
-  const seigen = PERSONAS.find((p) => p.id === "go-seigen")!;
-  const yuta = PERSONAS.find((p) => p.id === "iyama-yuta")!;
-  const jinseo = PERSONAS.find((p) => p.id === "shin-jinseo")!;
+  const tempest = PERSONAS.find((p) => p.id === "tempest")!;
+  const deepCurrent = PERSONAS.find((p) => p.id === "deep-current")!;
+  const stillWater = PERSONAS.find((p) => p.id === "still-water")!;
+  const bedrock = PERSONAS.find((p) => p.id === "bedrock")!;
+  const clearMirror = PERSONAS.find((p) => p.id === "clear-mirror")!;
 
   const activePersona = PERSONAS.find((p) => p.id === activeId);
 
@@ -97,7 +97,7 @@ export default function MentorsPage() {
                     >
                       {activePersona.name[locale] || activePersona.name["en"]}
                     </h2>
-                    <span className="text-4xl md:text-6xl">{activePersona.flag}</span>
+                    <span className="text-4xl md:text-6xl">{activePersona.emblem}</span>
                   </div>
                   <div className="h-px w-20 bg-[color:var(--color-accent)]/40" />
                 </div>
@@ -139,7 +139,7 @@ export default function MentorsPage() {
           close/reopen the detail view nondeterministically. Open on tap,
           close via the explicit button. */}
       <div className="z-20 flex w-full flex-col items-center gap-4 px-4 pb-12 pt-24 md:hidden">
-        {[sedol, seigen, kejie, yuta, jinseo].map((p) => (
+        {[deepCurrent, stillWater, tempest, bedrock, clearMirror].map((p) => (
           <MentorBaseCard
             key={p.id}
             persona={p}
@@ -154,78 +154,88 @@ export default function MentorsPage() {
             isCenter
           />
         ))}
+        <p className="mt-4 max-w-sm text-center text-[11px] leading-relaxed text-white/40">
+          {t.mentors.disclaimer}
+        </p>
       </div>
 
       {/* Quincunx Base Layer (desktop) */}
       <div className="relative hidden md:block w-full h-full max-w-[1200px] max-h-[800px] z-20">
-        {/* Lee Sedol (Top Left) */}
+        {/* Top Left: Deep Current */}
         <MentorBaseCard
-          persona={sedol}
+          persona={deepCurrent}
           posStyle={{ top: "15%", left: "0%" }}
-          onShow={() => setActiveId(sedol.id)}
+          onShow={() => setActiveId(deepCurrent.id)}
           onHide={() => setActiveId(null)}
-          onActivate={() => setActiveId(sedol.id)}
+          onActivate={() => setActiveId(deepCurrent.id)}
           locale={locale}
           titleStyle={titleStyle}
-          isActive={activeId === sedol.id}
-          isDimmed={activeId !== null && activeId !== sedol.id}
+          isActive={activeId === deepCurrent.id}
+          isDimmed={activeId !== null && activeId !== deepCurrent.id}
         />
 
-        {/* Top Right: Go Seigen */}
+        {/* Top Right: Still Water */}
         <MentorBaseCard
-          persona={seigen}
+          persona={stillWater}
           posStyle={{ top: "15%", right: "0%" }}
-          onShow={() => setActiveId(seigen.id)}
+          onShow={() => setActiveId(stillWater.id)}
           onHide={() => setActiveId(null)}
-          onActivate={() => setActiveId(seigen.id)}
+          onActivate={() => setActiveId(stillWater.id)}
           locale={locale}
           titleStyle={titleStyle}
-          isActive={activeId === seigen.id}
-          isDimmed={activeId !== null && activeId !== seigen.id}
+          isActive={activeId === stillWater.id}
+          isDimmed={activeId !== null && activeId !== stillWater.id}
         />
 
-        {/* CENTER: Ke Jie */}
+        {/* CENTER: Tempest */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
           <MentorBaseCard
-            persona={kejie}
+            persona={tempest}
             posStyle={{ position: "relative" }}
-            onShow={() => setActiveId(kejie.id)}
+            onShow={() => setActiveId(tempest.id)}
             onHide={() => setActiveId(null)}
-            onActivate={() => setActiveId(kejie.id)}
+            onActivate={() => setActiveId(tempest.id)}
             locale={locale}
             titleStyle={titleStyle}
-            isActive={activeId === kejie.id}
-            isDimmed={activeId !== null && activeId !== kejie.id}
+            isActive={activeId === tempest.id}
+            isDimmed={activeId !== null && activeId !== tempest.id}
             isCenter
           />
         </div>
 
-        {/* Iyama Yuta (Bottom Left) */}
+        {/* Bottom Left: Bedrock */}
         <MentorBaseCard
-          persona={yuta}
+          persona={bedrock}
           posStyle={{ bottom: "15%", left: "0%" }}
-          onShow={() => setActiveId(yuta.id)}
+          onShow={() => setActiveId(bedrock.id)}
           onHide={() => setActiveId(null)}
-          onActivate={() => setActiveId(yuta.id)}
+          onActivate={() => setActiveId(bedrock.id)}
           locale={locale}
           titleStyle={titleStyle}
-          isActive={activeId === yuta.id}
-          isDimmed={activeId !== null && activeId !== yuta.id}
+          isActive={activeId === bedrock.id}
+          isDimmed={activeId !== null && activeId !== bedrock.id}
         />
 
-        {/* Bottom Right: Shin Jinseo */}
+        {/* Bottom Right: Clear Mirror */}
         <MentorBaseCard
-          persona={jinseo}
+          persona={clearMirror}
           posStyle={{ bottom: "15%", right: "0%" }}
-          onShow={() => setActiveId(jinseo.id)}
+          onShow={() => setActiveId(clearMirror.id)}
           onHide={() => setActiveId(null)}
-          onActivate={() => setActiveId(jinseo.id)}
+          onActivate={() => setActiveId(clearMirror.id)}
           locale={locale}
           titleStyle={titleStyle}
-          isActive={activeId === jinseo.id}
-          isDimmed={activeId !== null && activeId !== jinseo.id}
+          isActive={activeId === clearMirror.id}
+          isDimmed={activeId !== null && activeId !== clearMirror.id}
         />
       </div>
+
+      {/* Fictional-character disclosure (desktop). Kept visible rather than
+          tucked into legal copy: the mentors are the one surface where a
+          visitor could reasonably take a character for a real player. */}
+      <p className="absolute bottom-6 left-1/2 z-20 hidden w-full max-w-2xl -translate-x-1/2 px-6 text-center text-[11px] leading-relaxed text-white/40 md:block">
+        {t.mentors.disclaimer}
+      </p>
     </main>
   );
 }
@@ -281,7 +291,7 @@ function MentorBaseCard({
             {name}
           </h2>
           <span className="text-xl opacity-60 grayscale-[0.2] group-hover:grayscale-0 transition-all">
-            {persona.flag}
+            {persona.emblem}
           </span>
         </div>
         <span className="text-[9px] uppercase tracking-[0.3em] text-[color:var(--color-accent)] font-bold opacity-50">

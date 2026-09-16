@@ -20,14 +20,14 @@
 
 - 落子是否正确**不由客户端传入**。服务端调用 `judgeMove(puzzle, userMove)`，结果写入系统提示词（`buildSystemPrompt`）。
 - 历史消息受总字符预算 **6,000**（优先保留最新消息）限制，每条另截断至 **2,000**；在上述裁剪前最多保留最近 **6** 轮往返。
-- 若传入 `personaId`，须为 `ke-jie`、`lee-sedol`、`go-seigen`、`iyama-yuta`、`shin-jinseo`、`custom` 之一（`CoachRequestSchema`）；省略时默认为棋圣吴清源风格（`go-seigen`）。
+- `personaId` 可选，取值为 `tempest`、`deep-current`、`still-water`、`bedrock`、`clear-mirror` 之一（`CoachRequestSchema`）；省略时默认为 `still-water`。无法识别的值不会报错，而是按省略处理并回落到默认导师——导师只决定讲解语气，过期的 id 不值得让付费功能返回 400。导师均为虚构角色，id 不得以真实人物命名（见 `lib/coach/personas.ts` 顶部的合规说明）。
 
 ```typescript
 {
   puzzleId: string;      // 最少 1 字符
   locale: "zh" | "en" | "ja" | "ko";
   userMove: { x: number; y: number };
-  personaId?: string;    // 默认棋圣（吴清源样式 persona）
+  personaId?: string;    // 默认 still-water；未知值回落到默认
   history: Array<{       // 最少 1 条
     role: "user" | "assistant";
     content: string;

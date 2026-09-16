@@ -96,7 +96,7 @@ export function CoachPersonaSelector({ selectedId, onSelect }: Props) {
         <span className="text-xs text-white/70 font-medium group-hover:text-[color:var(--color-accent)] transition-colors">
           {selectedPersona.name[locale] || selectedPersona.name["en"]}
         </span>
-        <span className="text-xs opacity-50">{selectedPersona.flag}</span>
+        <span className="text-xs opacity-50">{selectedPersona.emblem}</span>
         <ChevronDown
           className={`h-3 w-3 text-white/25 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
@@ -114,8 +114,9 @@ export function CoachPersonaSelector({ selectedId, onSelect }: Props) {
               <p className="text-[11px] text-white/35 uppercase tracking-wider font-medium">
                 {t.result.selectMentor}
               </p>
+              <p className="mt-1 text-[10px] leading-snug text-white/30">{t.mentors.disclaimer}</p>
             </div>
-            <div className="py-1.5 overflow-y-auto" style={{ maxHeight: panelPos.maxHeight - 40 }}>
+            <div className="py-1.5 overflow-y-auto" style={{ maxHeight: panelPos.maxHeight - 72 }}>
               {PERSONAS.map((p) => {
                 const isSelected = selectedId === p.id;
                 return (
@@ -147,7 +148,7 @@ export function CoachPersonaSelector({ selectedId, onSelect }: Props) {
                         >
                           {p.name[locale] || p.name["en"]}
                         </span>
-                        <span className="text-sm">{p.flag}</span>
+                        <span className="text-sm">{p.emblem}</span>
                         {isSelected && (
                           <span className="ml-auto text-[10px] uppercase tracking-wider text-[color:var(--color-accent)]/60 font-medium">
                             ✓

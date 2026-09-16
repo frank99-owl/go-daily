@@ -19,7 +19,7 @@ describe("MentorsPage", () => {
     renderMentorsPage();
 
     const cards = screen.getAllByRole("button", {
-      name: /Lee Sedol: The Invincible Fighter/i,
+      name: /Deep Current: The Deep Reader/i,
     });
     expect(cards).toHaveLength(2);
     const [mobileCard, desktopCard] = cards;
@@ -37,7 +37,7 @@ describe("MentorsPage", () => {
     renderMentorsPage();
 
     const [mobileCard] = screen.getAllByRole("button", {
-      name: /Go Seigen: The Sage of Harmony/i,
+      name: /Still Water: The Balanced Eye/i,
     });
 
     fireEvent.click(mobileCard);
@@ -48,12 +48,23 @@ describe("MentorsPage", () => {
     renderMentorsPage();
 
     const [mobileCard] = screen.getAllByRole("button", {
-      name: /Go Seigen: The Sage of Harmony/i,
+      name: /Still Water: The Balanced Eye/i,
     });
     fireEvent.click(mobileCard);
     expect(mobileCard).toHaveAttribute("aria-expanded", "true");
 
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(mobileCard).toHaveAttribute("aria-expanded", "false");
+  });
+
+  // The mentors are fictional characters, and this page is where a visitor
+  // could most easily take one for a real player. The disclosure must render
+  // in both layouts — the mobile list and the desktop quincunx are separate
+  // trees, so dropping it from one would not be caught by checking the other.
+  it("discloses that the mentors are fictional in both layouts", () => {
+    renderMentorsPage();
+
+    const disclosures = screen.getAllByText(/fictional characters/i);
+    expect(disclosures).toHaveLength(2);
   });
 });
