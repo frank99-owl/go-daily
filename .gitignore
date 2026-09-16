@@ -44,8 +44,11 @@ supabase/.temp/
 *.tsbuildinfo
 next-env.d.ts
 
-# Claude Code session files
-.claude/
+# Claude Code: the harness under .claude/commands/ is a repo asset and is
+# committed — it encodes the verification loops the CI gate expects. Only
+# machine-local files stay out.
+.claude/settings.local.json
+.claude/launch.json
 
 # generated audit artifacts (regenerate via npm run audit:puzzles | queue:content | report:*)
 /reports/puzzle-audit/*.json
@@ -64,6 +67,8 @@ next-env.d.ts
 /reports/duplicates/*.md
 /reports/quality/*.json
 /reports/quality/*.md
+/reports/coach-eval/*.json
+/reports/coach-eval/*.md
 # KataGo & Analysis Assets
 katago_model.bin.gz
 *.bin.gz

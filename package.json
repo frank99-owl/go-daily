@@ -24,6 +24,7 @@
     "sync:puzzle-index": "tsx scripts/syncPuzzleIndex.ts",
     "validate:puzzles": "tsx scripts/validatePuzzles.ts",
     "validate:messages": "tsx scripts/validateMessages.ts",
+    "validate:context": "tsx scripts/validateContext.ts",
     "preflight:prod": "tsx scripts/productionPreflight.ts",
     "eval:coach": "tsx evals/coach/run.ts",
     "audit:puzzles": "tsx scripts/auditPuzzles.ts",

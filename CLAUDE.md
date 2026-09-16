@@ -25,7 +25,9 @@ npm run test:e2e         # Playwright, against a production build (run `npm run 
 npm run test:e2e:ui      # Playwright watch UI
 npm run validate:puzzles # Validate puzzle JSON data
 npm run validate:messages # Validate i18n key sync across all 4 locales
+npm run validate:context # Validate CLAUDE.md / AGENTS.md against the codebase
 npm run prebuild         # Validates puzzles + messages (runs before build)
+npm run eval:coach       # Coach behavioral eval — dry run (add -- --live for real calls)
 ```
 
 Run a single test file: `npx vitest run tests/api/coach.test.ts`
@@ -79,21 +81,46 @@ Cross-cutting modules in `lib/*.ts`: `admin.ts`, `entitlements.ts`, `entitlement
 
 ## Testing
 
-Tests mirror source structure under `tests/`: `tests/lib/`, `tests/components/`, `tests/api/`, `tests/app/`, `tests/scripts/`. Co-located tests also exist in `lib/` itself.
+Vitest tests live **only** under `tests/`, mirroring the path of what they test: `tests/lib/`, `tests/components/`, `tests/api/`, `tests/app/`, `tests/scripts/`, `tests/evals/`. Never co-locate a test beside its source — until 2026-09 twenty did, and nine modules had one test file in each place with different contents. `tests/repo/testLayout.test.ts` fails CI on a `*.test.ts(x)` outside `tests/` or a `*.spec.ts` outside `e2e/`. When one module needs two files because their `vi.mock` setups conflict (mocks hoist to file scope), name them by what they cover — `syncStorage.test.ts` and `syncStorage.backoff.test.ts`.
 
 Setup file `tests/setup.ts` provides DOM mocks (scrollTo, ResizeObserver, canvas, localStorage, sessionStorage).
 
 End-to-end specs live in `e2e/` and run under Playwright, not Vitest (`vitest.config.ts` excludes the directory). They drive a real browser against a production build and cover the signed-out visitor: locale routing, response status codes, security headers, and canvas interaction. `e2e/README.md` explains why they need placeholder — not real — Supabase env, and what the monetization chain would need before it can be covered there.
 
-All logic changes require unit tests. UI changes should have component tests for critical paths.
+All logic changes require unit tests. UI changes should have component tests for critical paths. **Changes to the coach system prompt or a persona brief additionally require an eval case** — see `.claude/commands/prompt-change.md`.
 
 **Routes with a module-level rate limiter need a distinct IP per test request.** `getClientIP` falls back to the string `"unknown"`, so a test file that sends no `x-forwarded-for` pools every request into one bucket and starts tripping the limiter partway through the file. See the `nextTestIp()` helper in `tests/api/coach.test.ts`.
+
+## The harness
+
+Three pieces exist so the rules in this file are enforced by something other
+than an agent's memory:
+
+- **`npm run validate:context`** (`scripts/validateContext.ts`) fails CI when
+  this file or `AGENTS.md` describes a command, domain, path, or invariant that
+  no longer matches the codebase. Adding a new invariant to the pitfalls below
+  means adding it to `CRITICAL_INVARIANTS` there too.
+- **`evals/`** grades what the coach model actually _does_ against the rules
+  `buildSystemPrompt` states. `tests/lib/coach/coachPrompt.test.ts` only proves the
+  prompt contains them. See `evals/README.md`.
+- **`.claude/commands/`** holds the repeatable loops: `/verify` (the CI gate,
+  locally, in order), `/prompt-change` (the required loop for editing the coach
+  prompt), `/sync-context` (re-syncing this file and `docs/` after a structural
+  change). These are committed — they are repo assets, not local settings.
 
 ## CI Pipeline
 
 `.github/workflows/ci.yml` runs two jobs.
 
-**`check`**: npm audit (blocking on `--omit=dev`, full scan reporting-only) → format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
+**`check`**: npm audit (blocking on `--omit=dev`, full scan reporting-only) → format:check → lint → validate:puzzles → validate:messages → validate:context → tsc --noEmit → tsc scripts → test:coverage → build.
+
+CI runs `test:coverage` rather than `test` because the thresholds in
+`vitest.config.ts` are a ratchet and a bare `test` run does not evaluate them.
+The floors sit just under the measured numbers; raise them as coverage rises
+and never lower them to make a red build pass.
+
+`eval:coach` is deliberately **not** in CI: it needs a real API key, costs money
+per run, and is non-deterministic. It gates a prompt change, not a merge.
 
 **`e2e`**: npm ci → install chromium → build → `npm run test:e2e`, uploading the Playwright report on failure.
 
@@ -103,6 +130,10 @@ The audit gate is split on purpose: a high-severity advisory in a runtime depend
 
 - **i18n key drift**: Always run `npm run validate:messages` before committing. Keys must match across all 4 locale files in `content/messages/`.
 - **Coach eligibility**: Not all puzzles support coaching. Check `content/data/coachBasicEligibleIds.json`, `content/data/coachReadyIds.json`, `content/data/variationGroups.json`, and `lib/coach/coachEligibility.ts`.
+- **Coach personas are fictional characters**: the five mentors in `lib/coach/personas.ts` are original characters, never real players. No real names (any script), no national flags, no identifying biography, no "you are <person>" instructions, and no persona id named after a person — the id travels in API payloads and analytics. This is a publicity/personality-rights boundary, not style; `tests/lib/coach/personas.test.ts` enforces it and `docs/*/LEGAL_COMPLIANCE.md` section 4 explains it. References to real players elsewhere must stay factual and carry no implied endorsement.
+- **Guest coach counters**: `guest_coach_usage` is written only via `service_role` in `lib/coach/guestCoachUsage.ts`. Clients never query it directly.
+- **Coach token budget covers reasoning**: `COACH_MAX_TOKENS` (default 2000) is the whole generation budget, and a reasoning model spends hidden reasoning out of it — it is not a reply-length cap, and must never become a hardcoded literal again. It was `400` until 2026-09, and `deepseek-v4-flash` burned all of it on reasoning: `finish_reason: length`, zero visible content, an empty reply on every analysis question. `COACH_THINKING` left unset sends `disabled` to api.deepseek.com and nothing to other hosts (`resolveThinking` in `lib/coach/coachProvider.ts`), so the default is right whichever DeepSeek model name is configured. Every live `eval:coach` run grades `generation-budget` automatically, so a truncation shows up there first.
+- **Coach quota refunds**: `createCoachSseStream` refunds a call only when _nothing_ was streamed. A client disconnect surfaces as an error from the upstream iteration, so refunding after delivery would let a caller read the reply and drop the connection to get the call back.
 - **Stripe webhook idempotency**: Events are logged in `stripe_events` before processing. Never bypass this.
 - **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
 - **Environment variables**: See `.env.example` for the full list. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.

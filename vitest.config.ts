@@ -20,6 +20,17 @@ export default defineConfig({
       reporter: ["text", "html"],
       include: ["lib/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "app/**/*.{ts,tsx}"],
       exclude: ["**/*.test.{ts,tsx}", "**/*.d.ts"],
+      // Ratchet, not a target. Each floor sits just under the measurement
+      // taken on 2026-09-16 (70.35 / 65.09 / 69.90 / 71.79), so the gate is
+      // green today and a change that removes tested code or adds untested
+      // code fails CI instead of quietly eroding the number. Raise these when
+      // coverage rises; never lower them to make a red build pass.
+      thresholds: {
+        statements: 69,
+        branches: 64,
+        functions: 68,
+        lines: 70,
+      },
     },
   },
 });

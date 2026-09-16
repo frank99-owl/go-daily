@@ -28,9 +28,14 @@ jobs:
       - run: npm run lint
       - run: npm run validate:puzzles
       - run: npm run validate:messages
+      # Keeps CLAUDE.md / AGENTS.md from describing a repo that no longer
+      # exists. An agent acting on a stale map writes the mistake into code.
+      - run: npm run validate:context
       - run: npx tsc --noEmit
       - run: npx tsc --project tsconfig.scripts.json
-      - run: npm run test
+      # Coverage, not a bare run: vitest.config.ts carries ratchet thresholds
+      # and `npm run test` would not evaluate them.
+      - run: npm run test:coverage
       - run: npm run build
         env:
           DEEPSEEK_API_KEY: "ci-fake-key-not-used-during-build"

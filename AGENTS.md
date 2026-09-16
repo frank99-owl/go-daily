@@ -50,32 +50,44 @@ All core logic lives in `lib/` organized by domain:
 ## Testing
 
 ```bash
-npm run test          # Run all (111 files, 982 cases as of 2026-06-11)
+npm run test          # Run all (106 files, 1038 cases as of 2026-09-16)
 npm run test:watch    # Watch mode
-npm run test:coverage # Coverage report (target: 70%+)
+npm run test:coverage # Coverage + ratchet thresholds (this is what CI runs)
+npm run eval:coach    # Coach behavioral eval — dry run by default
 ```
 
-Tests mirror source under `tests/`: `tests/lib/`, `tests/components/`, `tests/api/`, `tests/app/`, `tests/scripts/`.
+Vitest tests live **only** under `tests/`, mirroring the source path (`tests/lib/`, `tests/components/`, `tests/api/`, `tests/app/`, `tests/scripts/`, `tests/evals/`); Playwright specs live only in `e2e/`. Never co-locate a test beside its source — `tests/repo/testLayout.test.ts` fails CI if one appears. When one module needs two test files because their `vi.mock` setups conflict, name them by coverage (`syncStorage.test.ts`, `syncStorage.backoff.test.ts`).
 
 All logic changes require unit tests. UI changes should have component tests for critical paths.
 
 ## Build & CI
 
 ```bash
-npm run prebuild      # Validates puzzles + i18n message keys
-npm run build         # Production build
-npm run lint          # ESLint
-npm run format:check  # Prettier check
-npm run test          # Vitest
-npm run test:e2e      # Playwright (needs a production build first)
+npm run prebuild         # Validates puzzles + i18n message keys
+npm run build            # Production build
+npm run lint             # ESLint
+npm run format:check     # Prettier check
+npm run validate:context # CLAUDE.md / AGENTS.md vs. the codebase
+npm run test:coverage    # Vitest + coverage thresholds
+npm run test:e2e         # Playwright (needs a production build first)
 ```
 
 CI pipeline (`.github/workflows/ci.yml`), two jobs:
 
-- **`check`**: npm audit (blocking on `--omit=dev`; the full scan runs as a reporting-only step) → format:check → lint → validate:puzzles → validate:messages → tsc --noEmit → tsc scripts → test → build.
+- **`check`**: npm audit (blocking on `--omit=dev`; the full scan runs as a reporting-only step) → format:check → lint → validate:puzzles → validate:messages → validate:context → tsc --noEmit → tsc scripts → test:coverage → build.
 - **`e2e`**: npm ci → chromium → build → `npm run test:e2e`, uploading the report on failure.
 
-The audit split keeps a dev-only advisory from blocking merges while a runtime one still stops the pipeline.
+The audit split keeps a dev-only advisory from blocking merges while a runtime one still stops the pipeline. CI runs `test:coverage` rather than `test` because the ratchet thresholds in `vitest.config.ts` are only evaluated under coverage.
+
+## The Harness
+
+Three pieces enforce the rules above mechanically, rather than relying on an agent remembering them:
+
+- **`npm run validate:context`** (`scripts/validateContext.ts`) — fails CI when this file or `CLAUDE.md` names a command, domain, path, or invariant that no longer matches the codebase. A new invariant goes in the pitfalls of **both** files and in `CRITICAL_INVARIANTS`.
+- **`evals/`** — grades what the coach model actually does against the rules `buildSystemPrompt` states; `tests/lib/coach/coachPrompt.test.ts` only proves the prompt contains them. Dry run by default, never in CI. See `evals/README.md`.
+- **`.claude/commands/`** — the repeatable loops, committed as repo assets: `/verify`, `/prompt-change`, `/sync-context`.
+
+Changes to the coach system prompt or a persona brief require an eval case in `evals/coach/cases.ts`, not just a string assertion.
 
 ## Common Pitfalls
 
@@ -85,7 +97,9 @@ The audit split keeps a dev-only advisory from blocking merges while a runtime o
 - **Three-tier storage**: Anonymous users use LocalStorage only. Logged-in users double-write to LocalStorage + IndexedDB queue, then sync to Supabase.
 - **Environment variables**: See `.env.example` for the full list. Never commit `.env.local`. Server-only secrets must NOT use `NEXT_PUBLIC_` prefix.
 - **Manual Pro grants**: Email-based grants live in `manual_grants` and are merged in `resolveViewerPlan()` (`lib/entitlementsServer.ts`). Admin routes call `verifyAdmin()` from `lib/admin.ts`, which admits on _either_ an `ADMIN_USER_IDS` (session UUID) match or an `ADMIN_EMAILS` match; **`/api/admin/verify`** additionally requires `ADMIN_PIN`. Keep all of these server-only; do not add permissive RLS policies to `manual_grants`.
+- **Coach personas are fictional characters**: the five mentors in `lib/coach/personas.ts` are original characters, never real players. No real names (any script), no national flags, no identifying biography, no "you are <person>" instructions, and no persona id named after a person — the id travels in API payloads and analytics. This is a publicity/personality-rights boundary, not style; `tests/lib/coach/personas.test.ts` enforces it and `docs/*/LEGAL_COMPLIANCE.md` section 4 explains it. References to real players elsewhere must stay factual and carry no implied endorsement.
 - **Guest coach counters**: `guest_coach_usage` is written only via `service_role` in `guestCoachUsage.ts`; clients never query it directly.
+- **Coach token budget covers reasoning**: `COACH_MAX_TOKENS` (default 2000) is the whole generation budget, and a reasoning model spends hidden reasoning out of it — it is not a reply-length cap, and must never become a hardcoded literal again. It was `400` until 2026-09, and `deepseek-v4-flash` burned all of it on reasoning: `finish_reason: length`, zero visible content, an empty reply on every analysis question. `COACH_THINKING` left unset sends `disabled` to api.deepseek.com and nothing to other hosts (`resolveThinking` in `lib/coach/coachProvider.ts`), so the default is right whichever DeepSeek model name is configured. Every live `eval:coach` run grades `generation-budget` automatically, so a truncation shows up there first.
 - **Coach quota refunds**: `createCoachSseStream` refunds a call only when _nothing_ was streamed. A client disconnect surfaces as an error from the upstream iteration, so refunding after delivery would let a caller read the reply and drop the connection to get the call back.
 - **`notFound()` and buffering**: the HTTP status is committed on first flush, so a `loading.tsx` above a segment that calls `notFound()` produces a soft 200. There is deliberately no `app/[locale]/loading.tsx`. A page that calls `notFound()` also loses its own metadata — the 404 title lives in `app/[locale]/not-found.tsx`.
 - **Title template**: `app/[locale]/layout.tsx` supplies `"%s — go-daily"`. Metadata strings must not repeat the suffix. The home page is exempt (a template skips the page in the layout's own segment).
@@ -107,3 +121,13 @@ The audit split keeps a dev-only advisory from blocking merges while a runtime o
 | `docs/{locale}/LEGAL_COMPLIANCE.md` | Multi-jurisdiction legal strategy                           |
 
 **Other Markdown**: root `README.md` / localized `README.*`, `CONTRIBUTING.md` (English; GitHub default) + `CONTRIBUTING.zh.md`, `CHANGELOG.md`, `SECURITY.md`, `LICENSE`. **`reports/**`**: generator output from `audit:puzzles`, `queue:content`, `report:\*`— not committed; not hand-maintained product specs (see`docs/README.md`).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
