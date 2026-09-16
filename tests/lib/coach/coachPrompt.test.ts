@@ -1,10 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
+import { buildSystemPrompt } from "@/lib/coach/coachPrompt";
+import { DEFAULT_PERSONA, PERSONAS } from "@/lib/coach/personas";
 import type { Locale, Puzzle, Stone } from "@/types";
-
-import { buildSystemPrompt } from "./coachPrompt";
-import { DEFAULT_PERSONA } from "./personas";
 
 // Minimal 19×19 puzzle with a local cluster — crops to a small window.
 function make19Puzzle(overrides: Partial<Puzzle> = {}): Puzzle {
@@ -89,6 +88,27 @@ describe("buildSystemPrompt — topic scope", () => {
     expect(prompt).toContain("Stay on topic");
     expect(prompt).toContain("do not answer it");
     expect(prompt).toContain("Never answer with silence or an empty message");
+  });
+
+  it("answers a greeting without volunteering a verdict on the move", () => {
+    const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, DEFAULT_PERSONA);
+    expect(prompt).toContain("say whether their move was correct until they ask");
+  });
+
+  it("ranks the behavioral rules above the persona brief", () => {
+    // The brief is placed first. Without an explicit precedence line, a brief
+    // centered on judging moves overrode the greeting rule in the eval
+    // (evals/coach, greeting-ko) — so the line must exist and sit between the
+    // brief and the rules it protects.
+    for (const persona of PERSONAS) {
+      const prompt = buildSystemPrompt(make19Puzzle(), "en", { x: 18, y: 2 }, true, persona);
+      const brief = prompt.indexOf(persona.systemInstructions.en);
+      const precedence = prompt.indexOf("Every rule below takes precedence over it");
+      const greetingRule = prompt.indexOf("If the student sends a greeting");
+      expect(brief, persona.id).toBeGreaterThanOrEqual(0);
+      expect(precedence, persona.id).toBeGreaterThan(brief);
+      expect(greetingRule, persona.id).toBeGreaterThan(precedence);
+    }
   });
 
   it("keeps greetings and Go small talk explicitly allowed", () => {
