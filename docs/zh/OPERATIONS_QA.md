@@ -17,8 +17,11 @@
 配置通过 Vercel 环境变量管理。关键开关包括：
 
 - `NEXT_PUBLIC_IS_COMMERCIAL`: 设为 `true` 以开启 Stripe 组件和 `/pricing` 页面。
-- `COACH_MODEL`: 默认为 `deepseek-chat`。可切换为 `deepseek-reasoner`。
-- `COACH_MONTHLY_TOKEN_BUDGET`: 应用层硬性限制，防止账单意外激增。
+- `COACH_MODEL`: 默认为 `deepseek-chat`。2026-09-16 对 api.deepseek.com 实测：`deepseek-chat`、`deepseek-v4-flash`、`deepseek-reasoner`、`deepseek-flash` 都解析为 `deepseek-flash`；其中 `deepseek-chat` 默认关闭 thinking，其余三个默认开启。`/models` 列表不列出这些别名，但它们均可用——`deepseek-chat` 并未退役。
+- `COACH_MAX_TOKENS`: 单次回复的生成总预算，默认 `2000`（范围 256–16000）。推理模型的隐藏推理也计入这个预算，所以它不是回复长度上限——长度由系统提示词控制。2026-09 之前硬编码为 `400`：`deepseek-v4-flash` 会把 400 全部花在推理上，`finish_reason` 为 `length`，可见内容为零。
+- `COACH_THINKING`: DeepSeek 的 thinking 开关，取值 `enabled` / `disabled`。**不设置时按端点决定：`api.deepseek.com` 自动发送 `disabled`，其他主机什么都不发送**（非 DeepSeek 端点不会收到未知参数），因此无论 `COACH_MODEL` 填哪个 DeepSeek 名称，默认都是正确配置。只有明确需要推理时才设为 `enabled`，原因：提示词已包含正解、错招分支和解析，隐藏推理主要在重复推导已知答案；实测开启时「为什么下错」类问题推理 1.5k–2k+ token、约 10 秒且约半数被截断，关闭后约 200 token、约 2 秒，coach 评测 16/16 通过。另外 DeepSeek 文档说明 thinking 模式不支持 `temperature`。备用端点使用独立的 `COACH_FALLBACK_THINKING`，不继承主端点设置，未设置时同样按其自身主机决定默认值。
+- **月度 token 预算上限尚未实现。** 此前文档描述的 `COACH_MONTHLY_TOKEN_BUDGET` 在代码中并不存在。目前 coach 开销仅受用户级日/月配额（`lib/coach/coachQuota.ts`）、游客计数与速率限制约束，没有全局账单硬上限——请在模型服务商控制台设置用量告警。
+- 修改以上任一项后运行 `npm run eval:coach -- --live`，报告会记录每个用例的推理 token、总 token、延迟和 `finish_reason`。
 - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`：**生产环境必填** — 当 `NODE_ENV === "production"` 且缺少任一时，`createRateLimiter()` 返回桩，**首次**调用 `isLimited()` 时抛出错误（见 `lib/rateLimit.ts`；`next build` 可不配凭证）。**开发环境**可两者都不配置以使用 `MemoryRateLimiter`（仅适合单进程）。
 
 ### OG / Twitter 预览图（`next/og`）
@@ -61,7 +64,7 @@ P2-D 的验证必须保持本地、mock、静态分析或单元测试边界；�
 
 ```bash
 npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts
-npm run test -- lib/sentryScrubber.test.ts
+npm run test -- tests/lib/sentryScrubber.test.ts
 npm run validate:messages
 npm run lint
 npx tsc --noEmit

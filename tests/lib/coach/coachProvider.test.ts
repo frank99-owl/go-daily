@@ -2,8 +2,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
+  COACH_TEMPERATURE,
   createManagedCoachProvider,
   FallbackCoachProvider,
+  resolveThinking,
   type CoachProviderMessage,
   type CoachStreamChunk,
 } from "../../../lib/coach/coachProvider";
@@ -17,6 +19,8 @@ vi.mock("@/lib/env", () => ({
     DEEPSEEK_API_KEY: "test-key",
     COACH_MODEL: process.env.COACH_MODEL || "deepseek-chat",
     COACH_API_URL: process.env.COACH_API_URL || "https://api.deepseek.com",
+    COACH_MAX_TOKENS: 2000,
+    COACH_THINKING: process.env.COACH_THINKING as "enabled" | "disabled" | undefined,
   }),
 }));
 
@@ -90,6 +94,8 @@ describe("CoachProvider Fallback Mechanism", () => {
     delete process.env.COACH_API_URL;
     delete process.env.COACH_FALLBACK_API_URL;
     delete process.env.COACH_FALLBACK_API_KEY;
+    delete process.env.COACH_THINKING;
+    delete process.env.COACH_FALLBACK_THINKING;
   });
 
   it("should use single provider if fallback is not configured", async () => {
@@ -112,6 +118,85 @@ describe("CoachProvider Fallback Mechanism", () => {
 
     expect(primaryMock).toHaveBeenCalledTimes(1);
     expect(secondaryMock).not.toHaveBeenCalled();
+  });
+
+  // The budget used to be a hardcoded 400. A reasoning model spent all of it
+  // on hidden reasoning, finished with "length", and streamed zero content —
+  // an empty reply on every analysis question. The budget must come from
+  // config, reach both providers, and never silently revert to a literal.
+  it("sends the configured token budget and the shared temperature upstream", async () => {
+    process.env.COACH_FALLBACK_API_URL = "https://api.fallback.com";
+    primaryMock.mockRejectedValue(new Error("primary down"));
+    secondaryMock.mockResolvedValue(mockStream([{ delta: "OK" }, { done: true }]));
+
+    const provider = createManagedCoachProvider({ apiKey: "test-key", timeout: 1000 });
+    await collectStream(provider.createReplyStream(dummyMessages));
+
+    for (const mock of [primaryMock, secondaryMock]) {
+      expect(mock).toHaveBeenCalledWith(
+        expect.objectContaining({ max_tokens: 2000, temperature: COACH_TEMPERATURE }),
+        expect.anything(),
+      );
+    }
+  });
+
+  it("disables thinking by default on DeepSeek's own API", async () => {
+    // Several DeepSeek model names turn thinking on by default, and with it on
+    // the coach returned empty replies. The default must not depend on which
+    // name COACH_MODEL happens to hold.
+    primaryMock.mockResolvedValue(mockStream([{ delta: "OK" }, { done: true }]));
+
+    const provider = createManagedCoachProvider({ apiKey: "test-key", timeout: 1000 });
+    await collectStream(provider.createReplyStream(dummyMessages));
+
+    expect(primaryMock.mock.calls[0][0]).toMatchObject({ thinking: { type: "disabled" } });
+  });
+
+  it("sends no thinking parameter to a non-DeepSeek endpoint when unset", async () => {
+    process.env.COACH_API_URL = "https://api.other-vendor.com/v1";
+    primaryMock.mockResolvedValue(mockStream([{ delta: "OK" }, { done: true }]));
+
+    const provider = createManagedCoachProvider({ apiKey: "test-key", timeout: 1000 });
+    await collectStream(provider.createReplyStream(dummyMessages));
+
+    // An OpenAI-compatible endpoint that is not DeepSeek must never see it.
+    expect(primaryMock.mock.calls[0][0]).not.toHaveProperty("thinking");
+  });
+
+  it("lets an explicit COACH_THINKING override the default", async () => {
+    process.env.COACH_THINKING = "enabled";
+    primaryMock.mockResolvedValue(mockStream([{ delta: "OK" }, { done: true }]));
+
+    const provider = createManagedCoachProvider({ apiKey: "test-key", timeout: 1000 });
+    await collectStream(provider.createReplyStream(dummyMessages));
+
+    expect(primaryMock.mock.calls[0][0]).toMatchObject({ thinking: { type: "enabled" } });
+  });
+
+  it("does not pass the primary's thinking switch on to the fallback", async () => {
+    // The fallback may be another vendor. Inheriting a DeepSeek-only parameter
+    // would fail exactly the request the fallback exists to rescue.
+    process.env.COACH_THINKING = "disabled";
+    process.env.COACH_FALLBACK_API_URL = "https://api.fallback.com";
+    primaryMock.mockRejectedValue(new Error("primary down"));
+    secondaryMock.mockResolvedValue(mockStream([{ delta: "OK" }, { done: true }]));
+
+    const provider = createManagedCoachProvider({ apiKey: "test-key", timeout: 1000 });
+    await collectStream(provider.createReplyStream(dummyMessages));
+
+    expect(secondaryMock.mock.calls[0][0]).not.toHaveProperty("thinking");
+  });
+
+  it("uses COACH_FALLBACK_THINKING for the fallback when set", async () => {
+    process.env.COACH_FALLBACK_API_URL = "https://api.fallback.com";
+    process.env.COACH_FALLBACK_THINKING = "disabled";
+    primaryMock.mockRejectedValue(new Error("primary down"));
+    secondaryMock.mockResolvedValue(mockStream([{ delta: "OK" }, { done: true }]));
+
+    const provider = createManagedCoachProvider({ apiKey: "test-key", timeout: 1000 });
+    await collectStream(provider.createReplyStream(dummyMessages));
+
+    expect(secondaryMock.mock.calls[0][0]).toMatchObject({ thinking: { type: "disabled" } });
   });
 
   it("should create FallbackCoachProvider when fallback URL is provided", async () => {
@@ -168,5 +253,25 @@ describe("CoachProvider Fallback Mechanism", () => {
     expect(secondaryMock).toHaveBeenCalledTimes(1);
 
     consoleSpy.mockRestore();
+  });
+});
+
+describe("resolveThinking", () => {
+  it("prefers an explicit setting over the host default", () => {
+    expect(resolveThinking("enabled", "https://api.deepseek.com")).toBe("enabled");
+    expect(resolveThinking("disabled", "https://api.other-vendor.com")).toBe("disabled");
+  });
+
+  it("defaults to disabled only for DeepSeek's exact API host", () => {
+    expect(resolveThinking(undefined, "https://api.deepseek.com")).toBe("disabled");
+    expect(resolveThinking(undefined, "https://api.deepseek.com/v1")).toBe("disabled");
+    // A lookalike host is not DeepSeek; matching on a substring would send a
+    // DeepSeek-only parameter to whoever controls it.
+    expect(resolveThinking(undefined, "https://api.deepseek.com.example.net")).toBeUndefined();
+    expect(resolveThinking(undefined, "https://api.other-vendor.com")).toBeUndefined();
+  });
+
+  it("sends nothing when the URL cannot be parsed", () => {
+    expect(resolveThinking(undefined, "not a url")).toBeUndefined();
   });
 });

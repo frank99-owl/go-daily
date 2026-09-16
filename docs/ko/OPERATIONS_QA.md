@@ -15,8 +15,11 @@
 설정은 Vercel 환경 변수를 통해 관리됩니다. 주요 토글은 다음과 같습니다:
 
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Stripe 구성 요소와 `/pricing` 페이지를 활성화하려면 `true`로 설정합니다.
-- `COACH_MODEL`: 기본값은 `deepseek-chat`입니다. 필요한 경우 `deepseek-reasoner`로 교체할 수 있습니다.
-- `COACH_MONTHLY_TOKEN_BUDGET`: 예기치 않은 비용 급증을 방지하기 위한 애플리케이션 레벨의 엄격한 월간 제한.
+- `COACH_MODEL`: 기본값은 `deepseek-chat`입니다. 2026-09-16 api.deepseek.com 실측: `deepseek-chat`, `deepseek-v4-flash`, `deepseek-reasoner`, `deepseek-flash`는 모두 `deepseek-flash`로 해석되며, `deepseek-chat`만 thinking 기본 꺼짐이고 나머지 셋은 켜짐입니다. `/models`에는 이 별칭들이 나오지 않지만 모두 사용 가능하며 `deepseek-chat`은 폐기되지 않았습니다.
+- `COACH_MAX_TOKENS`: 답변 1회의 생성 총예산, 기본값 `2000`(범위 256–16000). 추론 모델의 숨은 추론도 이 예산에 포함되므로 답변 길이 상한이 아닙니다(길이는 시스템 프롬프트가 제어). 2026-09 이전에는 `400`으로 하드코딩되어 있었고, `deepseek-v4-flash`가 400을 모두 추론에 써서 `finish_reason`이 `length`, 보이는 내용은 0이었습니다.
+- `COACH_THINKING`: DeepSeek의 thinking 스위치, `enabled` / `disabled`. **설정하지 않으면 엔드포인트에 따라 정해집니다: `api.deepseek.com`에는 자동으로 `disabled`를 보내고 다른 호스트에는 아무것도 보내지 않습니다**(DeepSeek이 아닌 엔드포인트는 알 수 없는 파라미터를 받지 않음). 그래서 `COACH_MODEL`에 어떤 DeepSeek 이름을 넣어도 기본값이 올바릅니다. `enabled`는 의도한 경우에만 설정하세요. 이유: 프롬프트에 정답·오답 수순·해설이 이미 들어 있어 숨은 추론은 주로 알려진 답을 다시 도출합니다. thinking을 켠 실측에서 '왜 틀렸나' 유형 질문은 추론 1.5k–2k+ 토큰, 약 10초, 약 절반이 잘렸고, 끄면 약 200 토큰, 약 2초로 coach 평가 16/16을 통과했습니다. DeepSeek 문서에 따르면 thinking 모드는 `temperature`를 지원하지 않습니다. 폴백 엔드포인트는 별도의 `COACH_FALLBACK_THINKING`을 쓰며 기본 엔드포인트 설정을 상속하지 않고, 설정하지 않으면 자기 호스트 기준의 같은 기본값이 적용됩니다.
+- **월간 토큰 예산은 구현되어 있지 않습니다.** 이전 문서가 설명한 `COACH_MONTHLY_TOKEN_BUDGET`은 코드에 존재하지 않습니다. coach 비용은 사용자별 일/월 할당량(`lib/coach/coachQuota.ts`), 게스트 카운터, 속도 제한으로만 제한되며 전역 청구 상한은 없으니, 모델 제공사 콘솔에서 사용량 알림을 설정하세요.
+- 위 항목 중 하나라도 바꾸면 `npm run eval:coach -- --live`를 실행하세요. 보고서에 케이스별 추론 토큰, 총 토큰, 지연 시간, `finish_reason`이 기록됩니다.
 - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: **프로덕션에서 필수** — `NODE_ENV === "production"`이고 둘 중 하나라도 없으면 `createRateLimiter()`가 스텁을 반환하고 **첫 `isLimited()`**에서 예외를 던집니다(`lib/rateLimit.ts` 참고; `next build`는 자격 증명 없이 가능). **개발**에서는 둘 다 생략해 `MemoryRateLimiter`(단일 프로세스 전용)를 쓸 수 있습니다.
 
 ### OG / Twitter 미리보기 이미지 (`next/og`)

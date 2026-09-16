@@ -33,6 +33,25 @@ const coachSchema = z.object({
   DEEPSEEK_API_KEY: required("DEEPSEEK_API_KEY"),
   COACH_MODEL: optionalDefault("deepseek-chat"),
   COACH_API_URL: optionalDefault("https://api.deepseek.com"),
+  // Total generation budget for one coach reply. On a reasoning model this
+  // budget covers the hidden reasoning AND the visible answer, so it is not a
+  // length cap — the system prompt ("2–4 short paragraphs") controls length.
+  // It was a hardcoded 400 until 2026-09, which a reasoning model spends
+  // entirely on reasoning: finish_reason "length", zero content, and an empty
+  // reply on exactly the analysis questions students pay for. Measured on
+  // deepseek-v4-flash, a simple "where should I have played?" used 637
+  // reasoning tokens before its first visible one. On a non-reasoning model
+  // (the deepseek-chat default) this is only a ceiling and costs nothing unused.
+  COACH_MAX_TOKENS: z.coerce.number().int().min(256).max(16000).default(2000),
+  // DeepSeek's thinking switch, sent as `thinking: { type }`. When unset, the
+  // provider sends "disabled" to api.deepseek.com and nothing to any other
+  // host — see resolveThinking in lib/coach/coachProvider.ts. Set "enabled"
+  // only on purpose: the prompt already carries the accepted answer, the wrong
+  // branches and the solution note, so hidden reasoning mostly re-derives
+  // ground truth. Measured on deepseek-v4-flash with thinking on, "why was my
+  // move wrong?" took 1.5k–2k+ reasoning tokens and ~10s, and DeepSeek
+  // documents that thinking mode ignores `temperature`.
+  COACH_THINKING: z.enum(["enabled", "disabled"]).optional(),
 });
 
 const stripeSchema = z.object({
@@ -75,7 +94,15 @@ function pickEnv(keys: string[]): Record<string, string | undefined> {
 
 export function getCoachEnv(): CoachEnv {
   if (!_coach) {
-    _coach = coachSchema.parse(pickEnv(["DEEPSEEK_API_KEY", "COACH_MODEL", "COACH_API_URL"]));
+    _coach = coachSchema.parse(
+      pickEnv([
+        "DEEPSEEK_API_KEY",
+        "COACH_MODEL",
+        "COACH_API_URL",
+        "COACH_MAX_TOKENS",
+        "COACH_THINKING",
+      ]),
+    );
   }
   return _coach;
 }

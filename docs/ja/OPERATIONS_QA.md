@@ -15,8 +15,11 @@
 構成は Vercel の環境変数を通じて管理されます。最も重要なトグルは以下の通りです：
 
 - `NEXT_PUBLIC_IS_COMMERCIAL`: Stripe コンポーネントと `/pricing` ページを有効にするには `true` に設定します。
-- `COACH_MODEL`: デフォルトは `deepseek-chat`。より精度の高い `deepseek-reasoner` に変更可能です。
-- `COACH_MONTHLY_TOKEN_BUDGET`: 予期せぬ課金の急増を防ぐための、アプリケーションレベルのハードな月間制限。
+- `COACH_MODEL`: デフォルトは `deepseek-chat`。2026-09-16 に api.deepseek.com で実測：`deepseek-chat`、`deepseek-v4-flash`、`deepseek-reasoner`、`deepseek-flash` はすべて `deepseek-flash` に解決され、`deepseek-chat` だけが thinking デフォルト無効、他の 3 つは有効です。`/models` にはこれらのエイリアスが表示されませんが、すべて利用可能で、`deepseek-chat` は廃止されていません。
+- `COACH_MAX_TOKENS`: 1 回の返答の生成総予算。デフォルト `2000`（範囲 256–16000）。推論モデルの隠れた推論もこの予算に含まれるため、返答の長さ上限ではありません（長さはシステムプロンプトで制御）。2026-09 まではハードコードの `400` で、`deepseek-v4-flash` は 400 をすべて推論に使い切り、`finish_reason` が `length`、表示内容はゼロでした。
+- `COACH_THINKING`: DeepSeek の thinking スイッチ。`enabled` / `disabled`。**未設定時はエンドポイントで決まります：`api.deepseek.com` には自動で `disabled` を送り、それ以外のホストには何も送りません**（DeepSeek 以外に未知のパラメータは届きません）。そのため `COACH_MODEL` にどの DeepSeek 名を入れてもデフォルトで正しく動きます。`enabled` は意図的な場合のみ設定してください。理由：プロンプトに正解・失敗手順・解説が含まれているため、隠れた推論は既知の答えを導き直すだけになりがちです。thinking 有効時の実測では「なぜ間違いか」系の質問で推論 1.5k–2k+ トークン、約 10 秒、約半数が打ち切り。無効時は約 200 トークン、約 2 秒で、coach 評価は 16/16。DeepSeek のドキュメントでは thinking モードは `temperature` を無視するとされています。フォールバック側は独自の `COACH_FALLBACK_THINKING` を使い、プライマリの設定は継承せず、未設定時は自身のホストに基づく同じデフォルトが適用されます。
+- **月間トークン予算は未実装です。** 以前の本ドキュメントに記載されていた `COACH_MONTHLY_TOKEN_BUDGET` はコードに存在しません。coach の支出はユーザー単位の日次/月次クォータ（`lib/coach/coachQuota.ts`）、ゲストカウンター、レート制限でのみ抑えられており、全体の課金上限はありません。モデル事業者のコンソールで利用量アラートを設定してください。
+- 上記のいずれかを変更したら `npm run eval:coach -- --live` を実行してください。レポートにはケースごとの推論トークン、総トークン、レイテンシ、`finish_reason` が記録されます。
 - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`：**本番では必須** — `NODE_ENV === "production"` でどちらかが欠けると、`createRateLimiter()` はスタブを返し、**最初の `isLimited()`** で例外を投げます（`lib/rateLimit.ts` 参照；`next build` は資格情報なしで可能）。**開発**では両方省略して `MemoryRateLimiter`（単一プロセス専用）にできます。
 
 ### OG / Twitter プレビュー画像（`next/og`）
