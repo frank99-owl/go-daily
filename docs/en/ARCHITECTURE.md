@@ -68,7 +68,7 @@ The system operates on a three-state synchronization model:
 
 ### `lib/puzzle/` (Puzzle Engine)
 
-- **SRS & loading**: Spaced repetition (`srs.ts`, `reviewSrs.ts`), daily selection, collections, reveal tokens, snapshots, and status helpers — eight puzzle modules plus a colocated `puzzleOfTheDay.test.ts` in `lib/puzzle/`.
+- **SRS & loading**: Spaced repetition (`srs.ts`, `reviewSrs.ts`), daily selection, collections, reveal tokens, snapshots, and status helpers — eight puzzle modules in `lib/puzzle/` (tests in `tests/lib/puzzle/`).
 
 ### `lib/entitlements.ts` & `lib/entitlementsServer.ts` (Plans)
 

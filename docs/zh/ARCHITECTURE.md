@@ -68,7 +68,7 @@
 
 ### `lib/puzzle/` (题目引擎)
 
-- **SRS 与加载**：间隔重复（`srs.ts`、`reviewSrs.ts`）、每日选题、题集、揭示令牌、快照与状态工具等 — `lib/puzzle/` 下八个实现模块，另含同目录的 `puzzleOfTheDay.test.ts`。
+- **SRS 与加载**：间隔重复（`srs.ts`、`reviewSrs.ts`）、每日选题、题集、揭示令牌、快照与状态工具等 — `lib/puzzle/` 下八个实现模块（测试位于 `tests/lib/puzzle/`）。
 - **内容字段**：题目契约来自 `types/schemas.ts`。`correct` 与 `solutionNote` 支撑基础解题和结果页；`solutionSequence` 与 `wrongBranches` 支撑教练主线、错手反驳和后续变化题整理。
 
 ### `lib/entitlements.ts` 与 `lib/entitlementsServer.ts`（档位）

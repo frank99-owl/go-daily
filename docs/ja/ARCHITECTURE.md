@@ -68,7 +68,7 @@ Zod ベースの集中型環境変数検証器。各ドメイン（Coach、Strip
 
 ### `lib/puzzle/` (パズルエンジン)
 
-- **SRS とロード**：間隔反復（`srs.ts`, `reviewSrs.ts`）、デイリー選択、コレクション、リビールトークン、スナップショット、状態ヘルパー — `lib/puzzle/` に 8 実装モジュールと同梱の `puzzleOfTheDay.test.ts`。
+- **SRS とロード**：間隔反復（`srs.ts`, `reviewSrs.ts`）、デイリー選択、コレクション、リビールトークン、スナップショット、状態ヘルパー — `lib/puzzle/` に 8 実装モジュール（テストは `tests/lib/puzzle/`）。
 
 ### `lib/entitlements.ts` & `lib/entitlementsServer.ts`（プラン）
 

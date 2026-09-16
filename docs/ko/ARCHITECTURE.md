@@ -68,7 +68,7 @@ Zod 기반 중앙 집중식 환경 변수 검증기. 각 도메인(Coach, Stripe
 
 ### `lib/puzzle/` (문제 엔진)
 
-- **SRS 및 로딩**: 간격 반복(`srs.ts`, `reviewSrs.ts`), 일일 선택, 컬렉션, 리빌 토큰, 스냅샷, 상태 유틸 — `lib/puzzle/`에 구현 모듈 8개와 동일 디렉터리의 `puzzleOfTheDay.test.ts`.
+- **SRS 및 로딩**: 간격 반복(`srs.ts`, `reviewSrs.ts`), 일일 선택, 컬렉션, 리빌 토큰, 스냅샷, 상태 유틸 — `lib/puzzle/`에 구현 모듈 8개(테스트는 `tests/lib/puzzle/`).
 
 ### `lib/entitlements.ts` & `lib/entitlementsServer.ts` (플랜)
 
