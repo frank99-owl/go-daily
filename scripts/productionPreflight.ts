@@ -5,6 +5,8 @@ import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
 import Stripe from "stripe";
 
+import { STRIPE_API_VERSION } from "../lib/stripe/server";
+
 config({ path: ".env.local", quiet: true });
 
 type Status = "PASS" | "WARN" | "FAIL";
@@ -583,7 +585,7 @@ async function checkStripeRemote(skipRemote: boolean): Promise<void> {
   }
 
   const stripe = new Stripe(env("STRIPE_SECRET_KEY"), {
-    apiVersion: "2026-07-29.dahlia",
+    apiVersion: STRIPE_API_VERSION,
   });
 
   try {
