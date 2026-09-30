@@ -36,6 +36,15 @@ npm run supabase:health
 
 若改动只涉及文档，可只跑 `format:check`；若涉及内容、权益、支付、同步或 Coach，必须跑完整命令。
 
+### 数据库迁移
+
+部署不会自动执行 `supabase/migrations/`，生产库迁移是手动的。2026-09 发现 0008、0009 从未应用到生产库：`/api/profile/training-level` 从 5 月到 10 月一直返回 500，设备表也没有收紧为只读。每次新增迁移：
+
+1. 迁移先于依赖它的代码上线：加表、加列先执行迁移，再部署读写它们的代码；删列反过来，先上线不再使用它的代码。
+2. 用 Supabase MCP `apply_migration`（会写入迁移记录）或 SQL Editor 执行迁移原文。
+3. 运行 `npm run preflight:prod -- --check-remote`，确认表和列与 `scripts/supabaseSchema.ts` 一致；这份清单由 `tests/scripts/supabaseSchema.test.ts` 与迁移文件对齐。
+4. 策略（RLS policy）和函数权限不在上一步的检查范围内，用 SQL 查 `pg_policy`，或看 Supabase security advisor。
+
 ## 3. 生产烟测
 
 发布后按以下顺序检查：

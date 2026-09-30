@@ -3,9 +3,14 @@ on:
   push:
     branches: [main]
   pull_request:
+# Both jobs finish in about three minutes. Without a limit a hung step holds
+# the runner for GitHub's default of six hours: on 2026-10-01 the e2e job sat
+# in `playwright install --with-deps` for over ten minutes on a commit whose
+# own PR run had passed minutes earlier.
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -42,6 +47,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
