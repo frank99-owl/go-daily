@@ -2,6 +2,8 @@
  * Standard security headers for API responses.
  */
 
+import * as Sentry from "@sentry/nextjs";
+
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 
 /** Default maximum body size for mutation endpoints (2 KB). */
@@ -120,6 +122,30 @@ export function apiError(message: string, status = 400): Response {
   return createApiResponse({ error: message }, { status });
 }
 
+const MAX_REPORTED_ERROR_LENGTH = 120;
+
+/**
+ * Report a 5xx the route produced on purpose.
+ *
+ * A route that catches a failed query, logs it and answers 500 never throws, so
+ * neither Sentry's `onRequestError` hook nor anything else sees it. That is how
+ * `/api/profile/training-level` returned 500 on every call from May to October
+ * 2026 — production was missing the column it writes — with nothing but a
+ * function log line to show for it. Every route answering through
+ * `createApiResponse` is covered here; events still pass `scrubSentryEvent`.
+ */
+function reportServerErrorResponse(status: number, body: unknown): void {
+  const error =
+    body !== null && typeof body === "object" && "error" in body ? body.error : undefined;
+  const code =
+    typeof error === "string" ? error.slice(0, MAX_REPORTED_ERROR_LENGTH) : "unspecified";
+
+  Sentry.captureMessage(`API ${status}: ${code}`, {
+    level: "error",
+    tags: { api_status: String(status), api_error: code },
+  });
+}
+
 export function createApiResponse(
   body: unknown,
   options: {
@@ -128,6 +154,10 @@ export function createApiResponse(
   } = {},
 ): Response {
   const { status = 200, cache = "no-cache" } = options;
+
+  if (status >= 500) {
+    reportServerErrorResponse(status, body);
+  }
 
   const cacheHeaders =
     CACHE_HEADERS[cache === "short" ? "shortCache" : cache === "long" ? "longCache" : "noCache"];

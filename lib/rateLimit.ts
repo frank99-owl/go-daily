@@ -1,5 +1,7 @@
 import { Redis } from "@upstash/redis";
 
+import { createApiResponse } from "@/lib/apiHeaders";
+
 /**
  * Rate-limiter abstraction.
  *
@@ -150,27 +152,18 @@ export async function checkRateLimit(
 ): Promise<Response | null> {
   try {
     if (await limiter.isLimited(key)) {
-      return Response.json(
-        { error: "Too many requests, slow down." },
-        { status: 429, headers: { "X-Content-Type-Options": "nosniff" } },
-      );
+      return createApiResponse({ error: "Too many requests, slow down." }, { status: 429 });
     }
   } catch (err) {
     if (isRateLimiterConfigurationError(err)) {
       console.error(`${context} rate limiter unavailable`, { key, ...extra, err });
-      return Response.json(
-        { error: "Rate limiter unavailable." },
-        { status: 503, headers: { "X-Content-Type-Options": "nosniff" } },
-      );
+      return createApiResponse({ error: "Rate limiter unavailable." }, { status: 503 });
     }
     if (failOpen) {
       console.warn(`${context} rate limiter failed open`, { key, ...extra, err });
     } else {
       console.error(`${context} rate limiter failed closed`, { key, ...extra, err });
-      return Response.json(
-        { error: "Rate limiter unavailable." },
-        { status: 503, headers: { "X-Content-Type-Options": "nosniff" } },
-      );
+      return createApiResponse({ error: "Rate limiter unavailable." }, { status: 503 });
     }
   }
   return null;
