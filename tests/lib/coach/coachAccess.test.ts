@@ -40,7 +40,7 @@ describe("coachAccess", () => {
           wrongBranches: [
             {
               userWrongMove: { x: 3, y: 3 },
-              refutation: [{ x: 2, y: 2, color: "black" }],
+              refutation: [{ x: 2, y: 2, color: "white" }],
               note: {
                 zh: "白会先手封住眼位。",
                 en: "White seals the eye space first.",
@@ -85,6 +85,30 @@ describe("coachAccess", () => {
     });
   });
 
+  it("does not allow approved IDs to bypass illegal variation checks", () => {
+    expect(
+      getCoachAccess(
+        makePuzzle({
+          id: "p-00419",
+          solutionSequence: [{ x: 2, y: 2, color: "black" }],
+          wrongBranches: [
+            {
+              userWrongMove: { x: 1, y: 1 },
+              refutation: [{ x: 2, y: 2, color: "white" }],
+              note: makePuzzle().solutionNote,
+            },
+          ],
+        }),
+      ),
+    ).toMatchObject({
+      available: false,
+      contentTier: "coach-eligible",
+      qualityTier: "explained",
+      hasVariationSupport: false,
+      capabilities: { staticExplanation: true, basicCoach: true, fullCoach: false },
+    });
+  });
+
   it("does not unlock full coach for deep fields until the puzzle is approved as coach-ready", () => {
     expect(
       getCoachAccess(
@@ -94,7 +118,7 @@ describe("coachAccess", () => {
           wrongBranches: [
             {
               userWrongMove: { x: 3, y: 3 },
-              refutation: [{ x: 2, y: 2, color: "black" }],
+              refutation: [{ x: 2, y: 2, color: "white" }],
               note: {
                 zh: "白会先手封住眼位。",
                 en: "White seals the eye space first.",

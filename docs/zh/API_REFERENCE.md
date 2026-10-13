@@ -170,19 +170,21 @@
 ```json
 {
   "attemptedPuzzleIds": ["p-00001"],
-  "level": "beginner | intermediate | advanced"
+  "level": "intermediate",
+  "difficulty": 3,
+  "tag": "tesuji"
 }
 ```
 
-两个字段均可选。`attemptedPuzzleIds` 用于优先避开当前浏览器已经做过的题目；`level` 按 onboarding 难度档位筛选题池，缺失或无效时回退到 `beginner`。
+所有字段均可选。`attemptedPuzzleIds` 优先避开已做题；`level` 按 onboarding 档位筛选，省略时为 `beginner`；`tag` 保持指定题型；`difficulty`（1–5）优先匹配精确难度，并约束在所选档位内。精确题池为空时，在同档位、同题型内回退。字段值无效时返回 `400`。
 
 **响应** (`200`):
 
 ```json
-{ "puzzleId": "string", "level": "beginner" }
+{ "puzzleId": "string", "level": "intermediate" }
 ```
 
-返回随机选中的题目 ID。如果请求档位内所有题都已做过，则回退到该档位完整题池。客户端随后单独获取完整题目数据。
+返回选中题目的 ID 与归一化档位。如果候选题全部已做，则允许在该候选池内重复练习；档位与题型组合没有候选时返回 `404`。客户端随后单独获取题目。
 
 ---
 

@@ -1048,6 +1048,59 @@ describe("/api/coach", () => {
   });
 
   describe("coach access restriction", () => {
+    it("rejects an approved puzzle with an illegal wrong branch using real access checks", async () => {
+      const { getCoachAccess } =
+        await vi.importActual<typeof import("@/lib/coach/coachAccess")>("@/lib/coach/coachAccess");
+      const base = await getPuzzle("p-00419");
+      expect(base).toBeDefined();
+      const reviewedPuzzle = {
+        ...base!,
+        id: "p-00419",
+        stones: [{ x: 1, y: 1, color: "black" as const }],
+        solutionSequence: [{ x: 19, y: 1, color: "black" as const }],
+        wrongBranches: [
+          {
+            userWrongMove: { x: 3, y: 3 },
+            refutation: [{ x: 19, y: 1, color: "white" as const }],
+            note: base!.solutionNote,
+          },
+        ],
+      };
+      // The real approved ID and a legal counterpart establish that the
+      // rejection comes from the malformed branch, rather than the ID list.
+      expect(getCoachAccess(reviewedPuzzle).available).toBe(true);
+
+      const unsafePuzzle = {
+        ...reviewedPuzzle,
+        wrongBranches: [{ ...reviewedPuzzle.wrongBranches[0], userWrongMove: { x: 1, y: 1 } }],
+      };
+      vi.mocked(getPuzzle).mockResolvedValueOnce(unsafePuzzle);
+      coachAccessMock.mockImplementationOnce(getCoachAccess);
+      supabaseMocks.createServiceClient.mockClear();
+
+      const response = await POST(
+        makeRequest({
+          puzzleId: unsafePuzzle.id,
+          locale: "en",
+          userMove: { x: 3, y: 3 },
+          history: [{ role: "user", content: "Why was my move wrong?", ts: 1 }],
+        }),
+      );
+
+      expect(response.status).toBe(403);
+      await expect(response.json()).resolves.toMatchObject({
+        code: "coach_unavailable",
+        coachAccess: {
+          contentTier: "coach-eligible",
+          qualityTier: "explained",
+          hasVariationSupport: false,
+          capabilities: { basicCoach: true, fullCoach: false },
+        },
+      });
+      expect(supabaseMocks.createServiceClient).not.toHaveBeenCalled();
+      expect(createCompletionMock).not.toHaveBeenCalled();
+    });
+
     it("returns 403 when puzzle is not coach-ready", async () => {
       coachAccessMock.mockReturnValue({
         available: false,

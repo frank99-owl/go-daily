@@ -33,7 +33,7 @@ describe("auditPuzzles", () => {
       wrongBranches: [
         {
           userWrongMove: { x: 3, y: 3 },
-          refutation: [{ x: 2, y: 2, color: "black" }],
+          refutation: [{ x: 2, y: 2, color: "white" }],
           note: {
             zh: "如果黑先走别处，白会抢先补眼位。",
             en: "If Black plays elsewhere, White takes the eye point first.",
@@ -136,6 +136,12 @@ describe("auditPuzzles", () => {
       tag: "life-death",
     },
   ];
+
+  it("counts unplayable accepted answers as blocked rather than losing the audit reason", () => {
+    const result = auditPuzzles([{ ...mockPuzzles[0], correct: [{ x: 1, y: 1 }] }]);
+    expect(result.coachEligibilityReasons["illegal-correct-answer"]).toBe(1);
+    expect(result.coachEligibleCandidates).toEqual([]);
+  });
 
   it("captures index consistency, runway, and coach eligibility", () => {
     const result = auditPuzzles(mockPuzzles, {

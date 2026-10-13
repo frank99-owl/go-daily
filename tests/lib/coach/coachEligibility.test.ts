@@ -74,6 +74,96 @@ describe("checkCoachEligibility", () => {
     });
   });
 
+  it.each([
+    {
+      label: "occupied wrong move",
+      solutionSequence: [{ x: 2, y: 2, color: "black" as const }],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 1, y: 1 },
+          refutation: [{ x: 2, y: 2, color: "white" as const }],
+          note: makeBasePuzzle().solutionNote,
+        },
+      ],
+    },
+    {
+      label: "non-alternating refutation",
+      solutionSequence: [{ x: 2, y: 2, color: "black" as const }],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 3, y: 3 },
+          refutation: [{ x: 2, y: 2, color: "black" as const }],
+          note: makeBasePuzzle().solutionNote,
+        },
+      ],
+    },
+    {
+      label: "incorrect main-line turn",
+      solutionSequence: [{ x: 2, y: 2, color: "white" as const }],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 3, y: 3 },
+          refutation: [{ x: 2, y: 2, color: "white" as const }],
+          note: makeBasePuzzle().solutionNote,
+        },
+      ],
+    },
+    {
+      label: "empty refutation",
+      solutionSequence: [{ x: 2, y: 2, color: "black" as const }],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 3, y: 3 },
+          refutation: [],
+          note: makeBasePuzzle().solutionNote,
+        },
+      ],
+    },
+  ])("preserves sufficient static explanations when variations contain $label", (variations) => {
+    const base = makeBasePuzzle();
+    const puzzle = makeBasePuzzle({
+      solutionNote: {
+        zh: base.solutionNote.zh.repeat(3),
+        en: base.solutionNote.en.repeat(3),
+        ja: base.solutionNote.ja.repeat(3),
+        ko: base.solutionNote.ko.repeat(3),
+      },
+      solutionSequence: variations.solutionSequence,
+      wrongBranches: variations.wrongBranches,
+    });
+
+    expect(checkCoachEligibility(puzzle)).toMatchObject({
+      eligible: true,
+      reason: "eligible",
+      qualityTier: "explained",
+      hasVariationSupport: false,
+    });
+  });
+
+  it("blocks coaching if any accepted answer cannot be played on the initial board", () => {
+    const puzzle = makeBasePuzzle({
+      correct: [
+        { x: 2, y: 2 },
+        { x: 1, y: 1 },
+      ],
+      solutionSequence: [{ x: 2, y: 2, color: "black" }],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 3, y: 3 },
+          refutation: [{ x: 2, y: 2, color: "white" }],
+          note: makeBasePuzzle().solutionNote,
+        },
+      ],
+    });
+
+    expect(checkCoachEligibility(puzzle)).toMatchObject({
+      eligible: false,
+      reason: "illegal-correct-answer",
+      qualityTier: "blocked",
+      hasVariationSupport: false,
+    });
+  });
+
   it("rejects imported-style generic notes", () => {
     const puzzle = makeBasePuzzle({
       id: "cho-e-001",

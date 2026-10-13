@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { GoBoard } from "@/components/GoBoard";
 import { LocalizedLink } from "@/components/LocalizedLink";
+import { getAllSummaries } from "@/content/puzzleSummaries";
 import { useCurrentUser } from "@/lib/auth/auth";
 import { useLocale } from "@/lib/i18n/i18n";
 import { localePath } from "@/lib/i18n/localePath";
@@ -31,7 +32,14 @@ import {
   loadAttempts,
   replaceAttempts,
 } from "@/lib/storage/storage";
-import type { AttemptRecord, PublicCoachAccess, PublicPuzzle, PuzzleReveal, Stone } from "@/types";
+import type {
+  AttemptRecord,
+  PublicCoachAccess,
+  PublicPuzzle,
+  PuzzleReveal,
+  PuzzleSummary,
+  Stone,
+} from "@/types";
 
 const CoachDialogue = dynamic(
   () => import("@/components/CoachDialogue").then((m) => m.CoachDialogue),
@@ -153,6 +161,7 @@ export function ResultClient({
   const [attempt, setAttempt] = useState<AttemptRecord | null>(null);
   const [history, setHistory] = useState<AttemptRecord[]>([]);
   const [allAttempts, setAllAttempts] = useState<AttemptRecord[]>([]);
+  const [summaries, setSummaries] = useState<PuzzleSummary[] | null>(null);
   const [reveal, setReveal] = useState<PuzzleReveal | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [solutionStep, setSolutionStep] = useState(0);
@@ -171,6 +180,21 @@ export function ResultClient({
     setHistory(getAttemptsFor(puzzle.id));
     setAllAttempts(loadAttempts());
   }, [puzzle]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getAllSummaries()
+      .then((items) => {
+        if (!cancelled) setSummaries(items);
+      })
+      .catch((err) => {
+        console.warn("[result] failed to load recommendation summaries", err);
+        if (!cancelled) setSummaries([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Safety: this effect cannot loop. (1) The guard bails once `revealToken`
   // exists, and `setAttempt(upgraded)` adds exactly that field. (2) On API
@@ -322,18 +346,20 @@ export function ResultClient({
     correct,
     mistakeReasonId: resultUnderstanding?.id ?? null,
     attempts: recommendationAttempts,
+    summaries: summaries ?? undefined,
     onboardingLevel: source === "onboarding" ? (onboardingLevel ?? null) : null,
   });
   const recommendationCopy = t.result.nextRecommendation.reasons[nextRecommendation.reasonId];
-  const nextPracticeLabel = nextPuzzlePending
-    ? t.result.nextRecommendation.cta.loading
-    : nextRecommendation.difficultyHint === "step-up"
-      ? t.result.nextRecommendation.cta.stepUp
-      : nextRecommendation.difficultyHint === "step-down"
-        ? t.result.nextRecommendation.cta.stepDown
-        : nextRecommendation.targetTag
-          ? t.result.nextRecommendation.cta.sameTopic
-          : t.result.nextRecommendation.cta.sameLevel;
+  const nextPracticeLabel =
+    nextPuzzlePending || summaries === null
+      ? t.result.nextRecommendation.cta.loading
+      : nextRecommendation.difficultyHint === "step-up"
+        ? t.result.nextRecommendation.cta.stepUp
+        : nextRecommendation.difficultyHint === "step-down"
+          ? t.result.nextRecommendation.cta.stepDown
+          : nextRecommendation.targetTag
+            ? t.result.nextRecommendation.cta.sameTopic
+            : t.result.nextRecommendation.cta.sameLevel;
   const coachPrompts = [
     t.result.coachPromptMainLine,
     t.result.coachPromptWhyWrong,
@@ -391,7 +417,7 @@ export function ResultClient({
   };
 
   const continueRecommendedPractice = async () => {
-    if (nextPuzzlePending) return;
+    if (nextPuzzlePending || summaries === null) return;
     setNextPuzzlePending(true);
     setNextPuzzleError(null);
 
@@ -402,6 +428,7 @@ export function ResultClient({
       const requestBody = {
         attemptedPuzzleIds,
         level: nextRecommendation.targetLevel,
+        difficulty: nextRecommendation.targetDifficulty,
         ...(nextRecommendation.targetTag ? { tag: nextRecommendation.targetTag } : {}),
       };
       track("next_recommendation_clicked", {
@@ -614,24 +641,41 @@ export function ResultClient({
           )}
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              void continueRecommendedPractice();
-            }}
-            disabled={nextPuzzlePending}
-            className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-50"
-          >
-            {nextPracticeLabel}
-          </button>
-          {(nextRecommendation.includeReviewPrompt || !correct) && (
+          {nextRecommendation.primaryAction === "review-mistakes" ? (
             <LocalizedLink
               href="/review"
-              className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white/65 transition-colors hover:border-white/25 hover:text-white"
+              onClick={() =>
+                track("next_recommendation_clicked", {
+                  locale,
+                  source: resultAnalyticsSource,
+                  recommendationType: "review",
+                })
+              }
+              className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
             >
               {t.result.nextRecommendation.reviewCta}
             </LocalizedLink>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                void continueRecommendedPractice();
+              }}
+              disabled={nextPuzzlePending || summaries === null}
+              className="rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-50"
+            >
+              {nextPracticeLabel}
+            </button>
           )}
+          {nextRecommendation.primaryAction !== "review-mistakes" &&
+            (nextRecommendation.includeReviewPrompt || !correct) && (
+              <LocalizedLink
+                href="/review"
+                className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white/65 transition-colors hover:border-white/25 hover:text-white"
+              >
+                {t.result.nextRecommendation.reviewCta}
+              </LocalizedLink>
+            )}
           {nextPuzzleError && (
             <span className="text-sm text-[color:var(--color-warn)]" role="alert">
               {nextPuzzleError}

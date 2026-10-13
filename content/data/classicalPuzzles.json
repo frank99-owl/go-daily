@@ -349,27 +349,6 @@
         "y": 2,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 4,
-          "y": 2
-        },
-        "refutation": [
-          {
-            "x": 5,
-            "y": 2,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在没有选择 (5,2) 粘接，(5,1) 的黑子正处于被打吃状态。对方将在 (5,2) 提子，导致整体棋形崩溃。",
-          "en": "Failing to play the connection at (5,2) leaves the black stone at (5,1) in atari. The opponent will capture at (5,2), collapsing the group.",
-          "ja": "(5,2) の接続を怠ると、(5,1) の黒石がアタリのままになります。相手に (5,2) と抜かれ、全体の形が崩壊します。",
-          "ko": "(5,2) 연결을 소홀히 하면 (5,1)의 흑돌이 단수 상태로 남게 됩니다. 상대가 (5,2)로 따내어 전체 모양이 무너지게 됩니다."
-        }
-      }
     ]
   },
   {
@@ -968,27 +947,6 @@
         "x": 1,
         "y": 2,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 2,
-          "y": 2
-        },
-        "refutation": [
-          {
-            "x": 1,
-            "y": 2,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在没有在 (1,2) 立下，对方可在此处二路点入或挤压，缩小眼位空间，使己方无法做出两眼而死。",
-          "en": "Failing to descend to (1,2) allows the opponent to squeeze or invade at (1,2), reducing your eye space so you cannot form two eyes.",
-          "ja": "(1,2) に下がらないと、相手にここに打たれて眼形を狭められ、二眼を作ることができずに死にとなります。",
-          "ko": "(1,2)로 내려서지 않으면 백이 이곳을 차지하여 궁도를 좁히게 되며, 두 눈을 만들 공간이 부족하여 잡히게 됩니다."
-        }
       }
     ]
   },
@@ -3995,27 +3953,6 @@
         "x": 1,
         "y": 3,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 1,
-          "y": 5
-        },
-        "refutation": [
-          {
-            "x": 1,
-            "y": 3,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (1,5) 而没有抢到 (1,3)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (1,5) misses the reviewed vital point at (1,3); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(1,5) は検討済みの急所 (1,3) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(1,5) 는 검토된 급소 (1,3) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -29422,27 +29359,6 @@
         "y": 1,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 17,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 1,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (17,1) 而没有抢到 (19,1)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (17,1) misses the reviewed vital point at (19,1); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(17,1) は検討済みの急所 (19,1) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(17,1) 는 검토된 급소 (19,1) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -30398,27 +30314,6 @@
         "y": 4,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 16,
-          "y": 2
-        },
-        "refutation": [
-          {
-            "x": 16,
-            "y": 4,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (16,2) 而没有抢到 (16,4)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (16,2) misses the reviewed vital point at (16,4); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(16,2) は検討済みの急所 (16,4) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(16,2) 는 검토된 급소 (16,4) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -30855,27 +30750,6 @@
         "x": 17,
         "y": 2,
         "color": "white"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 18,
-          "y": 3
-        },
-        "refutation": [
-          {
-            "x": 17,
-            "y": 2,
-            "color": "black"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (18,3) 而没有抢到 (17,2)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (18,3) misses the reviewed vital point at (17,2); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(18,3) は検討済みの急所 (17,2) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(18,3) 는 검토된 급소 (17,2) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -36373,27 +36247,6 @@
         "y": 1,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 15,
-          "y": 2
-        },
-        "refutation": [
-          {
-            "x": 16,
-            "y": 1,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (15,2) 而没有抢到 (16,1)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (15,2) misses the reviewed vital point at (16,1); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(15,2) は検討済みの急所 (16,1) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(15,2) 는 검토된 급소 (16,1) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -37227,27 +37080,6 @@
         "x": 18,
         "y": 3,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 18,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 18,
-            "y": 3,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (18,1) 而没有抢到 (18,3)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (18,1) misses the reviewed vital point at (18,3); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(18,1) は検討済みの急所 (18,3) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(18,1) 는 검토된 급소 (18,3) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -42169,27 +42001,6 @@
         "y": 1,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 17,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 1,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (17,1) 而没有抢到 (19,1)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (17,1) misses the reviewed vital point at (19,1); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(17,1) は検討済みの急所 (19,1) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(17,1) 는 검토된 급소 (19,1) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -43461,27 +43272,6 @@
         "x": 15,
         "y": 1,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 16,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 15,
-            "y": 1,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (16,1) 而没有抢到 (15,1)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (16,1) misses the reviewed vital point at (15,1); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(16,1) は検討済みの急所 (15,1) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(16,1) 는 검토된 급소 (15,1) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -46057,27 +45847,6 @@
         "y": 2,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 17,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 16,
-            "y": 2,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (17,1) 而没有抢到 (16,2)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (17,1) misses the reviewed vital point at (16,2); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(17,1) は検討済みの急所 (16,2) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(17,1) 는 검토된 급소 (16,2) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -46594,27 +46363,6 @@
         "x": 17,
         "y": 4,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 17,
-          "y": 3
-        },
-        "refutation": [
-          {
-            "x": 17,
-            "y": 4,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (17,3) 而没有抢到 (17,4)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (17,3) misses the reviewed vital point at (17,4); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(17,3) は検討済みの急所 (17,4) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(17,3) 는 검토된 급소 (17,4) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -52192,27 +51940,6 @@
         "y": 2,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 19,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 18,
-            "y": 2,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (19,1) 而没有抢到 (18,2)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (19,1) misses the reviewed vital point at (18,2); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(19,1) は検討済みの急所 (18,2) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(19,1) 는 검토된 급소 (18,2) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -54608,27 +54335,6 @@
         "y": 11,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 19,
-          "y": 12
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 11,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (19,12) 而没有抢到 (19,11)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (19,12) misses the reviewed vital point at (19,11); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(19,12) は検討済みの急所 (19,11) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(19,12) 는 검토된 급소 (19,11) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -55272,27 +54978,6 @@
         "y": 3,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 19,
-          "y": 5
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 3,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (19,5) 而没有抢到 (19,3)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (19,5) misses the reviewed vital point at (19,3); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(19,5) は検討済みの急所 (19,3) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(19,5) 는 검토된 급소 (19,3) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -55825,27 +55510,6 @@
         "y": 7,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 18,
-          "y": 6
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 7,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (18,6) 而没有抢到 (19,7)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (18,6) misses the reviewed vital point at (19,7); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(18,6) は検討済みの急所 (19,7) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(18,6) 는 검토된 급소 (19,7) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -56337,27 +56001,6 @@
         "x": 15,
         "y": 2,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 14,
-          "y": 2
-        },
-        "refutation": [
-          {
-            "x": 15,
-            "y": 2,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (14,2) 而没有抢到 (15,2)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (14,2) misses the reviewed vital point at (15,2); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(14,2) は検討済みの急所 (15,2) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(14,2) 는 검토된 급소 (15,2) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -57041,27 +56684,6 @@
         "x": 17,
         "y": 3,
         "color": "white"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 14,
-          "y": 3
-        },
-        "refutation": [
-          {
-            "x": 17,
-            "y": 3,
-            "color": "black"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (14,3) 而没有抢到 (17,3)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (14,3) misses the reviewed vital point at (17,3); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(14,3) は検討済みの急所 (17,3) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(14,3) 는 검토된 급소 (17,3) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -60433,27 +60055,6 @@
         "y": 1,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 15,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 16,
-            "y": 1,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (15,1) 而没有抢到 (16,1)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (15,1) misses the reviewed vital point at (16,1); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(15,1) は検討済みの急所 (16,1) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(15,1) 는 검토된 급소 (16,1) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -60824,27 +60425,6 @@
         "x": 19,
         "y": 8,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 19,
-          "y": 9
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 8,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (19,9) 而没有抢到 (19,8)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (19,9) misses the reviewed vital point at (19,8); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(19,9) は検討済みの急所 (19,8) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(19,9) 는 검토된 급소 (19,8) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -62308,27 +61888,6 @@
         "x": 19,
         "y": 3,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 19,
-          "y": 2
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 3,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (19,2) 而没有抢到 (19,3)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (19,2) misses the reviewed vital point at (19,3); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(19,2) は検討済みの急所 (19,3) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(19,2) 는 검토된 급소 (19,3) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -101531,27 +101090,6 @@
         "x": 17,
         "y": 7,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 16,
-          "y": 7
-        },
-        "refutation": [
-          {
-            "x": 17,
-            "y": 7,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (16,7) 错失了在 (17,7) 扳头二子头的急所，对方占据此点后将确立其局部外势并扩大棋形，使黑方失去控制权。",
-          "en": "Playing (16,7) misses the vital hane at the head of two stones at (17,7). The opponent will occupy this point to establish local thickness and expand their shape, causing Black to lose dominance.",
-          "ja": "(16,7) は二子頭の急所である (17,7) のハネを逃す手です。相手がこの点を占めると局部的な厚みを確立して形を広げ、黒が主導権を失うことになります。",
-          "ko": "(16,7)은 두점머리의 급소인 (17,7) 젖힘을 놓치는 수입니다. 상대가 이 자리를 차지하면 국지적인 두터움을 확립하고 모양을 넓혀 흑이 주도권을 잃게 됩니다."
-        }
       }
     ]
   },
@@ -150633,27 +150171,6 @@
         "y": 7,
         "color": "white"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 18,
-          "y": 7
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 7,
-            "color": "black"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (18,7) 错失了在 (19,7) 扳的官子要点。对方将占据 (19,7) 先手稳固边界并扩大眼位，使白棋蒙受巨大的目数损失。",
-          "en": "Playing (18,7) misses the vital hane at (19,7). The opponent will occupy (19,7) to secure their boundary in sente and expand their eye space, leading to a significant point swing against White.",
-          "ja": "(18,7) は (19,7) のハネというヨセの急所を逃す手です。相手が (19,7) を占めて先手で境界を補強し眼形を広げるため、白が大きな目数損を被ります。",
-          "ko": "(18,7)은 (19,7) 젖힘이라는 끝내기 급소를 놓치는 수입니다. 상대가 (19,7)을 차지하여 선수로 경계를 정리하고 안형을 넓히게 되며 백이 큰 집수 손해를 보게 됩니다."
-        }
-      }
     ]
   },
   {
@@ -155972,27 +155489,6 @@
         "y": 5,
         "color": "black"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 17,
-          "y": 5
-        },
-        "refutation": [
-          {
-            "x": 18,
-            "y": 5,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (17,5) 错失了在 (18,5) 扳利用对方边缘气紧进行挤压的急所。对方将得以占据 (18,5) 轻松定型，消除黑棋施压的手段。",
-          "en": "Playing (17,5) misses the vital hane at (18,5) that exploits the opponent's short liberties at the edge. The opponent will occupy (18,5) to settle their shape easily, neutralizing Black's pressuring options.",
-          "ja": "(17,5) は相手の盤端でのダメ詰まりを利用して押し込む (18,5) のハネの急所を逃す手です。相手が (18,5) を占めて簡単に形を整え、黒の追及手段を解消してしまいます。",
-          "ko": "(17,5)는 상대가 판 끝에서 활로가 부족한 점을 이용해 압박하는 (18,5) 젖힘의 급소를 놓치는 수입니다. 상대가 (18,5)를 차지해 쉽게 안정을 취하게 되며 흑의 압박 수단이 사라지게 됩니다."
-        }
-      }
     ]
   },
   {
@@ -160123,27 +159619,6 @@
         "x": 19,
         "y": 2,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 19,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 2,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (19,1) 而没有抢到 (19,2)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (19,1) misses the reviewed vital point at (19,2); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(19,1) は検討済みの急所 (19,2) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(19,1) 는 검토된 급소 (19,2) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -169436,27 +168911,6 @@
         "x": 17,
         "y": 4,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 16,
-          "y": 4
-        },
-        "refutation": [
-          {
-            "x": 17,
-            "y": 4,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (16,4) 而没有抢到 (17,4)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (16,4) misses the reviewed vital point at (17,4); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(16,4) は検討済みの急所 (17,4) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(16,4) 는 검토된 급소 (17,4) 를 놓치는 수입니다. 상대가 곧바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -192670,27 +192124,6 @@
         "x": 19,
         "y": 2,
         "color": "black"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 19,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 19,
-            "y": 2,
-            "color": "white"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (19,1) 而没有抢到 (19,2)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (19,1) misses the reviewed vital point at (19,2); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(19,1) は検討済みの急所 (19,2) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(19,1) 는 검토된 급소 (19,2) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -368310,27 +367743,6 @@
         "y": 1,
         "color": "white"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 18,
-          "y": 1
-        },
-        "refutation": [
-          {
-            "x": 17,
-            "y": 1,
-            "color": "black"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (18,1) 而没有抢到 (17,1)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (18,1) misses the reviewed vital point at (17,1); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(18,1) は検討済みの急所 (17,1) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(18,1) 는 검토된 급소 (17,1) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -368580,27 +367992,6 @@
         "x": 3,
         "y": 19,
         "color": "white"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 2,
-          "y": 19
-        },
-        "refutation": [
-          {
-            "x": 3,
-            "y": 19,
-            "color": "black"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (2,19) 而没有抢到 (3,19)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (2,19) misses the reviewed vital point at (3,19); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(2,19) は検討済みの急所 (3,19) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(2,19) 는 검토된 급소 (3,19) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },
@@ -412197,27 +411588,6 @@
         "y": 4,
         "color": "white"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 18,
-          "y": 5
-        },
-        "refutation": [
-          {
-            "x": 18,
-            "y": 4,
-            "color": "black"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (18,5) 而没有抢到 (18,4)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (18,5) misses the reviewed vital point at (18,4); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(18,5) は検討済みの急所 (18,4) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(18,5) 는 검토된 급소 (18,4) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -451096,27 +450466,6 @@
         "y": 19,
         "color": "white"
       }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 19,
-          "y": 19
-        },
-        "refutation": [
-          {
-            "x": 17,
-            "y": 19,
-            "color": "black"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (19,19) 而没有抢到 (17,19)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (19,19) misses the reviewed vital point at (17,19); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(19,19) は検討済みの急所 (17,19) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(19,19) 는 검토된 급소 (17,19) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
-      }
     ]
   },
   {
@@ -452018,27 +451367,6 @@
         "x": 16,
         "y": 13,
         "color": "white"
-      }
-    ],
-    "wrongBranches": [
-      {
-        "userWrongMove": {
-          "x": 16,
-          "y": 11
-        },
-        "refutation": [
-          {
-            "x": 16,
-            "y": 13,
-            "color": "black"
-          }
-        ],
-        "note": {
-          "zh": "错在选择 (16,11) 而没有抢到 (16,13)；对方可立即占据正解点，现有解析指出这会让眼位、连接或官子先手落空。",
-          "en": "Playing (16,11) misses the reviewed vital point at (16,13); the opponent can immediately take that point, and the existing note identifies this as decisive for eye space, connection, or sente endgame value.",
-          "ja": "(16,11) は検討済みの急所 (16,13) を逃す手です。相手がすぐその正解点を占められるため、既存解説で示された眼形・連絡・先手ヨセの価値を失います。",
-          "ko": "(16,11) 는 검토된 급소 (16,13) 를 놓치는 수입니다. 상대가 바로 그 정답 지점을 차지할 수 있어, 기존 해설이 말한 눈 모양·연결·선수 끝내기 가치가 사라집니다."
-        }
       }
     ]
   },

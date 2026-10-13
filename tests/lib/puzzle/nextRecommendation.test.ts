@@ -180,6 +180,31 @@ describe("getNextRecommendation", () => {
     });
   });
 
+  it.each(["opening", "endgame"] as const)(
+    "skips a weak %s topic when the current level has no matching puzzles",
+    (tag) => {
+      const recommendation = getNextRecommendation({
+        puzzle: { id: "current", difficulty: 1, tag: "life-death" },
+        correct: true,
+        attempts: [
+          { ...baseAttempt, puzzleId: "earlier", correct: false, solvedAtMs: 100 },
+          { ...baseAttempt, puzzleId: "current", correct: true, solvedAtMs: 200 },
+        ],
+        summaries: [
+          { ...baseSummary, id: "earlier", tag, difficulty: 2 },
+          { ...baseSummary, id: "current", tag: "life-death", difficulty: 1 },
+        ],
+      });
+
+      expect(recommendation).toMatchObject({
+        reasonId: "correct-step-up",
+        targetLevel: "intermediate",
+        targetDifficulty: 2,
+      });
+      expect(recommendation.targetTag).toBeUndefined();
+    },
+  );
+
   it("steps down when recent accuracy is low", () => {
     // The step-down branch is reachable when:
     // 1. User answered correctly

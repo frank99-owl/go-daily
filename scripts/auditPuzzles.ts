@@ -80,6 +80,7 @@ function emptyReasonCounts(): Record<CoachEligibilityReason, number> {
   return {
     eligible: 0,
     "missing-correct-answer": 0,
+    "illegal-correct-answer": 0,
     "missing-solution-note": 0,
     "generic-solution-note": 0,
     "short-solution-note": 0,

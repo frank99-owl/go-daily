@@ -2,8 +2,8 @@
  * Build-time puzzle validator — run via `npm run validate:puzzles`.
  *
  * This is the first line of defense for the growing puzzle library. It only
- * catches *hard* errors — the kind that would 404 or crash the app at
- * runtime. Soft content concerns (difficulty calibration, tag coverage,
+ * catches structural errors and unplayable teaching lines. Soft content
+ * concerns (tactical correctness, difficulty calibration, tag coverage,
  * prompt wording) are left to human review.
  *
  * Wired into `prebuild` so `npm run build` fails if the library breaks.
@@ -11,19 +11,23 @@
  * Exits 0 on success; exits 1 with a readable report on failure.
  */
 import fs from "fs";
+import { pathToFileURL } from "node:url";
 import path from "path";
 
 import coachBasicEligibleIds from "../content/data/coachBasicEligibleIds.json";
 import coachReadyIds from "../content/data/coachReadyIds.json";
 import contentReviewBatches from "../content/data/contentReviewBatches.json";
+import quarantinedCoachBranches from "../content/data/quarantinedCoachBranches.json";
 import variationGroups from "../content/data/variationGroups.json";
 import { PUZZLES, buildPuzzleSummaries } from "../content/puzzles.server";
+import { validatePuzzleVariations } from "../lib/board/variationValidation";
 import { checkCoachEligibility } from "../lib/coach/coachEligibility";
 import type { Coord, Locale, Puzzle, PuzzleSummary, PuzzleTag, Stone } from "../types";
 import {
   CoachVariationGroupSchema,
   ContentReviewBatchSchema,
   PuzzleSchema,
+  QuarantinedCoachBranchSchema,
 } from "../types/schemas";
 
 const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];
@@ -204,7 +208,7 @@ function validateUniquePuzzleIdList({
   return seen;
 }
 
-function validateCoachContentTiers(issues: Issue[]): void {
+export function validateCoachContentTiers(issues: Issue[]): void {
   const basicIds = coachBasicEligibleIds as string[];
   const readyIds = coachReadyIds as string[];
   const basicSet = validateUniquePuzzleIdList({
@@ -250,6 +254,55 @@ function validateCoachContentTiers(issues: Issue[]): void {
   });
 
   const groupIds = new Set<string>();
+  const quarantineKeys = new Set<string>();
+  const blockedReviewIds = new Set(
+    (contentReviewBatches as unknown[]).flatMap((batch) => {
+      const parsed = ContentReviewBatchSchema.safeParse(batch);
+      return parsed.success && parsed.data.status === "blocked" ? parsed.data.puzzleIds : [];
+    }),
+  );
+  for (const entry of quarantinedCoachBranches as unknown[]) {
+    const parsed = QuarantinedCoachBranchSchema.safeParse(entry);
+    if (!parsed.success) {
+      issues.push({
+        puzzleId: "<quarantined-coach-branches>",
+        rule: "quarantinedCoachBranches",
+        detail: parsed.error.message,
+      });
+      continue;
+    }
+    const record = parsed.data;
+    const key = `${record.puzzleId}:${record.branchIndex}`;
+    if (quarantineKeys.has(key)) {
+      issues.push({
+        puzzleId: record.puzzleId,
+        rule: "quarantinedCoachBranches",
+        detail: "duplicate quarantined branch",
+      });
+    }
+    quarantineKeys.add(key);
+    if (!PUZZLES.some((puzzle) => puzzle.id === record.puzzleId)) {
+      issues.push({
+        puzzleId: record.puzzleId,
+        rule: "quarantinedCoachBranches",
+        detail: "quarantined puzzle does not exist",
+      });
+    }
+    if (readySet.has(record.puzzleId)) {
+      issues.push({
+        puzzleId: record.puzzleId,
+        rule: "quarantinedCoachBranches",
+        detail: "pending content review must be resolved before restoring coach-ready approval",
+      });
+    }
+    if (!blockedReviewIds.has(record.puzzleId)) {
+      issues.push({
+        puzzleId: record.puzzleId,
+        rule: "quarantinedCoachBranches",
+        detail: "pending branch must be tracked in a blocked content-review batch",
+      });
+    }
+  }
   for (const [index, group] of (variationGroups as unknown[]).entries()) {
     const parsed = CoachVariationGroupSchema.safeParse(group);
     if (!parsed.success) {
@@ -352,7 +405,7 @@ function validateCoachContentTiers(issues: Issue[]): void {
   }
 }
 
-function validatePuzzle(p: Puzzle, issues: Issue[]): void {
+export function validatePuzzle(p: Puzzle, issues: Issue[]): void {
   const push = (rule: string, detail: string) => issues.push({ puzzleId: p.id, rule, detail });
 
   // Layer 1: zod schema validation (shared with runtime route)
@@ -455,6 +508,14 @@ function validatePuzzle(p: Puzzle, issues: Issue[]): void {
     });
   }
 
+  // Structural fields alone cannot establish that a teaching line is playable.
+  // Use the same captures, suicide and immediate-ko rules as the app.
+  if (schemaResult.success) {
+    for (const issue of validatePuzzleVariations(p).issues) {
+      push(issue.field, `${issue.path}: ${issue.reason}`);
+    }
+  }
+
   // 8. toPlay
   if (p.toPlay !== "black" && p.toPlay !== "white") {
     push("toPlay", `got "${p.toPlay}", expected "black" | "white"`);
@@ -534,4 +595,6 @@ function main(): void {
   process.exit(1);
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

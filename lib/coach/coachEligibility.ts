@@ -1,3 +1,4 @@
+import { validatePuzzleVariations } from "@/lib/board/variationValidation";
 import type { Locale, Puzzle } from "@/types";
 
 const LOCALES: Locale[] = ["zh", "en", "ja", "ko"];
@@ -35,6 +36,7 @@ const EXPLANATION_PATTERNS: Record<Locale, RegExp[]> = {
 export type CoachEligibilityReason =
   | "eligible"
   | "missing-correct-answer"
+  | "illegal-correct-answer"
   | "missing-solution-note"
   | "generic-solution-note"
   | "short-solution-note"
@@ -96,7 +98,8 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
 
   const hasSolutionSequence = (puzzle.solutionSequence?.length ?? 0) > 0;
   const hasWrongBranches = (puzzle.wrongBranches?.length ?? 0) > 0;
-  const hasVariationSupport = hasSolutionSequence && hasWrongBranches;
+  const variationValidation = validatePuzzleVariations(puzzle);
+  const hasVariationSupport = hasSolutionSequence && hasWrongBranches && variationValidation.valid;
 
   const base = {
     averageNoteLength,
@@ -109,6 +112,15 @@ export function checkCoachEligibility(puzzle: Puzzle): CoachEligibilityResult {
       ...base,
       eligible: false,
       reason: "missing-correct-answer",
+      qualityTier: "blocked",
+    });
+  }
+
+  if (variationValidation.issues.some((issue) => issue.field === "correct")) {
+    return buildResult(puzzle, {
+      ...base,
+      eligible: false,
+      reason: "illegal-correct-answer",
       qualityTier: "blocked",
     });
   }

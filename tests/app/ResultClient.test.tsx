@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
@@ -10,6 +10,7 @@ import {
   loadAttempts,
   replaceAttempts,
 } from "@/lib/storage/storage";
+import type { AttemptRecord, PublicPuzzle } from "@/types";
 
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
@@ -23,6 +24,11 @@ vi.mock("@/lib/storage/storage", () => ({
 }));
 
 const trackMock = vi.hoisted(() => vi.fn());
+const getAllSummariesMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/content/puzzleSummaries", () => ({
+  getAllSummaries: getAllSummariesMock,
+}));
 
 vi.mock("@/lib/posthog/events", () => ({
   track: trackMock,
@@ -48,12 +54,49 @@ vi.mock("@/components/ShareCard", () => ({
   ShareCard: () => <div data-testid="share-card" />,
 }));
 
+const recommendationPuzzle: PublicPuzzle = {
+  id: "cld-001",
+  date: "2026-04-21",
+  boardSize: 19,
+  stones: [],
+  toPlay: "black",
+  tag: "life-death",
+  difficulty: 2,
+  prompt: { zh: "黑先活", en: "Black to live", ja: "黒先活", ko: "흑선활" },
+  source: "Classical",
+  coachAvailable: false,
+};
+
+function prepareCorrectResult(earlierAttempts: AttemptRecord[] = []) {
+  const current: AttemptRecord = {
+    puzzleId: recommendationPuzzle.id,
+    date: "2026-04-21",
+    userMove: { x: 4, y: 4 },
+    correct: true,
+    solvedAtMs: 1000,
+    revealToken: "reveal-token",
+  };
+  vi.mocked(getAttemptFor).mockReturnValue(current);
+  vi.mocked(getAttemptsFor).mockReturnValue([current]);
+  vi.mocked(loadAttempts).mockReturnValue([...earlierAttempts, current]);
+  return current;
+}
+
+function renderRecommendationResult() {
+  return render(
+    <LocaleProvider initialLocale="en">
+      <ResultClient initialPuzzle={recommendationPuzzle} todayPuzzleId="cld-999" />
+    </LocaleProvider>,
+  );
+}
+
 describe("ResultClient keyboard support", () => {
   const push = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     trackMock.mockClear();
+    getAllSummariesMock.mockResolvedValue([]);
     vi.mocked(useRouter).mockReturnValue({ push } as unknown as ReturnType<typeof useRouter>);
     vi.mocked(getAttemptFor).mockReturnValue({
       puzzleId: "cld-001",
@@ -399,7 +442,7 @@ describe("ResultClient keyboard support", () => {
       </LocaleProvider>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Continue same level" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Continue same level" }));
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
@@ -409,6 +452,7 @@ describe("ResultClient keyboard support", () => {
           body: JSON.stringify({
             attemptedPuzzleIds: ["already-done", "cld-001"],
             level: "intermediate",
+            difficulty: 1,
           }),
         }),
       ),
@@ -539,6 +583,7 @@ describe("ResultClient keyboard support", () => {
           body: JSON.stringify({
             attemptedPuzzleIds: ["cld-001"],
             level: "beginner",
+            difficulty: 1,
             tag: "life-death",
           }),
         }),
@@ -552,6 +597,130 @@ describe("ResultClient keyboard support", () => {
       level: "beginner",
       tag: "life-death",
     });
+  });
+
+  it("uses recent mistakes to recommend a different topic and sends its exact difficulty", async () => {
+    const mistakes: AttemptRecord[] = Array.from({ length: 3 }, (_, index) => ({
+      puzzleId: `weak-${index}`,
+      date: "2026-04-20",
+      userMove: { x: 3, y: 3 },
+      correct: false,
+      solvedAtMs: index + 1,
+    }));
+    prepareCorrectResult(mistakes);
+    getAllSummariesMock.mockResolvedValue([
+      recommendationPuzzle,
+      ...mistakes.map((attempt) => ({
+        ...recommendationPuzzle,
+        id: attempt.puzzleId,
+        tag: "tesuji",
+      })),
+    ]);
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) =>
+      String(input) === "/api/puzzle/random"
+        ? Response.json({ puzzleId: "next-tesuji" })
+        : Response.json({
+            correct: [{ x: 4, y: 4 }],
+            solutionNote: { zh: "占住急所。", en: "Take the vital point.", ja: "急所", ko: "급소" },
+          }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderRecommendationResult();
+
+    expect(await screen.findByText("Strengthen your weak spot")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Practice same topic" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/en/puzzles/next-tesuji"));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/puzzle/random",
+      expect.objectContaining({
+        body: JSON.stringify({
+          attemptedPuzzleIds: ["weak-0", "weak-1", "weak-2", "cld-001"],
+          level: "intermediate",
+          difficulty: 2,
+          tag: "tesuji",
+        }),
+      }),
+    );
+  });
+
+  it("requests the harder difficulty even when it belongs to the same training level", async () => {
+    prepareCorrectResult();
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) =>
+      String(input) === "/api/puzzle/random"
+        ? Response.json({ puzzleId: "next-difficulty-3" })
+        : Response.json({
+            correct: [{ x: 4, y: 4 }],
+            solutionNote: { zh: "占住急所。", en: "Take the vital point.", ja: "急所", ko: "급소" },
+          }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderRecommendationResult();
+    fireEvent.click(await screen.findByRole("button", { name: "Try slightly harder" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/en/puzzles/next-difficulty-3"));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/puzzle/random",
+      expect.objectContaining({
+        body: JSON.stringify({
+          attemptedPuzzleIds: ["cld-001"],
+          level: "intermediate",
+          difficulty: 3,
+        }),
+      }),
+    );
+  });
+
+  it("sends the primary action to review when unresolved mistakes take priority", async () => {
+    prepareCorrectResult(
+      Array.from({ length: 5 }, (_, index) => ({
+        puzzleId: `wrong-${index}`,
+        date: "2026-04-20",
+        userMove: { x: 3, y: 3 },
+        correct: false,
+        solvedAtMs: index + 1,
+      })),
+    );
+    const fetchMock = vi.mocked(fetch);
+
+    renderRecommendationResult();
+
+    expect(await screen.findByText("Clear your review backlog first")).toBeInTheDocument();
+    const reviewLink = screen.getByRole("link", { name: "Open review" });
+    expect(reviewLink).toHaveAttribute("href", "/en/review");
+    reviewLink.addEventListener("click", (event) => event.preventDefault());
+    fireEvent.click(reviewLink);
+    expect(trackMock).toHaveBeenCalledWith("next_recommendation_clicked", {
+      locale: "en",
+      source: "result",
+      recommendationType: "review",
+    });
+    expect(fetchMock.mock.calls.some(([input]) => input === "/api/puzzle/random")).toBe(false);
+    expect(screen.queryByRole("button", { name: "Continue same level" })).not.toBeInTheDocument();
+  });
+
+  it("waits for summaries before allowing a next puzzle and recovers when loading fails", async () => {
+    prepareCorrectResult();
+    let rejectSummaries!: (error: Error) => void;
+    getAllSummariesMock.mockReturnValue(
+      new Promise((_, reject) => {
+        rejectSummaries = reject;
+      }),
+    );
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    renderRecommendationResult();
+
+    expect(screen.getByRole("button", { name: "Finding next puzzle…" })).toBeDisabled();
+    await act(async () => rejectSummaries(new Error("Index unavailable")));
+    expect(await screen.findByRole("button", { name: "Try slightly harder" })).toBeEnabled();
+    expect(warn).toHaveBeenCalledWith(
+      "[result] failed to load recommendation summaries",
+      expect.any(Error),
+    );
+    warn.mockRestore();
   });
 
   it("shows a training focus instead of a mistake reason after a correct result", async () => {

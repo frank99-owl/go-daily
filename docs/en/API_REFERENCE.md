@@ -170,19 +170,21 @@ Pick a random practice puzzle, used from the Today page random-practice action.
 ```json
 {
   "attemptedPuzzleIds": ["p-00001"],
-  "level": "beginner | intermediate | advanced"
+  "level": "intermediate",
+  "difficulty": 3,
+  "tag": "tesuji"
 }
 ```
 
-Both fields are optional. `attemptedPuzzleIds` lets the route prefer puzzles the current browser has not attempted. `level` filters the pool by onboarding difficulty band; missing or invalid levels fall back to `beginner`.
+All fields are optional. `attemptedPuzzleIds` prefers unattempted puzzles. `level` selects an onboarding difficulty band and defaults to `beginner` when omitted. `tag` keeps a requested topic. `difficulty` (1–5) prefers an exact difficulty, clamped to the selected band; if that pool is empty, selection falls back within the same band and topic. Invalid field values return `400`.
 
 **Response** (`200`):
 
 ```json
-{ "puzzleId": "string", "level": "beginner" }
+{ "puzzleId": "string", "level": "intermediate" }
 ```
 
-Returns the ID of a randomly selected puzzle. If all puzzles in the requested band were attempted, the route falls back to the full level pool. The client then fetches the full puzzle data separately.
+Returns the selected puzzle ID and normalized level. If all candidates were attempted, selection permits repeats within that pool. A band/topic combination with no candidates returns `404`. The client then fetches the puzzle separately.
 
 ---
 

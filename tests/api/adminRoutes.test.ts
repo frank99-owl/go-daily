@@ -345,7 +345,7 @@ describe("admin routes", () => {
         content: {
           totalPuzzles: 3033,
           coachBasicEligibleCount: 3033,
-          coachReadyApprovedCount: 3030,
+          coachReadyApprovedCount: 2998,
           variationGroupCount: 0,
         },
         coach: {

@@ -162,19 +162,21 @@ Today ページ内のランダム練習アクションで使うランダム練�
 ```json
 {
   "attemptedPuzzleIds": ["p-00001"],
-  "level": "beginner | intermediate | advanced"
+  "level": "intermediate",
+  "difficulty": 3,
+  "tag": "tesuji"
 }
 ```
 
-どちらのフィールドも任意。`attemptedPuzzleIds` は現在のブラウザで未挑戦の問題を優先するために使う。`level` は onboarding の難度帯で問題プールを絞り込み、欠落または無効な値は `beginner` にフォールバックする。
+すべて任意。`attemptedPuzzleIds` は未挑戦の問題を優先する。`level` は onboarding の難度帯を指定し、省略時は `beginner`。`tag` は題型を維持する。`difficulty`（1–5）は指定帯内に制限して一致する難度を優先し、候補がなければ同じ帯・題型内で選ぶ。無効な値は `400`。
 
 **レスポンス**（`200`）:
 
 ```json
-{ "puzzleId": "string", "level": "beginner" }
+{ "puzzleId": "string", "level": "intermediate" }
 ```
 
-ランダムに選択されたパズルの ID を返す。指定した帯の問題をすべて試行済みの場合は、その帯の全問題プールにフォールバックする。クライアントはその後、別途フルデータを取得する。
+選択した問題 ID と正規化したレベルを返す。候補がすべて挑戦済みなら同じ候補内で再挑戦を許可する。指定帯・題型に候補がなければ `404`。クライアントはその後、問題を別途取得する。
 
 ---
 

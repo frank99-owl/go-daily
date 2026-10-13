@@ -30,12 +30,24 @@ export async function POST(request: Request) {
   const level = normalizeOnboardingLevel(parsed.data.level);
   const difficulties = getDifficultiesForOnboardingLevel(level);
   const attemptedPuzzleIds = parsed.data.attemptedPuzzleIds ?? [];
-  const summaries = (await getAllSummaries()).filter(
+  const levelPool = (await getAllSummaries()).filter(
     (summary) =>
       difficulties.includes(summary.difficulty) &&
       (!parsed.data.tag || summary.tag === parsed.data.tag),
   );
-  const pick = pickRandomPuzzlePreferUnattempted(summaries, attemptedPuzzleIds);
+  // A stale client may send a difficulty outside its selected level. Keep
+  // recommendations within that level, then widen only if the exact pool is empty.
+  const targetDifficulty = parsed.data.difficulty
+    ? Math.max(
+        Math.min(...difficulties),
+        Math.min(Math.max(...difficulties), parsed.data.difficulty),
+      )
+    : undefined;
+  const exactPool = targetDifficulty
+    ? levelPool.filter((summary) => summary.difficulty === targetDifficulty)
+    : levelPool;
+  const candidates = exactPool.length > 0 ? exactPool : levelPool;
+  const pick = pickRandomPuzzlePreferUnattempted(candidates, attemptedPuzzleIds);
   if (!pick) {
     return apiError("No puzzles available.", 404);
   }

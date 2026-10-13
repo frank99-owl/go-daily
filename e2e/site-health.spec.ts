@@ -40,7 +40,9 @@ test.describe("site health", () => {
     expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
   });
 
-  test("renders without console errors on the landing page", async ({ page }) => {
+  test("keeps the landing page free of errors and automatic login interruptions", async ({
+    page,
+  }) => {
     // Telemetry endpoints only exist on Vercel, so locally they 404 and the
     // browser complains. Filter on the URL of the resource that failed rather
     // than the message text, which for load failures carries no URL at all —
@@ -59,9 +61,13 @@ test.describe("site health", () => {
       errors.push(err.message);
     });
 
+    await page.clock.install();
     await page.goto("/en");
     await page.waitForLoadState("networkidle");
+    await page.clock.fastForward(3001);
 
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Today's Puzzle" })).toBeVisible();
     expect(errors).toEqual([]);
   });
 });

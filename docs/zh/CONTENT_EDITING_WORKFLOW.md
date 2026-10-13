@@ -28,7 +28,7 @@
 1. **盘面核验**：确认 `correct` 与当前 `stones`、`toPlay` 一致，必要时用棋盘组件或 SGF 辅助核对。
 2. **补主线**：填写 `solutionSequence`。只记录经过人工确认的主线，不把模型推断的变化直接写入题库。
 3. **补错招分支**：填写 2-3 个常见 `wrongBranches`，每个分支必须有 `userWrongMove`、`refutation` 和四语言 `note`。
-4. **本地校验**：运行 `npm run validate:puzzles`，确保坐标、颜色、字段结构合法。
+4. **本地校验**：运行 `npm run validate:puzzles`，检查字段结构，并从完整初始盘面重放正解、主线和错招反驳，验证占用、自杀、手番、提子后的盘面与即时劫。合法性检查不能证明主线成立或反驳正确，仍须人工读棋。
 5. **人工复核**：至少完成一次独立复核后，才允许把题目标记为完整 `coach-ready`。
 
 ## 三、重复组治理流程
@@ -75,6 +75,8 @@ P0-D 首批已在 `content/data/classicalPuzzles.json` 中补齐 20 道题的 `s
 这批题只视为 `coach-ready` 首批补齐，不视为 `variation-ready`；重复组 / 同形变化关系仍需单独治理。
 
 ## 七、批次状态表
+
+2026-10-13 合法性复核撤回了 32 道题的完整 Coach 批准。原分支逐条保存在 `content/data/quarantinedCoachBranches.json`，复核任务登记为 `coach-branch-legality-review-2026-10-13`（`blocked`）。修复时先核对原始盘面与解析，独立确认替代分支的棋理，再解除隔离记录、更新批次并恢复批准；不能只把坐标改成一个合法落点。
 
 当前机器可读批次状态维护在 `content/data/contentReviewBatches.json`，并由 `npm run validate:puzzles` 校验：
 

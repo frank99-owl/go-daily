@@ -17,6 +17,7 @@ import type {
   PuzzleSchema,
   PersonaIdSchema,
   PuzzleTagSchema,
+  QuarantinedCoachBranchSchema,
   StoneSchema,
   WrongBranchSchema,
 } from "./schemas";
@@ -28,6 +29,7 @@ export type Color = z.infer<typeof ColorSchema>;
 export type Stone = z.infer<typeof StoneSchema>;
 export type PuzzleTag = z.infer<typeof PuzzleTagSchema>;
 export type WrongBranch = z.infer<typeof WrongBranchSchema>;
+export type QuarantinedCoachBranch = z.infer<typeof QuarantinedCoachBranchSchema>;
 export type Puzzle = z.infer<typeof PuzzleSchema>;
 export type CoachMessage = z.infer<typeof CoachMessageSchema>;
 export type PersonaId = z.infer<typeof PersonaIdSchema>;

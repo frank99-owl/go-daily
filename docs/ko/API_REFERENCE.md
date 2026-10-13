@@ -162,19 +162,21 @@ Today 페이지의 랜덤 연습 액션에서 사용할 임의의 연습 문제�
 ```json
 {
   "attemptedPuzzleIds": ["p-00001"],
-  "level": "beginner | intermediate | advanced"
+  "level": "intermediate",
+  "difficulty": 3,
+  "tag": "tesuji"
 }
 ```
 
-두 필드는 모두 선택 사항입니다. `attemptedPuzzleIds`는 현재 브라우저에서 아직 풀지 않은 문제를 우선하기 위해 사용합니다. `level`은 onboarding 난이도 구간으로 문제 풀을 필터링하며, 없거나 유효하지 않으면 `beginner`로 되돌아갑니다.
+모든 필드는 선택 사항입니다. `attemptedPuzzleIds`는 아직 풀지 않은 문제를 우선합니다. `level`은 onboarding 구간을 지정하며 생략하면 `beginner`입니다. `tag`는 요청한 유형을 유지합니다. `difficulty`(1–5)는 선택한 구간 안에서 정확한 난이도를 우선하며 후보가 없으면 같은 구간과 유형 안에서 선택합니다. 유효하지 않은 값은 `400`을 반환합니다.
 
 **응답** (`200`):
 
 ```json
-{ "puzzleId": "string", "level": "beginner" }
+{ "puzzleId": "string", "level": "intermediate" }
 ```
 
-임의로 선택된 퍼즐의 ID를 반환합니다. 요청한 구간의 모든 문제를 이미 풀었다면 해당 구간의 전체 문제 풀로 되돌아갑니다. 클라이언트는 이후 별도로 전체 퍼즐 데이터를 조회합니다.
+선택한 문제 ID와 정규화한 구간을 반환합니다. 후보를 모두 풀었다면 같은 후보 안에서 반복 연습을 허용합니다. 해당 구간과 유형에 후보가 없으면 `404`를 반환합니다. 클라이언트는 이후 문제를 별도로 조회합니다.
 
 ---
 

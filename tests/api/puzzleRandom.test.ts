@@ -114,6 +114,84 @@ describe("/api/puzzle/random", () => {
     expect(body).toEqual({ puzzleId: "p-00002", level: "intermediate" });
   });
 
+  it("keeps an upgrade within the exact recommended difficulty and topic", async () => {
+    getAllSummariesMock.mockResolvedValue([
+      ...summaries,
+      { ...summaries[2], id: "p-difficulty-3", difficulty: 3 },
+      { ...summaries[2], id: "p-other-topic", difficulty: 3, tag: "tesuji" },
+    ]);
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const response = await POST(
+      request({ body: { level: "intermediate", difficulty: 3, tag: "life-death" } }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ puzzleId: "p-difficulty-3", level: "intermediate" });
+  });
+
+  it("repeats an exact-match puzzle before selecting an unattempted puzzle at another difficulty", async () => {
+    getAllSummariesMock.mockResolvedValue([
+      ...summaries,
+      { ...summaries[2], id: "p-difficulty-3", difficulty: 3 },
+    ]);
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const response = await POST(
+      request({
+        body: {
+          attemptedPuzzleIds: ["p-difficulty-3"],
+          level: "intermediate",
+          difficulty: 3,
+          tag: "life-death",
+        },
+      }),
+    );
+
+    expect(await response.json()).toEqual({ puzzleId: "p-difficulty-3", level: "intermediate" });
+  });
+
+  it("falls back within the same level and topic when the exact difficulty has no puzzles", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const response = await POST(
+      request({ body: { level: "intermediate", difficulty: 3, tag: "life-death" } }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ puzzleId: "p-00003", level: "intermediate" });
+  });
+
+  it("clamps an out-of-level difficulty to the nearest allowed difficulty", async () => {
+    getAllSummariesMock.mockResolvedValue([
+      ...summaries,
+      { ...summaries[3], id: "p-difficulty-4", difficulty: 4 },
+    ]);
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const response = await POST(
+      request({ body: { level: "advanced", difficulty: 1, tag: "tesuji" } }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ puzzleId: "p-difficulty-4", level: "advanced" });
+  });
+
+  it("keeps a missing requested topic out of unrelated fallback pools", async () => {
+    const response = await POST(
+      request({ body: { level: "intermediate", difficulty: 3, tag: "opening" } }),
+    );
+
+    expect(response.status).toBe(404);
+  });
+
+  it.each([0, 6, 2.5, "3"])("rejects invalid difficulty %s", async (difficulty) => {
+    const response = await POST(request({ body: { level: "intermediate", difficulty } }));
+
+    expect(response.status).toBe(400);
+    expect(getAllSummariesMock).not.toHaveBeenCalled();
+  });
+
   it("falls back to the level pool when all matching puzzles were attempted", async () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 

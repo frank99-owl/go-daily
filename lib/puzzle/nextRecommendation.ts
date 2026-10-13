@@ -1,5 +1,9 @@
 import type { MistakeReasonId } from "@/lib/puzzle/mistakeReason";
-import type { OnboardingLevel, PuzzleDifficulty } from "@/lib/puzzle/onboardingLevels";
+import {
+  getDifficultiesForOnboardingLevel,
+  type OnboardingLevel,
+  type PuzzleDifficulty,
+} from "@/lib/puzzle/onboardingLevels";
 import type { AttemptRecord, PuzzleSummary, PuzzleTag } from "@/types";
 
 export type NextRecommendationPrimaryAction = "continue-practice" | "review-mistakes";
@@ -225,9 +229,13 @@ export function getNextRecommendation(input: NextRecommendationInput): NextRecom
   if (weakAreas.length > 0) {
     const weakestReason = weakAreas[0];
     const targetTag = tagForWeakReason(weakestReason);
+    const allowedDifficulties = getDifficultiesForOnboardingLevel(currentLevel);
+    const hasCandidates = input.summaries?.some(
+      (summary) => summary.tag === targetTag && allowedDifficulties.includes(summary.difficulty),
+    );
     // Only target weak area if it's different from the current puzzle's tag
-    // (avoid repeating the same type immediately).
-    if (targetTag !== input.puzzle.tag) {
+    // and the user's level has matching content to practice.
+    if (targetTag !== input.puzzle.tag && hasCandidates) {
       return {
         primaryAction: "continue-practice",
         targetLevel: currentLevel,

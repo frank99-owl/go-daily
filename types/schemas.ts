@@ -84,6 +84,9 @@ export const PuzzleTagSchema = z.enum(["life-death", "tesuji", "endgame", "openi
 export const RandomPuzzleRequestSchema = z.object({
   attemptedPuzzleIds: z.array(z.string().trim().min(1).max(120)).max(10_000).optional(),
   level: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  difficulty: z
+    .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])
+    .optional(),
   tag: PuzzleTagSchema.optional(),
 });
 
@@ -106,6 +109,17 @@ export const WrongBranchSchema = z.object({
   userWrongMove: CoordSchema,
   refutation: z.array(StoneSchema),
   note: LocalizedTextSchema,
+});
+
+// Preserve rejected teaching material outside the active puzzle library until
+// an editor has independently checked a replacement against the position.
+export const QuarantinedCoachBranchSchema = z.object({
+  puzzleId: z.string().trim().min(1),
+  branchIndex: z.number().int().nonnegative(),
+  quarantinedAt: z.string().datetime(),
+  status: z.literal("needs-review"),
+  issues: z.array(z.string().trim().min(1)).min(1),
+  branch: WrongBranchSchema,
 });
 
 export const CoachVariationGroupSchema = z.object({

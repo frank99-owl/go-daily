@@ -37,7 +37,7 @@ describe("queueContent", () => {
       wrongBranches: [
         {
           userWrongMove: { x: 3, y: 3 },
-          refutation: [{ x: 2, y: 2, color: "black" }],
+          refutation: [{ x: 2, y: 2, color: "white" }],
           note: {
             zh: "如果黑先脱先，白能先手封住眼位。",
             en: "If Black plays elsewhere, White seals the eye space first.",
@@ -144,7 +144,7 @@ describe("queueContent", () => {
       wrongBranches: [
         {
           userWrongMove: { x: 10, y: 10 },
-          refutation: [{ x: 12, y: 11, color: "black" }],
+          refutation: [{ x: 12, y: 11, color: "white" }],
           note: {
             zh: "如果黑先收小官子，白会抢到中央大点。",
             en: "If Black takes the smaller yose first, White gets the central point.",

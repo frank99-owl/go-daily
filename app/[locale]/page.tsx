@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 import { HeroSection } from "@/components/HeroSection";
-import { HomeLoginReminder } from "@/components/HomeLoginReminder";
 import { localePath } from "@/lib/i18n/localePath";
 import { getMessages } from "@/lib/i18n/metadata";
 import { serializeJsonLd } from "@/lib/jsonLd";
@@ -79,7 +78,6 @@ export default async function Home({ params }: { params: Promise<{ locale: Local
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <HomeLoginReminder />
       <HeroSection />
       <BoardShowcase />
     </>
