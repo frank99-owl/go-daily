@@ -57,7 +57,7 @@ Authoritative technical and product documentation is the **eight-pillar, four-lo
 
 ### Prerequisites
 
-- Node.js **22.5+** (see `package.json` `engines`)
+- Node.js **24.x** (see `package.json` `engines`; CI and Vercel use this major)
 - A DeepSeek or OpenAI-compatible API key (coach)
 - Supabase project (optional for local dev; anonymous mode works without it)
 

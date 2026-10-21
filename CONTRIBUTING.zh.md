@@ -34,7 +34,7 @@ npm install
 npm run dev
 ```
 
-请使用 `package.json` 中声明的 Node.js **22.5+**。本地匿名模式可以不配置 Supabase 项目；支付、登录、同步、邮件和生产安全流程需要 `.env.example` 中对应的环境变量。
+请使用 `package.json` 中声明的 Node.js **24.x**，与 CI 和 Vercel 保持一致。本地匿名模式可以不配置 Supabase 项目；支付、登录、同步、邮件和生产安全流程需要 `.env.example` 中对应的环境变量。
 
 ### 国际化校验
 

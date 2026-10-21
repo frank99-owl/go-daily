@@ -41,3 +41,13 @@
 提交前升级至 16.3.8 后，运行时依赖审计为零漏洞。完整审计仍有 5 条开发依赖链告警，均源于 ESLint 的 glob 依赖所使用的 [braces 栈溢出漏洞](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)；上游当前没有发布修复版本。现有 CI 将开发依赖审计作为报告项，运行时审计保持阻断门槛；没有执行审计工具建议的跨主版本降级。
 
 `validate:puzzles`、`validate:messages`、`validate:context`、`lint`、两套类型检查、`test:coverage`、生产构建及匿名 Playwright。登录到付费权益的完整测试仍需要隔离测试环境，见 `e2e/README.md`。每次结果以实际命令输出为准。
+
+## 2026-10-21 部署排查补记
+
+- 在 Vercel 控制台确认生产部署 `37ed735`（10 月 13 日）为 Ready，今天的 Vite 更新预览部署也为 Ready；主分支和该依赖更新的 GitHub CI 均通过。线上 `/api/health` 返回 `healthy`，Supabase 为 `ok`。
+- 当前 Hobby 权限可查询最近一小时运行日志。检查窗口内 Error/Fatal 均为零，状态码统计只有 200、304、308；这个结果不代表更早的错误或登录、支付等完整流程已经重新验证。
+- 实际构建告警包括 Node 版本范围未限定主版本、npm 生命周期脚本待审核，以及 Sentry 缺少 auth token，无法创建 release 或上传 source maps。无法据此确定 Frank 记忆中的旧报错是哪一条。
+- 代码侧将 Sentry 客户端入口迁移到 `instrumentation-client.ts`，保留隐私过滤及 Replay 遮罩，并导出导航监控钩子；构建配置改从 `@sentry/nextjs/config` 导入。Node 固定为当前线上已使用的 24.x，两个 CI job 同步对齐。
+- 当前审计新增的 Vite 开发依赖漏洞通过 8.3.1 → 8.3.4 补丁处理。运行时审计为零漏洞，完整审计剩余 5 条仍来自同一个无上游补丁的 braces 告警。未执行审计建议的 Next ESLint 配置跨主版本降级。
+- Node 24.22.0 下，110 个 Vitest 文件、1088 个用例及覆盖率门槛通过；默认 Turbopack 生产构建通过，生成 164 个静态页面；匿名 Playwright 16 项通过。lint、Prettier、两套类型检查、题库、消息及上下文校验通过。
+- `SENTRY_AUTH_TOKEN` 已补入 `.env.example` 的构建配置说明，但尚未在 Vercel 配置。缺少它不阻止部署或 DSN 错误接收，会影响线上堆栈的源码定位。凭据配置与发布仍待批准；未自动放行 npm 安装脚本，也未合并桌面端依赖 PR。

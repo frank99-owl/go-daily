@@ -49,7 +49,7 @@
 
 ### 前提
 
-- Node.js **22.5+**（`package.json` の `engines`）
+- Node.js **24.x**（`package.json` の `engines` を参照。CI と Vercel も同じメジャーバージョンを使用）
 - DeepSeek または OpenAI 互換の API キー
 - Supabase プロジェクト（任意。匿名モードは未設定でも可）
 

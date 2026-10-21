@@ -15,3 +15,5 @@ if (dsn) {
     beforeSend: scrubSentryEvent,
   });
 }
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

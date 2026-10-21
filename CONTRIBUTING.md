@@ -34,7 +34,7 @@ npm install
 npm run dev
 ```
 
-Use Node.js **22.5+** as declared in `package.json`. Local development can run in anonymous mode without a Supabase project, but payment, auth, sync, email, and production security flows require the corresponding environment variables from `.env.example`.
+Use Node.js **24.x** as declared in `package.json`, matching CI and Vercel. Local development can run in anonymous mode without a Supabase project, but payment, auth, sync, email, and production security flows require the corresponding environment variables from `.env.example`.
 
 ### i18n Validation
 

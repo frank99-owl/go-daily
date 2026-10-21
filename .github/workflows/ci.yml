@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: "24"
           # Caches ~/.npm; a separate node_modules cache is pointless because
           # `npm ci` always deletes node_modules before installing.
           cache: "npm"
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "npm"
       - run: npm ci
       # Chromium only: these specs check routing, status codes, headers and

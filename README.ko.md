@@ -49,7 +49,7 @@
 
 ### 전제
 
-- Node.js **22.5+**(`package.json`의 `engines`)
+- Node.js **24.x**(`package.json`의 `engines` 참조. CI와 Vercel도 같은 메이저 버전 사용)
 - DeepSeek 또는 OpenAI 호환 API 키
 - Supabase 프로젝트(선택, 익명 모드는 생략 가능)
 

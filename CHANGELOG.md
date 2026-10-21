@@ -10,6 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Changed
 
+- **Vite security patch (2026-10-21)**: updates the Vitest dependency chain from Vite 8.3.1 to 8.3.4, covering the launch-editor command-injection advisories identified by the current dependency audit. This is a development dependency; the production runtime audit remains clean. The existing braces advisory in ESLint's glob chain still has no upstream patch.
+
+- **Deployment monitoring and runtime alignment (2026-10-21)**: Sentry's client initialization now uses Next.js's `instrumentation-client.ts` entry, including router transition tracking and the existing privacy scrubber. The build wrapper imports from `@sentry/nextjs/config` to avoid the deprecated entry point. Node.js is pinned to 24.x, matching the current Vercel production runtime, and both CI jobs now use that major. `.env.example` documents the build-only `SENTRY_AUTH_TOKEN`; configuring it in Vercel is still required for release creation and source map uploads.
+
 - **Next.js security patch (2026-10-13)**: Next.js and eslint-config-next 16.3.7 → 16.3.8, fixing the newly reported image-optimization SSRF, metadata-image disclosure and cache-poisoning advisories. This uses the patched 16.3 release rather than expanding the upgrade to 16.4. Runtime dependency audit passes after the update.
 
 - **Recommendation actions match their advice (2026-10-13)**: result-page recommendations now consume historical puzzle summaries, send the requested difficulty to random selection, skip weak-topic recommendations without candidates in the selected training band, and route the primary action to review when the backlog calls for it. Exact-difficulty selection falls back within the same band and topic.

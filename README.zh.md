@@ -60,7 +60,7 @@ Phase 3 首轮已经完成：内容质量基线、学习闭环、商业化文案
 
 ### 环境要求
 
-- Node.js **22.5+**（见 `package.json` 的 `engines`）
+- Node.js **24.x**（见 `package.json` 的 `engines`；CI 与 Vercel 使用同一主版本）
 - DeepSeek 或兼容 OpenAI 的 API Key（教练）
 - Supabase 项目（可选；匿名模式可不配置）
 
