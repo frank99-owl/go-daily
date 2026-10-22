@@ -280,4 +280,32 @@ describe("scrubSentryEvent", () => {
     expect(result!.extra!.embedded).toBe("see https://go-daily.app/a.");
     expect(result!.extra!.safePath).toBe("/plain/path");
   });
+
+  it("does not leave a bracket from Sentry's [Filtered] value behind on the path", () => {
+    // Captured from a real server event: Sentry filters the token value before
+    // beforeSend runs, so the query ends in `]`.
+    const event = {
+      request: {
+        url: "http://127.0.0.1:3201/api/puzzle/random?email=probe@example.com&token=[Filtered]",
+      },
+    };
+
+    const result = scrubSentryEvent(event);
+    expect(result!.request!.url).toBe("http://127.0.0.1:3201/api/puzzle/random");
+  });
+
+  it("keeps brackets the URL itself opened, and text punctuation that follows it", () => {
+    const event = {
+      extra: {
+        wrapped: "(see https://go-daily.app/a?token=secret).",
+        listed: "[https://go-daily.app/b?x=1]",
+        ownParens: "docs at https://en.wikipedia.org/wiki/Go_(game) today",
+      },
+    };
+
+    const result = scrubSentryEvent(event);
+    expect(result!.extra!.wrapped).toBe("(see https://go-daily.app/a).");
+    expect(result!.extra!.listed).toBe("[https://go-daily.app/b]");
+    expect(result!.extra!.ownParens).toBe("docs at https://en.wikipedia.org/wiki/Go_(game) today");
+  });
 });

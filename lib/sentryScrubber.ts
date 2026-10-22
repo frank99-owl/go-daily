@@ -16,7 +16,8 @@ const TOKEN_RE = /\b(?:reveal|token|unsubscribe)[_-]?[A-Za-z0-9_-]{8,}\b/gi;
 const SENSITIVE_KEY_RE = /(?:token|secret|api_?key|authorization|cookie|password|session)/i;
 const ABSOLUTE_URL_RE = /\bhttps?:\/\/[^\s<>"'`]+/gi;
 const RELATIVE_URL_RE = /(^|[\s([{"'=])\/(?!\/)[^\s<>"'`)]*/g;
-const TRAILING_URL_PUNCT_RE = /[)\].,;!?]+$/;
+const TRAILING_URL_PUNCT = ".,;!?)]";
+const CLOSING_BRACKET_PAIRS: Record<string, string> = { ")": "(", "]": "[" };
 
 export function redactString(value: string): string {
   return redactSensitiveText(redactUrlsInString(value));
@@ -43,9 +44,35 @@ function redactSensitiveText(value: string): string {
   return value.replace(EMAIL_RE, "[redacted-email]").replace(TOKEN_RE, "[redacted-token]");
 }
 
+function countChar(value: string, char: string): number {
+  return value.split(char).length - 1;
+}
+
+/**
+ * Split punctuation that belongs to the surrounding text off the end of a URL
+ * matched in free text, so `(see https://x/a?b=1).` keeps its `).`.
+ *
+ * A closing bracket counts as text only when the URL has no matching opener.
+ * Sentry itself filters query values to `token=[Filtered]`, and treating that
+ * `]` as text left it behind once the query was stripped — every such URL
+ * reached Sentry as `…/path]`.
+ */
+function splitTrailingPunctuation(rawUrl: string): [url: string, trailing: string] {
+  let end = rawUrl.length;
+  while (end > 0 && TRAILING_URL_PUNCT.includes(rawUrl[end - 1])) {
+    const char = rawUrl[end - 1];
+    const opener = CLOSING_BRACKET_PAIRS[char];
+    if (opener) {
+      const body = rawUrl.slice(0, end);
+      if (countChar(body, opener) >= countChar(body, char)) break;
+    }
+    end -= 1;
+  }
+  return [rawUrl.slice(0, end), rawUrl.slice(end)];
+}
+
 function stripMatchedUrl(rawUrl: string): string {
-  const trailing = rawUrl.match(TRAILING_URL_PUNCT_RE)?.[0] ?? "";
-  const url = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+  const [url, trailing] = splitTrailingPunctuation(rawUrl);
   return stripUrlQueryAndHash(url) + trailing;
 }
 
