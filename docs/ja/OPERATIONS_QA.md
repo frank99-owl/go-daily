@@ -42,7 +42,7 @@ npm run preflight:prod -- --stripe-mode=live
 
 ### 自動化カバレッジ (Vitest)
 
-111 の Vitest テストファイル・996 テストケースに加え、14 の Playwright E2E スペック（2026-08-24）を維持しています：
+テストは `tests/`（Vitest）と `e2e/`（Playwright）にあります。現在の結果は `npm run test:coverage` と `npm run test:e2e` で確認し、件数はその実行出力を参照してください。主な対象：
 
 - **ロジック**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`。
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`。

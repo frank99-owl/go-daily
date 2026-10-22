@@ -1,5 +1,13 @@
 # go-daily Project Status & Roadmap
 
+## Maintenance status (2026-10-13)
+
+go-daily is in stable maintenance. See [CHANGELOG](../../CHANGELOG.md) for recent maintenance and [README](../../README.md) for the project entry point.
+
+The sections below preserve the 2026-06-11 snapshot. Its verification counts, production smoke results, and next steps describe that period. See [OPERATIONS_QA](OPERATIONS_QA.md) for verification procedures and use the output of the current run for results. This documentation review did not reverify production or reactivate the historical launch tasks.
+
+---
+
 **Generated At**: June 11, 2026 (previous: May 19, 2026)
 **Repository HEAD**: `main` (production configuration and smoke results documented)
 **Status**: Phase 3 first pass complete; mobile adaptation batch (2026-06-11) merged to main with CI green
@@ -94,11 +102,11 @@ The next phase of the product will organize the user experience around: `onboard
 
 The first pass of Phase 3 is complete: P0 content quality baseline, P1 learning loop, P2 release/growth/operations materials, and production smoke are all delivered. The production environment is verified, leaving GitHub release, public launch announcements, and subsequent real-user validation.
 
-Immediate Next Steps:
+Next steps recorded in the historical snapshot:
 
 1. **GitHub Release Approval**: Verify this documentation diff, tag names, and release notes, then push the tag and create the GitHub release.
 2. **Refine Next Coach Batch**: Continue refining 20-50 high-value puzzles from `queue:content` / `plan:content-batch` to complete `solutionSequence` and `wrongBranches` and push them to the approved list.
-3. **Real-User Validation**: Run small-scale validation according to [USER_INTERVIEW_SCRIPT.md](USER_INTERVIEW_SCRIPT.md) and [REVENUE_EXPERIMENTS.md](REVENUE_EXPERIMENTS.md). Direct authorization is required before contacting users, emailing, taking payments, or publishing waitlists.
+3. **Real-User Validation**: Run small-scale validation according to [USER_INTERVIEW_SCRIPT.md](../zh/USER_INTERVIEW_SCRIPT.md) and [REVENUE_EXPERIMENTS.md](../zh/REVENUE_EXPERIMENTS.md). Direct authorization is required before contacting users, emailing, taking payments, or publishing waitlists.
 4. **Production Observation**: Retain old Resend / Stripe keys for 24-48 hours to monitor stability before cleaning them up to avoid premature revocation.
 
 External actions requiring separate approval from Frank: `git push`, creating/updating PRs, creating GitHub releases, DNS/Cloudflare changes, Supabase production changes, public launch announcements, and outgoing email/marketing campaigns.

@@ -47,7 +47,7 @@ This script checks:
 
 ### Automated Coverage (Vitest)
 
-We maintain 111 Vitest files with 996 test cases, plus 14 Playwright end-to-end specs (2026-08-24), covering:
+Tests live in `tests/` (Vitest) and `e2e/` (Playwright). Run `npm run test:coverage` and `npm run test:e2e` for current results; use that run's output for test counts. Coverage includes:
 
 - **Logic**: `tests/lib/puzzle/srs.test.ts`, `tests/lib/entitlements.test.ts`.
 - **UI**: `tests/components/GoBoard.test.tsx`, `tests/app/TodayClient.test.tsx`.

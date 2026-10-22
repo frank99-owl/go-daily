@@ -20,6 +20,14 @@ This tree is the **canonical** technical and product reference for go-daily: **e
 
 ---
 
+## Documentation freshness
+
+`PROJECT_STATUS.md` in each locale provides a maintenance note and preserves the dated 2026-06-11 snapshot. Historical verification results and launch plans retain their original time scope. Use [CHANGELOG](../CHANGELOG.md) for subsequent changes and the current run output for verification results.
+
+中文：各语言的 `PROJECT_STATUS.md` 已补充维护说明，原有内容保留为 2026-06-11 的阶段快照。后续变更查 `CHANGELOG`，当前验证结果以实际运行输出为准。
+
+---
+
 ## Public disclosure & data safety
 
 ### English

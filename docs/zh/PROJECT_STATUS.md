@@ -1,5 +1,13 @@
 # go-daily 项目状态与下一步路线图
 
+## 维护状态（2026-10-13）
+
+go-daily 处于稳定维护阶段。近期维护记录见 [CHANGELOG](../../CHANGELOG.md)，项目入口见 [README](../../README.md)。
+
+下方保留 2026-06-11 的阶段快照；其中的验证数字、生产烟测和下一步计划都有当时的时间范围。当前验证方法见 [OPERATIONS_QA](OPERATIONS_QA.md)，结果以本次实际运行输出为准。此次文档复核没有重新验证生产环境，也没有把历史发布动作重新列入当前待办。
+
+---
+
 **生成日期**: 2026-06-11（上次：2026-05-19）
 **仓库 HEAD**: `main`（生产配置与 smoke 结果已在本文件记录）
 **版本状态**: Phase 3 首轮完成；移动端适配批次（2026-06-11）已合入 main 并通过 CI
@@ -94,7 +102,7 @@ P1-A / P1-B / P1-C / P1-D / P1-E 已完成首轮落地。当前基线已经能�
 
 Phase 3 首轮已完成：P0 内容质量基线、P1 学习闭环、P2 发布/增长/运营材料与生产 smoke 均已有可审交付。生产配置已通过发布窗口验证，当前剩余动作是 GitHub release、公开发布公告与后续真实用户验证。
 
-后续即时步骤：
+当时记录的后续步骤（历史留档）：
 
 1. **GitHub 发布审批**：确认本次文档更新 diff、tag 名称与 release notes，然后决定是否 push、打 tag、创建 GitHub release。
 2. **下一批 Coach 题打磨**：继续从 `queue:content` / `plan:content-batch` 选择 20-50 道高价值题补齐 `solutionSequence` 与 `wrongBranches`，通过 `queue:content` 进入批准列表。
