@@ -8,7 +8,7 @@ This document describes the production lifecycle of go-daily, from environment c
 - **Database**: Supabase (Region: `ap-southeast-1` - Singapore)
 - **Rate Limiting**: Upstash Redis (Region: `ap-southeast-1` - Singapore)
 - **DNS & CDN**: Cloudflare (Proxy enabled)
-- **Observability**: Sentry (Errors) + PostHog (Events) + Vercel Speed Insights
+- **Observability**: Vercel runtime logs (errors, including `[api-5xx]` and `[client-error]` lines) + PostHog (Events) + Vercel Speed Insights
 
 ## 2. Environment Configuration
 
@@ -121,4 +121,4 @@ Compliance requires manual verification across external dashboards.
 ### Privacy & Governance
 
 - [ ] **PIPA Consent**: (Manual check) Verify the sequential PIPA consent flow triggers before login for ko locale.
-- [ ] **Sentry PII Filter**: Run a test coaching dialogue and verify in the Sentry dashboard that no email or PII is visible in the breadcrumbs.
+- [ ] **Error-log redaction**: In the Vercel runtime logs, confirm `[client-error]` and `[api-5xx]` lines contain no email, token or coach dialogue.

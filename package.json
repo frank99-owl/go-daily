@@ -39,7 +39,6 @@
     "generate:icons": "tsx scripts/generateIcons.ts"
   },
   "dependencies": {
-    "@sentry/nextjs": "^11.8.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.110.0",
     "@upstash/redis": "^1.38.4",

@@ -47,7 +47,7 @@ test.describe("site health", () => {
     // browser complains. Filter on the URL of the resource that failed rather
     // than the message text, which for load failures carries no URL at all —
     // that way a genuine 404 from the app itself is still caught.
-    const THIRD_PARTY = /_vercel|posthog|sentry|speed-insights|\/favicon/i;
+    const THIRD_PARTY = /_vercel|posthog|speed-insights|\/favicon/i;
     const errors: string[] = [];
 
     page.on("console", (msg) => {

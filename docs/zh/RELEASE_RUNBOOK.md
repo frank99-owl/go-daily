@@ -75,7 +75,7 @@ npm run supabase:health
 
 - `/admin` Operations Snapshot：内容分层、Coach 使用、Stripe `past_due`、Webhook、同步写入。
 - PostHog：activation、result viewed、coach opened/completed/error、subscription events。
-- Sentry：server route exceptions、client hydration/runtime errors。
+- Vercel 运行日志：`[api-5xx]`（API 主动返回的 5xx）、`[client-error]`（客户端报错）及未捕获的服务端异常。
 - Supabase：Auth、Postgres、RLS error、API latency。
 - Stripe：Checkout、invoice events、webhook delivery、failed payments。
 - Vercel：deployment health、function errors、build logs、edge/network incident。
@@ -89,7 +89,6 @@ npm run supabase:health
 - [DeepSeek Status](https://status.deepseek.com/)
 - [Upstash Status](https://upstash.instatus.com/)
 - [PostHog Status](https://www.posthogstatus.com/us)
-- [Sentry Status](https://status.sentry.io/)
 
 ## 7. 发布后观察
 
@@ -97,7 +96,7 @@ npm run supabase:health
 
 1. `/admin` Operations Snapshot。
 2. Stripe webhook delivery 和 invoice failure。
-3. Sentry 新增 issue。
+3. Vercel 运行日志中的 `[api-5xx]` 与 `[client-error]`。
 4. PostHog Coach error rate 和 activation funnel。
 5. Supabase `attempts` / `user_devices` 是否持续写入。
 

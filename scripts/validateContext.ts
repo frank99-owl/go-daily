@@ -67,8 +67,7 @@ const CRITICAL_INVARIANTS: { id: string; pattern: RegExp }[] = [
   { id: "next/og avoids z-index and runs on nodejs", pattern: /next\/og|Satori/ },
   { id: "i18n key parity", pattern: /validate:messages/ },
   { id: "production migrations are applied by hand, then verified", pattern: /--check-remote/ },
-  { id: "handled 5xx responses are reported via createApiResponse", pattern: /createApiResponse/ },
-  { id: "every Sentry.init spreads the shared privacy baseline", pattern: /SHARED_SENTRY_OPTIONS/ },
+  { id: "handled 5xx responses are logged via createApiResponse", pattern: /createApiResponse/ },
 ];
 
 function read(file: ContextFile): string {

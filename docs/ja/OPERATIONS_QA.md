@@ -8,7 +8,7 @@
 - **データベース**: Supabase (Region: `ap-southeast-1` - シンガポール)
 - **レート制限**: Upstash Redis (Region: `ap-southeast-1` - シンガポール)
 - **DNS & CDN**: Cloudflare (Proxy 有効)
-- **観測性**: Sentry (エラー) + PostHog (イベント) + Vercel Speed Insights
+- **観測性**: Vercel ランタイムログ（`[api-5xx]`・`[client-error]` を含むエラー）+ PostHog (イベント) + Vercel Speed Insights
 
 ## 2. 環境構成
 
@@ -114,4 +114,4 @@ npm run generate:icons    # public/icon.svg から PWA アイコンを再生成
 ### プライバシーとガバナンス
 
 - [ ] **PIPA 同意**: (手動チェック) ログインフロー内で、韓国語環境向けの同意カードが正しく表示されるか確認。
-- [ ] **Sentry PII フィルター**: テスト用のコーチング対話を実行し、Sentry ダッシュボードでメールアドレスや PII が公開されていないことを確認してください。
+- [ ] **エラーログの匿名化**: Vercel ランタイムログで `[client-error]`・`[api-5xx]` 行にメールアドレス、トークン、コーチ対話が含まれないことを確認してください。

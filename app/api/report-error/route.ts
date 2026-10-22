@@ -1,9 +1,7 @@
-import * as Sentry from "@sentry/nextjs";
-
 import { createApiResponse, parseMutationBody } from "@/lib/apiHeaders";
 import { getClientIP } from "@/lib/clientIp";
 import { checkRateLimit, createRateLimiter } from "@/lib/rateLimit";
-import { redactString, stripUrlQueryAndHash } from "@/lib/sentryScrubber";
+import { redactString, stripUrlQueryAndHash } from "@/lib/redact";
 import { ClientErrorReportSchema } from "@/types/schemas";
 
 export const runtime = "nodejs";
@@ -12,8 +10,6 @@ const MAX_BODY_BYTES = 4 * 1024;
 const rateLimiter = createRateLimiter();
 
 const BROAD_TOKEN_RE = /\b[A-Za-z0-9_-]{20,}\b/g;
-
-type ClientErrorReport = ReturnType<typeof ClientErrorReportSchema.parse>;
 
 function sanitizeMessage(msg: string): string {
   return redactString(msg).replace(BROAD_TOKEN_RE, "[redacted-token]");
@@ -26,35 +22,6 @@ function sanitizeUrl(url: string): string {
     return "[invalid-url]";
   }
   return stripUrlQueryAndHash(url);
-}
-
-function sanitizeStack(stack: string | undefined): string | undefined {
-  if (!stack) return undefined;
-  const firstLines = stack.split("\n").slice(0, 3).join("\n");
-  return firstLines.length > 500 ? firstLines.slice(0, 500) : firstLines;
-}
-
-function captureClientErrorReport(report: ClientErrorReport): void {
-  Sentry.withScope((scope) => {
-    scope.setTag("source", "client-error-report");
-    scope.setTag("client_locale", report.locale ?? "unknown");
-    if (report.puzzleId) {
-      scope.setTag("puzzle_id", report.puzzleId);
-    }
-    scope.setContext("client_error", {
-      url: sanitizeUrl(report.url),
-      timestamp: report.timestamp,
-      locale: report.locale,
-      puzzleId: report.puzzleId,
-    });
-
-    const error = new Error(sanitizeMessage(report.message));
-    const sanitizedStack = sanitizeStack(report.stack);
-    if (sanitizedStack) {
-      error.stack = sanitizedStack;
-    }
-    Sentry.captureException(error);
-  });
 }
 
 export async function POST(request: Request) {
@@ -82,7 +49,6 @@ export async function POST(request: Request) {
     locale: report.locale,
     puzzleId: report.puzzleId,
   });
-  captureClientErrorReport(report);
 
   return createApiResponse({ ok: true });
 }

@@ -8,7 +8,7 @@
 - **데이터베이스**: Supabase (Region: `ap-southeast-1` - 싱가포르)
 - **속도 제한**: Upstash Redis (Region: `ap-southeast-1` - 싱가포르)
 - **DNS & CDN**: Cloudflare (Proxy 활성화)
-- **관측성**: Sentry (에러) + PostHog (이벤트) + Vercel Speed Insights
+- **관측성**: Vercel 런타임 로그(`[api-5xx]`, `[client-error]` 포함 에러) + PostHog (이벤트) + Vercel Speed Insights
 
 ## 2. 환경 설정
 
@@ -114,4 +114,4 @@ npm run generate:icons    # public/icon.svg에서 PWA 아이콘 재생성
 ### 개인정보 보호 및 거버넌스
 
 - [ ] **PIPA 동의**: (수동 점검) 로그인 과정에서 한국어 환경에 맞는 순차적 동의 카드가 제대로 표시되는지 확인.
-- [ ] **Sentry PII 필터**: 테스트용 코칭 대화를 실행하고 Sentry 대시보드에서 이메일이나 PII가 노출되지 않는지 확인하십시오.
+- [ ] **에러 로그 비식별화**: Vercel 런타임 로그에서 `[client-error]`, `[api-5xx]` 줄에 이메일, 토큰, 코치 대화가 없는지 확인하십시오.

@@ -1,6 +1,5 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect, useMemo } from "react";
 
 import { reportError } from "@/lib/errorReporting";
@@ -49,7 +48,6 @@ export default function GlobalError({
   const messages = useMemo(() => I18N[detectLocale()], []);
 
   useEffect(() => {
-    Sentry.captureException(error);
     reportError(error);
     console.error(error);
   }, [error]);

@@ -25,7 +25,6 @@ const REQUIRED_ENV = [
   ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "Supabase browser publishable key"],
   ["SUPABASE_SERVICE_ROLE_KEY", "Supabase server secret key"],
   ["NEXT_PUBLIC_POSTHOG_KEY", "PostHog project API key"],
-  ["NEXT_PUBLIC_SENTRY_DSN", "Sentry DSN"],
   ["STRIPE_SECRET_KEY", "Stripe server secret key"],
   ["STRIPE_WEBHOOK_SECRET", "Stripe webhook signing secret"],
   ["STRIPE_PRO_MONTHLY_PRICE_ID", "Stripe monthly Price ID"],
@@ -225,7 +224,6 @@ function validateEnvironment(stripeMode: string): void {
   validateUrl("NEXT_PUBLIC_SITE_URL", { requireHttps: true });
   validateUrl("NEXT_PUBLIC_SUPABASE_URL", { requireHttps: true });
   validateUrl("NEXT_PUBLIC_POSTHOG_HOST", { requireHttps: true });
-  validateUrl("NEXT_PUBLIC_SENTRY_DSN", { requireHttps: true });
 
   if (
     isFilled("NEXT_PUBLIC_SUPABASE_URL") &&

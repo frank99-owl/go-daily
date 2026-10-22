@@ -10,7 +10,7 @@
 - **数据库**: Supabase (Region: `ap-southeast-1` - 新加坡)
 - **限流**: Upstash Redis (Region: `ap-southeast-1` - 新加坡)
 - **DNS & CDN**: Cloudflare (开启 Proxy)
-- **观测**: Sentry (错误) + PostHog (事件) + Vercel Speed Insights
+- **观测**: Vercel 运行日志（错误，含 `[api-5xx]`、`[client-error]` 日志行）+ PostHog (事件) + Vercel Speed Insights
 
 ## 2. 环境配置
 
@@ -60,11 +60,11 @@ npm run email:smoketest -- --check-remote
 
 ### P2-D AI 安全、成本与隐私验证
 
-P2-D 的验证必须保持本地、mock、静态分析或单元测试边界；不得发送真实 Sentry/PostHog 事件，不得访问真实 DeepSeek/Stripe/Supabase/Resend 服务，不得输出 secrets。
+P2-D 的验证必须保持本地、mock、静态分析或单元测试边界；不得发送真实 PostHog 事件，不得访问真实 DeepSeek/Stripe/Supabase/Resend 服务，不得输出 secrets。
 
 ```bash
 npm run test -- tests/lib/promptGuard.test.ts tests/api/coach.test.ts tests/lib/posthog/eventTypes.test.ts tests/lib/posthog/server.test.ts
-npm run test -- tests/lib/sentryScrubber.test.ts
+npm run test -- tests/lib/redact.test.ts tests/api/report-error.test.ts
 npm run validate:messages
 npm run lint
 npx tsc --noEmit
@@ -75,7 +75,7 @@ npx tsc --noEmit
 - `promptGuard.ts`：覆盖普通注入、全角、同形字符、零宽字符、标点/空格拆分等红队样例。
 - `/api/coach`：确认 promptGuard 拦截发生在题目查询、配额写入和模型调用之前；确认请求体、历史上下文、输出 token、超时、配额、限流和失败回滚均有边界。
 - `lib/posthog/server.ts`：确认服务端 distinctId 哈希后发送，且敏感属性 key/value 会阻断事件。
-- `instrumentation-client.ts`、`sentry*.config.ts`、`lib/sentryScrubber.ts`、`/api/report-error`：确认 `beforeSend`、客户端错误上报和服务端错误报告会清理邮箱、URL query/hash、token、secret、API key、cookie 和 authorization header。三个 `Sentry.init` 都必须展开 `SHARED_SENTRY_OPTIONS`：Sentry v11 不设 `dataCollection` 时默认收集用户信息、cookie 和请求体，`SENTRY_DATA_COLLECTION` 固定为官方的 v10 基线，`tests/app/sentryConfig.test.ts` 会检查三处入口。
+- `lib/redact.ts`、`/api/report-error`、`lib/apiHeaders.ts`：确认客户端错误报告写入日志前会清理邮箱、URL query/hash 和 token；API 5xx 只记录状态码和错误码（`[api-5xx]`）。
 
 ## 4. 质量保障计划
 
@@ -152,5 +152,5 @@ npm run email:smoketest   # 邮件烟感测试
 ### 隐私与治理
 
 - [ ] **PIPA 同意**: (手动检查) 验证在线性登录流程中，韩国语言环境的同意卡片正确显示。
-- [ ] **Sentry PII 过滤器**: 发布窗口内才运行测试教练对话，并在 Sentry 控制台中验证面包屑中没有显示任何电子邮件或 PII；本地 P2-D 阶段只运行 scrubber 单元测试，不发送真实事件。
+- [ ] **错误日志脱敏**: 发布窗口内在 Vercel 运行日志中检查 `[client-error]`、`[api-5xx]` 行不含邮箱、token 或 AI 对话内容；本地阶段只运行 `tests/lib/redact.test.ts`。
 - [ ] **PostHog 隐私边界**: 发布窗口内才检查真实项目中是否只出现低敏属性；本地 P2-D 阶段只运行 `captureServerEvent()` mock 测试，不发送真实事件。

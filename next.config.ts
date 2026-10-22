@@ -1,9 +1,8 @@
-import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    optimizePackageImports: ["framer-motion", "lucide-react", "@sentry/nextjs"],
+    optimizePackageImports: ["framer-motion", "lucide-react"],
   },
   async headers() {
     const scriptSrc = ["'self'", "'unsafe-inline'"];
@@ -17,7 +16,7 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: blob:",
-      "connect-src 'self' https://api.deepseek.com https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://*.ingest.us.sentry.io https://api.stripe.com",
+      "connect-src 'self' https://api.deepseek.com https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://api.stripe.com",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
@@ -83,15 +82,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: "frank99-owls-org",
-  project: "javascript-nextjs",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  webpack: {
-    treeshake: {
-      removeDebugLogging: true,
-    },
-    automaticVercelMonitors: true,
-  },
-});
+export default nextConfig;

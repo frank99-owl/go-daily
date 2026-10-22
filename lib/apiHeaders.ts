@@ -2,8 +2,6 @@
  * Standard security headers for API responses.
  */
 
-import * as Sentry from "@sentry/nextjs";
-
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 
 /** Default maximum body size for mutation endpoints (2 KB). */
@@ -125,14 +123,15 @@ export function apiError(message: string, status = 400): Response {
 const MAX_REPORTED_ERROR_LENGTH = 120;
 
 /**
- * Report a 5xx the route produced on purpose.
+ * Log a 5xx the route produced on purpose.
  *
- * A route that catches a failed query, logs it and answers 500 never throws, so
- * neither Sentry's `onRequestError` hook nor anything else sees it. That is how
- * `/api/profile/training-level` returned 500 on every call from May to October
- * 2026 — production was missing the column it writes — with nothing but a
- * function log line to show for it. Every route answering through
- * `createApiResponse` is covered here; events still pass `scrubSentryEvent`.
+ * A route that catches a failure, logs it and answers 500 never throws, so the
+ * failure is easy to lose. That is how `/api/profile/training-level` returned
+ * 500 on every call from May to October 2026 — production was missing the
+ * column it writes. Every route answering through `createApiResponse` gets one
+ * structured `[api-5xx]` line in the function logs (Vercel runtime logs),
+ * grep-able by status and error code. Sentry reported these until it was
+ * removed in 2026-10.
  */
 function reportServerErrorResponse(status: number, body: unknown): void {
   const error =
@@ -140,10 +139,7 @@ function reportServerErrorResponse(status: number, body: unknown): void {
   const code =
     typeof error === "string" ? error.slice(0, MAX_REPORTED_ERROR_LENGTH) : "unspecified";
 
-  Sentry.captureMessage(`API ${status}: ${code}`, {
-    level: "error",
-    tags: { api_status: String(status), api_error: code },
-  });
+  console.error("[api-5xx]", { status, error: code });
 }
 
 export function createApiResponse(

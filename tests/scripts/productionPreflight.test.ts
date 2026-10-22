@@ -14,7 +14,6 @@ const safeEnv = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_test",
   SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
   NEXT_PUBLIC_POSTHOG_KEY: "phc_test",
-  NEXT_PUBLIC_SENTRY_DSN: "https://sentry.example/1",
   STRIPE_SECRET_KEY: "sk_test_123",
   STRIPE_WEBHOOK_SECRET: "whsec_test",
   STRIPE_PRO_MONTHLY_PRICE_ID: "price_monthly",

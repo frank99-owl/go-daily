@@ -1,24 +1,7 @@
 /**
  * @vitest-environment node
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const sentryMocks = vi.hoisted(() => {
-  const scope = {
-    setContext: vi.fn(),
-    setTag: vi.fn(),
-  };
-  return {
-    captureException: vi.fn(),
-    scope,
-    withScope: vi.fn((callback: (s: typeof scope) => void) => callback(scope)),
-  };
-});
-
-vi.mock("@sentry/nextjs", () => ({
-  captureException: sentryMocks.captureException,
-  withScope: sentryMocks.withScope,
-}));
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/report-error/route";
 
@@ -35,11 +18,14 @@ function makeRequest(body: unknown, init?: { headers?: HeadersInit }): Request {
 }
 
 describe("/api/report-error", () => {
+  let errorSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
-    sentryMocks.captureException.mockClear();
-    sentryMocks.scope.setContext.mockClear();
-    sentryMocks.scope.setTag.mockClear();
-    sentryMocks.withScope.mockClear();
+    errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    errorSpy.mockRestore();
   });
 
   it("rejects cross-origin POST with 403", async () => {
@@ -106,8 +92,6 @@ describe("/api/report-error", () => {
   });
 
   it("logs valid error reports", async () => {
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
     const response = await POST(
       makeRequest({
         message: "Client exploded",
@@ -130,24 +114,9 @@ describe("/api/report-error", () => {
         puzzleId: "cld-001",
       }),
     );
-    expect(sentryMocks.withScope).toHaveBeenCalledTimes(1);
-    expect(sentryMocks.scope.setTag).toHaveBeenCalledWith("source", "client-error-report");
-    expect(sentryMocks.scope.setTag).toHaveBeenCalledWith("client_locale", "en");
-    expect(sentryMocks.scope.setTag).toHaveBeenCalledWith("puzzle_id", "cld-001");
-    expect(sentryMocks.scope.setContext).toHaveBeenCalledWith(
-      "client_error",
-      expect.objectContaining({
-        url: "https://go-daily.app/result",
-        locale: "en",
-        puzzleId: "cld-001",
-      }),
-    );
-    expect(sentryMocks.captureException).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Client exploded" }),
-    );
   });
 
-  it("strips query and hash from URL before reporting to Sentry", async () => {
+  it("strips query and hash from the URL before logging", async () => {
     const response = await POST(
       makeRequest({
         message: "Broken",
@@ -158,8 +127,8 @@ describe("/api/report-error", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(sentryMocks.scope.setContext).toHaveBeenCalledWith(
-      "client_error",
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[client-error]",
       expect.objectContaining({ url: "https://go-daily.app/page" }),
     );
   });
@@ -175,7 +144,8 @@ describe("/api/report-error", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(sentryMocks.captureException).toHaveBeenCalledWith(
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[client-error]",
       expect.objectContaining({ message: "Failed for user [redacted-email]" }),
     );
   });

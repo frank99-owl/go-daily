@@ -1,10 +1,7 @@
 /**
  * @vitest-environment node
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const { captureMessage } = vi.hoisted(() => ({ captureMessage: vi.fn() }));
-vi.mock("@sentry/nextjs", () => ({ captureMessage }));
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApiResponse, parseMutationBody, readRequestBodyBytes } from "@/lib/apiHeaders";
 
@@ -50,56 +47,61 @@ describe("apiHeaders", () => {
   });
 });
 
-describe("createApiResponse server-error reporting", () => {
+describe("createApiResponse server-error logging", () => {
+  let errorSpy: ReturnType<typeof vi.spyOn>;
+  const logged = () =>
+    (errorSpy.mock.calls as unknown[][])
+      .filter(([tag]) => tag === "[api-5xx]")
+      .map(([, data]) => data);
+
   beforeEach(() => {
-    captureMessage.mockClear();
+    errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  it("reports a handled 5xx with its status and error code", async () => {
+  afterEach(() => {
+    errorSpy.mockRestore();
+  });
+
+  it("logs a handled 5xx with its status and error code", async () => {
     const response = createApiResponse({ error: "profile_update_failed" }, { status: 500 });
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({ error: "profile_update_failed" });
-    expect(captureMessage).toHaveBeenCalledTimes(1);
-    expect(captureMessage).toHaveBeenCalledWith("API 500: profile_update_failed", {
-      level: "error",
-      tags: { api_status: "500", api_error: "profile_update_failed" },
-    });
+    expect(logged()).toEqual([{ status: 500, error: "profile_update_failed" }]);
   });
 
-  it("reports 502 and 503 too", () => {
+  it("logs 502 and 503 too", () => {
     createApiResponse({ error: "checkout_failed" }, { status: 502 });
     createApiResponse({ error: "Rate limiter unavailable." }, { status: 503 });
 
-    expect(captureMessage.mock.calls.map(([message]) => message)).toEqual([
-      "API 502: checkout_failed",
-      "API 503: Rate limiter unavailable.",
+    expect(logged()).toEqual([
+      { status: 502, error: "checkout_failed" },
+      { status: 503, error: "Rate limiter unavailable." },
     ]);
   });
 
-  it("still reports a 5xx whose body carries no error string", () => {
+  it("still logs a 5xx whose body carries no error string", () => {
     createApiResponse({ status: "unhealthy" }, { status: 503 });
     createApiResponse(null, { status: 500 });
 
-    expect(captureMessage.mock.calls.map(([message]) => message)).toEqual([
-      "API 503: unspecified",
-      "API 500: unspecified",
+    expect(logged()).toEqual([
+      { status: 503, error: "unspecified" },
+      { status: 500, error: "unspecified" },
     ]);
   });
 
-  it("truncates a long error message so it cannot flood the event", () => {
+  it("truncates a long error message so it cannot flood the log", () => {
     createApiResponse({ error: "x".repeat(500) }, { status: 500 });
 
-    const [message] = captureMessage.mock.calls[0];
-    expect(message).toBe(`API 500: ${"x".repeat(120)}`);
+    expect(logged()).toEqual([{ status: 500, error: "x".repeat(120) }]);
   });
 
-  it("does not report success or client errors", () => {
+  it("does not log success or client errors", () => {
     createApiResponse({ ok: true });
     createApiResponse({ error: "unauthenticated" }, { status: 401 });
     createApiResponse({ error: "rate_limited" }, { status: 429 });
     createApiResponse({ error: "not_found" }, { status: 404 });
 
-    expect(captureMessage).not.toHaveBeenCalled();
+    expect(logged()).toEqual([]);
   });
 });

@@ -37,7 +37,7 @@
 - **定价与权益**：确认 Pro 对外只写每日 50+ / 每月 1,000+ Coach 配额、多设备同步、SRS、去广告。
 - **合规文本**：确认隐私、条款、退款页面与当前 Stripe/邮件/AI 数据流一致。
 - **客服路径**：确认公开邮箱、退款处理 SLA、漏洞报告渠道与实际可维护能力匹配。
-- **数据最小化**：确认 PostHog/Sentry/DeepSeek 不接收邮箱、支付 ID、设备 ID、token、自由输入全文或 AI 对话全文。
+- **数据最小化**：确认 PostHog/DeepSeek 与错误日志不接收邮箱、支付 ID、设备 ID、token、自由输入全文或 AI 对话全文。
 - **手动回滚预案**：确认 Vercel 回滚、Stripe Checkout 暂停、邮件暂停路径；旧 Resend / Stripe key 观察 24-48 小时后再清理。
 
 ## 四、需要 Frank 单独批准的外部动作
@@ -64,7 +64,7 @@
 2. 跑发布前验证：`validate:messages`、`lint`、`tsc --noEmit`，必要时 `test`。
 3. Frank 批准 push / tag / GitHub release。
 4. 创建 tag 与 GitHub release notes。
-5. 发布后 24 小时观察 Sentry、PostHog、Vercel logs、Stripe events 和邮件退信。
+5. 发布后 24 小时观察 PostHog、Vercel logs（`[api-5xx]`、`[client-error]`）、Stripe events 和邮件退信。
 
 ## 六、停止发布条件
 
@@ -72,5 +72,5 @@
 - Stripe live Webhook 未配置或事件幂等表不可写。
 - 邮件域名 SPF/DKIM 未通过，且需要发送交易邮件。
 - 发现 README、法律页或定价页仍包含不可证明承诺。
-- Sentry/PostHog 出现邮箱、token、支付 ID、设备 ID 或自由输入全文。
+- PostHog 或错误日志出现邮箱、token、支付 ID、设备 ID 或自由输入全文。
 - 关键路径 smoke 出现无法登录、无法完成题目、无法取消订阅或无法回滚的风险。

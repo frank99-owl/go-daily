@@ -1,6 +1,5 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
 import { reportError } from "@/lib/errorReporting";
@@ -16,7 +15,6 @@ export default function Error({
   const { t } = useLocale();
 
   useEffect(() => {
-    Sentry.captureException(error);
     reportError(error);
     console.error(error);
   }, [error]);
