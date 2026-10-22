@@ -69,6 +69,17 @@ test.describe("locale routing", () => {
     }
   });
 
+  // The result page had its own loading.tsx, the same boundary problem: a
+  // missing or unknown id rendered the 404 page with a 200 until 2026-10.
+  test("answers a result page without a valid puzzle id with a real 404", async ({ request }) => {
+    for (const path of ["/en/result", "/en/result?id=not-an-id"]) {
+      const response = await request.get(path, { maxRedirects: 0 });
+      expect(response.status(), path).toBe(404);
+    }
+    const valid = await request.get("/en/result?id=p-00001", { maxRedirects: 0 });
+    expect(valid.status()).toBe(200);
+  });
+
   // Language-neutral on purpose: resolving a locale in the not-found boundary
   // needs a dynamic API, and reading headers() there turns every statically
   // rendered page that calls notFound() dynamic at runtime, which Next rejects.
@@ -78,13 +89,39 @@ test.describe("locale routing", () => {
   });
 
   // The layout sets title.template "%s — go-daily", and every message string
-  // used to carry the suffix as well, so each page rendered it twice.
+  // used to carry the suffix as well, so each page rendered it twice. The legal
+  // pages kept doing it until 2026-10 because this list did not include them.
   test("appends the site suffix to a page title exactly once", async ({ page }) => {
-    for (const path of ["/en/today", "/en/puzzles", "/en/pricing", "/zh/today"]) {
+    for (const path of [
+      "/en/today",
+      "/en/puzzles",
+      "/en/pricing",
+      "/zh/today",
+      "/en/legal/privacy",
+      "/zh/legal/terms",
+      "/ja/legal/refund",
+      "/ko/mentors",
+      "/en/about",
+      "/zh/result?id=p-00001",
+    ]) {
       await page.goto(path);
       const title = await page.title();
       expect(title, path).toContain("go-daily");
       expect(title.match(/go-daily/g)?.length, path).toBe(1);
+    }
+  });
+
+  // Client-component pages cannot export metadata; until 2026-10 the mentors
+  // and about pages, and the result page, fell back to the site's English
+  // default title in every locale.
+  test("gives each page its own localized title", async ({ page }) => {
+    for (const [path, expected] of [
+      ["/zh/mentors", "遇见你的导师 — go-daily"],
+      ["/ja/about", "プロジェクト紹介 — go-daily"],
+      ["/ko/result?id=p-00001", "풀이 결과 — go-daily"],
+    ]) {
+      await page.goto(path);
+      await expect(page, path).toHaveTitle(expected);
     }
   });
 });

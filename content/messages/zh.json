@@ -499,6 +499,10 @@
     "pricing": {
       "title": "升级到 Pro",
       "description": "升级到 Pro，解锁多端同步、更高的 AI 教练额度，以及无广告体验。"
+    },
+    "result": {
+      "title": "解题结果",
+      "description": "查看你的解答与正解，并向 AI 教练询问这一步为什么成立。"
     }
   },
   "auth": {

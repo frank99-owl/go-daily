@@ -499,6 +499,10 @@
     "pricing": {
       "title": "Go Pro",
       "description": "Pro로 업그레이드하여 다중 기기 동기화, 더 높은 AI 코치 한도, 광고 없는 환경을 이용하세요."
+    },
+    "result": {
+      "title": "풀이 결과",
+      "description": "내 답과 정답을 비교하고, 왜 그 수가 성립하는지 AI 코치에게 물어보세요."
     }
   },
   "auth": {

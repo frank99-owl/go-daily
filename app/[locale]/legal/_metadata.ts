@@ -17,7 +17,9 @@ export async function buildLegalMetadata({
   const path = localePath(locale, LEGAL_PATHS[kind]);
 
   return {
-    title: `${copy.title} — go-daily`,
+    // The [locale] layout's title.template appends " — go-daily"; repeating it
+    // here rendered "Privacy and Security — go-daily — go-daily".
+    title: copy.title,
     description: copy.description,
     alternates: { canonical: path },
     openGraph: {

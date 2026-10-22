@@ -51,7 +51,6 @@ export default function MentorsPage() {
       {/* Background Atmosphere */}
       <div className="absolute inset-0 bg-black pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.03)_0%,transparent_70%)] pointer-events-none" />
-      <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
       {/* Backdrop Blur Overlay - Lower z-index to stay below navbar (z-50) */}
       <AnimatePresence>

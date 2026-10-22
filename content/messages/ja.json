@@ -499,6 +499,10 @@
     "pricing": {
       "title": "Go Pro",
       "description": "Pro にアップグレードして、複数端末同期・高い AI コーチ上限・広告なしを利用しましょう。"
+    },
+    "result": {
+      "title": "解答結果",
+      "description": "あなたの解答と正解を見比べ、なぜその手が成立するのかを AI コーチに聞けます。"
     }
   },
   "auth": {

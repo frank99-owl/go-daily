@@ -503,6 +503,10 @@
     "pricing": {
       "title": "Go Pro",
       "description": "Upgrade to Go Pro for cross-device sync, higher AI Coach limits, and an ad-free experience."
+    },
+    "result": {
+      "title": "Your Result",
+      "description": "Compare your move with the solution, and ask the AI coach why it works."
     }
   },
   "auth": {
