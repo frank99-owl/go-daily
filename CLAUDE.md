@@ -85,7 +85,7 @@ Vitest tests live **only** under `tests/`, mirroring the path of what they test:
 
 Setup file `tests/setup.ts` provides DOM mocks (scrollTo, ResizeObserver, canvas, localStorage, sessionStorage).
 
-End-to-end specs live in `e2e/` and run under Playwright, not Vitest (`vitest.config.ts` excludes the directory). They drive a real browser against a production build and cover the signed-out visitor: locale routing, response status codes, security headers, and canvas interaction. `e2e/README.md` explains why they need placeholder — not real — Supabase env, and what the monetization chain would need before it can be covered there.
+End-to-end specs live in `e2e/` and run under Playwright, not Vitest (`vitest.config.mts` excludes the directory). They drive a real browser against a production build and cover the signed-out visitor: locale routing, response status codes, security headers, and canvas interaction. `e2e/README.md` explains why they need placeholder — not real — Supabase env, and what the monetization chain would need before it can be covered there.
 
 All logic changes require unit tests. UI changes should have component tests for critical paths. **Changes to the coach system prompt or a persona brief additionally require an eval case** — see `.claude/commands/prompt-change.md`.
 
@@ -115,7 +115,7 @@ than an agent's memory:
 **`check`**: npm audit (blocking on `--omit=dev`, full scan reporting-only) → format:check → lint → validate:puzzles → validate:messages → validate:context → tsc --noEmit → tsc scripts → test:coverage → build.
 
 CI runs `test:coverage` rather than `test` because the thresholds in
-`vitest.config.ts` are a ratchet and a bare `test` run does not evaluate them.
+`vitest.config.mts` are a ratchet and a bare `test` run does not evaluate them.
 The floors sit just under the measured numbers; raise them as coverage rises
 and never lower them to make a red build pass.
 

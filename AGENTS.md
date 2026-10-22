@@ -77,7 +77,7 @@ CI pipeline (`.github/workflows/ci.yml`), two jobs:
 - **`check`**: npm audit (blocking on `--omit=dev`; the full scan runs as a reporting-only step) → format:check → lint → validate:puzzles → validate:messages → validate:context → tsc --noEmit → tsc scripts → test:coverage → build.
 - **`e2e`**: npm ci → chromium → build → `npm run test:e2e`, uploading the report on failure.
 
-The audit split keeps a dev-only advisory from blocking merges while a runtime one still stops the pipeline. CI runs `test:coverage` rather than `test` because the ratchet thresholds in `vitest.config.ts` are only evaluated under coverage.
+The audit split keeps a dev-only advisory from blocking merges while a runtime one still stops the pipeline. CI runs `test:coverage` rather than `test` because the ratchet thresholds in `vitest.config.mts` are only evaluated under coverage.
 
 ## The Harness
 

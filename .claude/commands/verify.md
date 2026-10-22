@@ -35,7 +35,7 @@ report that the build was not verified.
 - **Report the real outcome.** If a step fails, show the actual output and stop.
   Never describe a skipped or failing step as passing.
 - **`npm run test:coverage`, not `npm run test`.** The coverage thresholds in
-  `vitest.config.ts` are a ratchet, and a bare `test` run does not evaluate them.
+  `vitest.config.mts` are a ratchet, and a bare `test` run does not evaluate them.
 - **Never lower a coverage threshold to make the gate pass.** If coverage drops,
   the change removed tested code or added untested code — write the test.
 - **`validate:context` failing means the agent context is stale**, not that the

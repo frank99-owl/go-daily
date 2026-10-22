@@ -38,7 +38,7 @@ jobs:
       - run: npm run validate:context
       - run: npx tsc --noEmit
       - run: npx tsc --project tsconfig.scripts.json
-      # Coverage, not a bare run: vitest.config.ts carries ratchet thresholds
+      # Coverage, not a bare run: vitest.config.mts carries ratchet thresholds
       # and `npm run test` would not evaluate them.
       - run: npm run test:coverage
       - run: npm run build
