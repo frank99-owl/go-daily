@@ -48,12 +48,12 @@
     "framer-motion": "^12.42.2",
     "idb-keyval": "^6.2.6",
     "lucide-react": "^1.45.0",
-    "next": "16.3.8",
+    "next": "16.4.2",
     "openai": "^6.45.0",
     "posthog-js": "^1.430.3",
     "posthog-node": "^5.52.1",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "stripe": "^22.6.2",
     "zod": "^4.6.4"
   },
@@ -68,13 +68,13 @@
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
-    "@types/node": "^22.20.2",
+    "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.12",
     "dotenv": "^17.4.2",
     "eslint": "^9.39.4",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.2",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
     "jsdom": "^29.1.1",
@@ -83,6 +83,6 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.12"
   }
 }
