@@ -85,5 +85,11 @@
     "tsx": "^4.23.13",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
+  },
+  "allowScripts": {
+    "core-js": false,
+    "esbuild": false,
+    "fsevents": false,
+    "unrs-resolver": false
   }
 }
