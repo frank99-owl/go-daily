@@ -1,3 +1,9 @@
+import type * as Sentry from "@sentry/nextjs";
+
+// `@sentry/nextjs` does not re-export the type, and `@sentry/core` is only a
+// transitive dependency; derive it from the option it describes.
+type DataCollection = NonNullable<NonNullable<Parameters<typeof Sentry.init>[0]>["dataCollection"]>;
+
 /** Minimal shape of a Sentry event for scrubbing purposes. */
 export interface ScrubbableEvent {
   message?: string | null;
@@ -169,3 +175,42 @@ export function scrubSentryEvent(event: any): any {
 
   return event;
 }
+
+// Header and query-parameter names Sentry treats as identifying in its v10
+// baseline: forwarded-for chains, client IPs, remote addresses, proxies, users.
+const V10_IDENTIFYING_KEYS = ["forwarded", "-ip", "remote-", "via", "-user"];
+
+/**
+ * What the SDK may collect at all, before `scrubSentryEvent` sees the event.
+ *
+ * Sentry v11 replaced `sendDefaultPii` with `dataCollection` and inverted the
+ * default: left unset, it collects user info, cookies, request and response
+ * bodies, gen-AI inputs and outputs and database query data — none of which
+ * v10 sent from this app. This is Sentry's documented v10 baseline, pinned so
+ * the 2026-10 upgrade did not widen what leaves the app. Header and query
+ * values that do get through are still scrubbed below.
+ */
+export const SENTRY_DATA_COLLECTION: DataCollection = {
+  userInfo: false,
+  cookies: false,
+  httpHeaders: {
+    request: { deny: V10_IDENTIFYING_KEYS },
+    response: { deny: V10_IDENTIFYING_KEYS },
+  },
+  httpBodies: [],
+  urlQueryParams: { deny: V10_IDENTIFYING_KEYS },
+  genAI: { inputs: false, outputs: false },
+  databaseQueryData: false,
+  graphQL: { document: false, variables: false },
+};
+
+/** Options every `Sentry.init` in this app shares — client, server and edge. */
+export const SHARED_SENTRY_OPTIONS = {
+  dataCollection: SENTRY_DATA_COLLECTION,
+  // v11 attaches a synthetic stack trace to `captureMessage`, and Sentry groups
+  // by stack when one exists. The handled-5xx reports from `createApiResponse`
+  // all share a call path, so they would collapse into one issue instead of
+  // one per `API <status>: <error code>` message.
+  attachStacktrace: false,
+  beforeSend: scrubSentryEvent,
+};

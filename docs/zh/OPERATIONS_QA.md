@@ -75,7 +75,7 @@ npx tsc --noEmit
 - `promptGuard.ts`：覆盖普通注入、全角、同形字符、零宽字符、标点/空格拆分等红队样例。
 - `/api/coach`：确认 promptGuard 拦截发生在题目查询、配额写入和模型调用之前；确认请求体、历史上下文、输出 token、超时、配额、限流和失败回滚均有边界。
 - `lib/posthog/server.ts`：确认服务端 distinctId 哈希后发送，且敏感属性 key/value 会阻断事件。
-- `sentry*.config.ts`、`lib/sentryScrubber.ts`、`/api/report-error`：确认 `beforeSend`、客户端错误上报和服务端错误报告会清理邮箱、URL query/hash、token、secret、API key、cookie 和 authorization header。
+- `instrumentation-client.ts`、`sentry*.config.ts`、`lib/sentryScrubber.ts`、`/api/report-error`：确认 `beforeSend`、客户端错误上报和服务端错误报告会清理邮箱、URL query/hash、token、secret、API key、cookie 和 authorization header。三个 `Sentry.init` 都必须展开 `SHARED_SENTRY_OPTIONS`：Sentry v11 不设 `dataCollection` 时默认收集用户信息、cookie 和请求体，`SENTRY_DATA_COLLECTION` 固定为官方的 v10 基线，`tests/app/sentryConfig.test.ts` 会检查三处入口。
 
 ## 4. 质量保障计划
 

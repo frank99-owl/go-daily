@@ -68,6 +68,7 @@ const CRITICAL_INVARIANTS: { id: string; pattern: RegExp }[] = [
   { id: "i18n key parity", pattern: /validate:messages/ },
   { id: "production migrations are applied by hand, then verified", pattern: /--check-remote/ },
   { id: "handled 5xx responses are reported via createApiResponse", pattern: /createApiResponse/ },
+  { id: "every Sentry.init spreads the shared privacy baseline", pattern: /SHARED_SENTRY_OPTIONS/ },
 ];
 
 function read(file: ContextFile): string {
