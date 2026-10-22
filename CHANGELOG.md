@@ -10,6 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Changed
 
+- **dotenv 18 (2026-10-22)**: 17.4.2 → 18.0.8, used only by the operator scripts and the eval runner to read `.env.local`. The major moves dotenv's injection message to stderr and removes its tips; every call site passes `quiet: true` (`scripts/supabaseHealthcheck.ts` was the one that did not, and now does). `@sentry/bundler-plugins` keeps its own nested dotenv 17.
+
 - **Test stack majors (2026-10-22)**: Vitest and `@vitest/coverage-v8` 4.1.12 → 5.0.5, jsdom 29 → 30.1.3, `@testing-library/jest-dom` 6.9.1 → 7.0.1. jest-dom 7 makes `@testing-library/dom` a required peer, as `@testing-library/react` 16 already did; it was only arriving through npm's automatic peer install and is now a declared devDependency. Vitest 5 clears mock call history before every test by default; no suite depended on calls accumulating across tests. The config moves from `vitest.config.ts` to `vitest.config.mts` (`import.meta.dirname` for `__dirname`): Vite warned that an ESM file loaded as CommonJS will not work under the native config loader its next major makes the default. All 111 files / 1091 tests pass with coverage 71.14 / 66.12 / 70.67 / 72.58, above every ratchet floor.
 
 - **framer-motion 14 (2026-10-22)**: 12.43.0 → 14.5.0. The two majors' breaking changes are the removal of the optional `@emotion/is-prop-valid` dependency (13.0, never installed here) and of internal APIs that 13.5.1 had temporarily restored (14.0); the app uses only public components and hooks (`motion.*`, `AnimatePresence`, `useScroll`, `useTransform`, `useMotionValue`). Checked with the component suites, the production build, the Playwright run and a visual pass over the animated pages.

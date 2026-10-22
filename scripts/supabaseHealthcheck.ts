@@ -8,7 +8,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
 
-config({ path: ".env.local" });
+config({ path: ".env.local", quiet: true });
 
 const EXPECTED_TABLES = [
   "profiles",
