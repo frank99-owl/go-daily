@@ -10,12 +10,13 @@
  *
  * This is the same idea as `validate:messages` — that script keeps four
  * locale files from drifting apart, this one keeps the agent context from
- * drifting away from the codebase. Four checks:
+ * drifting away from the codebase. Five checks:
  *
  *   1. Every `npm run <script>` named in a context file exists in package.json.
  *   2. The nine-domain table matches the directories actually under lib/.
  *   3. Every repo path written in backticks resolves on disk.
  *   4. Every critical invariant appears in BOTH context files.
+ *   5. Every Node.js version a context file names matches `engines.node`.
  *
  * Check 4 exists because the two files had already drifted: in September 2026
  * the coach quota-refund rule and the guest-counter rule lived in AGENTS.md
@@ -201,6 +202,36 @@ function checkInvariantParity(files: Map<ContextFile, string>): Finding[] {
   return findings;
 }
 
+/**
+ * Check 5. CLAUDE.md said "Node.js >= 22.5.0" for a month after `engines`
+ * moved to 24.x (2026-10-21) — and with `engine-strict` on, an agent that
+ * believed it would pick a runtime `npm ci` refuses.
+ */
+function checkRuntime(files: Map<ContextFile, string>): Finding[] {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8")) as {
+    engines?: { node?: string };
+  };
+  const engine = pkg.engines?.node ?? "";
+  const engineMajor = engine.match(/\d+/)?.[0];
+  const findings: Finding[] = [];
+
+  for (const [file, body] of files) {
+    for (const match of body.matchAll(/Node\.js[\s*:]{0,4}((?:>=?\s*)?\d+(?:\.(?:\d+|x))*)/g)) {
+      const claimed = match[1];
+      const claimedMajor = claimed.match(/\d+/)?.[0];
+      const exact = !/^>/.test(claimed);
+      if (!engineMajor || claimedMajor !== engineMajor || !exact) {
+        findings.push({
+          check: "runtime",
+          file,
+          message: `says Node.js ${claimed}, but package.json engines.node is "${engine}"`,
+        });
+      }
+    }
+  }
+  return findings;
+}
+
 function main() {
   const files = new Map<ContextFile, string>();
   for (const file of CONTEXT_FILES) {
@@ -217,17 +248,24 @@ function main() {
     ...checkDomainTable(files),
     ...checkReferencedPaths(files),
     ...checkInvariantParity(files),
+    ...checkRuntime(files),
   ];
 
   if (findings.length === 0) {
     console.log(
-      `✓ Agent context is in sync (${CONTEXT_FILES.join(", ")}: ${CRITICAL_INVARIANTS.length} invariants, npm scripts, lib domains, referenced paths)`,
+      `✓ Agent context is in sync (${CONTEXT_FILES.join(", ")}: ${CRITICAL_INVARIANTS.length} invariants, npm scripts, lib domains, referenced paths, runtime)`,
     );
     return;
   }
 
   console.error(`✖ Agent context drift — ${findings.length} finding(s)\n`);
-  for (const check of ["npm scripts", "lib domains", "referenced paths", "invariant parity"]) {
+  for (const check of [
+    "npm scripts",
+    "lib domains",
+    "referenced paths",
+    "invariant parity",
+    "runtime",
+  ]) {
     const group = findings.filter((finding) => finding.check === check);
     if (group.length === 0) continue;
     console.error(`  ${check}:`);

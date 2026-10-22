@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Stack**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Supabase (Auth + Postgres + RLS), Stripe, DeepSeek AI, Vitest + Playwright, Upstash Redis (rate limiting in prod), Resend (email).
 
-**Runtime**: Node.js >= 22.5.0
+**Runtime**: Node.js 24.x (`engines` in `package.json`, with `engine-strict`; CI and Vercel use the same major)
 
 ## Essential Commands
 
