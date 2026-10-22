@@ -45,7 +45,7 @@
     "@upstash/redis": "^1.38.4",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "framer-motion": "^12.42.2",
+    "framer-motion": "^14.5.0",
     "idb-keyval": "^6.2.6",
     "lucide-react": "^1.45.0",
     "next": "16.4.2",
