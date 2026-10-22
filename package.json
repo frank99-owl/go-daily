@@ -49,7 +49,7 @@
     "idb-keyval": "^6.2.6",
     "lucide-react": "^1.45.0",
     "next": "16.4.2",
-    "openai": "^6.45.0",
+    "openai": "^7.41.0",
     "posthog-js": "^1.430.3",
     "posthog-node": "^5.52.1",
     "react": "19.3.1",
