@@ -22,7 +22,8 @@ export function initPostHog() {
       // Session replay, surveys, web vitals and dead-click capture are switched
       // on in the PostHog project, and each lazy-loads a script from
       // us-assets.i.posthog.com — which the CSP's script-src has never allowed,
-      // so none of them has ever run here. Say so explicitly instead of letting
+      // so they almost never ran here (two $web_vitals events, 2026-10-05 and
+      // 2026-10-09, are the only exceptions). Say so explicitly instead of letting
       // every page fire requests the browser blocks. Turning any of them on is
       // a privacy change (replay records sessions), not a CSP fix.
       disable_external_dependency_loading: true,
