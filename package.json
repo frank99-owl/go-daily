@@ -57,7 +57,6 @@
     "zod": "^4.6.4"
   },
   "overrides": {
-    "fast-uri": "^3.1.8",
     "next": {
       "postcss": "^8.5.28"
     }
