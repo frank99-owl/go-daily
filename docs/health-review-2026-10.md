@@ -39,23 +39,23 @@ go-daily 在生产上是健康的：RLS 覆盖全部 9 张表，付费数据与 
 
 ## 2. 发现与处理状态
 
-| 级别 | 发现                                                                             | 分类   | 状态                                   |
-| ---- | -------------------------------------------------------------------------------- | ------ | -------------------------------------- |
-| 中   | 数据库无备份                                                                     | 有问题 | ⏳ 待决定（§5-D）                      |
-| 中   | 每日邮件 cron 潜在死循环，update 失败时会重复发信                                | 有问题 | ✅ `5d1fe96`                           |
-| 中   | Stripe 幂等、`lib/stripe/server.ts`、权益到期计算缺测试                          | 有问题 | ✅ `c3b1d4a`                           |
-| 低   | 服务端 coach 埋点在函数冻结时丢失（15 次丢 2 次）                                | 有问题 | ✅ `7b88a7c`                           |
-| 低   | 7 个数据库函数对 anon / authenticated 开放，`search_path` 可变                   | 有问题 | ✅ 迁移 0011 已应用                    |
-| 低   | Email provider 对 API 开放注册，界面却隐藏了入口                                 | 有问题 | ⏳ 待决定（§5-C/F）                    |
-| 低   | 每日邮件默认订阅：54 人在收，近 30 天活跃 9 人，已退订 11 人                     | 有问题 | ⏳ 待决定（§5-E）                      |
-| 低   | locale cookie 无 `Secure`；CSP 多放行了 DeepSeek                                 | 有问题 | ✅ `84e3115`，复扫 B+（80）            |
-| 低   | 内存兜底的 IP 限额在计数表满时会把被检查的地址自己淘汰掉                         | 有问题 | ✅ `7813b75`（生产用 Redis，不受影响） |
-| 低   | 桌面端 release 的 tag 不含桌面源码，发布脚本不指定提交                           | 有问题 | ✅ `5dad2c7`，tag 已移到 `2366f54`     |
-| 低   | 首屏 JS 每个页面都在 450 KB gzip 以上                                            | 有问题 | ⏳ 视增长目标而定（§6）                |
-| 低   | 题目页 `<title>` 只有编号，description 按题型套模板                              | 有问题 | ⏳ 先看 Search Console                 |
-| 低   | `www` 跳转是 307（临时）                                                         | 有问题 | ⏳ Vercel Domains 改 308               |
-| 信息 | 桌面端 4.5 个月下载 9 次                                                         | 信息   | §6                                     |
-| 信息 | 死代码 `incrementCoachUsage` / `incrementGuestUsage`、失效的 `fast-uri` override | 有问题 | ✅ 已删                                |
+| 级别 | 发现                                                                             | 分类   | 状态                                                   |
+| ---- | -------------------------------------------------------------------------------- | ------ | ------------------------------------------------------ |
+| 中   | 数据库无备份                                                                     | 有问题 | ⏳ 待决定（§5-D）                                      |
+| 中   | 每日邮件 cron 潜在死循环，update 失败时会重复发信                                | 有问题 | ✅ `5d1fe96`                                           |
+| 中   | Stripe 幂等、`lib/stripe/server.ts`、权益到期计算缺测试                          | 有问题 | ✅ `c3b1d4a`                                           |
+| 低   | 服务端 coach 埋点在函数冻结时丢失（15 次丢 2 次）                                | 有问题 | ✅ `7b88a7c`                                           |
+| 低   | 7 个数据库函数对 anon / authenticated 开放，`search_path` 可变                   | 有问题 | ✅ 迁移 0011 已应用                                    |
+| 低   | Email provider 对 API 开放注册，界面却隐藏了入口                                 | 有问题 | ✅ 10-27 关闭 Email provider，删除 env                 |
+| 低   | 每日邮件默认订阅：54 人在收，近 30 天活跃 9 人，已退订 11 人                     | 有问题 | ✅ `1c7d5e6` 只发给 30 天内活跃的用户                  |
+| 低   | locale cookie 无 `Secure`；CSP 多放行了 DeepSeek                                 | 有问题 | ✅ `84e3115`，复扫 B+（80）                            |
+| 低   | 内存兜底的 IP 限额在计数表满时会把被检查的地址自己淘汰掉                         | 有问题 | ✅ `7813b75`（生产用 Redis，不受影响）                 |
+| 低   | 桌面端 release 的 tag 不含桌面源码，发布脚本不指定提交                           | 有问题 | ✅ `5dad2c7`，tag 已移到 `2366f54`                     |
+| 低   | 首屏 JS 每个页面都在 450 KB gzip 以上                                            | 有问题 | ⏳ 视增长目标而定（§6）                                |
+| 低   | 题目页 `<title>` 只有编号，description 按题型套模板                              | 有问题 | ⏳ 先看 Search Console                                 |
+| 低   | `www` 跳转是 307（临时）                                                         | 有问题 | ⏳ www 未在 Vercel 配置，改用 Cloudflare Redirect Rule |
+| 信息 | 桌面端 4.5 个月下载 9 次                                                         | 信息   | §6                                                     |
+| 信息 | 死代码 `incrementCoachUsage` / `incrementGuestUsage`、失效的 `fast-uri` override | 有问题 | ✅ 已删                                                |
 
 ---
 
@@ -130,11 +130,11 @@ Stryker 10.1.1（`--no-save` 临时安装；provenance 来自 stryker-js 的 v10
 
 ## 5. 待决定
 
-- **C / F**：邮箱登录的去留。不要 → 删掉 env，并开启 Supabase CAPTCHA（Turnstile 免费）；要 → 先改前端，让它传 `captchaToken`。
+- ~~C / F~~：已完成（10-27）：Supabase Email provider 关闭，`NEXT_PUBLIC_ENABLE_EMAIL_LOGIN` 删除；`/auth/v1/settings` 返回 `email: false`、`google: true`。
 - **D**：备份。建议每周跑一次 `supabase db dump`，加密后放到异地（需要你先执行 `supabase login`），并按恢复演练方案做一次实际恢复。
-- **E**：每日邮件。三选一：在登录文案里写明会发每日邮件；对 N 天不活跃的用户停发；改成主动订阅（opt-in）。
-- PostHog 的 `anonymize_ips`：合规偏好。
-- `www` 跳转：Vercel → Domains → www.go-daily.app 改为 308。
+- ~~E~~：已完成（10-27）：每日邮件只发给 30 天内登录过或做过题的用户，登录卡片写明了这一点（`1c7d5e6`）。
+- ~~PostHog 的 `anonymize_ips`~~：已开启（10-27）。
+- `www` 跳转：www.go-daily.app 没有加进 Vercel 项目，307 是 Vercel 的兜底跳转。要改为 308，最稳的办法是在 Cloudflare 加一条 Redirect Rule。
 
 ---
 
@@ -152,5 +152,5 @@ Stryker 10.1.1（`--no-save` 临时安装；provenance 来自 stryker-js 的 v10
 
 **不值得做**
 
-6. 桌面端维护。4.5 个月下载 9 次，却要每月处理 519 个 crate 的依赖更新。可以考虑停止它的 Dependabot cargo 更新，或者直接归档。
+6. 桌面端维护。4.5 个月下载 9 次，却要每月处理 519 个 crate 的依赖更新。可以考虑停止它的 Dependabot cargo 更新，或者直接归档。（10-27 已停掉 cargo 的例行版本更新，安全更新保留，`9e9d624`。）
 7. 继续追剩下的存活变异体、为去掉 `unsafe-inline` 改用 CSP nonce、升级 Vercel Pro 换更长的日志保留、Supabase PITR。以目前的流量，投入远大于收益。
