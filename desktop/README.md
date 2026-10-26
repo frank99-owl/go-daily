@@ -78,6 +78,15 @@ cd desktop
 
 The script builds, then creates or updates the `desktop-v<version>` release with the asset `GoDaily-macOS-AppleSilicon.dmg`. Publishing is an external action — run it only after approval.
 
+The tag always names the commit the dmg was built from, so before building the script refuses to run when:
+
+- the working tree has uncommitted changes;
+- `HEAD` is not on `origin/main` yet (push first);
+- `gh` is signed in as an account that cannot write to the repo;
+- the release for this version already exists at a different commit — bump `version` in `src-tauri/tauri.conf.json` instead of replacing the asset.
+
+It builds with `--locked`, so the dmg uses exactly the committed `Cargo.lock`. `desktop-v1.3.0` predates these checks: GitHub tagged it at `eea5d3a`, a commit from before the desktop shell existed, while its dmg was built from `2366f54`, the last commit before the release was published.
+
 ## Distributing to Users
 
 ### First Launch on an Unsigned App
