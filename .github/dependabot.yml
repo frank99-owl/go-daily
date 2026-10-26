@@ -22,8 +22,14 @@ updates:
   # The Tauri desktop shell has its own dependency tree. GitHub already raises
   # security alerts against desktop/src-tauri/Cargo.lock, but without an entry
   # here nothing ever opened a pull request to act on them.
+  #
+  # Routine version updates are off (limit 0) since 2026-10-27: the desktop
+  # app had 9 downloads in four and a half months, and a monthly group of
+  # 519 crates was all cost. Security updates are a repository setting and
+  # still open pull requests for alerts against this lockfile.
   - package-ecosystem: "cargo"
     directory: "/desktop/src-tauri"
+    open-pull-requests-limit: 0
     schedule:
       interval: "monthly"
     ignore:
