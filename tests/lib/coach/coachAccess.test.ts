@@ -141,6 +141,45 @@ describe("coachAccess", () => {
     });
   });
 
+  it("gives basic coach only to puzzles on the basic list, however good their content", () => {
+    const deepContent = {
+      solutionSequence: [{ x: 2, y: 2, color: "black" as const }],
+      wrongBranches: [
+        {
+          userWrongMove: { x: 3, y: 3 },
+          refutation: [{ x: 2, y: 2, color: "white" as const }],
+          note: makePuzzle().solutionNote,
+        },
+      ],
+    };
+
+    expect(getCoachAccess(makePuzzle({ id: "p-99999", ...deepContent }))).toMatchObject({
+      contentTier: "basic-explained",
+      capabilities: { basicCoach: false, fullCoach: false },
+    });
+  });
+
+  it("withholds basic coach and the static explanation from a listed puzzle with no answer", () => {
+    expect(getCoachAccess(makePuzzle({ id: "p-00419", correct: [] }))).toMatchObject({
+      available: false,
+      contentTier: "basic-explained",
+      capabilities: { staticExplanation: false, basicCoach: false, fullCoach: false },
+    });
+  });
+
+  it("offers the static explanation only when every locale has a note", () => {
+    const note = makePuzzle().solutionNote;
+
+    expect(
+      getCoachAccess(makePuzzle({ id: "p-99999", solutionNote: { ...note, ko: "   " } }))
+        .capabilities.staticExplanation,
+    ).toBe(false);
+    expect(
+      getCoachAccess(makePuzzle({ id: "p-99999", solutionNote: { ...note, ja: "" } })).capabilities
+        .staticExplanation,
+    ).toBe(false);
+  });
+
   it("keeps non-approved puzzles restricted", () => {
     expect(
       getCoachAccess(
