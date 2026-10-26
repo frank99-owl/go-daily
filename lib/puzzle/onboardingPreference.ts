@@ -10,7 +10,8 @@ const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 function setCookie(name: string, value: string): void {
   if (typeof document === "undefined") return;
-  document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${COOKIE_MAX_AGE_SECONDS};SameSite=Lax`;
+  const secure = window.location.protocol === "https:" ? ";Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${COOKIE_MAX_AGE_SECONDS};SameSite=Lax${secure}`;
 }
 
 export function saveOnboardingPreference(level: OnboardingLevel): void {

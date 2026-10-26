@@ -78,6 +78,8 @@ export async function proxy(request: NextRequest) {
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
     sameSite: "lax",
+    // Secure on HTTPS only, so local development over http keeps the cookie.
+    secure: request.nextUrl.protocol === "https:",
   });
   return redirect;
 }

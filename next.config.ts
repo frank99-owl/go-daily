@@ -16,7 +16,8 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: blob:",
-      "connect-src 'self' https://api.deepseek.com https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://api.stripe.com",
+      // The coach calls DeepSeek from the server; the browser only talks to /api/coach.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://api.stripe.com",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",

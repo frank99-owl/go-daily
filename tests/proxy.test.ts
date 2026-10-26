@@ -60,6 +60,23 @@ describe("proxy locale negotiation", () => {
     expect(supabaseMocks.refreshSupabaseSession).not.toHaveBeenCalled();
   });
 
+  it("marks the persisted locale cookie Secure over HTTPS", async () => {
+    const response = await proxy(request("/today", { headers: { "accept-language": "ja" } }));
+
+    expect(setCookieHeader(response)).toMatch(new RegExp(`${LOCALE_COOKIE}=ja;[^]*Secure`, "i"));
+  });
+
+  it("leaves the locale cookie plain over http, so local development keeps it", async () => {
+    const response = await proxy(
+      new NextRequest(new URL("/today", "http://localhost:3000"), {
+        headers: { "accept-language": "ja" },
+      }),
+    );
+
+    expect(setCookieHeader(response)).toContain(`${LOCALE_COOKIE}=ja`);
+    expect(setCookieHeader(response)).not.toMatch(/secure/i);
+  });
+
   it("falls back to Accept-Language for unprefixed paths when the cookie is invalid", async () => {
     const response = await proxy(
       request("/puzzles", {

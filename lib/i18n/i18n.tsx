@@ -49,7 +49,9 @@ export function LocaleProvider({
     setLocaleState(l);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(STORAGE_KEY, l);
-      document.cookie = `${STORAGE_KEY}=${l};path=/;max-age=31536000`;
+      // Same cookie the proxy sets on a locale redirect; keep its attributes.
+      const secure = window.location.protocol === "https:" ? ";Secure" : "";
+      document.cookie = `${STORAGE_KEY}=${l};path=/;max-age=31536000;SameSite=Lax${secure}`;
       document.documentElement.setAttribute("data-locale", l);
     }
   }, []);

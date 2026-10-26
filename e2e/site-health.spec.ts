@@ -37,6 +37,8 @@ test.describe("site health", () => {
     expect(headers["x-content-type-options"]).toBe("nosniff");
     expect(headers["x-frame-options"]).toBe("DENY");
     expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+    // The coach reaches DeepSeek from the server, so the browser has no reason to.
+    expect(headers["content-security-policy"]).not.toContain("api.deepseek.com");
     expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
   });
 
