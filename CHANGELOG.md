@@ -10,6 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Changed
 
+- **Unused non-atomic usage increments removed (2026-10-26)**: `incrementCoachUsage` and `incrementGuestUsage` have had no caller since migration 0010 moved the route to the quota-aware `try_increment_*` functions; they and their tests are gone. The `increment_coach_usage` and `increment_guest_coach_usage` database functions remain, callable only by `service_role` since migration 0011.
+
 - **Dead `fast-uri` override removed (2026-10-26)**: added on 2026-05-13 to force a patched `fast-uri`, which no package in the tree depends on any more. Removing it leaves `package-lock.json` unchanged (the lockfile does not record overrides) and `npm ci` accepts the pair. The `next` → `postcss` override stays: `next` still pins `postcss` 8.5.23 and the override resolves it to 8.5.31.
 
 - **Database functions closed to the browser (2026-10-26)**: migration `0011_harden_function_privileges.sql` revokes `EXECUTE` from `PUBLIC`, `anon` and `authenticated` on the six coach quota functions and `handle_new_user`, and pins an empty `search_path` on the quota functions, whose bodies already schema-qualify every table. Only the server calls them, through `service_role`; RLS already refused a client's writes, but the anon key could reach them over `/rest/v1/rpc`. Applied to production the same day: the Supabase security advisor went from 8 warnings on these functions to none, a `service_role` call of each quota function still answers, and `anon` now gets `permission denied`. `handle_new_user` keeps an explicit grant for `supabase_auth_admin`, so sign-up does not depend on Postgres checking trigger privileges only at creation.

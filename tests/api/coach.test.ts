@@ -25,7 +25,6 @@ vi.mock("@/lib/coach/coachAccess", () => ({
 const guestUsageMocks = vi.hoisted(() => ({
   getGuestUsage: vi.fn(),
   checkIpLimit: vi.fn(),
-  incrementGuestUsage: vi.fn(),
   decrementGuestUsage: vi.fn(),
   tryIncrementGuestUsage: vi.fn(),
   incrementIpCounter: vi.fn(),
@@ -157,7 +156,6 @@ function buildAdminClient({
           return query({ data: devices, error: null });
         case "coach_usage": {
           // fetchUsageRows ends with .gte().lte() then await → returns array via `then`.
-          // incrementCoachUsage uses RPC now, but old code paths may still use from().
           const q: Record<string, unknown> = {
             insert: vi.fn(() => Promise.resolve({ error: null })),
             upsert: vi.fn(() => Promise.resolve({ error: null })),
@@ -274,7 +272,6 @@ describe("/api/coach", () => {
       monthlyRemaining: 20,
     });
     guestUsageMocks.checkIpLimit.mockReturnValue({ allowed: true });
-    guestUsageMocks.incrementGuestUsage.mockResolvedValue(1);
     guestUsageMocks.decrementGuestUsage.mockResolvedValue(undefined);
     guestUsageMocks.tryIncrementGuestUsage.mockResolvedValue({
       allowed: true,

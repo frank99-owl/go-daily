@@ -178,25 +178,6 @@ export async function getGuestUsage(
   };
 }
 
-export async function incrementGuestUsage(
-  deviceId: string,
-  countryCode?: string | null,
-): Promise<number> {
-  const admin = createServiceClient();
-  const today = todayKey(countryCode);
-
-  const { data, error } = await admin.rpc("increment_guest_coach_usage", {
-    p_device_id: deviceId,
-    p_day: today,
-  });
-
-  if (error) {
-    throw new Error(`failed to increment guest usage: ${error.message}`);
-  }
-
-  return data as number;
-}
-
 function parseGuestUsageIncrementResult(data: unknown): GuestUsageIncrementResult {
   const value = data && typeof data === "object" ? (data as Record<string, unknown>) : {};
   const reason = value.reason;

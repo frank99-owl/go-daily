@@ -273,27 +273,6 @@ export async function getCoachState({
   };
 }
 
-export async function incrementCoachUsage({
-  admin,
-  userId,
-  day,
-}: {
-  admin: AdminClient;
-  userId: string;
-  day: string;
-}): Promise<number> {
-  const { data, error } = await admin.rpc("increment_coach_usage", {
-    p_user_id: userId,
-    p_day: day,
-  });
-
-  if (error) {
-    throw new Error(`failed to increment coach usage: ${error.message}`);
-  }
-
-  return data as number;
-}
-
 function parseCoachUsageIncrementResult(data: unknown): CoachUsageIncrementResult {
   const value = data && typeof data === "object" ? (data as Record<string, unknown>) : {};
   const reason = value.reason;

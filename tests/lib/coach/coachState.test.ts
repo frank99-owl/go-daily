@@ -1,12 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  decrementCoachUsage,
-  getCoachState,
-  incrementCoachUsage,
-  tryIncrementCoachUsage,
-} from "@/lib/coach/coachState";
+import { decrementCoachUsage, getCoachState, tryIncrementCoachUsage } from "@/lib/coach/coachState";
 
 // ---------------------------------------------------------------------------
 // Query-builder mock — mirrors the Supabase JS client shape just enough for
@@ -478,45 +473,6 @@ describe("getCoachState — error propagation", () => {
     await expect(
       getCoachState({ admin: admin as never, userId: "user-1", now: NOW }),
     ).rejects.toThrow(/failed to read coach usage: usage table locked/);
-  });
-});
-
-describe("incrementCoachUsage", () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("calls the atomic RPC function with correct params", async () => {
-    const admin = buildAdminClient({ usage: { rpcResult: 1 } });
-    const next = await incrementCoachUsage({
-      admin: admin as never,
-      userId: "user-1",
-      day: "2026-04-25",
-    });
-    expect(next).toBe(1);
-    expect(admin.rpcMock).toHaveBeenCalledWith("increment_coach_usage", {
-      p_user_id: "user-1",
-      p_day: "2026-04-25",
-    });
-  });
-
-  it("returns the incremented count from the RPC result", async () => {
-    const admin = buildAdminClient({ usage: { rpcResult: 8 } });
-    const next = await incrementCoachUsage({
-      admin: admin as never,
-      userId: "user-1",
-      day: "2026-04-25",
-    });
-    expect(next).toBe(8);
-  });
-
-  it("throws when the RPC call fails", async () => {
-    const admin = buildAdminClient({
-      usage: { rpcError: { message: "permission denied" } },
-    });
-    await expect(
-      incrementCoachUsage({ admin: admin as never, userId: "user-1", day: "2026-04-25" }),
-    ).rejects.toThrow(/failed to increment coach usage: permission denied/);
   });
 });
 
