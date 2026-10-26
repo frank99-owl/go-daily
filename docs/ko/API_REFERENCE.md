@@ -294,7 +294,7 @@ Stripe 구독 상태와 `manual_grants`로 실효 플랜을 해석한 뒤, 로�
 
 ### `GET /api/cron/daily-email` (`app/api/cron/daily-email/route.ts`)
 
-일일 퍼즐 리마인더 이메일 발송을 위한 Vercel Cron 핸들러입니다.
+일일 퍼즐 리마인더 이메일 발송을 위한 Vercel Cron 핸들러입니다. 최근 30일 안에 활동한(로그인했거나 풀이 기록이 있는, `lib/email.ts`의 `isRecentlyActive`) 구독 사용자에게만 보내며, 나머지는 응답의 `inactive`에 집계되고 다음 날 다시 판단합니다.
 
 **인증**: `Authorization: Bearer <CRON_SECRET>` 요청 헤더가 서버의 `CRON_SECRET`과 일치해야 합니다(브라우저나 클라이언트 번들에 토큰을 넣지 마세요).
 

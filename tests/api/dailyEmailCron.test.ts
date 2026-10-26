@@ -23,7 +23,8 @@ vi.mock("@/lib/supabase/service", () => ({
   createServiceClient: supabaseMocks.createServiceClient,
 }));
 
-vi.mock("@/lib/email", () => ({
+vi.mock("@/lib/email", async (importOriginal) => ({
+  isRecentlyActive: (await importOriginal<typeof import("@/lib/email")>()).isRecentlyActive,
   sendDailyPuzzleEmail: emailMocks.sendDailyPuzzleEmail,
 }));
 
@@ -52,14 +53,22 @@ interface AdminClientOptions {
   // missing so happy-path tests don't need to enumerate every row.
   userLookups?: Record<
     string,
-    { data?: { user?: { email?: string | null } | null }; error?: { message: string } | null }
+    {
+      data?: { user?: { email?: string | null; last_sign_in_at?: string | null } | null };
+      error?: { message: string } | null;
+    }
   >;
+  // Maps user_id → created_at of their latest attempt; missing means none.
+  lastAttempts?: Record<string, string>;
+  attemptsError?: { message: string } | null;
 }
 
 function buildAdminClient({
   profileResult = { data: [], error: null },
   updateResult = { error: null },
   userLookups = {},
+  lastAttempts = {},
+  attemptsError = null,
 }: AdminClientOptions = {}) {
   // Spies live outside the chain factory so tests can assert on them.
   const eqSpy = vi.fn();
@@ -70,7 +79,10 @@ function buildAdminClient({
     if (userId in userLookups) {
       return userLookups[userId];
     }
-    return { data: { user: { email: `${userId}@example.com` } }, error: null };
+    return {
+      data: { user: { email: `${userId}@example.com`, last_sign_in_at: new Date().toISOString() } },
+      error: null,
+    };
   });
 
   // Supabase query builders are thenables: you can keep chaining filters and
@@ -98,7 +110,26 @@ function buildAdminClient({
     return node;
   }
 
-  const fromSpy = vi.fn(() => {
+  const attemptsLookupSpy = vi.fn();
+  function attemptsQuery() {
+    let userId = "";
+    const query = {
+      select: () => query,
+      eq: (_column: string, value: string) => ((userId = value), query),
+      order: () => query,
+      limit: () => query,
+      maybeSingle: async () => {
+        attemptsLookupSpy(userId);
+        if (attemptsError) return { data: null, error: attemptsError };
+        const at = lastAttempts[userId];
+        return { data: at ? { created_at: at } : null, error: null };
+      },
+    };
+    return query;
+  }
+
+  const fromSpy = vi.fn((table: string) => {
+    if (table === "attempts") return attemptsQuery();
     const chain: Record<string, unknown> = {
       select: vi.fn(() => chain),
       eq: vi.fn((column: string, value: unknown) => {
@@ -133,7 +164,16 @@ function buildAdminClient({
     },
   };
 
-  return { client, fromSpy, eqSpy, limitSpy, updateSpy, updateEqSpy, getUserByIdSpy };
+  return {
+    client,
+    fromSpy,
+    eqSpy,
+    limitSpy,
+    updateSpy,
+    updateEqSpy,
+    getUserByIdSpy,
+    attemptsLookupSpy,
+  };
 }
 
 function makeRequest(url = "http://localhost/api/cron/daily-email", init?: RequestInit): Request {
@@ -810,7 +850,10 @@ function buildStatefulAdminClient({
 
   const getUserById = vi.fn(async (userId: string) => {
     if (userId in userLookups) return userLookups[userId];
-    return { data: { user: { email: `${userId}@example.com` } }, error: null };
+    return {
+      data: { user: { email: `${userId}@example.com`, last_sign_in_at: new Date().toISOString() } },
+      error: null,
+    };
   });
 
   const client = {
@@ -902,5 +945,96 @@ describe("/api/cron/daily-email — the batch loop ends", () => {
     const body = await response.json();
     expect(body).toMatchObject({ attempted: 5, sent: 5 });
     expect(emailMocks.sendDailyPuzzleEmail).toHaveBeenCalledTimes(5);
+  });
+});
+
+describe("/api/cron/daily-email — only active users get the email", () => {
+  const originalEnv = process.env;
+  const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const row = (userId: string): ProfileRow => ({
+    user_id: userId,
+    locale: "en",
+    email_opt_out: false,
+    email_unsubscribe_token: null,
+    daily_email_last_sent_on: null,
+  });
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    emailMocks.sendDailyPuzzleEmail.mockReset();
+    emailMocks.sendDailyPuzzleEmail.mockResolvedValue({ sent: true, id: "resend-id" });
+    puzzleMocks.getPuzzleForDate.mockResolvedValue(samplePuzzle);
+    puzzleMocks.todayLocalKey.mockReturnValue("2026-04-25");
+    process.env = { ...originalEnv, NODE_ENV: "development", CRON_SECRET: "test-secret" };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it("emails someone who signed in within 30 days without reading their attempts", async () => {
+    const { client, attemptsLookupSpy } = buildAdminClient({
+      profileResult: { data: [row("recent")], error: null },
+      userLookups: {
+        recent: { data: { user: { email: "recent@example.com", last_sign_in_at: daysAgo(29) } } },
+      },
+    });
+    supabaseMocks.createServiceClient.mockReturnValue(client);
+
+    const body = await (await GET(makeRequest())).json();
+
+    expect(body).toMatchObject({ sent: 1, inactive: 0 });
+    expect(attemptsLookupSpy).not.toHaveBeenCalled();
+  });
+
+  it("emails someone who signed in long ago but solved a puzzle this month", async () => {
+    const { client } = buildAdminClient({
+      profileResult: { data: [row("solver")], error: null },
+      userLookups: {
+        solver: { data: { user: { email: "solver@example.com", last_sign_in_at: daysAgo(90) } } },
+      },
+      lastAttempts: { solver: daysAgo(3) },
+    });
+    supabaseMocks.createServiceClient.mockReturnValue(client);
+
+    const body = await (await GET(makeRequest())).json();
+
+    expect(body).toMatchObject({ sent: 1, inactive: 0 });
+  });
+
+  it("stops emailing someone with no sign-in or attempt in 30 days, and marks them for today", async () => {
+    const { client, updateEqSpy } = buildAdminClient({
+      profileResult: { data: [row("lapsed"), row("never-solved")], error: null },
+      userLookups: {
+        lapsed: { data: { user: { email: "lapsed@example.com", last_sign_in_at: daysAgo(31) } } },
+        "never-solved": {
+          data: { user: { email: "never@example.com", last_sign_in_at: daysAgo(200) } },
+        },
+      },
+      lastAttempts: { lapsed: daysAgo(45) },
+    });
+    supabaseMocks.createServiceClient.mockReturnValue(client);
+
+    const body = await (await GET(makeRequest())).json();
+
+    expect(body).toMatchObject({ attempted: 2, sent: 0, inactive: 2, failed: 0 });
+    expect(emailMocks.sendDailyPuzzleEmail).not.toHaveBeenCalled();
+    expect(updateEqSpy).toHaveBeenCalledWith("user_id", "lapsed");
+    expect(updateEqSpy).toHaveBeenCalledWith("user_id", "never-solved");
+  });
+
+  it("treats an unreadable attempt history as inactive for the day", async () => {
+    const { client } = buildAdminClient({
+      profileResult: { data: [row("unknown")], error: null },
+      userLookups: {
+        unknown: { data: { user: { email: "unknown@example.com", last_sign_in_at: daysAgo(60) } } },
+      },
+      attemptsError: { message: "timeout" },
+    });
+    supabaseMocks.createServiceClient.mockReturnValue(client);
+
+    const body = await (await GET(makeRequest())).json();
+
+    expect(body).toMatchObject({ sent: 0, inactive: 1 });
   });
 });

@@ -10,6 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Changed
 
+- **The daily puzzle email goes only to active users (2026-10-27)**: on 2026-10-26 the cron mailed 53 accounts of which 9 had been active in the last 30 days, and 11 more had already unsubscribed; mail nobody opens is what gets a sender marked as spam, and the subscription notices go out from the same address. The cron now skips anyone who has neither signed in nor recorded an attempt in 30 days (`isRecentlyActive` in `lib/email.ts`; a recent sign-in answers it without querying attempts), marks them for the day, counts them under `inactive`, and checks again the next day, so a returning student gets the email again. An unreadable attempt history counts as inactive for the day. The sign-in card now says the daily puzzle is emailed while you're active and can be unsubscribed. The four new cron tests fail against the previous route.
+
 - **Unused non-atomic usage increments removed (2026-10-26)**: `incrementCoachUsage` and `incrementGuestUsage` have had no caller since migration 0010 moved the route to the quota-aware `try_increment_*` functions; they and their tests are gone. The `increment_coach_usage` and `increment_guest_coach_usage` database functions remain, callable only by `service_role` since migration 0011.
 
 - **Dead `fast-uri` override removed (2026-10-26)**: added on 2026-05-13 to force a patched `fast-uri`, which no package in the tree depends on any more. Removing it leaves `package-lock.json` unchanged (the lockfile does not record overrides) and `npm ci` accepts the pair. The `next` → `postcss` override stays: `next` still pins `postcss` 8.5.23 and the override resolves it to 8.5.31.

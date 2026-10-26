@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 process.env.NEXT_PUBLIC_SITE_URL = "https://go-daily.app";
 
 import {
+  isRecentlyActive,
   sendDailyPuzzleEmail,
   sendPaymentFailedEmail,
   sendSubscriptionStartedEmail,
@@ -279,4 +280,29 @@ describe("HTML escaping", () => {
     expect(body.html).toContain("&quot;quoted&quot;");
     expect(body.html).toContain("&amp;");
   });
+});
+
+describe("isRecentlyActive", () => {
+  const now = new Date("2026-10-27T12:00:00.000Z");
+
+  it("counts activity exactly 30 days ago as recent", () => {
+    expect(isRecentlyActive(["2026-09-27T12:00:00.000Z"], now)).toBe(true);
+  });
+
+  it("does not count activity just over 30 days ago", () => {
+    expect(isRecentlyActive(["2026-09-27T11:59:59.999Z"], now)).toBe(false);
+  });
+
+  it("is recent when any one timestamp is", () => {
+    expect(isRecentlyActive(["2026-01-01T00:00:00.000Z", "2026-10-20T00:00:00.000Z"], now)).toBe(
+      true,
+    );
+  });
+
+  it.each([[[]], [[null]], [[undefined]], [["not a date"]]])(
+    "is not recent with no usable timestamp (%j)",
+    (timestamps) => {
+      expect(isRecentlyActive(timestamps, now)).toBe(false);
+    },
+  );
 });

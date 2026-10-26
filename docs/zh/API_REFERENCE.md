@@ -302,7 +302,7 @@ Supabase OAuth/魔法链接回调。交换认证码获取会话，并重定向�
 
 ### `GET /api/cron/daily-email` (`app/api/cron/daily-email/route.ts`)
 
-Vercel Cron 处理器，发送每日题目提醒邮件。
+Vercel Cron 处理器，发送每日题目提醒邮件。只发给近 30 天内活跃（登录过或有做题记录，见 `lib/email.ts` 的 `isRecentlyActive`）的订阅用户；其余用户计入响应里的 `inactive`，第二天再重新判断。
 
 **认证**: 请求头 `Authorization: Bearer <CRON_SECRET>` 须与服务器环境变量 `CRON_SECRET` 一致（**切勿**在浏览器或前端打包产物中发送该令牌）。
 

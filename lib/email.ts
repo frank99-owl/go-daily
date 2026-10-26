@@ -426,6 +426,27 @@ export async function sendSubscriptionStartedEmail({
   return sendTransactionalEmail({ to, subject: copy.subject, html, text, unsubscribe });
 }
 
+/**
+ * The daily puzzle goes only to someone active in the last 30 days. On
+ * 2026-10-26, 45 of the 54 subscribed accounts had not signed in or solved a
+ * puzzle in 30 days, and mail nobody opens is what gets a sender marked as
+ * spam. Activity is either timestamp: a returning student often stays signed
+ * in, so `last_sign_in_at` alone would drop people who solve every day.
+ */
+export const DAILY_EMAIL_ACTIVE_WINDOW_DAYS = 30;
+
+export function isRecentlyActive(
+  timestamps: readonly (string | null | undefined)[],
+  now: Date,
+): boolean {
+  const cutoff = now.getTime() - DAILY_EMAIL_ACTIVE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  return timestamps.some((iso) => {
+    if (!iso) return false;
+    const at = Date.parse(iso);
+    return Number.isFinite(at) && at >= cutoff;
+  });
+}
+
 export async function sendDailyPuzzleEmail({
   to,
   locale,

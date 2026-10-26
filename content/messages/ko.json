@@ -525,7 +525,7 @@
       "continueAsGuest": "게스트로 계속하기",
       "guestHint": "게스트 진행 기록은 이 기기에만 저장됩니다.",
       "closePrompt": "로그인 안내 닫기",
-      "privacyHint": "계속하면 계정 동기화를 위해 go-daily가 이메일과 풀이 기록을 저장하는 데 동의하게 됩니다.",
+      "privacyHint": "계속하면 계정 동기화를 위해 go-daily가 이메일과 풀이 기록을 저장하고, 활동 중에는 매일의 문제를 이메일로 보내는 데 동의하게 됩니다(언제든 수신 거부 가능).",
       "alreadySignedIn": "이미 로그인되어 있습니다."
     },
     "session": {

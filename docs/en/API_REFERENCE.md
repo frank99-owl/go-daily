@@ -302,7 +302,7 @@ Unsubscribe from daily puzzle emails using a one-time token.
 
 ### `GET /api/cron/daily-email` (`app/api/cron/daily-email/route.ts`)
 
-Vercel Cron handler for sending daily puzzle reminder emails.
+Vercel Cron handler for sending daily puzzle reminder emails. It mails only subscribed users active in the last 30 days — signed in, or recorded an attempt (`isRecentlyActive` in `lib/email.ts`); everyone else is counted under `inactive` in the response and checked again the next day.
 
 **Auth**: `Authorization: Bearer <CRON_SECRET>` must match the server’s `CRON_SECRET` (never send this token from browsers or embed it in client bundles).
 

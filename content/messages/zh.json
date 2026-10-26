@@ -525,7 +525,7 @@
       "continueAsGuest": "继续以游客身份使用",
       "guestHint": "游客进度只保存在当前设备。",
       "closePrompt": "关闭登录提示",
-      "privacyHint": "继续即表示你同意 go-daily 保存你的邮箱与做题记录用于账号同步。",
+      "privacyHint": "继续即表示你同意 go-daily 保存你的邮箱与做题记录用于账号同步，并在你活跃期间通过邮件发送每日一题（可随时退订）。",
       "alreadySignedIn": "你已经登录了。"
     },
     "session": {

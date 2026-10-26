@@ -529,7 +529,7 @@
       "continueAsGuest": "Continue as guest",
       "guestHint": "Guest progress stays on this device only.",
       "closePrompt": "Close sign-in prompt",
-      "privacyHint": "By continuing you agree that go-daily may store your email and solving history to sync your account.",
+      "privacyHint": "By continuing you agree that go-daily may store your email and solving history to sync your account, and send you the daily puzzle by email while you're active (unsubscribe anytime).",
       "alreadySignedIn": "You're already signed in."
     },
     "session": {

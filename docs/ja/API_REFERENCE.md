@@ -294,7 +294,7 @@ Stripe の購読状態と `manual_grants` から実効プランを解決した�
 
 ### `GET /api/cron/daily-email`（`app/api/cron/daily-email/route.ts`）
 
-毎日のパズルリマインダーメール送信用のVercel Cronハンドラ。
+毎日のパズルリマインダーメール送信用のVercel Cronハンドラ。送信対象は過去 30 日以内にアクティブ（ログインまたは解答記録あり。`lib/email.ts` の `isRecentlyActive`）な購読ユーザーのみで、それ以外はレスポンスの `inactive` に計上され、翌日に再判定されます。
 
 **認証**: `Authorization: Bearer <CRON_SECRET>` をサーバーの `CRON_SECRET` と一致させること（ブラウザやクライアントバンドルに埋め込まない）。
 

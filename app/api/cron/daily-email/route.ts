@@ -1,5 +1,5 @@
 import { createApiResponse } from "@/lib/apiHeaders";
-import { sendDailyPuzzleEmail } from "@/lib/email";
+import { isRecentlyActive, sendDailyPuzzleEmail } from "@/lib/email";
 import { isLocale } from "@/lib/i18n/localePath";
 import { getPuzzleForDate, todayLocalKey } from "@/lib/puzzle/puzzleOfTheDay";
 import { constantTimeEqual } from "@/lib/secureCompare";
@@ -40,6 +40,24 @@ function localeFromProfile(value: string | null | undefined): Locale {
   return isLocale(value) ? value : "en";
 }
 
+/** When the user last recorded an attempt, or null if never or unreadable. */
+async function lastAttemptAt(
+  admin: ReturnType<typeof createServiceClient>,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await admin
+    .from("attempts")
+    .select("created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  // An unreadable history counts as inactive for today: that costs one email,
+  // where guessing the other way could send one nobody wants.
+  if (error) return null;
+  return (data as { created_at?: string } | null)?.created_at ?? null;
+}
+
 function markSentToday(
   admin: ReturnType<typeof createServiceClient>,
   userId: string,
@@ -69,6 +87,8 @@ export async function GET(request: Request) {
   let skipped = 0;
   let failed = 0;
   let attempted = 0;
+  let inactive = 0;
+  const now = new Date();
 
   // Every row is marked sent for today, which drops it from the next select.
   // When that update fails the row still matches, and without this set the loop
@@ -123,6 +143,17 @@ export async function GET(request: Request) {
         continue;
       }
 
+      // Signed in recently answers it without a query; otherwise check attempts.
+      const active =
+        isRecentlyActive([userData.user?.last_sign_in_at], now) ||
+        isRecentlyActive([await lastAttemptAt(admin, profile.user_id)], now);
+      if (!active) {
+        inactive += 1;
+        // Marked so it leaves today's selection; it is checked again tomorrow.
+        await markSentToday(admin, profile.user_id, today);
+        continue;
+      }
+
       const result = await sendDailyPuzzleEmail({
         to: email,
         locale: localeFromProfile(profile.locale),
@@ -159,6 +190,7 @@ export async function GET(request: Request) {
     attempted,
     sent,
     skipped,
+    inactive,
     failed,
   });
 }
