@@ -222,6 +222,8 @@ Stripe 订阅状态。仅由 Webhook 处理器写入。
 
 两者用于消除并发教练请求下的读改写竞态。
 
+只有 `service_role` 能执行这些函数：迁移 `0011_harden_function_privileges.sql` 之后，anon key 和用户会话通过 `/rest/v1/rpc` 调用会得到 `permission denied`，且每个函数都固定了空的 `search_path`。
+
 ---
 
 ## 扩展

@@ -222,6 +222,8 @@ Admin-assigned Pro access by email without Stripe checkout.
 
 Both eliminate read–modify–write races from concurrent coach requests.
 
+Only `service_role` can execute these functions — since migration `0011_harden_function_privileges.sql`, the anon key and user sessions get `permission denied` from `/rest/v1/rpc`, and each function pins an empty `search_path`.
+
 ---
 
 ## Extensions

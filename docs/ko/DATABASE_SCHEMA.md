@@ -222,6 +222,8 @@ Stripe 없이 이메일로 Pro를 부여하기 위한 관리자 테이블.
 
 동시 코치 요청에서 읽기-수정-쓰기 경쟁을 제거합니다.
 
+이 함수들은 `service_role`만 실행할 수 있습니다. 마이그레이션 `0011_harden_function_privileges.sql` 이후 anon 키나 사용자 세션으로 `/rest/v1/rpc`를 호출하면 `permission denied`가 반환되며, 각 함수는 빈 `search_path`로 고정되어 있습니다.
+
 ---
 
 ## 확장 모듈

@@ -40,6 +40,17 @@ function localeFromProfile(value: string | null | undefined): Locale {
   return isLocale(value) ? value : "en";
 }
 
+function markSentToday(
+  admin: ReturnType<typeof createServiceClient>,
+  userId: string,
+  today: string,
+) {
+  return admin
+    .from("profiles")
+    .update({ daily_email_last_sent_on: today, updated_at: new Date().toISOString() })
+    .eq("user_id", userId);
+}
+
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {
     return createApiResponse({ error: "unauthorized" }, { status: 401 });
@@ -58,6 +69,12 @@ export async function GET(request: Request) {
   let skipped = 0;
   let failed = 0;
   let attempted = 0;
+
+  // Every row is marked sent for today, which drops it from the next select.
+  // When that update fails the row still matches, and without this set the loop
+  // fetched it again, emailed the same person again, and ran until the function
+  // timed out.
+  const handled = new Set<string>();
 
   while (true) {
     let profileQuery = admin
@@ -78,17 +95,18 @@ export async function GET(request: Request) {
       return createApiResponse({ error: "profile_query_failed" }, { status: 500 });
     }
 
-    const profiles = (data ?? []) as ProfileEmailRow[];
+    const profiles = ((data ?? []) as ProfileEmailRow[]).filter(
+      (profile) => !handled.has(profile.user_id),
+    );
     if (profiles.length === 0) break;
 
     for (const profile of profiles) {
+      handled.add(profile.user_id);
+
       if (profile.daily_email_last_sent_on === today || profile.email_opt_out) {
         // Belt-and-suspenders: if DB filter slipped, we must still update the row
         // to drop it from the query and prevent an infinite loop.
-        await admin
-          .from("profiles")
-          .update({ daily_email_last_sent_on: today, updated_at: new Date().toISOString() })
-          .eq("user_id", profile.user_id);
+        await markSentToday(admin, profile.user_id, today);
         continue;
       }
 
@@ -100,6 +118,8 @@ export async function GET(request: Request) {
       const email = userData.user?.email;
       if (userError || !email) {
         skipped += 1;
+        // Marked like any other row, or it holds a place in every later batch.
+        await markSentToday(admin, profile.user_id, today);
         continue;
       }
 
@@ -117,10 +137,7 @@ export async function GET(request: Request) {
         // mark it failed later. For now, mark it sent to advance the batch.
       }
 
-      const { error: updateError } = await admin
-        .from("profiles")
-        .update({ daily_email_last_sent_on: today, updated_at: new Date().toISOString() })
-        .eq("user_id", profile.user_id);
+      const { error: updateError } = await markSentToday(admin, profile.user_id, today);
 
       if (updateError) {
         failed += 1;

@@ -222,6 +222,8 @@ Stripe を経由せずにメールアドレス単位で Pro を付与する管�
 
 同時実行リクエスト時の読み取り‐更新‐書き込み競合を防ぎます。
 
+これらの関数を実行できるのは `service_role` のみです。マイグレーション `0011_harden_function_privileges.sql` 以降、anon キーやユーザーセッションから `/rest/v1/rpc` で呼ぶと `permission denied` になり、各関数は空の `search_path` に固定されています。
+
 ---
 
 ## 拡張機能

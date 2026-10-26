@@ -754,3 +754,153 @@ describe("/api/cron/daily-email — send pipeline", () => {
     );
   });
 });
+
+/**
+ * A profiles table that answers the way Postgres does: every select returns
+ * the rows still eligible today, and an update really marks its row. The mock
+ * above hands out rows once and then `[]`, which is why it never noticed that
+ * an unmarked row comes back on the next select. After `maxQueries` selects
+ * this one fails, so a route that never runs out of rows answers 500 instead
+ * of hanging the test.
+ */
+function buildStatefulAdminClient({
+  rows,
+  updateError = null,
+  userLookups = {},
+  maxQueries = 20,
+}: {
+  rows: ProfileRow[];
+  updateError?: { message: string } | null;
+  userLookups?: AdminClientOptions["userLookups"];
+  maxQueries?: number;
+}) {
+  const table = rows.map((row) => ({ ...row }));
+  let queries = 0;
+
+  function select() {
+    let limit = Infinity;
+    const query: Record<string, unknown> = {
+      eq: () => query,
+      or: () => query,
+      limit: (value: number) => {
+        limit = value;
+        return query;
+      },
+      then: (
+        resolve: (value: ProfileQueryResult) => unknown,
+        reject?: (reason: unknown) => unknown,
+      ) => {
+        queries += 1;
+        const today = puzzleMocks.todayLocalKey();
+        const result: ProfileQueryResult =
+          queries > maxQueries
+            ? { data: null, error: { message: "query loop" } }
+            : {
+                data: table
+                  .filter((row) => !row.email_opt_out && row.daily_email_last_sent_on !== today)
+                  .slice(0, limit)
+                  .map((row) => ({ ...row })),
+                error: null,
+              };
+        return Promise.resolve(result).then(resolve, reject);
+      },
+    };
+    return query;
+  }
+
+  const getUserById = vi.fn(async (userId: string) => {
+    if (userId in userLookups) return userLookups[userId];
+    return { data: { user: { email: `${userId}@example.com` } }, error: null };
+  });
+
+  const client = {
+    from: () => ({
+      select,
+      update: (payload: Partial<ProfileRow>) => ({
+        eq: async (_column: string, userId: string) => {
+          const row = table.find((candidate) => candidate.user_id === userId);
+          if (row && !updateError) Object.assign(row, payload);
+          return { error: updateError };
+        },
+      }),
+    }),
+    auth: { admin: { getUserById } },
+  };
+
+  return { client, getUserById, queryCount: () => queries };
+}
+
+function eligibleRow(userId: string): ProfileRow {
+  return {
+    user_id: userId,
+    locale: "en",
+    email_opt_out: false,
+    email_unsubscribe_token: null,
+    daily_email_last_sent_on: null,
+  };
+}
+
+describe("/api/cron/daily-email — the batch loop ends", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    emailMocks.sendDailyPuzzleEmail.mockReset();
+    emailMocks.sendDailyPuzzleEmail.mockResolvedValue({ sent: true, id: "resend-id" });
+    puzzleMocks.getPuzzleForDate.mockResolvedValue(samplePuzzle);
+    puzzleMocks.todayLocalKey.mockReturnValue("2026-04-25");
+    process.env = { ...originalEnv, NODE_ENV: "development", CRON_SECRET: "test-secret" };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it("marks a profile it could not look up, so the next batch does not fetch it again", async () => {
+    const { client, getUserById, queryCount } = buildStatefulAdminClient({
+      rows: [eligibleRow("user-ok"), eligibleRow("user-no-email")],
+      userLookups: { "user-no-email": { data: { user: { email: null } }, error: null } },
+    });
+    supabaseMocks.createServiceClient.mockReturnValue(client);
+
+    const response = await GET(makeRequest());
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({ attempted: 2, sent: 1, skipped: 1, failed: 0 });
+    expect(getUserById).toHaveBeenCalledTimes(2);
+    expect(queryCount()).toBe(2);
+  });
+
+  it("emails each person once when marking the profile keeps failing", async () => {
+    const { client, queryCount } = buildStatefulAdminClient({
+      rows: [eligibleRow("user-a"), eligibleRow("user-b")],
+      updateError: { message: "DB unavailable" },
+    });
+    supabaseMocks.createServiceClient.mockReturnValue(client);
+
+    const response = await GET(makeRequest());
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({ attempted: 2, sent: 0, failed: 2 });
+    expect(emailMocks.sendDailyPuzzleEmail).toHaveBeenCalledTimes(2);
+    expect(queryCount()).toBe(2);
+  });
+
+  it("works through more profiles than one batch holds", async () => {
+    process.env.EMAIL_CRON_BATCH_SIZE = "2";
+    const { client } = buildStatefulAdminClient({
+      rows: ["u1", "u2", "u3", "u4", "u5"].map(eligibleRow),
+    });
+    supabaseMocks.createServiceClient.mockReturnValue(client);
+
+    const response = await GET(makeRequest());
+
+    const body = await response.json();
+    expect(body).toMatchObject({ attempted: 5, sent: 5 });
+    expect(emailMocks.sendDailyPuzzleEmail).toHaveBeenCalledTimes(5);
+  });
+});
