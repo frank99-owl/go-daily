@@ -109,13 +109,15 @@ export async function checkIpLimit(
       if (val.date !== today) ipCounters.delete(key);
     }
   }
-  if (ipCounters.size >= MAX_IP_ENTRIES) {
-    const oldest = ipCounters.keys().next().value;
-    if (oldest) ipCounters.delete(oldest);
-  }
 
   const entry = ipCounters.get(ip);
   if (!entry || entry.date !== today) {
+    // Only a new address grows the map. Evicting on every check at the cap
+    // could evict the address being checked and hand it a fresh allowance.
+    if (ipCounters.size >= MAX_IP_ENTRIES) {
+      const oldest = ipCounters.keys().next().value;
+      if (oldest) ipCounters.delete(oldest);
+    }
     ipCounters.set(ip, { date: today, count: 0 });
     return { allowed: true, remaining: GUEST_IP_DAILY_LIMIT };
   }
