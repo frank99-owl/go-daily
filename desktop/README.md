@@ -85,7 +85,7 @@ The tag always names the commit the dmg was built from, so before building the s
 - `gh` is signed in as an account that cannot write to the repo;
 - the release for this version already exists at a different commit — bump `version` in `src-tauri/tauri.conf.json` instead of replacing the asset.
 
-It builds with `--locked`, so the dmg uses exactly the committed `Cargo.lock`. `desktop-v1.3.0` predates these checks: GitHub tagged it at `eea5d3a`, a commit from before the desktop shell existed, while its dmg was built from `2366f54`, the last commit before the release was published.
+It builds with `--locked`, so the dmg uses exactly the committed `Cargo.lock`. `desktop-v1.3.0` predates these checks: GitHub first tagged it at `eea5d3a`, a commit from before the desktop shell existed. Its dmg was built from `2366f54`, the last commit before the release was published, and the tag was moved there on 2026-10-26.
 
 ## Distributing to Users
 
