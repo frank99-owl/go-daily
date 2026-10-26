@@ -340,6 +340,38 @@ describe("CoachDialogue", () => {
     });
   });
 
+  // The server sends `done`, then holds the connection open while it records
+  // analytics. The reply has to be finished at `done`, not at stream close.
+  it("finishes the reply at the done event while the server keeps the stream open", async () => {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: "这是回复" })}\n\n`));
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ done: true, usage: {} })}\n\n`),
+        );
+        // Never closed: models the analytics flush still in progress.
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve({ ok: true, status: 200, body: stream } as Response)),
+    );
+
+    renderWithLocale();
+    fireEvent.change(screen.getByPlaceholderText(/向 AI 提问/i), { target: { value: "test" } });
+    fireEvent.click(screen.getByText(/发送/i));
+
+    await waitFor(() => {
+      expect(trackMock).toHaveBeenCalledWith(
+        "coach_response_completed",
+        expect.objectContaining({ result: "completed" }),
+      );
+    });
+    expect(screen.getByText("这是回复")).toBeInTheDocument();
+    expect(screen.queryByText(/思考中/i)).not.toBeInTheDocument();
+  });
+
   it("disables send button when input is empty", () => {
     renderWithLocale();
     const btn = screen.getByText(/发送/i);

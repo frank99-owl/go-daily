@@ -217,7 +217,7 @@ export async function POST(request: Request) {
     });
     const { httpStatus, errorCode } = classifyUpstreamError(error);
 
-    captureCoachFailed(isGuest ? guestDeviceId! : (user?.id ?? "unknown"), {
+    await captureCoachFailed(isGuest ? guestDeviceId! : (user?.id ?? "unknown"), {
       locale,
       personaId: personaId || "default",
       plan: isGuest ? "guest" : (coachState?.usage?.plan ?? "free"),

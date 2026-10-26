@@ -28,18 +28,46 @@ export interface CoachFailedEvent extends CoachEventBase {
   httpStatus: number;
 }
 
-export function captureCoachCompleted(distinctId: string, props: CoachCompletedEvent): void {
-  captureServerEvent({
-    distinctId,
-    event: "coach_request_completed",
-    properties: props,
-  }).catch((e: unknown) => console.warn("[posthog] coach_completed event failed", e));
+/**
+ * Longest a coach stream stays open waiting on analytics. The reply and its
+ * `done` event have already reached the student, so this only bounds how long
+ * the connection lingers if PostHog is slow.
+ */
+export const ANALYTICS_FLUSH_BUDGET_MS = 2000;
+
+function withinBudget(capture: Promise<void>): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const budget = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, ANALYTICS_FLUSH_BUDGET_MS);
+  });
+  return Promise.race([capture, budget]).finally(() => clearTimeout(timer));
 }
 
-export function captureCoachFailed(distinctId: string, props: CoachFailedEvent): void {
-  captureServerEvent({
-    distinctId,
-    event: "coach_request_failed",
-    properties: props,
-  }).catch((e: unknown) => console.warn("[posthog] coach_failed event failed", e));
+/**
+ * Both helpers return the capture so the stream can await it before closing.
+ * Fired after `controller.close()`, the event raced the function being frozen
+ * once the response ended: between 2026-09-26 and 2026-10-23 the quota table
+ * and the client recorded 15 completed coach calls, PostHog's server event 13.
+ */
+export function captureCoachCompleted(
+  distinctId: string,
+  props: CoachCompletedEvent,
+): Promise<void> {
+  return withinBudget(
+    captureServerEvent({
+      distinctId,
+      event: "coach_request_completed",
+      properties: props,
+    }).catch((e: unknown) => console.warn("[posthog] coach_completed event failed", e)),
+  );
+}
+
+export function captureCoachFailed(distinctId: string, props: CoachFailedEvent): Promise<void> {
+  return withinBudget(
+    captureServerEvent({
+      distinctId,
+      event: "coach_request_failed",
+      properties: props,
+    }).catch((e: unknown) => console.warn("[posthog] coach_failed event failed", e)),
+  );
 }

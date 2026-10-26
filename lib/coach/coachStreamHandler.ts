@@ -119,9 +119,11 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ done: true, usage: ctx.updatedUsage })}\n\n`),
         );
-        controller.close();
 
-        captureCoachCompleted(ctx.distinctId, {
+        // The student already has the whole reply and `done`. Close only after
+        // the analytics event is sent: once the response ends, the function can
+        // be frozen with the capture still in flight.
+        await captureCoachCompleted(ctx.distinctId, {
           locale: ctx.locale,
           personaId: ctx.personaId || "default",
           plan: ctx.plan,
@@ -133,6 +135,7 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
           totalTokens: tokenUsage?.totalTokens ?? null,
           usageAvailable: tokenUsage?.usageAvailable ?? false,
         });
+        controller.close();
       } catch (err) {
         const error = err as Error;
         // Refund only when the student never received any of the reply.
@@ -146,9 +149,8 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
         const errorCode = classifySseError(error);
 
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorCode })}\n\n`));
-        controller.close();
 
-        captureCoachFailed(ctx.distinctId, {
+        await captureCoachFailed(ctx.distinctId, {
           locale: ctx.locale,
           personaId: ctx.personaId || "default",
           plan: ctx.plan,
@@ -158,6 +160,7 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
           errorCode,
           httpStatus: 0,
         });
+        controller.close();
       }
     },
     cancel(reason) {

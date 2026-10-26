@@ -291,6 +291,10 @@ export function CoachDialogue({
       if (!reader) throw new Error(t.result.coachErrorNoResponse);
       const decoder = new TextDecoder();
       let buffer = "";
+      // The server sends `done` and then keeps the connection open briefly
+      // while it records analytics, so the reply is complete at `done`, not
+      // when the stream ends. Stop reading there; the server closes on its own.
+      let receivedDone = false;
 
       const processLine = (line: string) => {
         if (!line.startsWith("data: ")) return;
@@ -301,8 +305,9 @@ export function CoachDialogue({
             usage?: CoachUsageSnapshot;
             error?: string;
           };
-          if (evt.done && evt.usage) {
-            setQuotaState(getQuotaStateFromUsage(evt.usage));
+          if (evt.done) {
+            receivedDone = true;
+            if (evt.usage) setQuotaState(getQuotaStateFromUsage(evt.usage));
           }
           if (evt.error) {
             const errorMessages: Record<string, string> = {
@@ -341,10 +346,11 @@ export function CoachDialogue({
           for (const line of lines) {
             processLine(line);
           }
+          if (receivedDone) break;
         }
 
         // Process any residual content in the buffer (e.g. proxy stripped trailing newline)
-        if (buffer.trim()) {
+        if (!receivedDone && buffer.trim()) {
           for (const line of buffer.split("\n")) {
             processLine(line);
           }
