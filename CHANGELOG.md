@@ -10,6 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ### Changed
 
+- **No Vercel deployments for Dependabot branches (2026-10-28)**: every Dependabot pull request built a preview, and the Preview environment shared production's Supabase service-role key, DeepSeek key and cron secret — a compromised dependency version would have run with them. `vercel.json` now sets `git.deploymentEnabled` to `false` for `dependabot/**`; CI still tests those pull requests. Removing those secrets from the Preview environment is a Vercel dashboard change, listed in the 2026-10 health review.
+
 - **Email sign-in switched off (2026-10-27)**: the sign-in card has only ever offered Google and guest — `NEXT_PUBLIC_ENABLE_EMAIL_LOGIN` was set in May but never to `"true"` — yet the Supabase Email provider stayed open to direct API sign-ups, which is how the seven password accounts in `auth.users` were created. The provider is now disabled (`/auth/v1/settings` returns `email: false`, `google: true`; an OTP request is refused with 422) and the variable is removed from Production and Preview. `docs/*/PROJECT_STATUS.md` no longer says email login was enabled.
 
 - **Routine Cargo updates for the desktop shell stopped (2026-10-27)**: the desktop app had 9 downloads in four and a half months, and each month Dependabot proposed a group update across 519 crates. The cargo entry now sets `open-pull-requests-limit: 0`, which stops version updates; Dependabot security updates are a repository setting (enabled) and still open pull requests for alerts against `desktop/src-tauri/Cargo.lock`.
