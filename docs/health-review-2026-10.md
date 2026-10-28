@@ -135,6 +135,8 @@ Stryker 10.1.1（`--no-save` 临时安装；provenance 来自 stryker-js 的 v10
 - ~~E~~：已完成（10-27）：每日邮件只发给 30 天内登录过或做过题的用户，登录卡片写明了这一点（`1c7d5e6`）。
 - ~~PostHog 的 `anonymize_ips`~~：已开启（10-27）。
 - `www` 跳转：www.go-daily.app 没有加进 Vercel 项目，307 是 Vercel 的兜底跳转。要改为 308，最稳的办法是在 Cloudflare 加一条 Redirect Rule。
+- 预览环境的密钥（10-28 发现，未处理）：`SUPABASE_SERVICE_ROLE_KEY`、`DEEPSEEK_API_KEY`、`CRON_SECRET` 同时作用于 Preview 和 Production；`STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET`、`ADMIN_PIN`、`ADMIN_EMAILS` 各有一条只属于 Preview 的值。Dependabot 分支已不再部署（`aadff10`），剩下的风险是其他分支的预览部署。处理方式：在 Vercel → Settings → Environment Variables 中，前三条取消勾选 Preview，后四条删除。
+- 生产部署等 CI（10-28 发现，未处理）：main 上 35 次 CI 失败的提交中，抽查的 20 次有 16 次照样上线。处理方式：在 Vercel 项目 Settings → Deployment Checks 中添加 GitHub 的 `check` 和 `e2e`。
 
 ---
 
