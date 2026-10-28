@@ -1,0 +1,84 @@
+name: Uptime
+# Probes production every 30 minutes and keeps one open issue while it is
+# failing. Until 2026-10 nothing watched production: Vercel's Hobby runtime
+# logs keep about an hour, and /api/profile/training-level answered 500 from
+# May to October before anyone noticed. A new issue notifies the repository
+# owner by email; the issue closes itself on the first healthy run.
+#
+# GitHub disables scheduled workflows after 60 days without repository
+# activity. If the repo goes quiet that long, re-enable this from the Actions
+# tab.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      LABEL: uptime
+    steps:
+      - name: Probe production
+        id: probe
+        run: |
+          report=""
+          probe() {
+            local url="$1" expected="$2" code
+            # --retry covers timeouts, 429 and 5xx, so one slow cold start is
+            # not an outage.
+            code=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 20 \
+              --retry 2 --retry-delay 15 "$url") || true
+            if [ "$code" != "$expected" ]; then
+              report+="- \`$url\` answered **${code:-no response}** (expected $expected): \`$(head -c 200 /tmp/body | tr -d '\n`')\`"$'\n'
+            fi
+          }
+          probe https://go-daily.app/api/health 200
+          probe https://go-daily.app/en 200
+          probe https://go-daily.app/en/today 200
+          probe https://go-daily.app/en/puzzles/p-00419 200
+          {
+            echo "report<<EOF"
+            printf '%s' "$report"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          if [ -n "$report" ]; then
+            printf 'Failing:\n%s' "$report"
+          else
+            echo "All probes healthy."
+          fi
+
+      - name: Open or update the outage issue
+        if: steps.probe.outputs.report != ''
+        env:
+          REPORT: ${{ steps.probe.outputs.report }}
+        run: |
+          gh label create "$LABEL" --color B60205 --description "Production probe failing" 2>/dev/null || true
+          body=$(printf '%s run at %s UTC ([log](%s/%s/actions/runs/%s)):\n\n%s' \
+            "Probe" "$(date -u '+%Y-%m-%d %H:%M')" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$REPORT")
+          open=$(gh issue list --label "$LABEL" --state open --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "$body"
+          else
+            gh issue create --title "Production probe failing" --label "$LABEL" --body "$body"
+          fi
+          exit 1
+
+      - name: Close the outage issue on recovery
+        if: steps.probe.outputs.report == ''
+        run: |
+          open=$(gh issue list --label "$LABEL" --state open --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh issue close "$open" --comment "Healthy again at $(date -u '+%Y-%m-%d %H:%M') UTC."
+          fi

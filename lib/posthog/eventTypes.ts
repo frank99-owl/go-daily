@@ -165,6 +165,11 @@ export type EventMap = {
     totalTokens: number | null;
     usageAvailable: boolean;
   };
+  /** A handled 5xx from `createApiResponse`; server-side, no person. */
+  api_server_error: {
+    httpStatus: number;
+    errorCode: string;
+  };
   coach_request_failed: {
     locale: string;
     personaId: string;

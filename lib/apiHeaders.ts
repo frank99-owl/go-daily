@@ -2,6 +2,8 @@
  * Standard security headers for API responses.
  */
 
+import { after } from "next/server";
+
 import { isSameOriginMutationRequest } from "@/lib/requestSecurity";
 
 /** Default maximum body size for mutation endpoints (2 KB). */
@@ -140,6 +142,31 @@ function reportServerErrorResponse(status: number, body: unknown): void {
     typeof error === "string" ? error.slice(0, MAX_REPORTED_ERROR_LENGTH) : "unspecified";
 
   console.error("[api-5xx]", { status, error: code });
+  recordServerError(status, code);
+}
+
+/**
+ * The log line above lives about an hour on Vercel Hobby, so the same failure
+ * also goes to PostHog as `api_server_error`, where it is kept for weeks and can
+ * alert. `after` keeps the function alive until the event is sent; firing it
+ * unawaited is how coach analytics lost events until 2026-10. The PostHog module
+ * loads inside the callback because this file is imported far and wide, and
+ * that module refuses to load anywhere `window` exists.
+ */
+function recordServerError(status: number, code: string): void {
+  try {
+    after(async () => {
+      const { captureServerEvent } = await import("@/lib/posthog/server");
+      await captureServerEvent({
+        distinctId: "api-server",
+        event: "api_server_error",
+        properties: { httpStatus: status, errorCode: code },
+      });
+    });
+  } catch {
+    // Outside a request (unit tests, scripts) there is nothing to defer to;
+    // the log line still records the failure.
+  }
 }
 
 export function createApiResponse(
