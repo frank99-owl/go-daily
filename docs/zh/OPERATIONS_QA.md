@@ -10,7 +10,7 @@
 - **数据库**: Supabase (Region: `ap-southeast-1` - 新加坡)
 - **限流**: Upstash Redis (Region: `ap-southeast-1` - 新加坡)
 - **DNS & CDN**: Cloudflare (开启 Proxy)
-- **观测**: Vercel 运行日志（错误，含 `[api-5xx]`、`[client-error]` 日志行）+ PostHog (事件) + Vercel Speed Insights
+- **观测**: Vercel 运行日志（错误，含 `[api-5xx]`、`[client-error]` 日志行）+ PostHog (事件；每个已处理的 5xx 同时记为 `api_server_error` 事件，「API 5xx per day」insight 配有每日告警) + Vercel Speed Insights + GitHub `Uptime` workflow（`.github/workflows/uptime.yml`，每 30 分钟探测生产环境，失败期间保持一个 `uptime` issue 打开）
 
 ## 2. 环境配置
 

@@ -8,7 +8,7 @@
 - **데이터베이스**: Supabase (Region: `ap-southeast-1` - 싱가포르)
 - **속도 제한**: Upstash Redis (Region: `ap-southeast-1` - 싱가포르)
 - **DNS & CDN**: Cloudflare (Proxy 활성화)
-- **관측성**: Vercel 런타임 로그(`[api-5xx]`, `[client-error]` 포함 에러) + PostHog (이벤트) + Vercel Speed Insights
+- **관측성**: Vercel 런타임 로그(`[api-5xx]`, `[client-error]` 포함 에러) + PostHog (이벤트; 처리된 5xx는 모두 `api_server_error` 이벤트로도 기록되며 "API 5xx per day" 인사이트에 일일 알림 설정) + Vercel Speed Insights + GitHub `Uptime` 워크플로(`.github/workflows/uptime.yml`, 30분마다 프로덕션을 점검하고 실패하는 동안 `uptime` 이슈를 열어 둠)
 
 ## 2. 환경 설정
 

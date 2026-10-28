@@ -8,7 +8,7 @@ This document describes the production lifecycle of go-daily, from environment c
 - **Database**: Supabase (Region: `ap-southeast-1` - Singapore)
 - **Rate Limiting**: Upstash Redis (Region: `ap-southeast-1` - Singapore)
 - **DNS & CDN**: Cloudflare (Proxy enabled)
-- **Observability**: Vercel runtime logs (errors, including `[api-5xx]` and `[client-error]` lines) + PostHog (Events) + Vercel Speed Insights
+- **Observability**: Vercel runtime logs (errors, including `[api-5xx]` and `[client-error]` lines) + PostHog (Events; every handled 5xx is also an `api_server_error` event, with a daily alert on the "API 5xx per day" insight) + Vercel Speed Insights + the `Uptime` GitHub workflow (`.github/workflows/uptime.yml`, probes production every 30 minutes and keeps an `uptime` issue open while it fails)
 
 ## 2. Environment Configuration
 
