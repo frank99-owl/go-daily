@@ -6,7 +6,7 @@ name: Uptime
 # owner by email; the issue closes itself on the first healthy run.
 #
 # GitHub runs schedules best-effort: from 2026-10-28 to 2026-11-04 the
-# "*/30" schedule fired 27 times out of ~336, with gaps up to 10 hours. Runs
+# "*/30" schedule fired 29 times in ~330 slots, with gaps up to 10.5 hours. Runs
 # at the top of the hour are the first to be delayed or dropped under load, so
 # the minutes are offset; that helps but does not make this a real-time
 # monitor, so do not treat a quiet issue list as proof the site was up.
