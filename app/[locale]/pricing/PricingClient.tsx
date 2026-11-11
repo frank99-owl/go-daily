@@ -21,10 +21,13 @@ export function PricingClient({
   viewerPlan,
   locale,
   hasBillingPortal = false,
+  trialAvailable = true,
 }: {
   viewerPlan: ViewerPlan;
   locale: Locale;
   hasBillingPortal?: boolean;
+  /** False for an account that has subscribed before: checkout charges at once. */
+  trialAvailable?: boolean;
 }) {
   const { t } = useLocale();
   const copy = t.pricing;
@@ -128,7 +131,7 @@ export function PricingClient({
           <h2 className="text-xl font-semibold text-white">{planName}</h2>
           <span className="text-2xl text-[var(--color-accent)]">{price}</span>
         </div>
-        <p className="mt-1 text-xs text-white/45">{copy.trial}</p>
+        {trialAvailable ? <p className="mt-1 text-xs text-white/45">{copy.trial}</p> : null}
 
         <ul className="mt-5 flex flex-col gap-2.5">
           {features.map((feature) => (

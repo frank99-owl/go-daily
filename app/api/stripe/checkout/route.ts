@@ -125,7 +125,10 @@ export async function POST(request: Request) {
     locale,
   });
 
-  const trialDays = getStripeTrialDays();
+  // One trial per account. The subscriptions row outlives a cancellation, so
+  // without this a user could cancel inside the trial and start another one,
+  // indefinitely. The pricing page hides the trial line on the same condition.
+  const trialDays = existingSub ? 0 : getStripeTrialDays();
 
   try {
     const session = await stripe.checkout.sessions.create({
