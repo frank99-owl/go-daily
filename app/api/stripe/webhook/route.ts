@@ -22,7 +22,7 @@ import {
 import {
   anchorDayFromIso,
   getStringId,
-  minItemPeriodEnd,
+  paidThrough,
   toIsoOrNull,
 } from "@/lib/stripe/stripeWebhookHelpers";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -57,7 +57,6 @@ async function upsertSubscriptionFromStripe(
   extras?: {
     firstPaidAt?: string | null;
     coachAnchorDay?: number | null;
-    status?: string;
   },
 ) {
   const userId = sub.metadata?.user_id || fallbackUserId;
@@ -76,8 +75,8 @@ async function upsertSubscriptionFromStripe(
 
   const priceId = sub.items.data[0]?.price?.id ?? null;
   const plan = normalizePlan({ metadataPlan: sub.metadata?.plan, priceId });
-  const nextStatus = extras?.status ?? sub.status;
-  const nextCurrentPeriodEnd = toIsoOrNull(minItemPeriodEnd(sub));
+  const nextStatus = sub.status;
+  const nextCurrentPeriodEnd = toIsoOrNull(paidThrough(sub));
   const { data: existing, error: existingError } = await admin
     .from("subscriptions")
     .select("stripe_subscription_id, status, current_period_end, first_paid_at, coach_anchor_day")
@@ -145,6 +144,21 @@ async function upsertSubscriptionFromStripe(
   }
 }
 
+/**
+ * The subscription as Stripe has it now, not as the event recorded it.
+ *
+ * Stripe does not deliver events in the order they happened, and it retries a
+ * failed one for days. Written straight from the event, an `updated` event
+ * retried after the cancellation put the row back to `active` — and nothing
+ * arrives later to correct it, so the account kept Pro for good.
+ */
+function currentSubscription(
+  stripe: ReturnType<typeof getStripeClient>,
+  snapshot: Stripe.Subscription,
+): Promise<Stripe.Subscription> {
+  return stripe.subscriptions.retrieve(snapshot.id);
+}
+
 // ── POST handler ──────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
@@ -208,16 +222,13 @@ export async function POST(request: Request) {
   try {
     switch (event.type) {
       case "customer.subscription.created":
+      case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        const sub = event.data.object as Stripe.Subscription;
+        const sub = await currentSubscription(stripe, event.data.object as Stripe.Subscription);
         await upsertSubscriptionFromStripe(admin, sub);
         if (event.type === "customer.subscription.deleted") {
           await captureSubscriptionCanceled(sub);
         }
-        break;
-      }
-      case "customer.subscription.updated": {
-        await upsertSubscriptionFromStripe(admin, event.data.object as Stripe.Subscription);
         break;
       }
       case "checkout.session.completed": {
@@ -254,7 +265,11 @@ export async function POST(request: Request) {
         const subscriptionId = invoiceSubscriptionId(invoice);
         if (!subscriptionId) break;
         const sub = await stripe.subscriptions.retrieve(subscriptionId);
-        await upsertSubscriptionFromStripe(admin, sub, null, { status: "past_due" });
+        // Stored with the status Stripe reports. Forcing `past_due` here
+        // marked a subscription whose first payment failed (`incomplete`, never
+        // paid) as inside the grace, and downgraded one that had already
+        // recovered when this event was retried late.
+        await upsertSubscriptionFromStripe(admin, sub);
         await capturePaymentFailed(sub);
         await sendPaymentFailedNotice({ admin, stripe, sub });
         break;

@@ -68,6 +68,13 @@ function parseTime(value: string | null | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+/**
+ * `currentPeriodEnd` is the stored `subscriptions.current_period_end`, which
+ * for a past_due subscription is the last paid moment, not the end of the
+ * unpaid period Stripe has already opened — see `paidThrough` in
+ * `lib/stripe/stripeWebhookHelpers.ts`. So the grace runs for
+ * `PAST_DUE_PRO_GRACE_DAYS` from the failed renewal.
+ */
 export function isPastDueWithinGrace({
   currentPeriodEnd,
   now = new Date(),

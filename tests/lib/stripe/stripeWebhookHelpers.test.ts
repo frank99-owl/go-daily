@@ -12,6 +12,7 @@ import {
   anchorDayFromIso,
   getStringId,
   minItemPeriodEnd,
+  paidThrough,
   toIsoOrNull,
 } from "@/lib/stripe/stripeWebhookHelpers";
 
@@ -90,5 +91,43 @@ describe("anchorDayFromIso", () => {
     ["an unparseable string", "not a date"],
   ])("returns null for %s", (_label, value) => {
     expect(anchorDayFromIso(value)).toBeNull();
+  });
+});
+
+// Stripe opens the next period when it creates the renewal invoice, before
+// collecting it. Until 2026-11 a past_due row kept that period's end, so the
+// 7-day grace ran from a date a month (or a year) in the future.
+describe("paidThrough", () => {
+  const START = 1_780_000_000;
+  const END = START + 30 * 86_400;
+
+  function subscription(status: string, items: unknown[]): Stripe.Subscription {
+    return { status, items: { data: items } } as unknown as Stripe.Subscription;
+  }
+
+  const period = { current_period_start: START, current_period_end: END };
+
+  it.each(["active", "trialing", "canceled", "unpaid", "incomplete"])(
+    "is the period end while the subscription is %s",
+    (status) => {
+      expect(paidThrough(subscription(status, [period]))).toBe(END);
+    },
+  );
+
+  it("is the period start while the subscription is past_due", () => {
+    expect(paidThrough(subscription("past_due", [period]))).toBe(START);
+  });
+
+  it("takes the earliest start across items when past_due", () => {
+    const later = { current_period_start: START + 86_400, current_period_end: END + 86_400 };
+    expect(paidThrough(subscription("past_due", [later, period]))).toBe(START);
+  });
+
+  it("falls back to the period end when a past_due item reports no start", () => {
+    expect(paidThrough(subscription("past_due", [{ current_period_end: END }]))).toBe(END);
+  });
+
+  it("is null when there is no period at all", () => {
+    expect(paidThrough(subscription("past_due", []))).toBeNull();
   });
 });
