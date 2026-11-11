@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { getClientIP, isValidIP, getClientCountry } from "@/lib/clientIp";
+import { getClientCountry, getClientIP, isCloudflareIP, isValidIP } from "@/lib/clientIp";
 
 function makeRequest(headers: Record<string, string>): Request {
   return new Request("https://example.com", { headers });
@@ -205,5 +205,127 @@ describe("getClientCountry — edge geo headers", () => {
     expect(getClientCountry(req({ "cf-ipcountry": "T1" }))).toBeNull(); // Tor
     expect(getClientCountry(req({ "x-vercel-ip-country": "USA" }))).toBeNull(); // not alpha-2
     expect(getClientCountry(req({ "x-vercel-ip-country": "" }))).toBeNull();
+  });
+});
+
+// ---- Behind Cloudflare (2026-11) ----
+//
+// Vercel overwrites X-Forwarded-For with the address that connected to it, so
+// behind Cloudflare that header names an edge and the visitor is in
+// CF-Connecting-IP — believable only when the connection came from Cloudflare.
+
+describe("isCloudflareIP", () => {
+  it("recognizes addresses inside Cloudflare's IPv4 ranges", () => {
+    expect(isCloudflareIP("172.70.1.5")).toBe(true); // 172.64.0.0/13
+    expect(isCloudflareIP("162.158.90.12")).toBe(true); // 162.158.0.0/15
+    expect(isCloudflareIP("104.16.0.0")).toBe(true); // first address of 104.16.0.0/13
+    expect(isCloudflareIP("104.23.255.255")).toBe(true); // last address of 104.16.0.0/13
+    expect(isCloudflareIP("131.0.75.255")).toBe(true); // last address of 131.0.72.0/22
+  });
+
+  it("rejects the addresses just outside a range", () => {
+    expect(isCloudflareIP("104.15.255.255")).toBe(false);
+    expect(isCloudflareIP("104.28.0.0")).toBe(false); // past 104.24.0.0/14
+    expect(isCloudflareIP("172.72.0.0")).toBe(false); // past 172.64.0.0/13
+    expect(isCloudflareIP("131.0.76.0")).toBe(false);
+    expect(isCloudflareIP("8.8.8.8")).toBe(false);
+  });
+
+  it("recognizes Cloudflare's IPv6 ranges, compressed or not", () => {
+    expect(isCloudflareIP("2606:4700::6810:1")).toBe(true);
+    expect(isCloudflareIP("2606:4700:0000:0000:0000:0000:6810:0001")).toBe(true);
+    expect(isCloudflareIP("2a06:98c7:ffff::1")).toBe(true); // top of 2a06:98c0::/29
+    expect(isCloudflareIP("2a06:98c8::1")).toBe(false); // just past it
+    expect(isCloudflareIP("2001:db8::1")).toBe(false);
+  });
+
+  it("reads an IPv4-mapped IPv6 peer as IPv4", () => {
+    expect(isCloudflareIP("::ffff:172.70.1.5")).toBe(true);
+    expect(isCloudflareIP("::ffff:8.8.8.8")).toBe(false);
+  });
+
+  it("rejects anything that is not an address", () => {
+    for (const value of ["", "unknown", "172.70.1", "999.70.1.5", "2606:4700:::1", "g::1"]) {
+      expect(isCloudflareIP(value)).toBe(false);
+    }
+  });
+});
+
+describe("getClientIP — behind Cloudflare", () => {
+  it("returns the visitor, not the edge, when Cloudflare connected", () => {
+    const ip = getClientIP(
+      req({
+        "x-forwarded-for": "172.70.1.5",
+        "x-real-ip": "172.70.1.5",
+        "cf-connecting-ip": "203.0.113.7",
+      }),
+    );
+    expect(ip).toBe("203.0.113.7");
+  });
+
+  it("gives two visitors behind one edge different keys", () => {
+    const edge = { "x-forwarded-for": "162.158.90.12" };
+    const first = getClientIP(req({ ...edge, "cf-connecting-ip": "203.0.113.7" }));
+    const second = getClientIP(req({ ...edge, "cf-connecting-ip": "198.51.100.9" }));
+    expect(first).not.toBe(second);
+  });
+
+  it("gives one visitor the same key whichever edge carried the request", () => {
+    const visitor = { "cf-connecting-ip": "203.0.113.7" };
+    const first = getClientIP(req({ ...visitor, "x-forwarded-for": "172.70.1.5" }));
+    const second = getClientIP(req({ ...visitor, "x-forwarded-for": "2606:4700::6810:1" }));
+    expect(first).toBe("203.0.113.7");
+    expect(second).toBe("203.0.113.7");
+  });
+
+  it("ignores CF-Connecting-IP on a request that reached Vercel directly", () => {
+    // Anyone can skip Cloudflare and send the header; believing it would hand
+    // out a fresh rate-limit bucket per request.
+    const ip = getClientIP(
+      req({ "x-forwarded-for": "198.51.100.9", "cf-connecting-ip": "203.0.113.7" }),
+    );
+    expect(ip).toBe("198.51.100.9");
+  });
+
+  it("keeps the edge address when Cloudflare sent no usable visitor address", () => {
+    expect(getClientIP(req({ "x-forwarded-for": "172.70.1.5" }))).toBe("172.70.1.5");
+    expect(
+      getClientIP(req({ "x-forwarded-for": "172.70.1.5", "cf-connecting-ip": "<script>" })),
+    ).toBe("172.70.1.5");
+  });
+});
+
+describe("getClientCountry — behind Cloudflare", () => {
+  it("prefers Cloudflare's country, since Vercel located the edge", () => {
+    const country = getClientCountry(
+      req({
+        "x-forwarded-for": "172.70.1.5",
+        "x-vercel-ip-country": "US",
+        "cf-ipcountry": "CN",
+      }),
+    );
+    expect(country).toBe("CN");
+  });
+
+  it("falls back to Vercel's country when Cloudflare reports unknown", () => {
+    const country = getClientCountry(
+      req({
+        "x-forwarded-for": "172.70.1.5",
+        "x-vercel-ip-country": "JP",
+        "cf-ipcountry": "XX",
+      }),
+    );
+    expect(country).toBe("JP");
+  });
+
+  it("prefers Vercel's country on a direct request", () => {
+    const country = getClientCountry(
+      req({
+        "x-forwarded-for": "198.51.100.9",
+        "x-vercel-ip-country": "US",
+        "cf-ipcountry": "CN",
+      }),
+    );
+    expect(country).toBe("US");
   });
 });
