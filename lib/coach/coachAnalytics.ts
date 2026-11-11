@@ -20,6 +20,8 @@ export interface CoachCompletedEvent extends CoachEventBase {
   outputTokens: number | null;
   totalTokens: number | null;
   usageAvailable: boolean;
+  /** The provider's finish_reason; "length" means the reply was cut off. */
+  finishReason: string | null;
 }
 
 export interface CoachFailedEvent extends CoachEventBase {

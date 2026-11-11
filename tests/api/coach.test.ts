@@ -676,7 +676,7 @@ describe("/api/coach", () => {
     expect(events).toContainEqual({ error: "upstream_error" });
   });
 
-  it("handles empty stream (no deltas, immediate done)", async () => {
+  it("answers an empty stream with an error instead of a completed reply", async () => {
     createCompletionMock.mockReturnValue({
       [Symbol.asyncIterator]() {
         return {
@@ -699,11 +699,9 @@ describe("/api/coach", () => {
 
     expect(response.status).toBe(200);
     const events = await readSse(response);
-    // No deltas — only the done event is sent. The frontend handles the
-    // "empty reply" case by showing an error to the user.
-    const deltas = events.filter((e) => e.delta);
-    expect(deltas).toHaveLength(0);
-    expect(events.some((e) => e.done)).toBe(true);
+    // No text arrived, so the call failed: the stream handler refunds it and
+    // reports `empty_reply` rather than sending `done` for a blank bubble.
+    expect(events).toEqual([{ error: "empty_reply" }]);
   });
 
   it("uses the default model when COACH_MODEL is unset", async () => {

@@ -164,6 +164,7 @@ export type EventMap = {
     outputTokens: number | null;
     totalTokens: number | null;
     usageAvailable: boolean;
+    finishReason: string | null;
   };
   /** A handled 5xx from `createApiResponse`; server-side, no person. */
   api_server_error: {

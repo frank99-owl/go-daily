@@ -314,6 +314,7 @@ export function CoachDialogue({
               timeout: t.result.coachErrorTimeout,
               rate_limit: t.result.coachErrorRateLimit,
               auth_error: t.result.coachErrorAuth,
+              empty_reply: t.result.coachErrorEmpty,
             };
             track("coach_error_shown", {
               locale,

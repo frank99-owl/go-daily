@@ -138,6 +138,8 @@ describe("coach provider on the wire", () => {
 
     expect(chunks.map((chunk) => chunk.delta).join("")).toBe("Take the vital point.");
     expect(chunks.filter((chunk) => chunk.done)).toHaveLength(2);
+    // Only the stop chunk carries the reason; content and usage chunks do not.
+    expect(chunks.map((chunk) => chunk.finishReason)).toEqual([null, null, null, "stop", null]);
     expect(chunks.at(-1)).toMatchObject({
       delta: "",
       done: true,
