@@ -12,12 +12,14 @@ if (typeof window !== "undefined") {
   );
 }
 
-type StripeConfig = NonNullable<ConstructorParameters<typeof Stripe>[1]>;
-
-// Keep in sync with the installed Stripe SDK's latest API version (see
-// node_modules/stripe/esm/apiVersion.js). Exported so every Stripe client —
-// including scripts/productionPreflight.ts — pins the same version.
-export const STRIPE_API_VERSION: StripeConfig["apiVersion"] = "2026-09-30.endive";
+// The API version the installed SDK was generated for, read from the SDK
+// instead of written out. The SDK's types accept no other value, so a literal
+// here decided nothing — it only failed the type check on every Dependabot
+// update that crossed one of Stripe's monthly releases, until someone retyped
+// it. Monthly releases are backward-compatible; a breaking API change comes
+// with a new SDK major, which is reviewed by hand. Exported so every Stripe
+// client — including scripts/productionPreflight.ts — uses the same version.
+export const STRIPE_API_VERSION = Stripe.API_VERSION;
 
 export type ProInterval = "monthly" | "yearly";
 export type ProPlan = "pro_monthly" | "pro_yearly";

@@ -6,13 +6,14 @@
  * any test. Prices and the Stripe client are cached at module scope, so each
  * test imports a fresh copy.
  */
-import type StripeType from "stripe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const stripe = vi.hoisted(() => ({ constructed: vi.fn() }));
 
 vi.mock("stripe", () => ({
   default: class {
+    static API_VERSION = "2099-01-01.sdk";
+
     constructor(key: string, options: unknown) {
       stripe.constructed(key, options);
     }
@@ -34,11 +35,11 @@ afterEach(() => {
 });
 
 describe("STRIPE_API_VERSION", () => {
-  it("matches the API version the installed SDK was generated for", async () => {
-    const { default: RealStripe } = await vi.importActual<{ default: typeof StripeType }>("stripe");
+  // Whatever version the SDK reports — so an SDK update needs no edit here.
+  it("is the API version the installed SDK was generated for", async () => {
     const { STRIPE_API_VERSION } = await freshModule();
 
-    expect(STRIPE_API_VERSION).toBe(RealStripe.API_VERSION);
+    expect(STRIPE_API_VERSION).toBe("2099-01-01.sdk");
   });
 });
 
@@ -63,7 +64,7 @@ describe("getStripeClient", () => {
 
   it("creates one client with the trimmed key and the pinned API version", async () => {
     vi.stubEnv("STRIPE_SECRET_KEY", "  sk_test_123\n");
-    const { getStripeClient, STRIPE_API_VERSION } = await freshModule();
+    const { getStripeClient } = await freshModule();
 
     const first = getStripeClient();
     const second = getStripeClient();
@@ -71,7 +72,7 @@ describe("getStripeClient", () => {
     expect(second).toBe(first);
     expect(stripe.constructed).toHaveBeenCalledOnce();
     expect(stripe.constructed).toHaveBeenCalledWith("sk_test_123", {
-      apiVersion: STRIPE_API_VERSION,
+      apiVersion: "2099-01-01.sdk",
       typescript: true,
     });
   });
