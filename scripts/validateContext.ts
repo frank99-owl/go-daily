@@ -64,6 +64,7 @@ const CRITICAL_INVARIANTS: { id: string; pattern: RegExp }[] = [
     pattern: /title\.template|%s — go-daily|Title template/,
   },
   { id: "rate limiters need a distinct test IP", pattern: /nextTestIp/ },
+  { id: "the visitor IP comes only from getClientIP", pattern: /CF-Connecting-IP/ },
   { id: "production rate limiting needs upstash", pattern: /UPSTASH_REDIS/ },
   { id: "next/og avoids z-index and runs on nodejs", pattern: /next\/og|Satori/ },
   { id: "i18n key parity", pattern: /validate:messages/ },
