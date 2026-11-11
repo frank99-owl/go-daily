@@ -38,11 +38,11 @@
 
 **成功响应**（`200`）：**Server-Sent Events**（`Content-Type: text/event-stream`）。正文为 SSE 的 `data:` 行，其中 JSON 可能为：
 
-| 载荷                                 | 含义                                                                                   |
-| ------------------------------------ | -------------------------------------------------------------------------------------- |
-| `{ "delta": "..." }`                 | 助手增量文本                                                                           |
-| `{ "done": true, "usage": { ... } }` | 结束；`usage` 为本请求**已加计一次用量后**的快照                                       |
-| `{ "error": "<code>" }`              | 流式中途失败；`<code>` 为 `upstream_error`、`timeout`、`rate_limit`、`auth_error` 之一 |
+| 载荷                                 | 含义                                                                                                                                               |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `{ "delta": "..." }`                 | 助手增量文本                                                                                                                                       |
+| `{ "done": true, "usage": { ... } }` | 结束；`usage` 为本请求**已加计一次用量后**的快照                                                                                                   |
+| `{ "error": "<code>" }`              | 流式中途失败；`<code>` 为 `upstream_error`、`timeout`、`rate_limit`、`auth_error`、`empty_reply`（模型结束时没有任何可见文字；该次调用会退还）之一 |
 
 用量在模型开始流出 token **之前**已递增；客户端中途断开仍会扣减配额。
 
@@ -223,7 +223,8 @@ Stripe Webhook 接收端。处理 `checkout.session.completed`、`customer.subsc
 **行为**:
 
 - 通过 `stripe_events` 表实现幂等性（处理前先认领事件）。
-- 将订阅状态写入 `subscriptions` 表。
+- 将订阅状态写入 `subscriptions` 表，并且始终以当时 Stripe 上的订阅为准（`subscriptions.retrieve`），不使用事件里携带的快照：Stripe 不保证事件顺序，失败的事件会重试数天，否则一个迟到的 `customer.subscription.updated` 会把已取消的订阅写回 `active`。获取失败时返回 500，由 Stripe 重试。
+- `invoice.payment_failed` 按 Stripe 返回的状态写入，不再强制写成 `past_due`。
 - 在 `checkout.session.completed` 后发送 Pro 开通 / 试用开始服务邮件。
 - 在 `invoice.payment_failed` 时发送付款失败邮件。
 - `Content-Length > 1 MB` 的请求在读取正文前即被拒绝，返回 HTTP 413。
@@ -419,6 +420,8 @@ Vercel Cron 处理器，发送每日题目提醒邮件。只发给近 30 天内�
 `MemoryRateLimiter` 对键数量上限为 50,000；超限时按插入顺序删除最旧键，并定期清理空闲键。默认：每键每 60 秒窗口内 10 次请求（可通过 `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` 覆盖）。
 
 各路由使用各自的键命名空间（`${ip}:puzzle-attempt`、`${ip}:training-level`、`${ip}:auth-device`、`coach-get:${ip}` 等），彼此不共享额度。限频在 Supabase 会话查询**之前**执行，未认证的洪水请求会被直接拒绝，不会打到数据库。
+
+这些 key 里的 `${ip}` 是 `getClientIP`（`lib/clientIp.ts`）返回的访客地址。生产环境的链路是 访客 → Cloudflare → Vercel，而 Vercel 会用「连接到它的地址」覆盖 `x-forwarded-for`，所以在代理之后这个头里是 Cloudflare 的边缘节点。因此 `getClientIP` 只在连接地址属于 Cloudflare 公布的网段时才返回 `CF-Connecting-IP`；直接打到 Vercel 的请求无论在该头里写什么，都按它自己的连接地址计。2026-11 之前限流按边缘地址计：同一边缘节点后的访客共用一个桶，同一客户端的请求又被分散到多个桶里。
 
 `getClientIP` 在没有转发头时回退为字符串 `"unknown"`。因此针对限频路由的测试必须为每个请求提供不同的 `x-forwarded-for`，否则整个测试文件会共用同一个桶——参见 `tests/api/coach.test.ts` 中的 `nextTestIp()`。
 

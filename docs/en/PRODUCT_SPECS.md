@@ -19,7 +19,7 @@ Beyond device quotas: guest coach requests also enforce an extra **per–IP-addr
 
 Logged-in browsers register or refresh their `user_devices` row through `POST /api/auth/device`. That endpoint resolves Stripe subscription state plus `manual_grants` before applying the Free or Pro device limit.
 
-`past_due` Stripe subscriptions do not keep Pro indefinitely. `lib/entitlements.ts` only treats `past_due` as Pro through `current_period_end + 7 days`; missing or expired period-end data falls back to Free unless an unexpired `manual_grants` row applies. The `/admin` Operations Snapshot reports in-grace versus expired `past_due` counts for follow-up.
+`past_due` Stripe subscriptions do not keep Pro indefinitely. `lib/entitlements.ts` only treats `past_due` as Pro through `current_period_end + 7 days`, and for a `past_due` subscription the webhook stores the last paid moment there — the start of the period Stripe has already opened for the unpaid renewal — so the grace is 7 days from the failed renewal (before 2026-11 it stored that period's end, which made the grace the whole unpaid period plus 7 days); missing or expired period-end data falls back to Free unless an unexpired `manual_grants` row applies. The `/admin` Operations Snapshot reports in-grace versus expired `past_due` counts for follow-up.
 
 ### Cache Strategy (Next.js 16)
 
@@ -62,7 +62,7 @@ Mistake reason data drives three systems: SRS quality mapping (affects review in
 
 - **Checkout**: We use Stripe Adaptive Pricing to automatically localize $4.9 USD to the appropriate JPY/KRW equivalent based on the user's IP.
 - **Webhook Idempotency**: Every Stripe event is logged in the `stripe_events` table before processing. If an event is re-delivered, the system detects the duplicate and skips processing. Webhook logic is modularized across `stripeEventStore.ts` (claiming), `stripeWebhookAnalytics.ts` (PostHog events), `stripeWebhookEmail.ts` (transactional emails), and `stripeWebhookHelpers.ts` (shared utilities).
-- **Trial Period**: A 3-day trial is mandatory for all new Pro subscriptions. Users must provide a payment method upfront (`payment_method_collection: 'always'`), which significantly increases the trial-to-paid conversion rate.
+- **Trial Period**: A 3-day trial is mandatory for all new Pro subscriptions. Users must provide a payment method upfront (`payment_method_collection: 'always'`), which significantly increases the trial-to-paid conversion rate. The trial is granted once per account: an account that already has a `subscriptions` row — it outlives a cancellation — checks out without one, and the pricing page hides the trial line for it. Before 2026-11 every checkout started a new trial, so cancelling inside the trial and subscribing again gave Pro indefinitely.
 
 ## 4. Puzzle Collections & Filtering (`lib/puzzle/puzzleCollections.ts`)
 

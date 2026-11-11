@@ -23,6 +23,8 @@ export interface CoachStreamChunk {
   model: string | null;
   /** True when this is the final chunk. */
   done: boolean;
+  /** Why generation stopped, on the chunk that reports it; "length" is a truncation. */
+  finishReason?: string | null;
 }
 
 export interface CoachProvider {
@@ -143,6 +145,7 @@ export class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
       const delta = chunk.choices[0]?.delta?.content ?? "";
       const raw = chunk.usage;
       const isLast = chunk.choices.length === 0 && raw != null;
+      const finishReason = chunk.choices[0]?.finish_reason ?? null;
       yield {
         delta,
         usage: raw
@@ -154,7 +157,8 @@ export class ManagedOpenAICompatibleCoachProvider implements CoachProvider {
             }
           : null,
         model,
-        done: isLast || chunk.choices[0]?.finish_reason != null,
+        done: isLast || finishReason != null,
+        finishReason,
       };
     }
   }

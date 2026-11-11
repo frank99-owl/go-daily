@@ -38,11 +38,11 @@
 
 **성공** (`200`): `Content-Type: text/event-stream`. SSE `data:` 한 줄당 JSON 형태는 아래와 같습니다.
 
-| 페이로드                             | 의미                                                                         |
-| ------------------------------------ | ---------------------------------------------------------------------------- |
-| `{ "delta": "..." }`                 | 조각별 어시스턴트 텍스트                                                     |
-| `{ "done": true, "usage": { ... } }` | 종료. 본 요청에서 **증가 적용 후** 할당량                                    |
-| `{ "error": "<code>" }`              | 중간 실패. `<code>`: `upstream_error`, `timeout`, `rate_limit`, `auth_error` |
+| 페이로드                             | 의미                                                                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `{ "delta": "..." }`                 | 조각별 어시스턴트 텍스트                                                                                                                          |
+| `{ "done": true, "usage": { ... } }` | 종료. 본 요청에서 **증가 적용 후** 할당량                                                                                                         |
+| `{ "error": "<code>" }`              | 중간 실패. `<code>`: `upstream_error`, `timeout`, `rate_limit`, `auth_error`, `empty_reply`(모델이 보이는 텍스트 없이 종료됨. 해당 호출은 환불됨) |
 
 스트림 시작 전에 사용량이 먼저 증가합니다. 연결을 끊어도 해당 횟수는 차감됩니다.
 
@@ -215,7 +215,8 @@ Stripe 웹훅 수신기입니다. `checkout.session.completed`, `customer.subscr
 **동작**:
 
 - `stripe_events` 테이블을 통한 멱등성 보장 (처리 전 이벤트 선점).
-- `subscriptions` 테이블에 구독 상태를 업서트.
+- `subscriptions` 테이블에 구독 상태를 업서트. 항상 그 시점에 Stripe에 있는 구독(`subscriptions.retrieve`)을 사용하며 이벤트에 담긴 스냅샷은 쓰지 않는다. Stripe는 이벤트 순서를 보장하지 않고 실패한 이벤트를 며칠 동안 재시도하므로, 늦게 도착한 `customer.subscription.updated`가 해지된 구독을 `active`로 되돌리는 것을 막기 위해서다. 조회에 실패하면 500을 반환하고 Stripe가 재시도한다.
+- `invoice.payment_failed`는 Stripe가 보고한 상태를 그대로 저장하며 `past_due`를 강제하지 않는다.
 - `checkout.session.completed` 이후 Pro 활성화 / 체험 시작 서비스 메일을 발송합니다.
 - `invoice.payment_failed` 발생 시 결제 실패 이메일 발송.
 - `Content-Length > 1 MB`인 요청은 본문 읽기 전에 HTTP 413으로 거부됩니다.
@@ -411,6 +412,8 @@ Stripe 구독 상태와 `manual_grants`로 실효 플랜을 해석한 뒤, 로�
 `MemoryRateLimiter`는 키 상한 50,000개, 초과 시 가장 먼저 들어온 키를 제거하고 주기적으로 유휴 키를 정리합니다. 기본값: 키당 60초 윈도우에 10회(`RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX`로 재정의 가능).
 
 각 라우트는 고유한 키 네임스페이스(`${ip}:puzzle-attempt`, `${ip}:training-level`, `${ip}:auth-device`, `coach-get:${ip}` 등)를 사용하여 서로 한도를 공유하지 않습니다. 속도 제한은 Supabase 세션 조회**보다 먼저** 실행되므로 미인증 요청 폭주는 DB에 도달하기 전에 차단됩니다.
+
+이 키들의 `${ip}`는 `getClientIP`(`lib/clientIp.ts`)가 반환하는 방문자 주소입니다. 프로덕션 경로는 방문자 → Cloudflare → Vercel이며, Vercel은 `x-forwarded-for`를 자신에게 연결한 주소로 덮어쓰므로 프록시 뒤에서는 이 헤더가 Cloudflare 엣지를 가리킵니다. 따라서 `getClientIP`는 연결 주소가 Cloudflare가 공개한 대역 안에 있을 때에만 `CF-Connecting-IP`를 반환합니다. Vercel로 직접 보낸 요청은 이 헤더에 무엇을 넣든 자신의 연결 주소로 처리됩니다. 2026-11 이전에는 속도 제한이 엣지 주소를 키로 사용해, 같은 엣지 뒤의 방문자들이 하나의 버킷을 공유하고 한 클라이언트의 요청은 여러 버킷으로 흩어졌습니다.
 
 `getClientIP`는 전달 헤더가 없으면 문자열 `"unknown"`을 반환합니다. 따라서 속도 제한 라우트를 대상으로 하는 테스트는 요청마다 다른 `x-forwarded-for`를 보내야 합니다(`tests/api/coach.test.ts`의 `nextTestIp()` 참조).
 

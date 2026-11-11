@@ -33,24 +33,25 @@ describe("Stripe Webhook Idempotency", () => {
     vi.clearAllMocks();
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
 
+    const subscription = {
+      id: "sub_123",
+      customer: "cus_123",
+      metadata: { user_id: "user_1" },
+      items: { data: [{ price: { id: "price_pro" } }] },
+    };
     mockStripe = {
       webhooks: {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         constructEvent: vi.fn((_body, _sig, _secret) => ({
           id: "evt_123",
           type: "customer.subscription.updated",
-          data: {
-            object: {
-              id: "sub_123",
-              customer: "cus_123",
-              metadata: { user_id: "user_1" },
-              items: { data: [{ price: { id: "price_pro" } }] },
-            },
-          },
+          data: { object: subscription },
         })),
       },
       subscriptions: {
-        retrieve: vi.fn(),
+        // The handler applies the subscription as Stripe has it now, not the
+        // snapshot in the event; here the two agree.
+        retrieve: vi.fn().mockResolvedValue(subscription),
       },
     };
     vi.mocked(getStripeClient).mockReturnValue(mockStripe);

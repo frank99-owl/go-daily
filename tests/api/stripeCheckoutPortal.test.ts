@@ -192,6 +192,27 @@ describe("Stripe subscription API routes", () => {
       expect(mocks.checkoutSessionCreate.mock.calls[0][0]).not.toHaveProperty("customer_email");
     });
 
+    // The trial is once per account: without this a user could cancel inside
+    // the trial and check out again for another one, indefinitely.
+    it.each(["canceled", "incomplete_expired", "unpaid"])(
+      "starts no second trial for an account whose subscription is %s",
+      async (status) => {
+        mocks.subscriptionQuery.mockReturnValue(
+          query({ data: { status, stripe_customer_id: "cus_existing" }, error: null }),
+        );
+
+        const response = await checkoutPOST(
+          postRequest({ path: "/api/stripe/checkout", body: { interval: "monthly" } }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(mocks.checkoutSessionCreate.mock.calls[0][0].subscription_data).toEqual({
+          trial_period_days: undefined,
+          metadata: { user_id: "user_1", plan: "pro_monthly" },
+        });
+      },
+    );
+
     it("returns 500 when existing subscription lookup fails", async () => {
       mocks.subscriptionQuery.mockReturnValue(
         query({ data: null, error: { message: "database unavailable" } }),

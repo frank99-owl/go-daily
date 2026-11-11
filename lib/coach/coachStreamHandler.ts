@@ -33,6 +33,18 @@ export interface StreamContext {
   signal?: AbortSignal;
 }
 
+/**
+ * The upstream finished without sending any visible text. A reasoning model
+ * does this when hidden reasoning uses the whole token budget — every analysis
+ * question in 2026-09 — and the stream ends normally, so nothing else notices.
+ */
+export class CoachEmptyReplyError extends Error {
+  constructor() {
+    super("coach reply was empty");
+    this.name = "CoachEmptyReplyError";
+  }
+}
+
 // ── History trimming ──────────────────────────────────────────────────
 
 export function trimHistory(
@@ -89,7 +101,7 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
 
   return new ReadableStream({
     async start(controller) {
-      // Whether any of the reply actually reached the client. Declared out
+      // Whether any visible text of the reply reached the client. Declared out
       // here so the catch block can see it — it drives the refund decision.
       let deliveredContent = false;
 
@@ -98,11 +110,13 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
 
         let tokenUsage: CoachProviderUsage | null = null;
         let modelName: string | null = null;
+        let finishReason: string | null = null;
         let firstToken = true;
 
         for await (const chunk of stream) {
           if (chunk.model) modelName = chunk.model;
           if (chunk.usage) tokenUsage = chunk.usage;
+          if (chunk.finishReason) finishReason = chunk.finishReason;
 
           if (chunk.delta) {
             if (firstToken) {
@@ -112,9 +126,14 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ delta: chunk.delta })}\n\n`),
             );
-            deliveredContent = true;
+            if (chunk.delta.trim()) deliveredContent = true;
           }
         }
+
+        // An empty reply is a failed call, not a completed one: without this
+        // the student paid a quota call for a blank bubble and analytics
+        // recorded a success.
+        if (!deliveredContent) throw new CoachEmptyReplyError();
 
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ done: true, usage: ctx.updatedUsage })}\n\n`),
@@ -134,6 +153,7 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
           outputTokens: tokenUsage?.outputTokens ?? null,
           totalTokens: tokenUsage?.totalTokens ?? null,
           usageAvailable: tokenUsage?.usageAvailable ?? false,
+          finishReason,
         });
         controller.close();
       } catch (err) {
@@ -146,7 +166,8 @@ export function createCoachSseStream(ctx: StreamContext): ReadableStream {
         if (!deliveredContent) {
           await refundUsage(ctx.isGuest, ctx.refundParams);
         }
-        const errorCode = classifySseError(error);
+        const errorCode =
+          error instanceof CoachEmptyReplyError ? "empty_reply" : classifySseError(error);
 
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorCode })}\n\n`));
 

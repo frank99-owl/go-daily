@@ -19,7 +19,7 @@ go-daily는 분산된 불리언(boolean) 체크 대신 중앙 집중식 **조회
 
 로그인한 브라우저는 `POST /api/auth/device`를 통해 자신의 `user_devices` 행을 등록하거나 갱신합니다. 이 엔드포인트는 Stripe 구독 상태와 `manual_grants`를 합친 뒤 Free / Pro 기기 제한을 적용합니다.
 
-Stripe 상태가 `past_due`인 구독은 Pro를 무기한 유지하지 않습니다. `lib/entitlements.ts`는 `current_period_end + 7일`의 유예 기간 내에만 `past_due`를 Pro로 처리합니다. 기간 만료 데이터가 누락되었거나 이 기간을 초과하면 유효한 `manual_grants`가 적용되지 않는 한 Free 플랜으로 대체됩니다. `/admin` Operations Snapshot에는 추적용 유예 기간 내 및 만료된 `past_due` 수가 보고됩니다.
+Stripe 상태가 `past_due`인 구독은 Pro를 무기한 유지하지 않습니다. `lib/entitlements.ts`는 `current_period_end + 7일`의 유예 기간 내에만 `past_due`를 Pro로 처리합니다. `past_due` 구독의 경우 webhook이 이 열에 저장하는 값은 '마지막으로 결제된 시점', 즉 미결제 갱신을 위해 Stripe가 이미 시작한 기간의 시작 시각이므로, 유예는 갱신 결제 실패로부터 7일입니다(2026-11 이전에는 그 기간의 종료 시각을 저장해 유예가 미결제 기간 전체 + 7일이 되었습니다). 기간 만료 데이터가 누락되었거나 이 기간을 초과하면 유효한 `manual_grants`가 적용되지 않는 한 Free 플랜으로 대체됩니다. `/admin` Operations Snapshot에는 추적용 유예 기간 내 및 만료된 `past_due` 수가 보고됩니다.
 
 ### 캐시 전략 (Next.js 16)
 
@@ -62,7 +62,7 @@ Stripe 없이 이메일로 Pro를 부여할 때는 `manual_grants` 테이블과 
 
 - **결제**: Stripe Adaptive Pricing을 사용하여 사용자 IP에 따라 $4.9 USD를 한국 원화(KRW) 등 적절한 현지 통화로 자동 변환합니다.
 - **웹훅 멱등성**: 모든 Stripe 이벤트는 처리 전 `stripe_events` 테이블에 기록됩니다. 이벤트가 중복 전달되면 시스템은 이를 감지하고 처리를 건너뜁니다.
-- **무료 체험**: 모든 Pro 구독에 대해 3일간의 무료 체험을 필수화했습니다. 결제 수단 사전 등록(`payment_method_collection: 'always'`)을 요구하여 유료 전환율을 극대화했습니다.
+- **무료 체험**: 모든 Pro 구독에 대해 3일간의 무료 체험을 필수화했습니다. 결제 수단 사전 등록(`payment_method_collection: 'always'`)을 요구하여 유료 전환율을 극대화했습니다. 체험은 계정당 한 번만 제공됩니다. 이미 `subscriptions` 행이 있는 계정(해지 후에도 행은 남습니다)은 체험 없이 결제되며, 요금 페이지도 체험 문구를 표시하지 않습니다. 2026-11 이전에는 결제할 때마다 새 체험이 시작되어, 체험 중 해지하고 다시 구독하면 Pro를 무기한 사용할 수 있었습니다.
 
 ## 4. 퍼즐 컬렉션 및 필터 (`lib/puzzle/puzzleCollections.ts`)
 

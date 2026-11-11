@@ -38,11 +38,11 @@ Send a user message and receive an AI coach reply as a streamed assistant messag
 
 **Success Response** (`200`): Server-Sent Events (`Content-Type: text/event-stream`). The body is SSE `data:` lines whose JSON payloads may be:
 
-| Payload                              | Meaning                                                                                              |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `{ "delta": "..." }`                 | Partial assistant text (streamed)                                                                    |
-| `{ "done": true, "usage": { ... } }` | Stream finished; `usage` is the quota snapshot **after** the increment applied for this request      |
-| `{ "error": "<code>" }`              | Stream failed mid-flight; `<code>` is one of `upstream_error`, `timeout`, `rate_limit`, `auth_error` |
+| Payload                              | Meaning                                                                                                                                                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `{ "delta": "..." }`                 | Partial assistant text (streamed)                                                                                                                                                          |
+| `{ "done": true, "usage": { ... } }` | Stream finished; `usage` is the quota snapshot **after** the increment applied for this request                                                                                            |
+| `{ "error": "<code>" }`              | Stream failed mid-flight; `<code>` is one of `upstream_error`, `timeout`, `rate_limit`, `auth_error`, or `empty_reply` (the model finished without any visible text; the call is refunded) |
 
 Counters are incremented **before** streaming begins, so aborted connections still consume quota.
 
@@ -223,7 +223,8 @@ Stripe webhook receiver. Handles `checkout.session.completed`, `customer.subscri
 **Behavior**:
 
 - Idempotency via `stripe_events` table (claims event before processing).
-- Upserts subscription state into `subscriptions` table.
+- Upserts subscription state into `subscriptions` table, always from the subscription as Stripe has it at that moment (`subscriptions.retrieve`), never from the snapshot inside the event: Stripe does not deliver events in order and retries a failed one for days, so a late `customer.subscription.updated` could otherwise write a cancelled subscription back to `active`. If the fetch fails the handler answers 500 and Stripe retries.
+- `invoice.payment_failed` stores the status Stripe reports; it does not force `past_due`.
 - Sends a Pro activation / trial-started service email after `checkout.session.completed`.
 - Sends payment-failed email on `invoice.payment_failed`.
 - Requests with `Content-Length > 1 MB` are rejected with HTTP 413 before reading the body.
@@ -419,6 +420,8 @@ Write endpoints use `createRateLimiter()`, which behaves as follows:
 `MemoryRateLimiter` caps tracked keys at 50,000; when over cap it deletes the oldest key by insertion order, and a periodic sweep drops idle keys. Default window: 10 requests per 60-second window per key (override via `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX`).
 
 Each route namespaces its own key (`${ip}:puzzle-attempt`, `${ip}:training-level`, `${ip}:auth-device`, `coach-get:${ip}`, …) so routes never share a budget. Limiters run **before** the Supabase session lookup, so an unauthenticated flood is turned away rather than proxied into the database.
+
+The `${ip}` in those keys is the visitor's address from `getClientIP` (`lib/clientIp.ts`). Production is visitor → Cloudflare → Vercel, and Vercel overwrites `x-forwarded-for` with the address that connected to it, so behind the proxy that header names a Cloudflare edge. `getClientIP` therefore returns `CF-Connecting-IP` when — and only when — the connecting address is inside Cloudflare's published ranges; a request sent straight to Vercel keeps its own connecting address, whatever it puts in that header. Until 2026-11 the limiters keyed on the edge address: visitors behind one edge shared a bucket, and one client's requests were spread over several.
 
 `getClientIP` falls back to the literal string `"unknown"` when no forwarding header is present. Tests against a rate-limited route must therefore send a distinct `x-forwarded-for` per request, or the whole file shares one bucket — see `nextTestIp()` in `tests/api/coach.test.ts`.
 

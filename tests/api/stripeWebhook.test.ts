@@ -84,6 +84,9 @@ function makeSubscription(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** When the renewal invoice was created — the start of the period it bills. */
+const RENEWAL_FAILED_AT = 1_780_000_000;
+
 function makeInvoice(overrides: Record<string, unknown> = {}) {
   return {
     parent: {
@@ -205,16 +208,16 @@ describe("/api/stripe/webhook", () => {
   });
 
   it("marks subscription events processed when the linked user has already been deleted", async () => {
+    const canceled = makeSubscription({
+      metadata: { user_id: "deleted-user" },
+      status: "canceled",
+    });
     mocks.constructEvent.mockReturnValue({
       id: "evt_deleted_user",
       type: "customer.subscription.deleted",
-      data: {
-        object: makeSubscription({
-          metadata: { user_id: "deleted-user" },
-          status: "canceled",
-        }),
-      },
+      data: { object: canceled },
     });
+    mocks.retrieveSubscription.mockResolvedValue(canceled);
 
     const existingSelectQ = query({ data: null, error: null });
     const upsertQ = query({ data: null, error: null });
@@ -247,17 +250,17 @@ describe("/api/stripe/webhook", () => {
   });
 
   it("ignores stale cancellation events from an older subscription when a newer Pro subscription exists", async () => {
+    const oldSubscription = makeSubscription({
+      id: "sub_old",
+      metadata: { user_id: "user_1" },
+      status: "canceled",
+    });
     mocks.constructEvent.mockReturnValue({
       id: "evt_stale_cancel",
       type: "customer.subscription.deleted",
-      data: {
-        object: makeSubscription({
-          id: "sub_old",
-          metadata: { user_id: "user_1" },
-          status: "canceled",
-        }),
-      },
+      data: { object: oldSubscription },
     });
+    mocks.retrieveSubscription.mockResolvedValue(oldSubscription);
 
     const existingSelectQ = query({
       data: {
@@ -371,6 +374,74 @@ describe("/api/stripe/webhook", () => {
     expect(response.status).toBe(200);
     expect(mocks.sendSubscriptionStartedEmail).not.toHaveBeenCalled();
     expect(admin.auth.admin.getUserById).not.toHaveBeenCalled();
+  });
+
+  // Stripe does not deliver events in order and retries a failed one for days.
+  describe("subscription events out of order", () => {
+    it.each(["customer.subscription.created", "customer.subscription.updated"])(
+      "writes what Stripe says now when a late %s event still says active",
+      async (type) => {
+        mocks.constructEvent.mockReturnValue({
+          id: "evt_late",
+          type,
+          data: {
+            object: makeSubscription({ metadata: { user_id: "user_1" }, status: "active" }),
+          },
+        });
+        // The subscription has been cancelled since the event was generated.
+        mocks.retrieveSubscription.mockResolvedValue(
+          makeSubscription({ metadata: { user_id: "user_1" }, status: "canceled" }),
+        );
+
+        const upsert = query({ error: null });
+        const admin = {
+          from: vi
+            .fn()
+            .mockReturnValueOnce(query({ error: null })) // stripe_events insert claim
+            .mockReturnValueOnce(
+              query({ data: { stripe_subscription_id: "sub_1", status: "canceled" }, error: null }),
+            ) // subscriptions select existing
+            .mockReturnValueOnce(upsert) // subscriptions upsert
+            .mockReturnValueOnce(query({ error: null })), // stripe_events mark processed
+        };
+        mocks.createServiceClient.mockReturnValue(admin);
+
+        const response = await POST(request());
+
+        expect(response.status).toBe(200);
+        expect(mocks.retrieveSubscription).toHaveBeenCalledWith("sub_1");
+        expect(upsert.upsert).toHaveBeenCalledWith(
+          expect.objectContaining({ user_id: "user_1", status: "canceled" }),
+          { onConflict: "user_id" },
+        );
+      },
+    );
+
+    it("answers 500 so Stripe retries when the subscription cannot be fetched", async () => {
+      mocks.constructEvent.mockReturnValue({
+        id: "evt_fetch_failed",
+        type: "customer.subscription.updated",
+        data: { object: makeSubscription({ metadata: { user_id: "user_1" } }) },
+      });
+      mocks.retrieveSubscription.mockRejectedValue(new Error("stripe unavailable"));
+
+      const released = query({ error: null });
+      const admin = {
+        from: vi
+          .fn()
+          .mockReturnValueOnce(query({ error: null })) // stripe_events insert claim
+          .mockReturnValueOnce(released), // stripe_events release failed claim
+      };
+      mocks.createServiceClient.mockReturnValue(admin);
+
+      const response = await POST(request());
+
+      expect(response.status).toBe(500);
+      await expect(response.json()).resolves.toEqual({ error: "handler_failed" });
+      expect(released.update).toHaveBeenCalledWith(
+        expect.objectContaining({ processing_started_at: null, last_error: "stripe unavailable" }),
+      );
+    });
   });
 
   describe("invoice.paid", () => {
@@ -533,14 +604,28 @@ describe("/api/stripe/webhook", () => {
   });
 
   describe("invoice.payment_failed", () => {
-    it("marks the subscription past_due and sends a billing portal email", async () => {
+    it("stores the past_due subscription as paid through the failed renewal and sends a billing portal email", async () => {
       mocks.constructEvent.mockReturnValue({
         id: "evt_invoice_failed",
         type: "invoice.payment_failed",
         data: { object: makeInvoice() },
       });
+      // Stripe opened the next period when it created the renewal invoice, so
+      // the period end is a month away although nothing was collected.
       mocks.retrieveSubscription.mockResolvedValue(
-        makeSubscription({ metadata: { user_id: "user_1" }, status: "active" }),
+        makeSubscription({
+          metadata: { user_id: "user_1" },
+          status: "past_due",
+          items: {
+            data: [
+              {
+                price: { id: "price_monthly", recurring: { interval: "month" } },
+                current_period_start: RENEWAL_FAILED_AT,
+                current_period_end: RENEWAL_FAILED_AT + 30 * 86_400,
+              },
+            ],
+          },
+        }),
       );
 
       const existingSelect = query({
@@ -583,6 +668,7 @@ describe("/api/stripe/webhook", () => {
         expect.objectContaining({
           user_id: "user_1",
           status: "past_due",
+          current_period_end: new Date(RENEWAL_FAILED_AT * 1000).toISOString(),
           first_paid_at: "2026-05-12T00:00:00.000Z",
           coach_anchor_day: 12,
         }),
@@ -606,6 +692,52 @@ describe("/api/stripe/webhook", () => {
           interval: "monthly",
         }),
       });
+    });
+
+    // The handler used to write `past_due` whatever Stripe said.
+    it.each([
+      ["a first payment that failed, which was never paid for", "incomplete"],
+      ["a subscription that recovered before this event was retried", "active"],
+    ])("keeps Stripe's status for %s", async (_label, status) => {
+      mocks.constructEvent.mockReturnValue({
+        id: "evt_invoice_failed_status",
+        type: "invoice.payment_failed",
+        data: { object: makeInvoice() },
+      });
+      mocks.retrieveSubscription.mockResolvedValue(
+        makeSubscription({ metadata: { user_id: "user_1" }, status }),
+      );
+
+      const upsert = query({ error: null });
+      const admin = {
+        auth: {
+          admin: {
+            getUserById: vi.fn().mockResolvedValue({
+              data: { user: { email: "user@example.com" } },
+              error: null,
+            }),
+          },
+        },
+        from: vi
+          .fn()
+          .mockReturnValueOnce(query({ error: null })) // stripe_events insert claim
+          .mockReturnValueOnce(query({ data: null, error: null })) // subscriptions select existing
+          .mockReturnValueOnce(upsert) // subscriptions upsert
+          .mockReturnValueOnce(query({ data: { email_opt_out: true }, error: null })) // profiles
+          .mockReturnValueOnce(query({ error: null })), // stripe_events mark processed
+      };
+      mocks.createServiceClient.mockReturnValue(admin);
+
+      const response = await POST(request());
+
+      expect(response.status).toBe(200);
+      expect(upsert.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status,
+          current_period_end: new Date(1_777_000_000 * 1000).toISOString(),
+        }),
+        { onConflict: "user_id" },
+      );
     });
 
     it("does not send billing email when the profile is opted out", async () => {

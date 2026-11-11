@@ -40,6 +40,8 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   let viewerPlan: ViewerPlan = "guest";
   let hasBillingPortal = false;
+  // Checkout grants the trial only to an account with no subscription history.
+  let trialAvailable = true;
 
   try {
     const supabase = await createClient();
@@ -68,6 +70,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         email: user.email,
       });
       hasBillingPortal = Boolean(subscription?.stripe_customer_id);
+      trialAvailable = !subscription;
     }
   } catch (error) {
     console.error("[pricing] supabase check failed", error);
@@ -75,7 +78,12 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-16 pt-24 sm:px-6 sm:pt-32">
-      <PricingClient viewerPlan={viewerPlan} locale={locale} hasBillingPortal={hasBillingPortal} />
+      <PricingClient
+        viewerPlan={viewerPlan}
+        locale={locale}
+        hasBillingPortal={hasBillingPortal}
+        trialAvailable={trialAvailable}
+      />
     </div>
   );
 }

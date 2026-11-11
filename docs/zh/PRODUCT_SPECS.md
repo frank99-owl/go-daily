@@ -19,7 +19,7 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 已登录浏览器通过 `POST /api/auth/device` 登记或刷新自己的 `user_devices` 记录。该端点会先合并 Stripe 订阅状态与 `manual_grants`，再执行 Free / Pro 设备限制。
 
-Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts` 只在 `current_period_end + 7 天`的宽限窗口内继续按 Pro 解析；缺失或超过该窗口的 `past_due` 会回落到 Free（除非存在有效 `manual_grants`）。`/admin` 的 Operations Snapshot 会显示 `past_due` 宽限内与已过期数量，便于运营处理坏账。
+Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts` 只在 `current_period_end + 7 天`的宽限窗口内继续按 Pro 解析，而对 `past_due` 的订阅，webhook 在该字段写入的是「最后已付费的时刻」，即 Stripe 为这次未付的续费已经开启的周期的起点，所以宽限期是从续费扣款失败起 7 天（2026-11 之前写入的是该周期的结束时间，宽限期因此变成整个未付周期再加 7 天）；缺失或超过该窗口的 `past_due` 会回落到 Free（除非存在有效 `manual_grants`）。`/admin` 的 Operations Snapshot 会显示 `past_due` 宽限内与已过期数量，便于运营处理坏账。
 
 ### 缓存策略 (Next.js 16)
 
@@ -62,7 +62,7 @@ Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts`
 
 - **结账**：使用 Stripe Adaptive Pricing，根据用户 IP 自动将 $4.9 USD 转换为相应的本地货币（如 日元/韩元）。
 - **幂等处理**：每个 Stripe 事件在处理前都会记录在 `stripe_events` 表中。如果事件被重复投递，系统将跳过处理。
-- **试用期**：所有 Pro 订阅强制执行 3 天试用，并要求预先提供支付方式，以最大化转化率。
+- **试用期**：所有 Pro 订阅强制执行 3 天试用，并要求预先提供支付方式，以最大化转化率。试用每个账号只有一次：已有 `subscriptions` 记录的账号（取消后记录仍在）再次结账时不再有试用，定价页也不再对它显示试用说明。2026-11 之前每次结账都会开始新的试用，所以在试用期内取消再重新订阅，就能一直免费使用 Pro。
 
 ## 4. 题库集合与筛选 (`lib/puzzle/puzzleCollections.ts`)
 

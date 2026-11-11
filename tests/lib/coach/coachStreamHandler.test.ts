@@ -242,7 +242,58 @@ describe("createCoachSseStream completed event", () => {
       outputTokens: null,
       totalTokens: null,
       usageAvailable: false,
+      finishReason: null,
     });
+  });
+
+  it("reports why generation stopped, so a truncated reply is visible", async () => {
+    mocks.replyStream.mockImplementation(async function* () {
+      yield { delta: "Take the vital", usage: null, model: null, done: false };
+      yield { delta: "", usage: null, model: null, done: true, finishReason: "length" };
+    });
+    await new Response(createCoachSseStream(ctx)).text();
+
+    expect(completedProperties().finishReason).toBe("length");
+  });
+});
+
+// A reasoning model that spends its whole token budget on hidden reasoning ends
+// the stream normally with no text. Until 2026-11 that counted as a completed
+// call: the quota was spent, `done` was sent, and PostHog recorded a success.
+describe("createCoachSseStream empty reply", () => {
+  beforeEach(() => {
+    mocks.captureServerEvent.mockReset();
+    mocks.captureServerEvent.mockResolvedValue(undefined);
+    mocks.refundUsage.mockClear();
+    mocks.replyStream.mockReset();
+  });
+
+  const events = () =>
+    mocks.captureServerEvent.mock.calls.map(
+      ([arg]) => arg as { event: string; properties: { errorCode?: string } },
+    );
+
+  it.each([
+    ["no text at all", chunks()],
+    ["only whitespace", chunks("\n", "  ")],
+  ])("refunds the call and reports a failure when the reply is %s", async (_label, stream) => {
+    mocks.replyStream.mockImplementation(stream);
+    const received = await new Response(createCoachSseStream(ctx)).text();
+
+    expect(received).toContain('"error":"empty_reply"');
+    expect(received).not.toContain('"done":true');
+    expect(mocks.refundUsage).toHaveBeenCalledOnce();
+    expect(events().map((event) => event.event)).toEqual(["coach_request_failed"]);
+    expect(events()[0].properties.errorCode).toBe("empty_reply");
+  });
+
+  it("keeps the charge when text was delivered", async () => {
+    mocks.replyStream.mockImplementation(chunks("Take the vital point."));
+    const received = await new Response(createCoachSseStream(ctx)).text();
+
+    expect(received).toContain('"done":true');
+    expect(mocks.refundUsage).not.toHaveBeenCalled();
+    expect(events().map((event) => event.event)).toEqual(["coach_request_completed"]);
   });
 });
 

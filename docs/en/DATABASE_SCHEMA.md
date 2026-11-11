@@ -83,19 +83,19 @@ Per-user daily AI coach usage counter.
 
 Stripe subscription state. Written exclusively by webhook handler.
 
-| Column                   | Type          | Constraints               | Description                                            |
-| ------------------------ | ------------- | ------------------------- | ------------------------------------------------------ |
-| `user_id`                | `uuid`        | PK, FK → `auth.users(id)` | Owner                                                  |
-| `stripe_customer_id`     | `text`        | NOT NULL                  | Stripe customer ID                                     |
-| `stripe_subscription_id` | `text`        | NOT NULL                  | Stripe subscription ID                                 |
-| `plan`                   | `text`        | NOT NULL                  | Plan identifier (e.g. `pro_monthly`)                   |
-| `status`                 | `text`        | NOT NULL                  | Stripe status (`active`, `trialing`, `canceled`, etc.) |
-| `current_period_end`     | `timestamptz` | nullable                  | When current billing period ends                       |
-| `cancel_at_period_end`   | `boolean`     | NOT NULL, DEFAULT `false` | Scheduled cancellation                                 |
-| `trial_end`              | `timestamptz` | nullable                  | When trial period ends                                 |
-| `first_paid_at`          | `timestamptz` | nullable                  | Timestamp of first successful payment                  |
-| `coach_anchor_day`       | `integer`     | CHECK (1–31)              | Billing cycle anchor day for coach quota window        |
-| `updated_at`             | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                                      |
+| Column                   | Type          | Constraints               | Description                                                                                   |
+| ------------------------ | ------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| `user_id`                | `uuid`        | PK, FK → `auth.users(id)` | Owner                                                                                         |
+| `stripe_customer_id`     | `text`        | NOT NULL                  | Stripe customer ID                                                                            |
+| `stripe_subscription_id` | `text`        | NOT NULL                  | Stripe subscription ID                                                                        |
+| `plan`                   | `text`        | NOT NULL                  | Plan identifier (e.g. `pro_monthly`)                                                          |
+| `status`                 | `text`        | NOT NULL                  | Stripe status (`active`, `trialing`, `canceled`, etc.)                                        |
+| `current_period_end`     | `timestamptz` | nullable                  | Paid through: the billing period's end, or its start while `past_due` (the renewal is unpaid) |
+| `cancel_at_period_end`   | `boolean`     | NOT NULL, DEFAULT `false` | Scheduled cancellation                                                                        |
+| `trial_end`              | `timestamptz` | nullable                  | When trial period ends                                                                        |
+| `first_paid_at`          | `timestamptz` | nullable                  | Timestamp of first successful payment                                                         |
+| `coach_anchor_day`       | `integer`     | CHECK (1–31)              | Billing cycle anchor day for coach quota window                                               |
+| `updated_at`             | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                                                                             |
 
 **Index**: `subscriptions_customer_idx` on `(stripe_customer_id)`
 

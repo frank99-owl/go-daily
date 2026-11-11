@@ -63,6 +63,26 @@ describe("PricingClient", () => {
     });
   });
 
+  // Checkout grants the trial once per account, so the page must not promise
+  // it to someone who will be charged at once.
+  describe("trial line", () => {
+    it("shows the trial to an account that has never subscribed", () => {
+      renderPricing("free");
+      expect(screen.getByText("包含 3 天银行卡试用期。")).toBeTruthy();
+    });
+
+    it("hides the trial from an account that has subscribed before", () => {
+      render(
+        <LocaleProvider initialLocale="zh">
+          <PricingClient viewerPlan="free" locale="zh" hasBillingPortal trialAvailable={false} />
+        </LocaleProvider>,
+      );
+      expect(screen.queryByText("包含 3 天银行卡试用期。")).toBeNull();
+      // The plan is still on offer, only without the trial.
+      expect(screen.getByRole("button", { name: /开始月付计划/ })).toBeTruthy();
+    });
+  });
+
   describe("guest", () => {
     it("renders the sign-in CTA pointing back to the localized pricing page", () => {
       renderPricing("guest");
