@@ -19,7 +19,7 @@ go-daily 使用集中的**查找表 (Lookup Table)** 来管理权限，而非分
 
 已登录浏览器通过 `POST /api/auth/device` 登记或刷新自己的 `user_devices` 记录。该端点会先合并 Stripe 订阅状态与 `manual_grants`，再执行 Free / Pro 设备限制。
 
-Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts` 只在 `current_period_end + 7 天`的宽限窗口内继续按 Pro 解析；缺失或超过该窗口的 `past_due` 会回落到 Free（除非存在有效 `manual_grants`）。`/admin` 的 Operations Snapshot 会显示 `past_due` 宽限内与已过期数量，便于运营处理坏账。
+Stripe 状态为 `past_due` 时不会无限期保留 Pro。`lib/entitlements.ts` 只在 `current_period_end + 7 天`的宽限窗口内继续按 Pro 解析，而对 `past_due` 的订阅，webhook 在该字段写入的是「最后已付费的时刻」，即 Stripe 为这次未付的续费已经开启的周期的起点，所以宽限期是从续费扣款失败起 7 天（2026-11 之前写入的是该周期的结束时间，宽限期因此变成整个未付周期再加 7 天）；缺失或超过该窗口的 `past_due` 会回落到 Free（除非存在有效 `manual_grants`）。`/admin` 的 Operations Snapshot 会显示 `past_due` 宽限内与已过期数量，便于运营处理坏账。
 
 ### 缓存策略 (Next.js 16)
 

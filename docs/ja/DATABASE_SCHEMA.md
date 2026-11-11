@@ -83,19 +83,19 @@
 
 Stripe のサブスクリプション状態。Webhook ハンドラーによってのみ書き込まれます。
 
-| カラム                   | 型            | 制約                      | 説明                                                       |
-| ------------------------ | ------------- | ------------------------- | ---------------------------------------------------------- |
-| `user_id`                | `uuid`        | PK, FK → `auth.users(id)` | オーナー                                                   |
-| `stripe_customer_id`     | `text`        | NOT NULL                  | Stripe カスタマー ID                                       |
-| `stripe_subscription_id` | `text`        | NOT NULL                  | Stripe サブスクリプション ID                               |
-| `plan`                   | `text`        | NOT NULL                  | プラン識別子（例: `pro_monthly`）                          |
-| `status`                 | `text`        | NOT NULL                  | Stripe ステータス（`active`, `trialing`, `canceled` など） |
-| `current_period_end`     | `timestamptz` | nullable                  | 現在の請求期間の終了日時                                   |
-| `cancel_at_period_end`   | `boolean`     | NOT NULL, DEFAULT `false` | 期間終了時のキャンセル予約                                 |
-| `trial_end`              | `timestamptz` | nullable                  | トライアル期間の終了日時                                   |
-| `first_paid_at`          | `timestamptz` | nullable                  | 初回決済完了タイムスタンプ                                 |
-| `coach_anchor_day`       | `integer`     | CHECK (1–31)              | コーチ割り当てウィンドウの請求サイクル基準日               |
-| `updated_at`             | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                                          |
+| カラム                   | 型            | 制約                      | 説明                                                                                      |
+| ------------------------ | ------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
+| `user_id`                | `uuid`        | PK, FK → `auth.users(id)` | オーナー                                                                                  |
+| `stripe_customer_id`     | `text`        | NOT NULL                  | Stripe カスタマー ID                                                                      |
+| `stripe_subscription_id` | `text`        | NOT NULL                  | Stripe サブスクリプション ID                                                              |
+| `plan`                   | `text`        | NOT NULL                  | プラン識別子（例: `pro_monthly`）                                                         |
+| `status`                 | `text`        | NOT NULL                  | Stripe ステータス（`active`, `trialing`, `canceled` など）                                |
+| `current_period_end`     | `timestamptz` | nullable                  | 支払い済みの期限：請求期間の終了日時。`past_due` の間はその期間の開始時刻（更新が未払い） |
+| `cancel_at_period_end`   | `boolean`     | NOT NULL, DEFAULT `false` | 期間終了時のキャンセル予約                                                                |
+| `trial_end`              | `timestamptz` | nullable                  | トライアル期間の終了日時                                                                  |
+| `first_paid_at`          | `timestamptz` | nullable                  | 初回決済完了タイムスタンプ                                                                |
+| `coach_anchor_day`       | `integer`     | CHECK (1–31)              | コーチ割り当てウィンドウの請求サイクル基準日                                              |
+| `updated_at`             | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                                                                         |
 
 **インデックス**: `subscriptions_customer_idx`: `(stripe_customer_id)`
 

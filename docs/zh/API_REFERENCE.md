@@ -223,7 +223,8 @@ Stripe Webhook 接收端。处理 `checkout.session.completed`、`customer.subsc
 **行为**:
 
 - 通过 `stripe_events` 表实现幂等性（处理前先认领事件）。
-- 将订阅状态写入 `subscriptions` 表。
+- 将订阅状态写入 `subscriptions` 表，并且始终以当时 Stripe 上的订阅为准（`subscriptions.retrieve`），不使用事件里携带的快照：Stripe 不保证事件顺序，失败的事件会重试数天，否则一个迟到的 `customer.subscription.updated` 会把已取消的订阅写回 `active`。获取失败时返回 500，由 Stripe 重试。
+- `invoice.payment_failed` 按 Stripe 返回的状态写入，不再强制写成 `past_due`。
 - 在 `checkout.session.completed` 后发送 Pro 开通 / 试用开始服务邮件。
 - 在 `invoice.payment_failed` 时发送付款失败邮件。
 - `Content-Length > 1 MB` 的请求在读取正文前即被拒绝，返回 HTTP 413。

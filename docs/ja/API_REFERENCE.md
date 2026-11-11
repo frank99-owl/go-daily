@@ -215,7 +215,8 @@ Stripe Webhook受信エンドポイント。`checkout.session.completed`、`cust
 **動作**:
 
 - `stripe_events`テーブルによる冪等性担保（処理前にイベントをクレームする）。
-- サブスクリプション状態を`subscriptions`テーブルにupsertする。
+- サブスクリプション状態を`subscriptions`テーブルにupsertする。常にその時点の Stripe 上のサブスクリプション（`subscriptions.retrieve`）を使い、イベント内のスナップショットは使わない。Stripe はイベントの順序を保証せず、失敗したイベントを数日間再試行するため、遅れて届いた `customer.subscription.updated` が解約済みのサブスクリプションを `active` に戻してしまうのを防ぐ。取得に失敗した場合は 500 を返し、Stripe が再試行する。
+- `invoice.payment_failed` は Stripe が返すステータスをそのまま保存し、`past_due` を強制しない。
 - `checkout.session.completed` 後に Pro 有効化 / トライアル開始のサービスメールを送信する。
 - `invoice.payment_failed`時に支払い失敗メールを送信する。
 - `Content-Length > 1 MB`のリクエストはボディ読み込み前にHTTP 413で拒否される。

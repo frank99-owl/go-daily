@@ -83,19 +83,19 @@
 
 Stripe 구독 상태. 웹훅 핸들러에 의해서만 기록됩니다.
 
-| 컬럼                     | 타입          | 제약 조건                 | 설명                                             |
-| ------------------------ | ------------- | ------------------------- | ------------------------------------------------ |
-| `user_id`                | `uuid`        | PK, FK → `auth.users(id)` | 소유자                                           |
-| `stripe_customer_id`     | `text`        | NOT NULL                  | Stripe 고객 ID                                   |
-| `stripe_subscription_id` | `text`        | NOT NULL                  | Stripe 구독 ID                                   |
-| `plan`                   | `text`        | NOT NULL                  | 플랜 식별자(예: `pro_monthly`)                   |
-| `status`                 | `text`        | NOT NULL                  | Stripe 상태(`active`, `trialing`, `canceled` 등) |
-| `current_period_end`     | `timestamptz` | nullable                  | 현재 결제 기간 종료 시각                         |
-| `cancel_at_period_end`   | `boolean`     | NOT NULL, DEFAULT `false` | 기간 종료 시 예약된 해지 여부                    |
-| `trial_end`              | `timestamptz` | nullable                  | 체험 기간 종료 시각                              |
-| `first_paid_at`          | `timestamptz` | nullable                  | 최초 결제 성공 시각                              |
-| `coach_anchor_day`       | `integer`     | CHECK (1–31)              | 코치 할당량 기산일(결제 주기 앵커)               |
-| `updated_at`             | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                                |
+| 컬럼                     | 타입          | 제약 조건                 | 설명                                                                                      |
+| ------------------------ | ------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
+| `user_id`                | `uuid`        | PK, FK → `auth.users(id)` | 소유자                                                                                    |
+| `stripe_customer_id`     | `text`        | NOT NULL                  | Stripe 고객 ID                                                                            |
+| `stripe_subscription_id` | `text`        | NOT NULL                  | Stripe 구독 ID                                                                            |
+| `plan`                   | `text`        | NOT NULL                  | 플랜 식별자(예: `pro_monthly`)                                                            |
+| `status`                 | `text`        | NOT NULL                  | Stripe 상태(`active`, `trialing`, `canceled` 등)                                          |
+| `current_period_end`     | `timestamptz` | nullable                  | 결제 완료 기한: 결제 기간 종료 시각. `past_due` 동안에는 그 기간의 시작 시각(갱신 미결제) |
+| `cancel_at_period_end`   | `boolean`     | NOT NULL, DEFAULT `false` | 기간 종료 시 예약된 해지 여부                                                             |
+| `trial_end`              | `timestamptz` | nullable                  | 체험 기간 종료 시각                                                                       |
+| `first_paid_at`          | `timestamptz` | nullable                  | 최초 결제 성공 시각                                                                       |
+| `coach_anchor_day`       | `integer`     | CHECK (1–31)              | 코치 할당량 기산일(결제 주기 앵커)                                                        |
+| `updated_at`             | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                                                                         |
 
 **인덱스**: `subscriptions_customer_idx`: `(stripe_customer_id)`
 

@@ -223,7 +223,8 @@ Stripe webhook receiver. Handles `checkout.session.completed`, `customer.subscri
 **Behavior**:
 
 - Idempotency via `stripe_events` table (claims event before processing).
-- Upserts subscription state into `subscriptions` table.
+- Upserts subscription state into `subscriptions` table, always from the subscription as Stripe has it at that moment (`subscriptions.retrieve`), never from the snapshot inside the event: Stripe does not deliver events in order and retries a failed one for days, so a late `customer.subscription.updated` could otherwise write a cancelled subscription back to `active`. If the fetch fails the handler answers 500 and Stripe retries.
+- `invoice.payment_failed` stores the status Stripe reports; it does not force `past_due`.
 - Sends a Pro activation / trial-started service email after `checkout.session.completed`.
 - Sends payment-failed email on `invoice.payment_failed`.
 - Requests with `Content-Length > 1 MB` are rejected with HTTP 413 before reading the body.

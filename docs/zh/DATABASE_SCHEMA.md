@@ -83,19 +83,19 @@
 
 Stripe 订阅状态。仅由 Webhook 处理器写入。
 
-| 列名                     | 类型          | 约束                      | 说明                                               |
-| ------------------------ | ------------- | ------------------------- | -------------------------------------------------- |
-| `user_id`                | `uuid`        | PK, FK → `auth.users(id)` | 所有者                                             |
-| `stripe_customer_id`     | `text`        | NOT NULL                  | Stripe 客户 ID                                     |
-| `stripe_subscription_id` | `text`        | NOT NULL                  | Stripe 订阅 ID                                     |
-| `plan`                   | `text`        | NOT NULL                  | 计划标识（如 `pro_monthly`）                       |
-| `status`                 | `text`        | NOT NULL                  | Stripe 状态（`active`、`trialing`、`canceled` 等） |
-| `current_period_end`     | `timestamptz` | 可空                      | 当前计费周期结束时间                               |
-| `cancel_at_period_end`   | `boolean`     | NOT NULL, DEFAULT `false` | 是否计划取消                                       |
-| `trial_end`              | `timestamptz` | 可空                      | 试用期结束时间                                     |
-| `first_paid_at`          | `timestamptz` | 可空                      | 首次成功付款时间戳                                 |
-| `coach_anchor_day`       | `integer`     | CHECK (1–31)              | 教练配额窗口的计费锚定日                           |
-| `updated_at`             | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                                  |
+| 列名                     | 类型          | 约束                      | 说明                                                                    |
+| ------------------------ | ------------- | ------------------------- | ----------------------------------------------------------------------- |
+| `user_id`                | `uuid`        | PK, FK → `auth.users(id)` | 所有者                                                                  |
+| `stripe_customer_id`     | `text`        | NOT NULL                  | Stripe 客户 ID                                                          |
+| `stripe_subscription_id` | `text`        | NOT NULL                  | Stripe 订阅 ID                                                          |
+| `plan`                   | `text`        | NOT NULL                  | 计划标识（如 `pro_monthly`）                                            |
+| `status`                 | `text`        | NOT NULL                  | Stripe 状态（`active`、`trialing`、`canceled` 等）                      |
+| `current_period_end`     | `timestamptz` | 可空                      | 已付费至：计费周期结束时间；`past_due` 时为该周期的起点（续费尚未付款） |
+| `cancel_at_period_end`   | `boolean`     | NOT NULL, DEFAULT `false` | 是否计划取消                                                            |
+| `trial_end`              | `timestamptz` | 可空                      | 试用期结束时间                                                          |
+| `first_paid_at`          | `timestamptz` | 可空                      | 首次成功付款时间戳                                                      |
+| `coach_anchor_day`       | `integer`     | CHECK (1–31)              | 教练配额窗口的计费锚定日                                                |
+| `updated_at`             | `timestamptz` | NOT NULL, DEFAULT `now()` | —                                                                       |
 
 **索引**: `subscriptions_customer_idx` on `(stripe_customer_id)`
 

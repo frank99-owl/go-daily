@@ -19,7 +19,7 @@ Beyond device quotas: guest coach requests also enforce an extra **per–IP-addr
 
 Logged-in browsers register or refresh their `user_devices` row through `POST /api/auth/device`. That endpoint resolves Stripe subscription state plus `manual_grants` before applying the Free or Pro device limit.
 
-`past_due` Stripe subscriptions do not keep Pro indefinitely. `lib/entitlements.ts` only treats `past_due` as Pro through `current_period_end + 7 days`; missing or expired period-end data falls back to Free unless an unexpired `manual_grants` row applies. The `/admin` Operations Snapshot reports in-grace versus expired `past_due` counts for follow-up.
+`past_due` Stripe subscriptions do not keep Pro indefinitely. `lib/entitlements.ts` only treats `past_due` as Pro through `current_period_end + 7 days`, and for a `past_due` subscription the webhook stores the last paid moment there — the start of the period Stripe has already opened for the unpaid renewal — so the grace is 7 days from the failed renewal (before 2026-11 it stored that period's end, which made the grace the whole unpaid period plus 7 days); missing or expired period-end data falls back to Free unless an unexpired `manual_grants` row applies. The `/admin` Operations Snapshot reports in-grace versus expired `past_due` counts for follow-up.
 
 ### Cache Strategy (Next.js 16)
 

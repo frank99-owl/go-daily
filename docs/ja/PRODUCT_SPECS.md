@@ -19,7 +19,7 @@ go-daily では、分散したブール値チェックではなく、集中管�
 
 ログイン中のブラウザは `POST /api/auth/device` を通じて `user_devices` 行を登録または更新します。このエンドポイントは Stripe の購読状態と `manual_grants` を合成してから、Free / Pro の端末制限を適用します。
 
-Stripe のステータスが `past_due` のサブスクリプションは、無期限に Pro が維持されるわけではありません。`lib/entitlements.ts` は、`current_period_end + 7 日間` の猶予期間内に限り `past_due` を Pro として扱います。期間終了データが欠落しているか、またはこの期間を過ぎた場合は、有効な `manual_grants` が適用されない限り Free にフォールバックします。`/admin` の Operations Snapshot には、追跡用の猶予期間内および期限切れの `past_due` 数が表示されます。
+Stripe のステータスが `past_due` のサブスクリプションは、無期限に Pro が維持されるわけではありません。`lib/entitlements.ts` は、`current_period_end + 7 日間` の猶予期間内に限り `past_due` を Pro として扱います。`past_due` のサブスクリプションについて webhook がこの列に保存するのは「最後に支払い済みの時点」、つまり未払いの更新のために Stripe がすでに開始した期間の開始時刻なので、猶予は更新の支払い失敗から 7 日間です（2026-11 以前はその期間の終了時刻を保存していたため、猶予が未払い期間全体 + 7 日になっていました）。期間終了データが欠落しているか、またはこの期間を過ぎた場合は、有効な `manual_grants` が適用されない限り Free にフォールバックします。`/admin` の Operations Snapshot には、追跡用の猶予期間内および期限切れの `past_due` 数が表示されます。
 
 ### キャッシュ戦略 (Next.js 16)
 

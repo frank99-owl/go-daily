@@ -215,7 +215,8 @@ Stripe 웹훅 수신기입니다. `checkout.session.completed`, `customer.subscr
 **동작**:
 
 - `stripe_events` 테이블을 통한 멱등성 보장 (처리 전 이벤트 선점).
-- `subscriptions` 테이블에 구독 상태를 업서트.
+- `subscriptions` 테이블에 구독 상태를 업서트. 항상 그 시점에 Stripe에 있는 구독(`subscriptions.retrieve`)을 사용하며 이벤트에 담긴 스냅샷은 쓰지 않는다. Stripe는 이벤트 순서를 보장하지 않고 실패한 이벤트를 며칠 동안 재시도하므로, 늦게 도착한 `customer.subscription.updated`가 해지된 구독을 `active`로 되돌리는 것을 막기 위해서다. 조회에 실패하면 500을 반환하고 Stripe가 재시도한다.
+- `invoice.payment_failed`는 Stripe가 보고한 상태를 그대로 저장하며 `past_due`를 강제하지 않는다.
 - `checkout.session.completed` 이후 Pro 활성화 / 체험 시작 서비스 메일을 발송합니다.
 - `invoice.payment_failed` 발생 시 결제 실패 이메일 발송.
 - `Content-Length > 1 MB`인 요청은 본문 읽기 전에 HTTP 413으로 거부됩니다.
