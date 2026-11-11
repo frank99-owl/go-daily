@@ -87,10 +87,6 @@ scripts/anonymizePuzzles.ts
 data_pipeline/
 temp_sources/
 
-# Tauri desktop build artifacts
-desktop/src-tauri/target/
-desktop/src-tauri/gen/
-
 # Playwright
 /test-results/
 /playwright-report/

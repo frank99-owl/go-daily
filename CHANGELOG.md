@@ -8,6 +8,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning adher
 
 ## [Unreleased]
 
+### Removed
+
+- **macOS desktop app (2026-11-11)**: the Tauri shell in `desktop/` is gone. It had 9 downloads in four and a half months and every Tauri or crate update had to be verified against a real desktop build. The About page no longer shows the download section, the `about.download` keys are removed from all four locale files, and the `cargo` entry in `dependabot.yml` plus the Tauri ignore rules in `.gitignore` and `eslint.config.mjs` go with it. The `desktop-v1.3.0` GitHub release and its tag are deleted as well.
+
 ### Changed
 
 - **The uptime probe is not a real-time monitor (2026-11-05)**: the workflow was documented as probing production every 30 minutes, but GitHub runs schedules best-effort — from 2026-10-28 to 2026-11-04 the `*/30` schedule fired 29 times in about 330 slots, with gaps up to 10.5 hours, so an outage could go unreported for most of a day. The schedule now runs at minutes 13 and 43, away from the top of the hour where GitHub delays and drops runs first, and `uptime.yml`, `CLAUDE.md`, `AGENTS.md` and the four `OPERATIONS_QA.md` files say how often it actually runs. A quiet issue list is not proof the site was up; an external monitor would be needed for minute-level detection.
