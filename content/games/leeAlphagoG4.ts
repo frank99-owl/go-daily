@@ -8,5 +8,5 @@ export const LEE_ALPHAGO_G4_META = {
   white: "Lee Sedol (9p)",
   result: "W+R",
   godMoveNumber: 78, // Famous wedge ("Divine Move") at L11 — White plays ki (move 78).
-  totalMoves: 176,
+  totalMoves: 180, // AlphaGo resigned after White's 180th move.
 };
