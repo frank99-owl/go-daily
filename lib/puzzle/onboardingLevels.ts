@@ -20,7 +20,9 @@ export function isOnboardingLevel(value: string | undefined): value is Onboardin
 
 export function parseOnboardingLevel(value: string | null | undefined): OnboardingLevel | null {
   if (!value) return null;
-  if (LEGACY_ONBOARDING_LEVELS[value]) return LEGACY_ONBOARDING_LEVELS[value];
+  if (Object.hasOwn(LEGACY_ONBOARDING_LEVELS, value)) {
+    return LEGACY_ONBOARDING_LEVELS[value]!;
+  }
   return isOnboardingLevel(value) ? value : null;
 }
 
